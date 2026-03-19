@@ -7,14 +7,371 @@
     goals: 'smartswing_goals',
     drillAssignments: 'smartswing_drill_assignments',
     progressEvents: 'smartswing_progress_events',
+    reportUsage: 'smartswing_report_usage',
     lastSession: 'smartswing_last_session',
-    supabaseConfig: 'smartswing_supabase_config'
+    supabaseConfig: 'smartswing_supabase_config',
+    autoSessionOptOut: 'smartswing_auto_session_opt_out'
   };
 
   const DEFAULT_COACHES = [
     { id: 'coach-1', name: 'Coach Serena Blake', specialty: 'Serve + first-strike patterns' },
     { id: 'coach-2', name: 'Coach Rafael Mendes', specialty: 'Forehand mechanics + footwork' },
     { id: 'coach-3', name: 'Coach Naomi Carter', specialty: 'Backhand timing + recovery' }
+  ];
+
+  const PLAN_DEFINITIONS = {
+    free: {
+      id: 'free',
+      name: 'Free',
+      monthlyPrice: 0,
+      monthlyReviews: 1,
+      canSaveReport: false,
+      canPrintReport: false,
+      hasDrillLibrary: false,
+      hasTacticLibrary: false,
+      canConnectCoaches: false,
+      canConnectPlayers: false,
+      perks: ['1 analysis report per month', 'No report save/export']
+    },
+    starter: {
+      id: 'starter',
+      name: 'Player',
+      monthlyPrice: 9.99,
+      monthlyReviews: 10,
+      canSaveReport: true,
+      canPrintReport: true,
+      hasDrillLibrary: false,
+      hasTacticLibrary: false,
+      canConnectCoaches: false,
+      canConnectPlayers: false,
+      perks: ['10 reports per month', 'Report save + print']
+    },
+    pro: {
+      id: 'pro',
+      name: 'Performance',
+      monthlyPrice: 19.99,
+      monthlyReviews: Infinity,
+      canSaveReport: true,
+      canPrintReport: true,
+      hasDrillLibrary: true,
+      hasTacticLibrary: true,
+      canConnectCoaches: true,
+      canConnectPlayers: true,
+      perks: [
+        'Unlimited reports',
+        'Full drill and tactics video library',
+        'Connect with coaches and players',
+        'Priority progress insights'
+      ]
+    },
+    elite: {
+      id: 'elite',
+      name: 'Tournament Pro',
+      monthlyPrice: 49.99,
+      monthlyReviews: Infinity,
+      canSaveReport: true,
+      canPrintReport: true,
+      hasDrillLibrary: true,
+      hasTacticLibrary: true,
+      canConnectCoaches: true,
+      canConnectPlayers: true,
+      perks: [
+        'Unlimited reports',
+        'Certified coach feedback workflow',
+        'Tournament prep and match-plan reviews',
+        'Priority scheduling and accountability queue'
+      ]
+    }
+  };
+
+  const DRILL_LIBRARY = [
+    {
+      id: 'drill_beginner_complete_lesson',
+      title: 'Complete Beginner Lesson: Forehand, Backhand & Serve',
+      videoUrl: 'https://www.youtube.com/watch?v=YqgcykDGB2A',
+      channel: 'Intuitive Tennis',
+      strokeType: 'multi',
+      skillLevel: 'beginner',
+      duration: '~20 min',
+      focus: 'Foundations for first sessions',
+      metricTags: ['shoulder', 'elbow', 'knee']
+    },
+    {
+      id: 'drill_beginner_rally',
+      title: 'Beginner Rally Lesson: Keep the Ball in Play',
+      videoUrl: 'https://www.youtube.com/watch?v=mdfFGXCsHYI',
+      channel: 'Intuitive Tennis',
+      strokeType: 'multi',
+      skillLevel: 'beginner',
+      duration: '12:15',
+      focus: 'Consistency and contact quality',
+      metricTags: ['shoulder', 'wrist']
+    },
+    {
+      id: 'drill_serve_masterclass_beginner',
+      title: 'Simple Tennis Serve Technique Masterclass',
+      videoUrl: 'https://www.youtube.com/watch?v=IiRGdagtOKE',
+      channel: 'Top Tennis Training',
+      strokeType: 'serve',
+      skillLevel: 'beginner',
+      duration: '16:42',
+      focus: 'Serve fundamentals',
+      metricTags: ['shoulder', 'knee', 'trunk', 'wrist']
+    },
+    {
+      id: 'drill_forehand_guide_beginner',
+      title: 'Mastering the Tennis Forehand: Complete Guide',
+      videoUrl: 'https://www.youtube.com/watch?v=r9VroI2sNzI',
+      channel: 'Essential Tennis',
+      strokeType: 'forehand',
+      skillLevel: 'beginner',
+      duration: '15:40',
+      focus: 'Forehand setup and contact point',
+      metricTags: ['shoulder', 'elbow', 'hip']
+    },
+    {
+      id: 'drill_backhand_easy',
+      title: '4 Easy Tennis Drills to Improve Your Backhand',
+      videoUrl: 'https://www.youtube.com/watch?v=d_jfsCXePG8',
+      channel: 'Tennis Coaching',
+      strokeType: 'backhand',
+      skillLevel: 'beginner',
+      duration: '~13 min',
+      focus: 'Backhand timing and footwork',
+      metricTags: ['shoulder', 'elbow', 'knee']
+    },
+    {
+      id: 'drill_forehand_img',
+      title: '3 Tennis Drills to Hit a Better Forehand',
+      videoUrl: 'https://www.youtube.com/watch?v=QZtxvwHvNe4',
+      channel: 'IMG Academy',
+      strokeType: 'forehand',
+      skillLevel: 'intermediate',
+      duration: '~8 min',
+      focus: 'Forehand acceleration and spacing',
+      metricTags: ['hip', 'knee', 'trunk']
+    },
+    {
+      id: 'drill_volley_img',
+      title: '3 Tennis Drills to Hit a Better Volley',
+      videoUrl: 'https://www.youtube.com/watch?v=nQbI8gl6VGg',
+      channel: 'IMG Academy',
+      strokeType: 'volley',
+      skillLevel: 'intermediate',
+      duration: '~8 min',
+      focus: 'Touch and net control',
+      metricTags: ['shoulder', 'wrist', 'trunk']
+    },
+    {
+      id: 'drill_return_reaction',
+      title: 'Return of Serve Drills: Improve Reaction Time',
+      videoUrl: 'https://www.youtube.com/watch?v=mY0j4CgxgIQ',
+      channel: 'Intuitive Tennis',
+      strokeType: 'return',
+      skillLevel: 'intermediate',
+      duration: '~12 min',
+      focus: 'Return timing and split-step',
+      metricTags: ['knee', 'trunk']
+    },
+    {
+      id: 'drill_modern_forehand',
+      title: 'Modern Forehand Tennis Lesson',
+      videoUrl: 'https://www.youtube.com/watch?v=W1Ef8HFZAuU',
+      channel: 'Intuitive Tennis',
+      strokeType: 'forehand',
+      skillLevel: 'intermediate',
+      duration: '~15 min',
+      focus: 'Topspin forehand mechanics',
+      metricTags: ['shoulder', 'hip', 'wrist']
+    },
+    {
+      id: 'drill_slice_serve',
+      title: 'Slice Serve Drill and Technique',
+      videoUrl: 'https://www.youtube.com/watch?v=l0dqozevSEk',
+      channel: 'Feel Tennis',
+      strokeType: 'serve',
+      skillLevel: 'intermediate',
+      duration: '~10 min',
+      focus: 'Slice serve spin path',
+      metricTags: ['wrist', 'shoulder']
+    },
+    {
+      id: 'drill_kinetic_chain_serve',
+      title: 'Serve Kinetic Chain Drill',
+      videoUrl: 'https://www.youtube.com/watch?v=xed3lmub3Fo',
+      channel: 'Rick Macci',
+      strokeType: 'serve',
+      skillLevel: 'intermediate',
+      duration: '~1 min',
+      focus: 'Power transfer sequence',
+      metricTags: ['knee', 'hip', 'trunk']
+    },
+    {
+      id: 'drill_serve_plus_one',
+      title: 'Serve Plus One Strategy Drill',
+      videoUrl: 'https://www.youtube.com/watch?v=UguFrKS-NfA',
+      channel: 'Top Tennis Training',
+      strokeType: 'serve',
+      skillLevel: 'intermediate',
+      duration: '~12 min',
+      focus: 'Serve + first ball pattern',
+      metricTags: ['shoulder', 'trunk']
+    },
+    {
+      id: 'drill_advanced_volley_set',
+      title: 'Volley Drills: Power, Control, Placement & Footwork',
+      videoUrl: 'https://www.youtube.com/watch?v=ebSB47mHNuQ',
+      channel: 'Intuitive Tennis',
+      strokeType: 'volley',
+      skillLevel: 'advanced',
+      duration: '~25 min',
+      focus: 'Advanced net movement and finishing',
+      metricTags: ['knee', 'trunk', 'wrist']
+    },
+    {
+      id: 'drill_advanced_forehand_masterclass',
+      title: 'Forehand Masterclass (14-Minute Breakdown)',
+      videoUrl: 'https://www.youtube.com/watch?v=Gq0hPQoxG68',
+      channel: 'Rick Macci',
+      strokeType: 'forehand',
+      skillLevel: 'advanced',
+      duration: '~14 min',
+      focus: 'Forehand lag, drop, and acceleration',
+      metricTags: ['shoulder', 'elbow', 'wrist']
+    },
+    {
+      id: 'drill_advanced_return',
+      title: 'Return of Serve: Advanced Technique and Positioning',
+      videoUrl: 'https://www.youtube.com/watch?v=phKa3TEolPM',
+      channel: 'Rick Macci',
+      strokeType: 'return',
+      skillLevel: 'advanced',
+      duration: '~8 min',
+      focus: 'Return pressure and early contact',
+      metricTags: ['knee', 'trunk', 'shoulder']
+    },
+    {
+      id: 'drill_split_step_foundation',
+      title: 'Split Step Drill Demonstration',
+      videoUrl: 'https://www.youtube.com/watch?v=dU6tm_gaqO4',
+      channel: 'Tennis Coaching',
+      strokeType: 'multi',
+      skillLevel: 'all',
+      duration: '~5 min',
+      focus: 'First-step explosiveness',
+      metricTags: ['knee', 'hip']
+    }
+  ];
+
+  const TACTIC_LIBRARY = [
+    {
+      id: 'tactic_crosscourt_geometry',
+      title: 'Where to Aim in Singles: Crosscourt vs Down the Line',
+      videoUrl: 'https://youtu.be/ESYuG4qObNc',
+      channel: 'Love Tennis',
+      situation: 'baseline',
+      skillLevel: 'beginner',
+      summary: 'Use crosscourt as the default high-margin pattern and choose down-the-line selectively.'
+    },
+    {
+      id: 'tactic_four_zones',
+      title: 'Singles Strategy: Control the Four Zones',
+      videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Control%20The%20Four%20Zones',
+      channel: 'Top Tennis Training',
+      situation: 'point-construction',
+      skillLevel: 'beginner',
+      summary: 'Identify defensive, neutral, attack, and kill zones and pick shots accordingly.'
+    },
+    {
+      id: 'tactic_serve_plus_one',
+      title: 'Serve Plus One Strategy',
+      videoUrl: 'https://www.youtube.com/watch?v=UguFrKS-NfA',
+      channel: 'Top Tennis Training',
+      situation: 'serve',
+      skillLevel: 'intermediate',
+      summary: 'Plan serve placement and first groundstroke together to control points immediately.'
+    },
+    {
+      id: 'tactic_dominate_net',
+      title: 'How to Dominate the Net in Singles',
+      videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Dominate%20the%20Net%20in%20Singles',
+      channel: 'Top Tennis Training',
+      situation: 'net',
+      skillLevel: 'intermediate',
+      summary: 'Choose approach direction, split-step timing, and volley positioning to close points.'
+    },
+    {
+      id: 'tactic_beat_pusher',
+      title: '5 Tactics to Beat the Tennis Pusher',
+      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=5%20tactics%20to%20beat%20the%20tennis%20pusher',
+      channel: 'Tennis Evolution',
+      situation: 'defense',
+      skillLevel: 'intermediate',
+      summary: 'Use width, pace variation, net pressure, and drop shots to break defensive opponents.'
+    },
+    {
+      id: 'tactic_slice_vs_kick',
+      title: 'Slice Serve vs Kick Serve: When to Use Each',
+      videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Slice%20Serve%20vs%20Kick%20Serve',
+      channel: 'Top Tennis Training',
+      situation: 'serve',
+      skillLevel: 'intermediate',
+      summary: 'Deploy serve types by score, side, and opponent return tendencies.'
+    },
+    {
+      id: 'tactic_wawrinka_djokovic_breakdown',
+      title: 'AO Analyst: Wawrinka vs Djokovic Strategic Breakdown',
+      videoUrl: 'https://www.youtube.com/watch?v=8NrA-BanUfM',
+      channel: 'Australian Open / Brain Game Tennis',
+      situation: 'point-construction',
+      skillLevel: 'advanced',
+      summary: 'Data-driven first-4-shots tactics for serve+1 and return+1 phases.'
+    },
+    {
+      id: 'tactic_play_like_pros',
+      title: '3 Keys to Play Singles Like the Pros',
+      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=3%20keys%20to%20play%20like%20the%20pros',
+      channel: 'Tennis Evolution',
+      situation: 'point-construction',
+      skillLevel: 'advanced',
+      summary: 'Control center court, chain two-shot combos, and exploit repeatable opponent patterns.'
+    },
+    {
+      id: 'tactic_smart_defense',
+      title: 'Smart Defense and Passing Shots',
+      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=smart%20defense%20passing%20shots',
+      channel: 'Tennis Evolution',
+      situation: 'defense',
+      skillLevel: 'advanced',
+      summary: 'Turn defense into offense with targeted passing lanes and recovery decisions.'
+    },
+    {
+      id: 'tactic_inside_out_forehand',
+      title: 'Inside-Out Forehand Pattern',
+      videoUrl: 'https://www.youtube.com/@EssentialTennis/search?query=inside%20out%20forehand',
+      channel: 'Essential Tennis',
+      situation: 'forehand',
+      skillLevel: 'advanced',
+      summary: 'Run around the backhand at the right moments to attack with inside-out forehands.'
+    },
+    {
+      id: 'tactic_down_line_targets',
+      title: 'How to Play Down the Line with Margin',
+      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=play%20down%20the%20line%20smart%20targets',
+      channel: 'Tennis Evolution',
+      situation: 'baseline',
+      skillLevel: 'advanced',
+      summary: 'Use high-net-clearance direction changes to reduce risk when changing pattern.'
+    },
+    {
+      id: 'tactic_general_match_strategy',
+      title: 'PlayYourCourt Match Strategy',
+      videoUrl: 'https://www.youtube.com/watch?v=Y96A26lfkJQ',
+      channel: 'PlayYourCourt',
+      situation: 'general',
+      skillLevel: 'intermediate',
+      summary: 'Manage momentum swings and decide when to stay aggressive or play percentage tennis.'
+    }
   ];
 
   const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -50,6 +407,51 @@
 
   function slugShot(value) {
     return String(value || 'forehand').toLowerCase().replace(/\s+/g, '-');
+  }
+
+  function normalizeLevel(value) {
+    const input = String(value || 'intermediate').toLowerCase();
+    if (input.includes('beginner')) return 'beginner';
+    if (input.includes('advanced')) return 'advanced';
+    if (input.includes('pro')) return 'pro';
+    return 'intermediate';
+  }
+
+  function normalizeShot(value) {
+    const input = slugShot(value);
+    if (input.includes('backhand')) return 'backhand';
+    if (input.includes('serve')) return 'serve';
+    if (input.includes('volley')) return 'volley';
+    if (input.includes('slice')) return 'slice';
+    if (input.includes('drop')) return 'drop-shot';
+    if (input.includes('lob')) return 'lob';
+    if (input.includes('return')) return 'return';
+    return 'forehand';
+  }
+
+  function levelRank(level) {
+    return { beginner: 1, intermediate: 2, advanced: 3, pro: 4 }[normalizeLevel(level)] || 2;
+  }
+
+  function skillRank(level) {
+    if (String(level || '').toLowerCase() === 'all') return 0;
+    return levelRank(level);
+  }
+
+  function supportsShot(strokeType, shotType) {
+    const stroke = String(strokeType || '').toLowerCase();
+    const shot = normalizeShot(shotType);
+    if (!stroke || stroke.includes('multi') || stroke.includes('all')) return true;
+    if (shot === 'drop-shot' || shot === 'lob' || shot === 'slice') {
+      return stroke.includes('forehand') || stroke.includes('backhand') || stroke.includes(shot.replace('-', ''));
+    }
+    if (shot === 'return') return stroke.includes('return') || stroke.includes('serve');
+    return stroke.includes(shot);
+  }
+
+  function getMonthKey(date = new Date()) {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${date.getFullYear()}-${month}`;
   }
 
   function getSupabaseConfig() {
@@ -134,6 +536,10 @@
     return read(KEYS.progressEvents, []);
   }
 
+  function getReportUsage() {
+    return read(KEYS.reportUsage, []);
+  }
+
   function getCurrentSession() {
     return read(KEYS.session, null);
   }
@@ -142,6 +548,102 @@
     const session = getCurrentSession();
     if (!session?.userId) return null;
     return getUsers().find((user) => user.id === session.userId) || null;
+  }
+
+  function getPlanDefinition(planId) {
+    return PLAN_DEFINITIONS[planId] || PLAN_DEFINITIONS.free;
+  }
+
+  function getCurrentPlan(userId) {
+    const user = userId
+      ? getUsers().find((entry) => entry.id === userId)
+      : getCurrentUser();
+    const planId = user?.planId || 'free';
+    return getPlanDefinition(planId);
+  }
+
+  function setCurrentPlan(planId, userId) {
+    const plan = getPlanDefinition(planId);
+    const targetUserId = userId || requireUser().id;
+    const users = getUsers();
+    const idx = users.findIndex((entry) => entry.id === targetUserId);
+    if (idx < 0) throw new Error('User not found for plan update.');
+    users[idx] = { ...users[idx], planId: plan.id, updatedAt: nowIso() };
+    persistUsers(users);
+    return plan;
+  }
+
+  function getMonthlyUsage(userId, monthKey) {
+    const id = userId || requireUser().id;
+    const month = monthKey || getMonthKey();
+    return getReportUsage().find((entry) => entry.userId === id && entry.monthKey === month) || {
+      userId: id,
+      monthKey: month,
+      count: 0,
+      history: []
+    };
+  }
+
+  function canGenerateReport(userId) {
+    const plan = getCurrentPlan(userId);
+    const usage = getMonthlyUsage(userId);
+    const limit = plan.monthlyReviews;
+    if (!Number.isFinite(limit)) {
+      return { allowed: true, remaining: Infinity, used: usage.count, limit, plan };
+    }
+    const remaining = Math.max(0, limit - usage.count);
+    return { allowed: remaining > 0, remaining, used: usage.count, limit, plan };
+  }
+
+  function consumeMonthlyReportCredit(payload) {
+    const user = requireUser();
+    const monthKey = getMonthKey();
+    const check = canGenerateReport(user.id);
+    if (!check.allowed) {
+      const planLabel = check.plan.name || 'current';
+      throw new Error(`Monthly report limit reached for ${planLabel}. Upgrade your plan to continue.`);
+    }
+
+    const all = getReportUsage();
+    const idx = all.findIndex((entry) => entry.userId === user.id && entry.monthKey === monthKey);
+    const historyItem = {
+      id: uid('usage'),
+      createdAt: nowIso(),
+      shotType: normalizeShot(payload?.shotType || 'forehand'),
+      source: payload?.source || 'analysis-report'
+    };
+
+    if (idx >= 0) {
+      all[idx] = {
+        ...all[idx],
+        count: safeNumber(all[idx].count) + 1,
+        history: [historyItem, ...(all[idx].history || [])].slice(0, 120)
+      };
+    } else {
+      all.push({
+        id: uid('usage_month'),
+        userId: user.id,
+        monthKey,
+        count: 1,
+        history: [historyItem]
+      });
+    }
+
+    persistReportUsage(all);
+    return canGenerateReport(user.id);
+  }
+
+  function canSaveReport(userId) {
+    return !!getCurrentPlan(userId).canSaveReport;
+  }
+
+  function canPrintReport(userId) {
+    return !!getCurrentPlan(userId).canPrintReport;
+  }
+
+  function canAccessLibrary(userId) {
+    const plan = getCurrentPlan(userId);
+    return !!(plan.hasDrillLibrary || plan.hasTacticLibrary);
   }
 
   function persistUsers(users) {
@@ -174,6 +676,11 @@
     return events;
   }
 
+  function persistReportUsage(entries) {
+    write(KEYS.reportUsage, entries);
+    return entries;
+  }
+
   function upsertLocalUser(user) {
     const users = getUsers();
     const idx = users.findIndex((item) => item.id === user.id || item.email === user.email);
@@ -184,6 +691,8 @@
   }
 
   function createProfile(fullName, email, fields) {
+    const requestedPlan = String(fields.planId || 'free').toLowerCase();
+    const plan = getPlanDefinition(requestedPlan);
     return {
       id: uid('user'),
       fullName,
@@ -195,6 +704,7 @@
       ustaLevel: fields.ustaLevel || '',
       utrRating: fields.utrRating || '',
       preferredHand: fields.preferredHand || 'right',
+      planId: plan.id,
       createdAt: nowIso()
     };
   }
@@ -349,6 +859,8 @@
           title: row.title || 'Drill',
           prescription: row.prescription || '',
           cue: row.cue || '',
+          videoUrl: row.video_url || '',
+          channel: row.channel || '',
           status: row.status || 'assigned',
           assignedAt: row.assigned_at || nowIso(),
           completedAt: row.completed_at || null,
@@ -412,6 +924,7 @@
         local.id = data.user.id;
         upsertLocalUser(local);
         write(KEYS.session, { userId: local.id, loggedInAt: nowIso() });
+        localStorage.removeItem(KEYS.autoSessionOptOut);
         await ensureRemoteProfile(local);
         await pullRemoteState(local.id);
         return local;
@@ -425,6 +938,7 @@
     const user = createProfile(fullName, email, { ...fields, password });
     persistUsers([...users, user]);
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
+    localStorage.removeItem(KEYS.autoSessionOptOut);
     return user;
   }
 
@@ -443,6 +957,7 @@
         if (!data.user) throw new Error('No authenticated user returned.');
 
         const { data: profile } = await client.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
+        const existingLocal = getUsers().find((entry) => entry.id === data.user.id || entry.email === normalizedEmail);
         const local = {
           id: data.user.id,
           fullName: profile?.full_name || data.user.user_metadata?.full_name || data.user.email || 'Player',
@@ -453,10 +968,12 @@
           ustaLevel: profile?.usta_level || '',
           utrRating: profile?.utr_rating || '',
           preferredHand: profile?.preferred_hand || 'right',
+          planId: existingLocal?.planId || 'free',
           createdAt: profile?.created_at || nowIso()
         };
         upsertLocalUser(local);
         write(KEYS.session, { userId: local.id, loggedInAt: nowIso() });
+        localStorage.removeItem(KEYS.autoSessionOptOut);
         await ensureRemoteProfile(local);
         await pullRemoteState(local.id);
         return local;
@@ -466,6 +983,7 @@
     const user = getUsers().find((item) => item.email === normalizedEmail && item.password === normalizedPassword);
     if (!user) throw new Error('Invalid email or password.');
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
+    localStorage.removeItem(KEYS.autoSessionOptOut);
     return user;
   }
 
@@ -485,6 +1003,7 @@
 
   function signOut() {
     localStorage.removeItem(KEYS.session);
+    localStorage.setItem(KEYS.autoSessionOptOut, '1');
     getSupabaseClient().then((client) => client?.auth.signOut()).catch(() => {});
   }
 
@@ -510,30 +1029,119 @@
     }).filter(Boolean);
   }
 
+  function getDrillLibrary(filters = {}) {
+    const shotType = filters.shotType ? normalizeShot(filters.shotType) : null;
+    const level = filters.level ? normalizeLevel(filters.level) : null;
+    const metric = String(filters.metric || '').toLowerCase();
+
+    return DRILL_LIBRARY.filter((item) => {
+      if (shotType && !supportsShot(item.strokeType, shotType)) return false;
+      if (level && skillRank(item.skillLevel) > levelRank(level)) return false;
+      if (metric && !(item.metricTags || []).includes(metric)) return false;
+      return true;
+    });
+  }
+
+  function getTacticLibrary(filters = {}) {
+    const level = filters.level ? normalizeLevel(filters.level) : null;
+    const situation = String(filters.situation || '').toLowerCase();
+
+    return TACTIC_LIBRARY.filter((item) => {
+      if (level && skillRank(item.skillLevel) > levelRank(level)) return false;
+      if (situation && !String(item.situation || '').toLowerCase().includes(situation)) return false;
+      return true;
+    });
+  }
+
+  function metricCue(metric, delta) {
+    const up = delta > 0;
+    if (metric === 'shoulder') return up ? 'Reduce over-rotation and stabilize contact alignment.' : 'Load more unit turn before acceleration.';
+    if (metric === 'elbow') return up ? 'Avoid over-extension before contact.' : 'Extend through contact for cleaner transfer.';
+    if (metric === 'hip') return up ? 'Control hip opening to avoid leaking power early.' : 'Drive hips earlier from the ground up.';
+    if (metric === 'knee') return up ? 'Add loading depth before drive.' : 'Push up and forward through contact.';
+    if (metric === 'trunk') return up ? 'Stabilize trunk tilt and sequence rotation.' : 'Increase torso rotation through contact.';
+    if (metric === 'wrist') return up ? 'Quiet late wrist action for control.' : 'Create cleaner lag and release timing.';
+    return up ? 'Tighten movement sequence.' : 'Increase movement range into target window.';
+  }
+
   function buildTailoredDrills(assessment) {
-    const shotType = assessment.shotType || 'forehand';
-    const level = String(assessment.level || assessment.playerLevel || 'intermediate').toLowerCase();
+    const shotType = normalizeShot(assessment.shotType || 'forehand');
+    const level = normalizeLevel(assessment.level || assessment.playerLevel || 'intermediate');
     const levelProfile = {
       beginner: { sets: 2, reps: 8 },
       intermediate: { sets: 3, reps: 10 },
       advanced: { sets: 4, reps: 12 },
       pro: { sets: 4, reps: 14 }
     }[level] || { sets: 3, reps: 10 };
-    const top = [...(assessment.metricComparisons || [])].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 3);
-    if (!top.length) {
-      return [{
-        title: `${shotType} repeatability block`,
-        focus: 'Consistency',
-        prescription: `${levelProfile.sets} sets of ${levelProfile.reps * 2} shadow swings, then ${levelProfile.reps * 2} live-ball reps.`,
-        cue: 'Keep posture and contact point identical rep to rep.'
-      }];
+
+    const ranked = [...(assessment.metricComparisons || [])]
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+      .slice(0, 4);
+
+    const usedLibrary = new Set();
+    const plan = [];
+
+    const issues = ranked.length ? ranked : [{ metric: 'timing', delta: 0, status: 'good' }];
+
+    issues.forEach((issue, index) => {
+      const metric = String(issue.metric || 'timing').toLowerCase();
+      const match = getDrillLibrary({ shotType, level, metric }).find((item) => !usedLibrary.has(item.id))
+        || getDrillLibrary({ shotType, level }).find((item) => !usedLibrary.has(item.id))
+        || getDrillLibrary({ level }).find((item) => !usedLibrary.has(item.id));
+
+      if (match) usedLibrary.add(match.id);
+
+      const titleMetric = metric === 'timing' ? 'timing' : `${metric}`;
+      plan.push({
+        title: `${titleMetric.charAt(0).toUpperCase() + titleMetric.slice(1)} correction block`,
+        focus: `${shotType} mechanics`,
+        prescription: `${levelProfile.sets} x ${levelProfile.reps + index} controlled reps, then ${levelProfile.reps + 2} live-ball reps with immediate reset.`,
+        cue: metricCue(metric, safeNumber(issue.delta)),
+        videoUrl: match?.videoUrl || '',
+        videoTitle: match?.title || '',
+        channel: match?.channel || '',
+        duration: match?.duration || '',
+        libraryFocus: match?.focus || ''
+      });
+    });
+
+    return plan.slice(0, 4);
+  }
+
+  function getTacticRecommendations(assessment) {
+    const shotType = normalizeShot(assessment.shotType || 'forehand');
+    const level = normalizeLevel(assessment.level || assessment.playerLevel || 'intermediate');
+    const mode = String(assessment.sessionMode || '').toLowerCase();
+    const topIssue = [...(assessment.metricComparisons || [])]
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
+
+    const contexts = [];
+    if (shotType === 'serve') contexts.push('serve');
+    if (shotType === 'volley') contexts.push('net');
+    if (shotType === 'forehand' || shotType === 'backhand' || shotType === 'slice' || shotType === 'drop-shot' || shotType === 'lob') contexts.push('baseline');
+    if (mode.includes('match')) contexts.push('point-construction');
+    if (mode.includes('injury') || mode.includes('rebuild')) contexts.push('defense');
+    if (!contexts.length) contexts.push('general');
+
+    const picks = [];
+    contexts.forEach((context) => {
+      const candidate = getTacticLibrary({ level, situation: context })[0];
+      if (candidate && !picks.some((item) => item.id === candidate.id)) picks.push(candidate);
+    });
+
+    if (topIssue && (topIssue.metric === 'trunk' || topIssue.metric === 'hip')) {
+      const construction = getTacticLibrary({ level, situation: 'point-construction' })[0];
+      if (construction && !picks.some((item) => item.id === construction.id)) picks.push(construction);
     }
-    return top.map((issue) => ({
-      title: `${issue.metric.charAt(0).toUpperCase() + issue.metric.slice(1)} precision drill`,
-      focus: `${shotType} mechanics`,
-      prescription: `${levelProfile.sets} x ${levelProfile.reps} controlled reps + ${levelProfile.reps + 2} live-ball reps with immediate review.`,
-      cue: issue.delta > 0 ? 'Reduce over-extension and tighten sequence timing.' : 'Increase range to hit target angle window.'
-    }));
+
+    if (picks.length < 3) {
+      getTacticLibrary({ level }).forEach((item) => {
+        if (picks.length >= 3) return;
+        if (!picks.some((entry) => entry.id === item.id)) picks.push(item);
+      });
+    }
+
+    return picks.slice(0, 3);
   }
 
   function evaluateGoalStatus(goal) {
@@ -669,6 +1277,8 @@
       title: drill.title || 'Tailored drill',
       prescription: drill.prescription || '',
       cue: drill.cue || '',
+      videoUrl: drill.videoUrl || '',
+      channel: drill.channel || '',
       status: 'assigned',
       assignedAt,
       completedAt: null,
@@ -892,6 +1502,7 @@
       benchmarkSummary: payload.benchmarkSummary || '',
       metricComparisons: payload.metricComparisons || [],
       tailoredDrills: payload.tailoredDrills || [],
+      tailoredTactics: payload.tailoredTactics || [],
       sessionMode: payload.sessionMode || 'stroke-tune-up',
       sessionGoal: payload.sessionGoal || '',
       setupScore: safeNumber(payload.setupScore, 100),
@@ -1147,15 +1758,30 @@
       gender: 'other',
       ustaLevel: '4.0',
       utrRating: '6.5',
-      preferredHand: 'right'
+      preferredHand: 'right',
+      planId: 'pro'
     });
     persistUsers([demoUser]);
   }
 
+  function ensureDefaultSession() {
+    const hasOptedOut = localStorage.getItem(KEYS.autoSessionOptOut) === '1';
+    const session = getCurrentSession();
+    if (session?.userId && getUsers().some((user) => user.id === session.userId)) return;
+    if (hasOptedOut) return;
+    const demo = getUsers()[0];
+    if (!demo) return;
+    write(KEYS.session, { userId: demo.id, loggedInAt: nowIso(), mode: 'auto-demo' });
+  }
+
   seedDemoUser();
+  ensureDefaultSession();
 
   window.SmartSwingStore = {
     DEFAULT_COACHES,
+    PLAN_DEFINITIONS,
+    DRILL_LIBRARY,
+    TACTIC_LIBRARY,
     KEYS,
     signUp,
     signIn,
@@ -1166,8 +1792,20 @@
     getGoals,
     getDrillAssignments,
     getProgressEvents,
+    getReportUsage,
     getCurrentUser,
     getCurrentSession,
+    getCurrentPlan,
+    setCurrentPlan,
+    getMonthlyUsage,
+    canGenerateReport,
+    consumeMonthlyReportCredit,
+    canSaveReport,
+    canPrintReport,
+    canAccessLibrary,
+    getDrillLibrary,
+    getTacticLibrary,
+    getTacticRecommendations,
     saveAssessment,
     getUserAssessments,
     getDashboardMetrics,

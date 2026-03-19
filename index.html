@@ -331,6 +331,27 @@
       background: rgba(255, 255, 255, 0.03);
     }
 
+    .testimonial-grid {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .testimonial {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 16px;
+    }
+
+    .stars {
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
     .plan-grid {
       margin-top: 14px;
       display: grid;
@@ -398,7 +419,7 @@
 
     @media (max-width: 1060px) {
       .hero, .split { grid-template-columns: 1fr; }
-      .trust, .how, .feature-grid, .plan-grid, .hero-metrics { grid-template-columns: 1fr; }
+      .trust, .how, .feature-grid, .testimonial-grid, .plan-grid, .hero-metrics { grid-template-columns: 1fr; }
       h1 { font-size: 42px; }
       .hero-visual { min-height: 420px; }
     }
@@ -411,6 +432,7 @@
       <nav class="nav">
         <a class="btn" href="./features.html">Features</a>
         <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./library.html">Drills & Tactics</a>
         <a class="btn" href="./dashboard.html">Player Dashboard</a>
         <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
         <a class="btn" href="./pricing.html">Pricing</a>
@@ -429,7 +451,7 @@
           <a class="btn btn-primary" href="./analyze.html">Get My Free Swing Analysis</a>
           <a class="btn btn-secondary" href="./pricing.html">See Plans and Trial</a>
         </div>
-        <p class="hero-note">No credit card required for trial. Player and coach data stays synced across your dashboards.</p>
+        <p class="hero-note">Free plan includes 1 report/month. Upgrade when you need more sessions, library access, and coach network tools.</p>
       </div>
 
       <div class="hero-visual">
@@ -526,28 +548,46 @@
       </article>
     </section>
 
+    <section class="testimonial-grid">
+      <article class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p>"In three weeks my serve consistency jumped because the report told me exactly what to fix first."</p>
+        <p class="muted" style="margin-top:8px;">Miguel R. | UTR 7.1 | Competitive Amateur</p>
+      </article>
+      <article class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p>"The coach dashboard and calendar made my sessions with juniors much more structured and measurable."</p>
+        <p class="muted" style="margin-top:8px;">Coach Leila M. | USPTA Certified</p>
+      </article>
+      <article class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p>"I stopped guessing. The drill links and tactical plans gave me a clear weekly training routine."</p>
+        <p class="muted" style="margin-top:8px;">Daniel K. | Adult League Player</p>
+      </article>
+    </section>
+
     <section class="pricing">
       <h2>Choose Your Plan</h2>
-      <p class="muted">Start with a free trial, then pick the plan that matches your training intensity.</p>
+      <p class="muted">Simple monthly pricing with clear limits and upgrade paths.</p>
       <div class="plan-grid">
         <article class="plan">
-          <h3>Rally</h3>
-          <div class="price">$99/yr</div>
-          <div class="price-note">For occasional analysis and baseline tracking.</div>
-          <p class="muted">10 analyses per month and core reporting.</p>
+          <h3>Free</h3>
+          <div class="price">$0</div>
+          <div class="price-note">1 report per month.</div>
+          <p class="muted">No report save/export. Great for trying your first analysis.</p>
         </article>
         <article class="plan recommended">
           <div class="tag">Most Popular</div>
-          <h3>ACE</h3>
-          <div class="price">$197/yr</div>
-          <div class="price-note">For serious players focused on measurable improvement.</div>
-          <p class="muted">Unlimited analysis, full drill engine, and advanced dashboards.</p>
+          <h3>Performance</h3>
+          <div class="price">$19.99</div>
+          <div class="price-note">Unlimited monthly reports.</div>
+          <p class="muted">Includes drills+tactics library, coach/player network, and full dashboards.</p>
         </article>
         <article class="plan">
-          <h3>Grand Slam</h3>
-          <div class="price">$497/yr</div>
-          <div class="price-note">For competitive athletes and high-touch coaching support.</div>
-          <p class="muted">Premium review depth and advanced planning workflows.</p>
+          <h3>Tournament Pro</h3>
+          <div class="price">$49.99</div>
+          <div class="price-note">Unlimited + certified coach workflow.</div>
+          <p class="muted">Tournament prep, priority review queue, and structured coach feedback loops.</p>
         </article>
       </div>
       <div class="hero-actions" style="margin-top:14px;">

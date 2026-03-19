@@ -355,6 +355,8 @@
     <div class="topbar">
       <a class="logo" href="./index.html">SmartSwing AI</a>
       <div class="actions">
+        <a class="btn" href="./library.html">Drills & Tactics</a>
+        <a class="btn" href="./pricing.html">Plans</a>
         <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
         <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
         <a class="btn btn-primary" href="./analyze.html">New Analysis</a>
@@ -451,6 +453,8 @@
       <div class="panel">
         <h2>Assigned drills and accountability</h2>
         <div id="focusAreas" class="list"></div>
+        <h3 style="margin-top: 18px;">Tactics for your next match</h3>
+        <div id="tacticList" class="list"></div>
         <h3 style="margin-top: 18px;">Progress timeline</h3>
         <div id="timelineList" class="list"></div>
       </div>
@@ -514,9 +518,12 @@
     }
 
     function renderHeader(metrics) {
+      const plan = store.getCurrentPlan();
+      const usage = store.canGenerateReport();
+      const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
       document.getElementById('title').textContent = `${currentUser.fullName}, keep your gains from disappearing between sessions.`;
       document.getElementById('subtitle').textContent =
-        `${currentUser.email} | role: ${currentUser.role || 'player'} | preferred hand: ${currentUser.preferredHand || 'right'}`;
+        `${currentUser.email} | plan: ${plan.name} | reports this month: ${usageText} | preferred hand: ${currentUser.preferredHand || 'right'}`;
 
       document.getElementById('totalAssessments').textContent = metrics.totalAssessments;
       document.getElementById('avgScore').textContent = metrics.avgScore;
@@ -655,6 +662,7 @@
             <h3>${drill.title}</h3>
             <p class="muted">${drill.prescription}</p>
             <p style="margin-top: 8px;"><strong>Cue:</strong> ${drill.cue}</p>
+            ${drill.videoUrl ? `<p style="margin-top: 8px;"><a href="${drill.videoUrl}" target="_blank" rel="noopener">Open drill video</a></p>` : ''}
           </div>
         `).join('');
         return;
@@ -666,11 +674,46 @@
           <h3>${drill.title}</h3>
           <p class="muted">${drill.prescription}</p>
           <p style="margin-top: 8px;"><strong>Cue:</strong> ${drill.cue}</p>
+          ${drill.videoUrl ? `<p style="margin-top: 8px;"><a href="${drill.videoUrl}" target="_blank" rel="noopener">${drill.channel || 'Open drill video'}</a></p>` : ''}
           <p style="margin-top: 8px;" class="muted">Due: ${drill.dueDate ? new Date(drill.dueDate).toLocaleDateString() : 'No due date'}</p>
           <div style="margin-top: 10px; display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn" type="button" onclick="updateDrillStatus('${drill.id}', 'in_progress')">In Progress</button>
             <button class="btn btn-primary" type="button" onclick="updateDrillStatus('${drill.id}', 'completed')">Mark Complete</button>
           </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTactics() {
+      const container = document.getElementById('tacticList');
+      const latest = store.getUserAssessments()[0];
+      if (!latest) {
+        container.innerHTML = `<div class="empty">Save one assessment to unlock tactics matched to your current gaps.</div>`;
+        return;
+      }
+      const tactics = store.getTacticRecommendations({
+        shotType: latest.shotType,
+        level: currentUser.ustaLevel || 'intermediate',
+        metricComparisons: latest.metricComparisons || [],
+        sessionMode: latest.sessionMode || 'stroke-tune-up'
+      });
+      if (!tactics.length) {
+        container.innerHTML = `<div class="empty">No tactics available yet for this profile.</div>`;
+        return;
+      }
+
+      const hasLibrary = store.canAccessLibrary();
+      container.innerHTML = tactics.map((tactic, index) => `
+        <div class="item">
+          <div class="pill">Priority ${index + 1}</div>
+          <h3>${tactic.title}</h3>
+          <p class="muted">${tactic.summary || ''}</p>
+          <p style="margin-top: 8px;" class="muted">Situation: ${tactic.situation || 'general'} | Level: ${tactic.skillLevel || 'all'}</p>
+          ${tactic.videoUrl
+            ? hasLibrary
+              ? `<p style="margin-top: 8px;"><a href="${tactic.videoUrl}" target="_blank" rel="noopener">${tactic.channel || 'Open tactic video'}</a></p>`
+              : '<p style="margin-top: 8px;" class="muted">Upgrade to Performance plan to unlock tactic video links.</p>'
+            : ''}
         </div>
       `).join('');
     }
@@ -795,6 +838,7 @@
       renderRetention(metrics);
       renderGoals();
       renderDrills();
+      renderTactics();
       renderTimeline();
       renderCalendar();
     }

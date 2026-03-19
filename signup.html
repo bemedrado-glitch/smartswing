@@ -207,6 +207,7 @@
     <div class="card">
       <h1>Create Account</h1>
       <p class="subtext">Set up your player or coach profile, save analyses, compare sessions over time, and schedule targeted training.</p>
+      <p class="subtext" id="planHint" style="margin-top:-12px; margin-bottom: 18px;">Default plan: Free (1 monthly report).</p>
 
       <div id="alertBox" class="alert"></div>
 
@@ -223,6 +224,7 @@
 
       <form onsubmit="handleSignup(event)">
         <input id="userRole" type="hidden" value="player">
+        <input id="planId" type="hidden" value="free">
 
         <div class="two-col">
           <div class="field">
@@ -337,6 +339,7 @@
           fullName: document.getElementById('fullName').value,
           email: document.getElementById('email').value,
           password,
+          planId: document.getElementById('planId').value,
           ageRange: document.getElementById('ageRange').value,
           gender: document.getElementById('gender').value,
           ustaLevel: document.getElementById('ustaLevel').value,
@@ -355,6 +358,21 @@
         signupBtn.textContent = 'Create Account';
       }
     }
+
+    (function initPlanSelection() {
+      const params = new URLSearchParams(window.location.search);
+      const requested = String(params.get('plan') || '').toLowerCase();
+      const allowed = new Set(['free', 'starter', 'pro', 'elite']);
+      if (!allowed.has(requested)) return;
+      document.getElementById('planId').value = requested;
+      const labels = {
+        free: 'Free (1 monthly report, no save/export)',
+        starter: 'Player ($9.99/mo, 10 monthly reports)',
+        pro: 'Performance ($19.99/mo, unlimited + drills/tactics library)',
+        elite: 'Tournament Pro ($49.99/mo, unlimited + coach feedback workflow)'
+      };
+      document.getElementById('planHint').textContent = `Selected plan: ${labels[requested]}`;
+    })();
   </script>
 </body>
 </html>

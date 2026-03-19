@@ -9,6 +9,7 @@ const APP_ASSETS = [
   './coach-dashboard.html',
   './analyze.html',
   './pricing.html',
+  './library.html',
   './review-all.html',
   './app-data.js',
   './pwa.js',

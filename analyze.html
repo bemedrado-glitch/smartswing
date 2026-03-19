@@ -69,6 +69,28 @@
       font-size: 16px;
       font-weight: 500;
     }
+
+    .plan-strip {
+      margin: 16px auto 0;
+      max-width: 760px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(57, 255, 20, 0.22);
+      background: rgba(57, 255, 20, 0.07);
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .plan-strip strong {
+      color: var(--neon-green);
+    }
+
+    .usage-alert {
+      margin-top: 6px;
+      color: #ffd68a;
+      font-weight: 700;
+    }
     
     /* Wizard Steps */
     .wizard-steps {
@@ -530,6 +552,7 @@
       <div class="header">
         <h1 class="title"><span class="gradient-text">SmartSwing AI</span></h1>
         <p class="subtitle">Professional Tennis Biomechanics Analysis</p>
+        <div class="plan-strip" id="planStrip"></div>
       </div>
 
       <!-- Wizard Steps -->
@@ -761,6 +784,7 @@
         <div class="btn-group">
           <button class="btn btn-secondary" id="backBtn4">Back to Analysis</button>
           <button class="btn btn-secondary" id="printBtn">Print Report</button>
+          <button class="btn btn-secondary" id="libraryBtn">Open Library</button>
           <button class="btn btn-secondary" id="dashboardBtn">Open Dashboard</button>
           <button class="btn btn-primary" id="newAnalysisBtn">New Analysis</button>
         </div>
@@ -785,6 +809,7 @@
 
     const store = window.SmartSwingStore;
     const currentUser = store ? store.getCurrentUser() : null;
+    let cachedPlanState = null;
 
     let currentStep = 1;
     let detector = null;
@@ -806,6 +831,69 @@
       landmarks: [],
       confidence: []
     };
+
+    function refreshPlanStrip() {
+      const strip = document.getElementById('planStrip');
+      if (!strip || !store || !currentUser) {
+        if (strip) strip.innerHTML = '<strong>Guest mode:</strong> Sign in to save history and track monthly usage.';
+        return;
+      }
+
+      const plan = store.getCurrentPlan();
+      const usage = store.canGenerateReport();
+      cachedPlanState = usage;
+      const limitLabel = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
+      const remainingLabel = Number.isFinite(usage.remaining) ? usage.remaining : 'Unlimited';
+      const restrictions = [];
+      if (!store.canSaveReport()) restrictions.push('Save disabled on this plan');
+      if (!store.canPrintReport()) restrictions.push('Print/export disabled on this plan');
+
+      strip.innerHTML = `
+        <div><strong>Active plan:</strong> ${plan.name} | <strong>Monthly reports:</strong> ${limitLabel} used | <strong>Remaining:</strong> ${remainingLabel}</div>
+        <div>${restrictions.length ? restrictions.join(' · ') : 'Full report actions enabled.'} <a href="./pricing.html" style="color: var(--electric-cyan); font-weight: 800;">Change plan</a></div>
+        ${usage.allowed ? '' : '<div class="usage-alert">Monthly limit reached. Upgrade your plan to generate more reports.</div>'}
+      `;
+    }
+
+    function applyActionPermissions() {
+      const saveBtn = document.getElementById('saveBtn');
+      const printBtn = document.getElementById('printBtn');
+      if (!store || !currentUser) return;
+
+      const canSave = store.canSaveReport();
+      const canPrint = store.canPrintReport();
+
+      saveBtn.disabled = !canSave;
+      if (!canSave) {
+        saveBtn.title = 'Upgrade plan to enable report saving.';
+        saveBtn.style.opacity = '0.65';
+      } else {
+        saveBtn.title = '';
+        saveBtn.style.opacity = '';
+      }
+
+      printBtn.disabled = !canPrint;
+      if (!canPrint) {
+        printBtn.title = 'Upgrade plan to enable report print/export.';
+        printBtn.style.opacity = '0.65';
+      } else {
+        printBtn.title = '';
+        printBtn.style.opacity = '';
+      }
+    }
+
+    function consumeReportCreditOrAlert(shotType) {
+      if (!store || !currentUser) return true;
+      try {
+        cachedPlanState = store.consumeMonthlyReportCredit({ shotType, source: 'analyzer-report' });
+        refreshPlanStrip();
+        return true;
+      } catch (error) {
+        alert((error.message || 'Monthly report limit reached.') + '\n\nOpen pricing to upgrade and continue.');
+        window.location.href = './pricing.html';
+        return false;
+      }
+    }
 
     // MoveNet 17 Keypoint Indices
     const KEYPOINT = {
@@ -1315,6 +1403,13 @@
         sessionGoal: playerProfile.sessionGoal || '',
         sessionMode: playerProfile.sessionMode || 'stroke-tune-up'
       }) : [];
+      const tailoredTactics = store ? store.getTacticRecommendations({
+        shotType,
+        metricComparisons,
+        level: playerProfile.level,
+        sessionGoal: playerProfile.sessionGoal || '',
+        sessionMode: playerProfile.sessionMode || 'stroke-tune-up'
+      }) : [];
 
       return {
         profile: playerProfile,
@@ -1330,6 +1425,7 @@
           metricComparisons,
           benchmarkSummary,
           tailoredDrills,
+          tailoredTactics,
           sessionMode: playerProfile.sessionMode,
           sessionGoal: playerProfile.sessionGoal,
           setupScore: playerProfile.setupScore
@@ -1343,6 +1439,7 @@
       const s = session.summary;
       const bench = getBenchmarkForShot(s.shotType);
       const tailoredDrillsHtml = generateTailoredDrillsHtml(s.tailoredDrills || []);
+      const tailoredTacticsHtml = generateTacticsHtml(s.tailoredTactics || []);
 
       const html = `
         <div class="report-header">
@@ -1417,6 +1514,11 @@
         </div>
 
         <div class="report-section">
+          <div class="report-section-title">Match Tactics for This Session</div>
+          ${tailoredTacticsHtml}
+        </div>
+
+        <div class="report-section">
           <div class="report-section-title">7-Day Execution Plan</div>
           ${generateExecutionPlanHtml(s)}
         </div>
@@ -1451,12 +1553,40 @@
         return '<div class="info-box">No high-risk deltas detected. Keep using repeatability and pressure drills to maintain form.</div>';
       }
 
+      const hasLibraryAccess = store && currentUser ? store.canAccessLibrary() : false;
+
       return drills.slice(0, 4).map((drill, index) => `
         <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 12px;">
           <div style="font-weight: 800; color: var(--neon-green); margin-bottom: 6px;">${index + 1}. ${drill.title}</div>
           <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Focus: ${drill.focus}</div>
           <div style="font-size: 14px; margin-bottom: 8px;"><strong>Prescription:</strong> ${drill.prescription}</div>
           <div style="font-size: 14px;"><strong>Coaching cue:</strong> ${drill.cue}</div>
+          ${drill.videoUrl
+            ? hasLibraryAccess
+              ? `<div style="font-size: 13px; margin-top: 8px;"><strong>Video:</strong> <a href="${drill.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${drill.videoTitle || 'Open drill video'}</a>${drill.channel ? ` (${drill.channel})` : ''}</div>`
+              : '<div style="font-size: 13px; margin-top: 8px; color: var(--warning);"><strong>Upgrade note:</strong> Drill video links are unlocked on Performance and Tournament plans.</div>'
+            : ''}
+        </div>
+      `).join('');
+    }
+
+    function generateTacticsHtml(tactics) {
+      if (!tactics.length) {
+        return '<div class="info-box">No tactical recommendations available for this sample. Run another report with match-ready mode enabled.</div>';
+      }
+
+      const hasLibraryAccess = store && currentUser ? store.canAccessLibrary() : false;
+
+      return tactics.map((tactic, index) => `
+        <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.56); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px;">
+          <div style="font-weight: 800; color: var(--electric-cyan); margin-bottom: 6px;">${index + 1}. ${tactic.title}</div>
+          <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Situation: ${tactic.situation || 'general'} | Level: ${tactic.skillLevel || 'all'}</div>
+          <div style="font-size: 14px; margin-bottom: 8px;">${tactic.summary || ''}</div>
+          ${tactic.videoUrl
+            ? hasLibraryAccess
+              ? `<div style="font-size: 13px;"><strong>Video:</strong> <a href="${tactic.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${tactic.channel || 'Open tactic video'}</a></div>`
+              : '<div style="font-size: 13px; color: var(--warning);"><strong>Upgrade note:</strong> Full tactics video links are unlocked on Performance and Tournament plans.</div>'
+            : ''}
         </div>
       `).join('');
     }
@@ -1832,6 +1962,8 @@
     });
 
     refreshSetupScore();
+    refreshPlanStrip();
+    applyActionPermissions();
 
     document.querySelectorAll('.selection-card').forEach(card => {
       card.addEventListener('click', () => {
@@ -2088,6 +2220,7 @@
         metricComparisons: session.summary.metricComparisons,
         benchmarkSummary: session.summary.benchmarkSummary,
         tailoredDrills: session.summary.tailoredDrills,
+        tailoredTactics: session.summary.tailoredTactics,
         sessionMode: session.summary.sessionMode,
         sessionGoal: session.summary.sessionGoal,
         setupScore: session.summary.setupScore,
@@ -2097,6 +2230,11 @@
     }
 
     document.getElementById('saveBtn').addEventListener('click', () => {
+      if (store && currentUser && !store.canSaveReport()) {
+        alert('Saving reports is disabled on the Free plan. Upgrade to Player or above to save reports.');
+        window.location.href = './pricing.html';
+        return;
+      }
       console.log('Save clicked, frames:', analysisData.frames.length);
       console.log('Angles data:', analysisData.angles);
       
@@ -2108,6 +2246,7 @@
             'Score: ' + session.summary.score + '\n' +
             'Grade: ' + session.summary.grade +
             (currentUser ? '\nDashboard updated.' : '\nSign in to keep a history across sessions.'));
+      refreshPlanStrip();
     });
 
     // Generate Report Button
@@ -2122,6 +2261,11 @@
       
       if (analysisData.frames.length < 30) {
         alert('Analyze at least 30 frames before generating report');
+        return;
+      }
+
+      const targetShot = playerProfile.shots[0] || 'forehand';
+      if (!consumeReportCreditOrAlert(targetShot)) {
         return;
       }
 
@@ -2151,11 +2295,20 @@
     });
 
     document.getElementById('printBtn').addEventListener('click', () => {
+      if (store && currentUser && !store.canPrintReport()) {
+        alert('Print/export is disabled on the Free plan. Upgrade to Player or above to print reports.');
+        window.location.href = './pricing.html';
+        return;
+      }
       window.print();
     });
 
     document.getElementById('dashboardBtn').addEventListener('click', () => {
       window.location.href = currentUser ? './dashboard.html' : './login.html?message=Sign%20in%20to%20view%20your%20dashboard&type=success';
+    });
+
+    document.getElementById('libraryBtn').addEventListener('click', () => {
+      window.location.href = './library.html';
     });
 
     document.getElementById('newAnalysisBtn').addEventListener('click', () => {
