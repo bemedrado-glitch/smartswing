@@ -1417,6 +1417,11 @@
         </div>
 
         <div class="report-section">
+          <div class="report-section-title">7-Day Execution Plan</div>
+          ${generateExecutionPlanHtml(s)}
+        </div>
+
+        <div class="report-section">
           <div class="report-section-title">Additional Recommendations</div>
           ${generateRecommendations(s.avgAngles, bench, s.shotType)}
         </div>
@@ -1492,6 +1497,56 @@
               <strong>Priority ${index + 1}:</strong> ${item.metric} (${item.delta > 0 ? '+' : ''}${item.delta}deg vs target)
             </div>
           `).join('') : '<div class="info-box">No high-risk deltas detected in this session.</div>'}
+        </div>
+      `;
+    }
+
+    function generateExecutionPlanHtml(summary) {
+      const ranked = [...(summary.metricComparisons || [])]
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 2);
+      const primary = ranked[0]?.metric || 'timing';
+      const secondary = ranked[1]?.metric || 'consistency';
+      const focusDrill = summary.tailoredDrills?.[0]?.title || `${summary.shotType} precision drill`;
+      const supportDrill = summary.tailoredDrills?.[1]?.title || `${summary.shotType} repeatability block`;
+
+      const plan = [
+        {
+          day: 'Day 1',
+          objective: `Baseline reset on ${primary}`,
+          action: `Run 3 controlled sets focused on ${primary}. Execute: ${focusDrill}.`,
+          checkpoint: 'Re-record 1 short clip and confirm cleaner movement pattern.'
+        },
+        {
+          day: 'Day 3',
+          objective: `Add ${secondary} under movement`,
+          action: `Run footwork + stroke block, then 2 pressure sets. Execute: ${supportDrill}.`,
+          checkpoint: 'Compare confidence and angle deltas against Day 1 clip.'
+        },
+        {
+          day: 'Day 5',
+          objective: 'Transfer to match-like tempo',
+          action: `Run point-start drills at game speed. Keep one technical cue active: ${primary}.`,
+          checkpoint: 'Log misses caused by mechanics vs decision errors.'
+        },
+        {
+          day: 'Day 7',
+          objective: 'Verification and coach handoff',
+          action: 'Run full analyzer session and save report.',
+          checkpoint: 'Use coach summary to define next week priority.'
+        }
+      ];
+
+      return `
+        <div style="display:grid; gap:10px;">
+          ${plan.map((item) => `
+            <div style="padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background: rgba(10,22,40,0.56);">
+              <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--electric-cyan); font-weight:800;">${item.day}</div>
+              <div style="font-size:16px; font-weight:800; margin-top:4px;">${item.objective}</div>
+              <div style="font-size:14px; margin-top:6px;"><strong>Action:</strong> ${item.action}</div>
+              <div style="font-size:14px; margin-top:6px;"><strong>Checkpoint:</strong> ${item.checkpoint}</div>
+            </div>
+          `).join('')}
         </div>
       `;
     }

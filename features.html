@@ -8,29 +8,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05080d;
-      --panel: rgba(10, 18, 29, 0.9);
-      --line: rgba(255,255,255,0.1);
-      --text: #e9eff6;
-      --muted: #91a1b3;
-      --green: #39ff14;
-      --cyan: #00e5ff;
+      --bg: #071425;
+      --bg-2: #0b2038;
+      --panel: rgba(14, 26, 44, 0.88);
+      --line: rgba(255,255,255,0.12);
+      --text: #ebf2fb;
+      --muted: #9ab0c5;
+      --blue: #2a7fff;
+      --green: #00c853;
+      --orange: #ff6d00;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
-        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+        radial-gradient(circle at top left, rgba(42,127,255,0.16), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,200,83,0.12), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       min-height: 100vh;
     }
     .page { max-width: 1260px; margin: 0 auto; padding: 24px 20px 60px; }
     .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
     .logo {
-      text-decoration:none; font-size:30px; font-weight:900;
-      background:linear-gradient(135deg, var(--green), var(--cyan));
+      text-decoration:none; font-size:32px; font-weight:900;
+      background: linear-gradient(135deg, var(--blue), var(--green));
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     }
     .nav { display:flex; gap:10px; flex-wrap:wrap; }
@@ -38,18 +40,25 @@
       text-decoration:none; padding:12px 16px; border-radius:14px; border:1px solid var(--line);
       color:var(--text); font-weight:800; background:rgba(255,255,255,0.03);
     }
-    .btn-primary { border:none; color:#04110a; background:linear-gradient(135deg, var(--green), var(--cyan)); }
+    .btn-primary { border:none; color:#fff; background: linear-gradient(135deg, var(--orange), #ff8f00); }
     .hero { background:var(--panel); border:1px solid var(--line); border-radius:26px; padding:26px; margin-bottom:18px; }
-    .badge { display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(57,255,20,0.12); color:var(--green); font-size:12px; font-weight:900; text-transform:uppercase; }
-    h1 { font-size:46px; line-height:1.04; margin:14px 0 10px; }
-    h2 { font-size:24px; margin-bottom:12px; }
+    .badge {
+      display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(42,127,255,0.16);
+      color:#88b9ff; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;
+    }
+    h1 { font-size:46px; line-height:1.04; margin:12px 0 10px; letter-spacing:-0.02em; }
+    h2 { font-size:26px; margin-bottom:10px; }
     h3 { font-size:18px; margin-bottom:8px; }
     .muted { color:var(--muted); line-height:1.6; }
-    .grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:18px; margin-bottom:18px; }
+    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; margin-bottom:18px; }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; overflow:hidden; }
     .visual { height:210px; background-size:cover; background-position:center; }
     .copy { padding:16px 18px; }
-    @media (max-width: 980px) { .grid { grid-template-columns:1fr; } h1 { font-size:34px; } }
+    .mini { font-size:13px; color:var(--muted); margin-top:8px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .list { display:grid; gap:10px; }
+    .item { background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+    @media (max-width: 980px) { .grid, .split { grid-template-columns:1fr; } h1 { font-size:34px; } }
   </style>
 </head>
 <body>
@@ -57,62 +66,96 @@
     <div class="top">
       <a class="logo" href="./index.html">SmartSwing AI</a>
       <div class="nav">
-        <a class="btn" href="./how-it-works.html">How it works</a>
+        <a class="btn" href="./how-it-works.html">How It Works</a>
         <a class="btn" href="./pricing.html">Pricing</a>
-        <a class="btn" href="./dashboard.html">Player Dashboard</a>
+        <a class="btn" href="./review-all.html">Review Hub</a>
         <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
       </div>
     </div>
 
     <section class="hero">
       <div class="badge">Feature Stack</div>
-      <h1>Everything needed to move from raw footage to corrected technique.</h1>
-      <p class="muted">SmartSwing combines capture guidance, biomechanics scoring, report generation, tailored drills, and coach session flow in one experience.</p>
+      <h1>A complete operating system for serious tennis improvement.</h1>
+      <p class="muted">
+        SmartSwing is built as one connected loop: capture quality control, AI analysis, actionable report output, drill execution, goal tracking, coach accountability, and session calendarization.
+      </p>
     </section>
 
     <section class="grid">
       <article class="card">
         <div class="visual" style="background-image:url('./assets/uiux/Smart 2.png');"></div>
         <div class="copy">
-          <h3>Guided capture quality</h3>
-          <p class="muted">Before analysis starts, users check setup readiness so the AI has cleaner input and fewer false corrections.</p>
+          <h3>Pre-capture guidance engine</h3>
+          <p class="muted">Shot-specific and mode-specific setup guidance appears before analysis starts.</p>
+          <p class="mini">Impact: higher data quality, fewer misleading corrections.</p>
         </div>
       </article>
       <article class="card">
         <div class="visual" style="background-image:url('./assets/avatar/AI Breakdown side by side.png');"></div>
         <div class="copy">
-          <h3>Biomechanics report engine</h3>
-          <p class="muted">MoveNet keypoints flow into angle scoring, benchmark comparisons, and a printable report layout.</p>
+          <h3>Biomechanics analysis and scoring</h3>
+          <p class="muted">Shoulder, elbow, hip, knee, trunk, and wrist metrics scored against shot-specific pro ranges.</p>
+          <p class="mini">Impact: objective movement quality baseline per session.</p>
         </div>
       </article>
       <article class="card">
-        <div class="visual" style="background-image:url('./assets/avatar/Persona 4 Tennis.png');"></div>
+        <div class="visual" style="background-image:url('./assets/uiux/Smart 3.png');"></div>
         <div class="copy">
-          <h3>Tailored drill prescriptions</h3>
-          <p class="muted">Recommendations are generated from the biggest movement deltas so players know exactly what to fix first.</p>
+          <h3>Coach-ready report format</h3>
+          <p class="muted">Tracker definitions, urgency signal, top correction priorities, and next session focus.</p>
+          <p class="mini">Impact: clearer player-coach communication and faster interventions.</p>
         </div>
       </article>
       <article class="card">
         <div class="visual" style="background-image:url('./assets/uiux/Smart 10.png');"></div>
         <div class="copy">
-          <h3>Player progress dashboard</h3>
-          <p class="muted">Saved sessions build momentum with trend, confidence, and priority areas visible in one screen.</p>
+          <h3>Retention loop</h3>
+          <p class="muted">Goals, drill assignments, completion states, and progress timeline from saved sessions.</p>
+          <p class="mini">Impact: reduced churn and visible accountability.</p>
         </div>
       </article>
       <article class="card">
         <div class="visual" style="background-image:url('./assets/avatar/Coach Ace.png');"></div>
         <div class="copy">
-          <h3>Coach command layer</h3>
-          <p class="muted">Coaches can monitor roster risk, recent sessions, and intervention priorities from one dashboard.</p>
+          <h3>Player + coach dashboards</h3>
+          <p class="muted">Athlete risk triage, adherence alerts, and session planning in role-specific interfaces.</p>
+          <p class="mini">Impact: coach throughput and faster issue detection.</p>
         </div>
       </article>
       <article class="card">
         <div class="visual" style="background-image:url('./assets/uiux/Smart 5.png');"></div>
         <div class="copy">
-          <h3>PWA installability</h3>
-          <p class="muted">The app has manifest and service worker support for installable web app behavior during review.</p>
+          <h3>Cloud-ready sync architecture</h3>
+          <p class="muted">Supabase-backed sync path for assessments, goals, drills, progress events, and bookings.</p>
+          <p class="mini">Impact: multi-device continuity and coach collaboration.</p>
         </div>
       </article>
+    </section>
+
+    <section class="split">
+      <div class="card">
+        <div class="copy">
+          <h2>Differentiators built now</h2>
+          <div class="list">
+            <div class="item"><strong>Actionable AI feedback:</strong> report output tells users exactly what to change first and how.</div>
+            <div class="item"><strong>Calendarized execution:</strong> session booking and monthly planning appear in dashboard flow.</div>
+            <div class="item"><strong>Coach accountability:</strong> alert queue shows stale analysis, high-risk deltas, and low drill adherence.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="copy">
+          <h2>Next milestone capabilities</h2>
+          <div class="list">
+            <div class="item"><strong>Expanded biomechanics depth:</strong> move from current ranges to validated 3D sequence metrics.</div>
+            <div class="item"><strong>Store-native packaging:</strong> iOS/Android release with app-store billing and submission workflows.</div>
+            <div class="item"><strong>Dataset validation:</strong> calibrate against diverse camera angles, lighting, and frame rates.</div>
+          </div>
+          <div style="margin-top:14px;">
+            <a class="btn btn-primary" href="./how-it-works.html">See Full Workflow</a>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
   <script src="./pwa.js"></script>

@@ -8,136 +8,88 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #05080d;
-      --panel: rgba(12, 20, 32, 0.88);
-      --line: rgba(255,255,255,0.1);
-      --text: #ebf0f6;
-      --muted: #8d99a6;
-      --green: #39ff14;
-      --cyan: #00e5ff;
+      --bg: #071425;
+      --bg-2: #0b2038;
+      --panel: rgba(14, 26, 44, 0.88);
+      --line: rgba(255,255,255,0.12);
+      --text: #ebf2fb;
+      --muted: #9ab0c5;
+      --blue: #2a7fff;
+      --green: #00c853;
+      --orange: #ff6d00;
+      --gold: #ffd700;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
-        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+        radial-gradient(circle at top left, rgba(42,127,255,0.16), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,200,83,0.12), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       min-height: 100vh;
     }
-
-    .page {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 24px 20px 56px;
-    }
-
-    .top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
-    }
-
+    .page { max-width: 1240px; margin: 0 auto; padding: 24px 20px 64px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
     .logo {
-      text-decoration: none;
-      font-size: 30px;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      text-decoration:none; font-size:32px; font-weight:900;
+      background: linear-gradient(135deg, var(--blue), var(--green));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     }
-
-    .nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
+    .nav { display:flex; gap:10px; flex-wrap:wrap; }
     .btn {
-      text-decoration: none;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      font-weight: 800;
+      text-decoration:none; padding:12px 16px; border-radius:14px;
+      border:1px solid var(--line); color:var(--text); font-weight:800; background:rgba(255,255,255,0.03);
+      display:inline-flex; align-items:center; justify-content:center;
     }
-
-    .btn-primary {
-      color: #04110a;
-      border: none;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-    }
-
-    .hero {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      padding: 28px;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      font-size: 44px;
-      margin-bottom: 12px;
-      line-height: 1.04;
-    }
-
-    h2 {
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
-
-    .muted { color: var(--muted); line-height: 1.7; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 24px;
-    }
-
-    .price {
-      font-size: 48px;
-      font-weight: 900;
-      margin: 12px 0;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    ul {
-      margin: 16px 0 22px 18px;
-      color: var(--muted);
-    }
-
-    li { margin-bottom: 10px; }
-
+    .btn-primary { border:none; color:#fff; background: linear-gradient(135deg, var(--orange), #ff8f00); }
+    .hero { background:var(--panel); border:1px solid var(--line); border-radius:26px; padding:28px; margin-bottom:18px; }
     .tag {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(57,255,20,0.12);
-      color: var(--green);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(42,127,255,0.16);
+      color:#8ebeff; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;
     }
+    h1 { font-size:48px; line-height:1.03; margin:14px 0 12px; letter-spacing:-0.02em; }
+    h2 { font-size:28px; margin-bottom:10px; }
+    h3 { font-size:20px; margin-bottom:8px; }
+    .muted { color: var(--muted); line-height:1.7; }
 
-    @media (max-width: 960px) {
-      .grid { grid-template-columns: 1fr; }
-      h1 { font-size: 34px; }
+    .toggle-wrap {
+      margin-top:16px; display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden;
+      background: rgba(255,255,255,0.04);
+    }
+    .toggle-btn {
+      border:none; color:var(--text); background:transparent; padding:10px 14px; font-weight:800; cursor:pointer;
+    }
+    .toggle-btn.active { background: linear-gradient(135deg, var(--blue), #5ca2ff); color:#fff; }
+
+    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; margin-bottom:18px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:22px; position:relative; }
+    .popular { border-color: rgba(255,109,0,0.55); box-shadow: 0 0 0 1px rgba(255,109,0,0.35) inset; }
+    .popular-badge {
+      position:absolute; top:-12px; right:16px; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:900;
+      letter-spacing:0.05em; text-transform:uppercase; color:#fff; background: linear-gradient(135deg, var(--orange), #ff8f00);
+    }
+    .value-line { font-size:13px; color:var(--muted); text-decoration: line-through; margin-top:10px; }
+    .price {
+      font-size:54px; line-height:1; font-weight:900; margin:10px 0 6px;
+      background: linear-gradient(135deg, var(--orange), #ffb067);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .period { font-size:14px; color:var(--muted); margin-bottom:10px; }
+    .daily { font-size:13px; color:#9fd0ff; margin-bottom:8px; }
+    ul { margin:12px 0 18px 18px; color:var(--muted); }
+    li { margin-bottom:9px; }
+
+    .trust {
+      background:var(--panel); border:1px solid var(--line); border-radius:22px; padding:22px; margin-bottom:18px;
+      display:grid; gap:10px;
+    }
+    .trust h2 { margin-bottom:2px; }
+    .faq { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .qa { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; }
+    @media (max-width: 980px) {
+      .grid, .faq { grid-template-columns:1fr; }
+      h1 { font-size:36px; }
     }
   </style>
 </head>
@@ -146,62 +98,133 @@
     <div class="top">
       <a class="logo" href="./index.html">SmartSwing AI</a>
       <div class="nav">
-        <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
-        <a class="btn" href="./review.html">Review Build</a>
-        <a class="btn" href="./dashboard.html">Dashboard</a>
-        <a class="btn btn-primary" href="./analyze.html">Open Analyzer</a>
+        <a class="btn" href="./features.html">Features</a>
+        <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./review-all.html">Review Hub</a>
+        <a class="btn btn-primary" href="./analyze.html">Start Free Trial</a>
       </div>
     </div>
 
     <section class="hero">
-      <div class="tag">Review Pricing</div>
-      <h1>Get players hooked on visible progress before they drift back to guessing.</h1>
+      <div class="tag">Pricing</div>
+      <h1>Choose the plan that keeps your improvement measurable and accountable.</h1>
       <p class="muted">
-        The original pricing page depended on incomplete auth and checkout wiring. This review version reframes the offer around what serious players actually buy: confidence, accountability, and measurable improvement.
+        Start with full-feature access, see your first report fast, and pick the plan that fits your training cadence. The ACE plan is optimized for most serious players and coaches.
       </p>
+      <div class="toggle-wrap" role="tablist" aria-label="Billing period">
+        <button class="toggle-btn active" id="annualBtn" type="button" onclick="setBilling('annual')">Annual (Save 58%)</button>
+        <button class="toggle-btn" id="monthlyBtn" type="button" onclick="setBilling('monthly')">Monthly</button>
+      </div>
     </section>
 
     <section class="grid">
-      <div class="card">
-        <h2>Free Review</h2>
-        <div class="price">$0</div>
-        <p class="muted">Best for testing the review build.</p>
+      <article class="card">
+        <h3>Rally</h3>
+        <div class="value-line">$1,200+ perceived annual value</div>
+        <div class="price" data-annual="99" data-monthly="19">$99</div>
+        <div class="period" data-period="/year">/year</div>
+        <div class="daily" data-daily="$0.27/day">$0.27/day</div>
         <ul>
-          <li>Create a local account</li>
-          <li>Run browser-based swing analysis</li>
-          <li>Save reports on this device</li>
-          <li>Open the KPI dashboard</li>
+          <li>Up to 10 analyses per month</li>
+          <li>Core score + benchmark report</li>
+          <li>Basic progress dashboard</li>
+          <li>Limited drill recommendations</li>
         </ul>
-        <a class="btn btn-primary" href="./signup.html">Create account</a>
-      </div>
+        <a class="btn btn-primary" href="./signup.html">Start 14-Day Trial</a>
+      </article>
 
-      <div class="card">
-        <h2>Performance</h2>
-        <div class="price">$19</div>
-        <p class="muted">Intended future paid player tier.</p>
+      <article class="card popular">
+        <div class="popular-badge">Most Popular | Chosen by 73%</div>
+        <h3>ACE</h3>
+        <div class="value-line">$4,799 perceived annual value</div>
+        <div class="price" data-annual="197" data-monthly="39">$197</div>
+        <div class="period" data-period="/year">/year</div>
+        <div class="daily" data-daily="$0.54/day">$0.54/day</div>
         <ul>
-          <li>Everything in Free</li>
-          <li>Long-term cloud history</li>
-          <li>Premium AI recommendations</li>
-          <li>Exportable reports and sharing</li>
+          <li>Unlimited analyses</li>
+          <li>Coach-ready reports with action plan</li>
+          <li>Tailored drill assignments and completion tracking</li>
+          <li>Goal engine + progress timeline + calendarization</li>
+          <li>Monthly group Q&A workflow</li>
         </ul>
-        <a class="btn btn-primary" href="./analyze.html">Review analyzer</a>
-      </div>
+        <a class="btn btn-primary" href="./signup.html">Get ACE Plan</a>
+      </article>
 
-      <div class="card">
-        <h2>Coach</h2>
-        <div class="price">$49</div>
-        <p class="muted">Intended future coaching workflow tier.</p>
+      <article class="card">
+        <h3>Grand Slam</h3>
+        <div class="value-line">$8,500+ perceived annual value</div>
+        <div class="price" data-annual="497" data-monthly="89">$497</div>
+        <div class="period" data-period="/year">/year</div>
+        <div class="daily" data-daily="$1.36/day">$1.36/day</div>
         <ul>
-          <li>Everything in Performance</li>
-          <li>Athlete roster and coach dashboard</li>
-          <li>Session booking and notes</li>
-          <li>Shared player progress review</li>
+          <li>Everything in ACE</li>
+          <li>Priority coaching support layer</li>
+          <li>Advanced team or academy usage</li>
+          <li>Expanded analytics roadmap access</li>
         </ul>
-        <a class="btn btn-primary" href="./dashboard.html">Review dashboard</a>
-      </div>
+        <a class="btn btn-primary" href="./contact.html">Talk to Sales</a>
+      </article>
+    </section>
+
+    <section class="trust">
+      <h2>Triple Guarantee</h2>
+      <p class="muted"><strong>14-day full refund:</strong> if it does not fit, cancel with zero friction.</p>
+      <p class="muted"><strong>90-day improvement commitment:</strong> if training cadence is met and no measurable progress appears, we extend service at no cost.</p>
+      <p class="muted"><strong>Execution guarantee:</strong> if direction is unclear after 60 days, we provide coach intervention support.</p>
+    </section>
+
+    <section class="faq">
+      <article class="qa">
+        <h3>Do I need a coach to use SmartSwing?</h3>
+        <p class="muted">No. The player workflow is self-serve. Coach workflows add accountability and speed up correction.</p>
+      </article>
+      <article class="qa">
+        <h3>Can I start free before paying?</h3>
+        <p class="muted">Yes. Start with the trial flow, generate reports, then choose a plan once value is clear.</p>
+      </article>
+      <article class="qa">
+        <h3>Is this web-only or app-store ready?</h3>
+        <p class="muted">This build is web/PWA-ready now. Native app-store packaging remains in roadmap milestones.</p>
+      </article>
+      <article class="qa">
+        <h3>What makes ACE the default choice?</h3>
+        <p class="muted">It includes unlimited analysis, actionable reports, and the retention/accountability loop where most improvement value is created.</p>
+      </article>
     </section>
   </div>
+
   <script src="./pwa.js"></script>
+  <script>
+    function setBilling(mode) {
+      const annual = mode === 'annual';
+      document.getElementById('annualBtn').classList.toggle('active', annual);
+      document.getElementById('monthlyBtn').classList.toggle('active', !annual);
+
+      document.querySelectorAll('.price').forEach((node) => {
+        const value = annual ? node.dataset.annual : node.dataset.monthly;
+        node.textContent = `$${value}`;
+      });
+
+      document.querySelectorAll('.period').forEach((node) => {
+        node.textContent = annual ? '/year' : '/month';
+      });
+
+      document.querySelectorAll('.daily').forEach((node) => {
+        const annualValue = node.dataset.daily || '';
+        if (annual) {
+          node.textContent = annualValue;
+          return;
+        }
+        const annualText = annualValue.replace('$', '').replace('/day', '');
+        const parsed = Number(annualText);
+        if (!Number.isFinite(parsed)) {
+          node.textContent = '';
+          return;
+        }
+        const monthly = ((parsed * 365) / 12).toFixed(2);
+        node.textContent = `$${monthly}/month effective`;
+      });
+    }
+  </script>
 </body>
 </html>

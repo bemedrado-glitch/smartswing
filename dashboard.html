@@ -255,6 +255,90 @@
       color: var(--muted);
     }
 
+    .bar-track {
+      margin-top: 8px;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+    }
+
+    .calendar {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .calendar-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .calendar-week {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 800;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .calendar-cell {
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      display: grid;
+      align-content: space-between;
+    }
+
+    .calendar-cell.empty-cell {
+      opacity: 0.35;
+    }
+
+    .calendar-day {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .calendar-tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .calendar-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .dot-session { background: var(--cyan); }
+    .dot-drill { background: var(--amber); }
+    .dot-goal { background: var(--green); }
+
     @media (max-width: 980px) {
       .hero, .content, .stats {
         grid-template-columns: 1fr;
@@ -394,6 +478,9 @@
           <button class="btn btn-primary" type="submit">Book session</button>
         </form>
         <div id="sessionMessage" class="muted" style="margin-top: 10px;"></div>
+        <h3 style="margin-top: 18px;">Calendarization</h3>
+        <div class="muted" style="font-size:13px;">Cyan = coach sessions | Amber = drill due dates | Green = goal due dates</div>
+        <div id="calendarView" class="calendar"></div>
       </div>
     </section>
   </div>
@@ -474,16 +561,21 @@
     function renderRetention(metrics) {
       const retention = document.getElementById('retentionList');
       const nextSession = metrics.nextSession ? new Date(metrics.nextSession.when).toLocaleString() : 'No session booked';
+      const drillRate = Number(metrics.drillCompletionRate || 0);
+      const goalTotal = Number(metrics.activeGoals || 0) + Number(metrics.completedGoals || 0);
+      const goalRate = goalTotal ? Math.round((Number(metrics.completedGoals || 0) / goalTotal) * 100) : 0;
       retention.innerHTML = `
         <div class="item">
           <div class="pill">Drill completion</div>
-          <h3>${metrics.drillCompletionRate || 0}%</h3>
+          <h3>${drillRate}%</h3>
           <p class="muted">${metrics.completedDrills || 0} of ${metrics.totalDrills || 0} assigned drills completed</p>
+          <div class="bar-track"><div class="bar-fill" style="width:${drillRate}%;"></div></div>
         </div>
         <div class="item">
           <div class="pill">Goal execution</div>
           <h3>${metrics.completedGoals || 0} completed</h3>
           <p class="muted">${metrics.activeGoals || 0} active goals still open</p>
+          <div class="bar-track"><div class="bar-fill" style="width:${goalRate}%;"></div></div>
         </div>
         <div class="item">
           <div class="pill">Coach accountability</div>
@@ -633,6 +725,69 @@
       }
     }
 
+    function renderCalendar() {
+      const mount = document.getElementById('calendarView');
+      const sessions = store.getUserCoachSessions();
+      const drills = store.getUserDrillAssignments();
+      const goals = store.getUserGoals();
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const first = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const startOffset = first.getDay();
+
+      const markers = new Map();
+      sessions.forEach((session) => {
+        const date = new Date(session.when);
+        if (date.getFullYear() !== year || date.getMonth() !== month) return;
+        const day = date.getDate();
+        if (!markers.has(day)) markers.set(day, { session: 0, drill: 0, goal: 0 });
+        markers.get(day).session += 1;
+      });
+      drills.forEach((drill) => {
+        if (!drill.dueDate) return;
+        const date = new Date(drill.dueDate);
+        if (date.getFullYear() !== year || date.getMonth() !== month) return;
+        const day = date.getDate();
+        if (!markers.has(day)) markers.set(day, { session: 0, drill: 0, goal: 0 });
+        markers.get(day).drill += 1;
+      });
+      goals.forEach((goal) => {
+        if (!goal.dueDate) return;
+        const date = new Date(goal.dueDate);
+        if (date.getFullYear() !== year || date.getMonth() !== month) return;
+        const day = date.getDate();
+        if (!markers.has(day)) markers.set(day, { session: 0, drill: 0, goal: 0 });
+        markers.get(day).goal += 1;
+      });
+
+      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      let cells = '';
+      for (let i = 0; i < startOffset; i += 1) {
+        cells += `<div class="calendar-cell empty-cell"></div>`;
+      }
+      for (let day = 1; day <= lastDay; day += 1) {
+        const info = markers.get(day) || { session: 0, drill: 0, goal: 0 };
+        cells += `
+          <div class="calendar-cell">
+            <div class="calendar-day">${day}</div>
+            <div class="calendar-tags">
+              ${info.session ? '<span class="calendar-dot dot-session" title="Coach session"></span>' : ''}
+              ${info.drill ? '<span class="calendar-dot dot-drill" title="Drill due"></span>' : ''}
+              ${info.goal ? '<span class="calendar-dot dot-goal" title="Goal due"></span>' : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      mount.innerHTML = `
+        <div class="calendar-title">${now.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
+        <div class="calendar-week">${weekDays.map((label) => `<div>${label}</div>`).join('')}</div>
+        <div class="calendar-grid">${cells}</div>
+      `;
+    }
+
     function refreshAll() {
       const metrics = store.getDashboardMetrics();
       renderHeader(metrics);
@@ -641,6 +796,7 @@
       renderGoals();
       renderDrills();
       renderTimeline();
+      renderCalendar();
     }
 
     function init() {

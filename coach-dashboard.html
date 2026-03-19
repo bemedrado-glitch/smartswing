@@ -213,6 +213,58 @@
       margin-bottom: 10px;
     }
 
+    .cal-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .cal-week {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .cal-cell {
+      min-height: 44px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 4px;
+      background: rgba(255,255,255,0.03);
+      display: grid;
+      align-content: space-between;
+    }
+
+    .cal-cell.empty {
+      opacity: 0.35;
+    }
+
+    .cal-day {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .cal-count {
+      font-size: 10px;
+      color: var(--cyan);
+      font-weight: 800;
+    }
+
     @media (max-width: 980px) {
       .hero, .content, .stats { grid-template-columns: 1fr; }
       h1 { font-size: 34px; }
@@ -283,6 +335,7 @@
 
       <div class="panel">
         <h2>Accountability queue</h2>
+        <div id="coachCalendar" class="item" style="margin-bottom:12px;"></div>
         <div id="sessionList" class="list"></div>
       </div>
     </section>
@@ -332,6 +385,43 @@
         }
       });
       return alerts.slice(0, 12);
+    }
+
+    function renderCoachCalendar(summary) {
+      const mount = document.getElementById('coachCalendar');
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const first = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const offset = first.getDay();
+      const dayCounts = new Map();
+
+      summary.sessions.forEach((session) => {
+        const date = new Date(session.when);
+        if (date.getFullYear() !== year || date.getMonth() !== month) return;
+        const day = date.getDate();
+        dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
+      });
+
+      let cells = '';
+      for (let i = 0; i < offset; i += 1) cells += '<div class="cal-cell empty"></div>';
+      for (let day = 1; day <= lastDay; day += 1) {
+        const count = dayCounts.get(day) || 0;
+        cells += `
+          <div class="cal-cell">
+            <div class="cal-day">${day}</div>
+            <div class="cal-count">${count ? `${count} session${count > 1 ? 's' : ''}` : ''}</div>
+          </div>
+        `;
+      }
+
+      const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      mount.innerHTML = `
+        <div class="cal-title">${now.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
+        <div class="cal-week">${labels.map((label) => `<div>${label}</div>`).join('')}</div>
+        <div class="cal-grid">${cells}</div>
+      `;
     }
 
     function render() {
@@ -400,6 +490,8 @@
           </div>
         `).join('');
       }
+
+      renderCoachCalendar(summary);
     }
 
     render();
