@@ -3,124 +3,568 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI</title>
-  <meta name="description" content="AI-powered tennis analysis, actionable coaching feedback, and calendarized improvement workflows.">
+  <title>SmartSwing AI | Tennis Training Operating System</title>
+  <meta name="description" content="Capture, analyze, compare, improve, and track every tennis session with AI feedback, drill plans, and coach workflows.">
   <link rel="manifest" href="./manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a1628;
-      --bg2: #0f2542;
-      --panel: rgba(14, 28, 49, 0.9);
-      --line: rgba(255,255,255,0.12);
-      --text: #eaf1fa;
-      --muted: #99adc3;
+      --bg: #081426;
+      --bg-2: #0c1f39;
+      --panel: rgba(11, 27, 48, 0.88);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #eaf2fb;
+      --muted: #9db2c9;
       --blue: #0066ff;
       --green: #00c853;
       --orange: #ff6d00;
+      --gold: #ffd700;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: "Plus Jakarta Sans", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(0,102,255,0.24), transparent 28%),
-        radial-gradient(circle at top right, rgba(0,200,83,0.16), transparent 30%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+        radial-gradient(circle at 5% 10%, rgba(0, 102, 255, 0.24), transparent 30%),
+        radial-gradient(circle at 95% 0%, rgba(0, 200, 83, 0.16), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       min-height: 100vh;
-      line-height: 1.6;
+      line-height: 1.55;
     }
-    .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 68px; }
-    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:22px; }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 20px 72px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
     .logo {
-      text-decoration:none; font-size:34px; font-weight:900; letter-spacing:-0.02em;
-      background: linear-gradient(135deg, #73a8ff, #7ef8b0);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration: none;
+      font-family: "Sora", sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #77adff, #79f5b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .nav { display:flex; gap:10px; flex-wrap:wrap; }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .btn {
-      text-decoration:none; padding:12px 16px; border-radius:14px; border:1px solid var(--line);
-      color:var(--text); font-weight:800; background:rgba(255,255,255,0.03);
-      display:inline-flex; align-items:center; justify-content:center;
+      text-decoration: none;
+      border-radius: 14px;
+      padding: 11px 16px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.04);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
     }
-    .btn-primary { border:none; color:#fff; background: linear-gradient(135deg, var(--orange), #ff8f00); }
-    .btn-secondary { border:none; color:#fff; background: linear-gradient(135deg, var(--blue), #4d8eff); }
-    .hero { display:grid; grid-template-columns:1.02fr 0.98fr; gap:18px; margin-bottom:18px; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:26px; padding:26px; box-shadow:0 22px 72px rgba(0,0,0,0.28); }
-    .badge { display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900; letter-spacing:0.04em; text-transform:uppercase; background:rgba(0,102,255,0.18); color:#9fc1ff; }
-    h1 { font-size:58px; line-height:1.01; margin:14px 0 14px; letter-spacing:-0.03em; }
-    h2 { font-size:30px; margin-bottom:12px; letter-spacing:-0.02em; }
-    h3 { font-size:19px; margin-bottom:8px; }
-    .muted { color:var(--muted); }
-    .hero-copy { font-size:18px; max-width:700px; }
-    .action-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
-    .visual {
-      min-height:560px; border-radius:26px; border:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(6,14,27,0.06), rgba(6,14,27,0.84)), url('./assets/avatar/AI Breakdown side by side.png') center/cover;
-      display:flex; align-items:flex-end; padding:22px;
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.07);
     }
-    .visual-card { max-width:480px; border-radius:16px; padding:16px; background:rgba(6,15,27,0.76); border:1px solid rgba(255,255,255,0.1); }
-    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-    .item { background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:16px; padding:16px; }
-    .cta { text-align:center; background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:26px; margin-bottom:14px; }
-    .foot { text-align:center; color:var(--muted); font-size:13px; }
-    @media (max-width: 1020px) {
-      .hero, .grid { grid-template-columns:1fr; }
-      h1 { font-size:42px; }
-      .visual { min-height:420px; }
+
+    .btn-primary {
+      border: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--orange), #ff8f00);
+      box-shadow: 0 14px 28px rgba(255, 109, 0, 0.28);
+    }
+
+    .btn-secondary {
+      border: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), #4186ff);
+      box-shadow: 0 14px 28px rgba(0, 102, 255, 0.24);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 26px 60px rgba(0, 0, 0, 0.28);
+    }
+
+    .hero-copy {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #95e7ff;
+      background: rgba(0, 102, 255, 0.18);
+      border-radius: 999px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: "Sora", sans-serif;
+      font-size: 58px;
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      font-family: "Sora", sans-serif;
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-family: "Sora", sans-serif;
+      font-size: 20px;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .hero-text {
+      font-size: 18px;
+      max-width: 640px;
+    }
+
+    .hero-actions {
+      margin-top: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hero-note {
+      margin-top: 12px;
+      color: #b8cbdd;
+      font-size: 13px;
+    }
+
+    .hero-visual {
+      min-height: 560px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(5, 12, 24, 0.08), rgba(5, 12, 24, 0.82)),
+        url("./assets/avatar/AI Breakdown side by side.png") center/cover;
+      display: flex;
+      align-items: flex-end;
+      padding: 18px;
+    }
+
+    .hero-metrics {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      background: rgba(8, 20, 37, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .metric-value {
+      font-family: "Sora", sans-serif;
+      font-size: 24px;
+      line-height: 1;
+      margin-bottom: 4px;
+      color: #84b7ff;
+    }
+
+    .metric small {
+      color: #c2d3e3;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .trust {
+      margin-bottom: 18px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .pill {
+      text-align: center;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: #bbcedf;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 10px 8px;
+    }
+
+    .how {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .step-tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: #9fd6ff;
+      background: rgba(0, 102, 255, 0.18);
+    }
+
+    .feature-grid {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      overflow: hidden;
+    }
+
+    .feature-media {
+      height: 170px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .feature-copy {
+      padding: 14px 14px 16px;
+    }
+
+    .split {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .box {
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .list {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .list-item {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #c6d6e5;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .pricing {
+      margin-bottom: 18px;
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .plan-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .plan {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      position: relative;
+    }
+
+    .plan.recommended {
+      border-color: rgba(255, 109, 0, 0.74);
+      box-shadow: inset 0 0 0 1px rgba(255, 109, 0, 0.26);
+    }
+
+    .tag {
+      position: absolute;
+      right: 10px;
+      top: -10px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: #fff;
+      background: linear-gradient(135deg, var(--orange), #ff9200);
+    }
+
+    .price {
+      font-family: "Sora", sans-serif;
+      font-size: 34px;
+      line-height: 1;
+      margin: 9px 0 6px;
+      background: linear-gradient(135deg, #ffbf78, #ffe3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .price-note {
+      color: #b6cadb;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .cta {
+      text-align: center;
+      padding: 26px 22px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      margin-bottom: 14px;
+    }
+
+    .foot {
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1060px) {
+      .hero, .split { grid-template-columns: 1fr; }
+      .trust, .how, .feature-grid, .plan-grid, .hero-metrics { grid-template-columns: 1fr; }
+      h1 { font-size: 42px; }
+      .hero-visual { min-height: 420px; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="top">
+  <div class="wrap">
+    <header class="header">
       <a class="logo" href="./index.html">SmartSwing AI</a>
-      <div class="nav">
+      <nav class="nav">
         <a class="btn" href="./features.html">Features</a>
         <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./dashboard.html">Player Dashboard</a>
+        <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
         <a class="btn" href="./pricing.html">Pricing</a>
-        <a class="btn" href="./review-all.html">Full Review Hub</a>
-        <a class="btn btn-primary" href="./analyze.html">Get My Free Swing Analysis</a>
-      </div>
-    </div>
+        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </nav>
+    </header>
 
     <section class="hero">
-      <div class="panel">
-        <div class="badge">Part 8 + 9 UX Build</div>
+      <div class="panel hero-copy">
+        <div class="eyebrow">Built For Serious Players and Coaches</div>
         <h1>Your AI Coach Watches Every Swing. You Just Play.</h1>
-        <p class="hero-copy muted">
-          SmartSwing AI turns your phone camera into a biomechanics lab, compares motion against pro-level ranges, and gives a clear correction plan that players and coaches can execute immediately.
+        <p class="hero-text muted">
+          Capture any serve, forehand, backhand, volley, slice, drop shot, or lob. SmartSwing AI scores movement quality, compares your mechanics to pro ranges, and gives a clear drill plan to improve before your next session.
         </p>
-        <div class="action-row">
-          <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
-          <a class="btn btn-secondary" href="./pricing.html">See Pricing and Guarantees</a>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="./analyze.html">Get My Free Swing Analysis</a>
+          <a class="btn btn-secondary" href="./pricing.html">See Plans and Trial</a>
         </div>
-        <p class="muted" style="margin-top:12px; font-size:13px;">No credit card required | 14-day full-feature trial | Coach-ready reports</p>
+        <p class="hero-note">No credit card required for trial. Player and coach data stays synced across your dashboards.</p>
       </div>
-      <div class="visual">
-        <div class="visual-card">
-          <h2>Real product flow, not placeholder pages.</h2>
-          <p class="muted">Analyzer, actionable report output, player dashboard, coach dashboard, and calendarized session planning are all integrated.</p>
+
+      <div class="hero-visual">
+        <div class="hero-metrics">
+          <div class="metric">
+            <div class="metric-value">+15%</div>
+            <small>Movement Efficiency Score</small>
+          </div>
+          <div class="metric">
+            <div class="metric-value">3.2°</div>
+            <small>Shoulder Rotation Gap</small>
+          </div>
+          <div class="metric">
+            <div class="metric-value">7 Days</div>
+            <small>Execution Drill Plan</small>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="grid">
-      <div class="item"><h3>Social-Proof Architecture</h3><p class="muted">Homepage now uses proof, outcomes, and risk-reduction framing instead of generic aspirational copy.</p></div>
-      <div class="item"><h3>Conversion Pricing Design</h3><p class="muted">Three-tier anchored pricing with annual/monthly toggle, guarantees, and FAQ to reduce buying friction.</p></div>
-      <div class="item"><h3>Roadmap Clarity</h3><p class="muted">Tier 1, Tier 2, and Tier 3 feature priorities are now visible and tied to execution sequencing.</p></div>
+    <section class="trust">
+      <div class="pill">Biomechanics and Ball Tracking</div>
+      <div class="pill">Pro Benchmark Comparisons</div>
+      <div class="pill">Coach-Ready Reports</div>
+      <div class="pill">Calendarized Improvement Cycles</div>
+    </section>
+
+    <section class="how">
+      <article class="step">
+        <div class="step-tag">Step 1</div>
+        <h3>Capture with guidance</h3>
+        <p class="muted">Upload footage with camera-position prompts so analysis quality stays high from day one.</p>
+      </article>
+      <article class="step">
+        <div class="step-tag">Step 2</div>
+        <h3>Analyze and compare</h3>
+        <p class="muted">Get angle, vector, timing, footwork, spin, and positioning feedback with tracker definitions.</p>
+      </article>
+      <article class="step">
+        <div class="step-tag">Step 3</div>
+        <h3>Improve and track</h3>
+        <p class="muted">Follow tailored drills, set goals, book coaching sessions, and track weekly KPI progress.</p>
+      </article>
+    </section>
+
+    <section class="feature-grid">
+      <article class="feature-card">
+        <div class="feature-media" style="background-image:url('./assets/uiux/Smart 2.png');"></div>
+        <div class="feature-copy">
+          <h3>Shot-by-shot AI feedback</h3>
+          <p class="muted">See what happened, why it happened, and what to change on the next rep.</p>
+        </div>
+      </article>
+      <article class="feature-card">
+        <div class="feature-media" style="background-image:url('./assets/uiux/Smart 10.png');"></div>
+        <div class="feature-copy">
+          <h3>Pro-range benchmark engine</h3>
+          <p class="muted">Compare your mechanics against elite ranges with plain-language explanations.</p>
+        </div>
+      </article>
+      <article class="feature-card">
+        <div class="feature-media" style="background-image:url('./assets/uiux/Smart 8.png');"></div>
+        <div class="feature-copy">
+          <h3>Actionable reporting</h3>
+          <p class="muted">Each report includes corrections, drill blocks, and session priorities by impact.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="split">
+      <article class="box">
+        <h2>For Players</h2>
+        <p class="muted">One system to analyze, compare, improve, and keep momentum week after week.</p>
+        <div class="list">
+          <div class="list-item">Progress trends by shot type and match context</div>
+          <div class="list-item">Personalized daily drills based on biggest gaps</div>
+          <div class="list-item">Session reminders and weekly accountability</div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-secondary" href="./dashboard.html">Open Player Dashboard</a>
+        </div>
+      </article>
+      <article class="box">
+        <h2>For Coaches</h2>
+        <p class="muted">Coach-ready workflows for roster management, priority flags, and scheduling.</p>
+        <div class="list">
+          <div class="list-item">Student performance queue and urgent correction flags</div>
+          <div class="list-item">Calendarized plans with next-session objectives</div>
+          <div class="list-item">Shareable reports and improvement snapshots</div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-secondary" href="./coach-dashboard.html">Open Coach Dashboard</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="pricing">
+      <h2>Choose Your Plan</h2>
+      <p class="muted">Start with a free trial, then pick the plan that matches your training intensity.</p>
+      <div class="plan-grid">
+        <article class="plan">
+          <h3>Rally</h3>
+          <div class="price">$99/yr</div>
+          <div class="price-note">For occasional analysis and baseline tracking.</div>
+          <p class="muted">10 analyses per month and core reporting.</p>
+        </article>
+        <article class="plan recommended">
+          <div class="tag">Most Popular</div>
+          <h3>ACE</h3>
+          <div class="price">$197/yr</div>
+          <div class="price-note">For serious players focused on measurable improvement.</div>
+          <p class="muted">Unlimited analysis, full drill engine, and advanced dashboards.</p>
+        </article>
+        <article class="plan">
+          <h3>Grand Slam</h3>
+          <div class="price">$497/yr</div>
+          <div class="price-note">For competitive athletes and high-touch coaching support.</div>
+          <p class="muted">Premium review depth and advanced planning workflows.</p>
+        </article>
+      </div>
+      <div class="hero-actions" style="margin-top:14px;">
+        <a class="btn btn-primary" href="./pricing.html">Compare Full Plan Details</a>
+      </div>
     </section>
 
     <section class="cta">
-      <h2>Open the Full Experience</h2>
-      <p class="muted">If you want all updated sections together, open the full homepage variant and review hub.</p>
-      <div class="action-row" style="justify-content:center;">
-        <a class="btn btn-primary" href="./index-integrated.html">Open Full Homepage</a>
+      <h2>Start Your First Analysis Now</h2>
+      <p class="muted">Upload one video and get clear priorities, tailored drills, and your next-session plan in minutes.</p>
+      <div class="hero-actions" style="justify-content:center;">
+        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
         <a class="btn" href="./review-all.html">Open Full Review Hub</a>
       </div>
     </section>
 
-    <div class="foot">SmartSwing AI | Updated main entry page</div>
+    <footer class="foot">SmartSwing AI | Tennis intelligence platform for players and coaches</footer>
   </div>
   <script src="./pwa.js"></script>
 </body>
