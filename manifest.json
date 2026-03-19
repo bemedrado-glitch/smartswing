@@ -1,0 +1,11 @@
+{
+  "name": "SmartSwing AI",
+  "short_name": "SmartSwing",
+  "description": "Tennis biomechanics analysis, dashboards, drills, and coach scheduling.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#030508",
+  "theme_color": "#0d1b2a",
+  "orientation": "portrait-primary",
+  "categories": ["sports", "productivity", "health"]
+}

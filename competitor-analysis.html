@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Competitor Intelligence</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(10, 18, 29, 0.9);
+      --line: rgba(255,255,255,0.1);
+      --text: #eaf0f6;
+      --muted: #92a0af;
+      --green: #39ff14;
+      --cyan: #00e5ff;
+      --amber: #ffcc4d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
+        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .page { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+    .logo {
+      font-size: 28px; font-weight: 900; text-decoration:none;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn { text-decoration:none; padding:12px 16px; border-radius:14px; border:1px solid var(--line); color:var(--text); font-weight:800; }
+    .btn-primary { border:none; color:#04110a; background:linear-gradient(135deg, var(--green), var(--cyan)); }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:24px; margin-bottom:18px; }
+    h1 { font-size:42px; line-height:1.05; margin-bottom:12px; }
+    h2 { font-size:24px; margin-bottom:14px; }
+    h3 { font-size:18px; margin-bottom:8px; }
+    .muted { color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .list { display:grid; gap:12px; }
+    .item { padding:16px 18px; border-radius:18px; background:rgba(255,255,255,0.04); border:1px solid var(--line); }
+    .tag { display:inline-block; margin-bottom:10px; padding:6px 10px; border-radius:999px; background:rgba(57,255,20,0.12); color:var(--green); font-size:12px; font-weight:900; text-transform:uppercase; }
+    ul { margin-left:18px; color:var(--muted); }
+    li { margin-bottom:8px; }
+    @media (max-width: 920px) { .grid { grid-template-columns:1fr; } h1 { font-size:34px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <div class="nav">
+        <a class="btn" href="./review.html">Review Build</a>
+        <a class="btn" href="./dashboard.html">Dashboard</a>
+        <a class="btn btn-primary" href="./analyze.html">Analyzer</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="tag">Competitor Intelligence</div>
+      <h1>What SmartSwing should borrow, beat, and avoid</h1>
+      <p class="muted">
+        This page translates competitor research into an execution checklist for SmartSwing. It focuses on features and UX patterns that are realistically implementable in the current app.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Best-in-class strengths to copy</h2>
+        <div class="list">
+          <div class="item">
+            <h3>SwingVision</h3>
+            <p class="muted">Camera-first workflow, match review, clear AI value, and strong “see every rep” positioning.</p>
+          </div>
+          <div class="item">
+            <h3>TennisPAL</h3>
+            <p class="muted">Community, nearby player discovery, and habit-forming network effects.</p>
+          </div>
+          <div class="item">
+            <h3>TennisONE</h3>
+            <p class="muted">Fast live content loop, fan engagement, and sticky return behavior built around updates.</p>
+          </div>
+          <div class="item">
+            <h3>Sportsbox / Uplift</h3>
+            <p class="muted">Clear tracker definitions, motion-capture credibility, and coach-friendly reports.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Weaknesses to exploit</h2>
+        <div class="list">
+          <div class="item">
+            <h3>Too narrow a workflow</h3>
+            <p class="muted">Most competitors solve one slice of the journey: line calls, social play, or motion analysis. SmartSwing should unify analysis, coaching, progress, and management.</p>
+          </div>
+          <div class="item">
+            <h3>High setup friction</h3>
+            <p class="muted">Camera angle, hardware, and calibration requirements often hurt reliability. SmartSwing should coach users through capture quality before analysis starts.</p>
+          </div>
+          <div class="item">
+            <h3>Weak emotional payoff</h3>
+            <p class="muted">Many products explain features but not the emotional outcome. SmartSwing should sell confidence, progress, and competitive edge, not only metrics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:18px;">
+      <div class="panel">
+        <h2>What SmartSwing should become</h2>
+        <ul>
+          <li>Single operating system for the serious tennis player: analyze, compare, improve, schedule, and track.</li>
+          <li>Coach-ready reporting, not just consumer-facing stats.</li>
+          <li>Clear pro-range comparisons with tracker definitions so the user understands why a metric matters.</li>
+          <li>Capture guidance before the session, not only error messages after bad footage is uploaded.</li>
+          <li>Retention loop built on progress history, drills, goals, and coach accountability.</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h2>Already applied in this build</h2>
+        <ul>
+          <li>Capture-readiness checklist added to the analyzer upload step.</li>
+          <li>Session goal and review mode added to improve coaching context.</li>
+          <li>Dashboard now acts as the home for KPI tracking, drills, and booked sessions.</li>
+          <li>Landing and pricing pages now frame SmartSwing as a complete system, not only a video tool.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <script src="./pwa.js"></script>
+</body>
+</html>

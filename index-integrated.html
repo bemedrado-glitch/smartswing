@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Tennis Intelligence System</title>
+  <meta name="description" content="SmartSwing AI helps tennis players and coaches capture motion, score mechanics, compare against pro-style ranges, and turn insight into action fast.">
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(10, 18, 29, 0.88);
+      --panel-2: rgba(15, 28, 43, 0.88);
+      --line: rgba(255,255,255,0.1);
+      --text: #ebf0f6;
+      --muted: #93a1b1;
+      --green: #39ff14;
+      --cyan: #00e5ff;
+      --amber: #ffcc4d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,0.1), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,229,255,0.1), transparent 28%),
+        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+    .logo {
+      text-decoration:none; font-size:30px; font-weight:900;
+      background:linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .nav { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn {
+      text-decoration:none; padding:12px 16px; border-radius:14px;
+      border:1px solid var(--line); color:var(--text); font-weight:800; background:rgba(255,255,255,0.03);
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .btn-primary { border:none; color:#04110a; background:linear-gradient(135deg, var(--green), var(--cyan)); }
+    .hero { display:grid; grid-template-columns: 1.05fr 0.95fr; gap:18px; margin-bottom:18px; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:28px; padding:26px; }
+    .badge { display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(57,255,20,0.12); color:var(--green); font-size:12px; font-weight:900; text-transform:uppercase; }
+    h1 { font-size:58px; line-height:1.02; margin:16px 0 14px; }
+    h2 { font-size:28px; margin-bottom:14px; }
+    h3 { font-size:18px; margin-bottom:8px; }
+    .muted { color:var(--muted); }
+    .hero-copy { max-width:700px; font-size:18px; color:var(--muted); }
+    .action-row { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+    .visual {
+      min-height: 520px;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(3,8,13,0.08), rgba(3,8,13,0.82)),
+        url('./assets/uiux/Smart 8.png') center/cover;
+      display:flex;
+      align-items:flex-end;
+      padding:24px;
+      border:1px solid var(--line);
+    }
+    .visual-card {
+      max-width: 460px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(8,16,25,0.72);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+    }
+    .stats { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; margin:18px 0; }
+    .stat, .item { background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:18px; padding:16px 18px; }
+    .stat-value {
+      font-size: 38px; font-weight: 900; line-height: 1; margin-bottom: 6px;
+      background:linear-gradient(135deg, var(--green), var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:18px; margin-bottom:18px; }
+    .persona-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:18px; margin-bottom:18px; }
+    .persona-card { overflow:hidden; border-radius:24px; background:var(--panel); border:1px solid var(--line); }
+    .persona-image { height:260px; background-size:cover; background-position:center; }
+    .persona-copy { padding:18px; }
+    .split { display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-bottom:18px; }
+    .list { display:grid; gap:12px; }
+    .foot { text-align:center; color:var(--muted); font-size:13px; padding-top:12px; }
+
+    @media (max-width: 980px) {
+      .hero, .grid, .persona-grid, .split, .stats { grid-template-columns:1fr; }
+      h1 { font-size:42px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <div class="nav">
+        <a class="btn" href="./features.html">Features</a>
+        <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./contact.html">Contact</a>
+        <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
+        <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
+        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="panel">
+        <div class="badge">Built for serious players and coaches</div>
+        <h1>Every bad rep you keep guessing through becomes harder to fix later.</h1>
+        <p class="hero-copy">
+          SmartSwing turns raw tennis video into measurable coaching leverage: capture a swing, score the movement chain, compare against pro-style ranges, save the result, and move directly into drills and coach action while the correction window is still open.
+        </p>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value">1</div>
+            <div class="muted">System for analysis, drills, tracking, and coach follow-up</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">7</div>
+            <div class="muted">Stroke flows already selectable in the analyzer review build</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">Fast</div>
+            <div class="muted">From upload to actionable report in one session</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">Now</div>
+            <div class="muted">Immediate feedback loop designed to trigger trial usage</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+          <a class="btn" href="./review.html">Review Build</a>
+          <a class="btn" href="./pricing.html">See Plans</a>
+        </div>
+      </div>
+
+      <div class="visual">
+        <div class="visual-card">
+          <div class="badge">Conversion-led CX</div>
+          <h2 style="margin:12px 0 8px;">Feel the gap between where your game is and where it could be.</h2>
+          <p class="muted">The homepage now sells speed to clarity, confidence under pressure, and the fear of staying stuck without real measurement.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-image" style="background-image:url('./assets/avatar/Persona 1 Tennis.png');"></div>
+        <div class="persona-copy">
+          <h3>The ambitious junior</h3>
+          <p class="muted">Needs proof fast. SmartSwing shows whether the work is improving the stroke before tournament pressure exposes the truth.</p>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-image" style="background-image:url('./assets/avatar/Persona 2 Tennis.png');"></div>
+        <div class="persona-copy">
+          <h3>The frustrated adult player</h3>
+          <p class="muted">Stops wasting weeks on the wrong fix. The app surfaces the mechanical leak behind inconsistency and gives the next drill immediately.</p>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-image" style="background-image:url('./assets/avatar/Coach Ace 16_9.png');"></div>
+        <div class="persona-copy">
+          <h3>The evidence-driven coach</h3>
+          <p class="muted">Uses the coach dashboard to triage who needs help now, what the report says, and how to turn insight into the next session plan.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Why players switch</h2>
+        <div class="list">
+          <div class="item"><h3>One place, not five tools</h3><p class="muted">Most competitors solve only one slice of the journey. SmartSwing is being shaped into one workflow.</p></div>
+          <div class="item"><h3>Action after insight</h3><p class="muted">The app does not stop at scorecards. It moves from metrics into drills and coach scheduling.</p></div>
+          <div class="item"><h3>Built for measurable progress</h3><p class="muted">Every saved session feeds the dashboard so the user sees whether the work is actually changing the swing.</p></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>What creates impulse</h2>
+        <div class="list">
+          <div class="item"><h3>Immediate payoff</h3><p class="muted">The user can move from upload to diagnosis to next-step action in one sitting, which reduces drop-off.</p></div>
+          <div class="item"><h3>Visible edge</h3><p class="muted">The copy now frames SmartSwing as a competitive advantage: know sooner, adjust sooner, improve sooner.</p></div>
+          <div class="item"><h3>Fear of staying stuck</h3><p class="muted">The experience highlights the emotional cost of guessing: wasted reps, hidden flaws, and confidence erosion before match day.</p></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Production Readiness Status</h2>
+        <div class="list">
+          <div class="item"><h3>Backend sync path implemented</h3><p class="muted">Assessments, drills, goals, sessions, and progress events now support Supabase-backed sync with local fallback.</p></div>
+          <div class="item"><h3>Coach-ready reporting live</h3><p class="muted">Reports now include tracker definitions, priority corrections, and a coach summary for faster intervention.</p></div>
+          <div class="item"><h3>Remaining final mile</h3><p class="muted">Native app-store packaging and field-validation on large real-match datasets are still required before full production launch.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="split">
+      <div class="panel">
+        <h2>Best review path</h2>
+        <div class="list">
+          <div class="item"><h3>1. Open the analyzer</h3><p class="muted">Upload a tennis clip and review the improved capture-readiness flow.</p></div>
+          <div class="item"><h3>2. Save the report</h3><p class="muted">The dashboard only becomes sticky when the session is saved into the shared app layer.</p></div>
+          <div class="item"><h3>3. Open the dashboards</h3><p class="muted">Review both the player dashboard and the new coach dashboard to see the full CX story.</p></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Open these pages</h2>
+        <div class="list">
+          <div class="item"><h3><a class="btn btn-primary" href="./analyze.html">Analyzer</a></h3><p class="muted">Core product flow.</p></div>
+          <div class="item"><h3><a class="btn" href="./dashboard.html">Player Dashboard</a></h3><p class="muted">Progress tracking, drills, and sessions.</p></div>
+          <div class="item"><h3><a class="btn" href="./coach-dashboard.html">Coach Dashboard</a></h3><p class="muted">Coach-facing roster and session overview.</p></div>
+          <div class="item"><h3><a class="btn" href="./integration-settings.html">Integration Settings</a></h3><p class="muted">Set Supabase public URL and anon key for cloud sync.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot">SmartSwing AI review build for local HTML evaluation.</div>
+  </div>
+  <script src="./pwa.js"></script>
+</body>
+</html>

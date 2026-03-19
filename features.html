@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Features</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(10, 18, 29, 0.9);
+      --line: rgba(255,255,255,0.1);
+      --text: #e9eff6;
+      --muted: #91a1b3;
+      --green: #39ff14;
+      --cyan: #00e5ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
+        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+      min-height: 100vh;
+    }
+    .page { max-width: 1260px; margin: 0 auto; padding: 24px 20px 60px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+    .logo {
+      text-decoration:none; font-size:30px; font-weight:900;
+      background:linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .nav { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn {
+      text-decoration:none; padding:12px 16px; border-radius:14px; border:1px solid var(--line);
+      color:var(--text); font-weight:800; background:rgba(255,255,255,0.03);
+    }
+    .btn-primary { border:none; color:#04110a; background:linear-gradient(135deg, var(--green), var(--cyan)); }
+    .hero { background:var(--panel); border:1px solid var(--line); border-radius:26px; padding:26px; margin-bottom:18px; }
+    .badge { display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(57,255,20,0.12); color:var(--green); font-size:12px; font-weight:900; text-transform:uppercase; }
+    h1 { font-size:46px; line-height:1.04; margin:14px 0 10px; }
+    h2 { font-size:24px; margin-bottom:12px; }
+    h3 { font-size:18px; margin-bottom:8px; }
+    .muted { color:var(--muted); line-height:1.6; }
+    .grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:18px; margin-bottom:18px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; overflow:hidden; }
+    .visual { height:210px; background-size:cover; background-position:center; }
+    .copy { padding:16px 18px; }
+    @media (max-width: 980px) { .grid { grid-template-columns:1fr; } h1 { font-size:34px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <div class="nav">
+        <a class="btn" href="./how-it-works.html">How it works</a>
+        <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./dashboard.html">Player Dashboard</a>
+        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="badge">Feature Stack</div>
+      <h1>Everything needed to move from raw footage to corrected technique.</h1>
+      <p class="muted">SmartSwing combines capture guidance, biomechanics scoring, report generation, tailored drills, and coach session flow in one experience.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="visual" style="background-image:url('./assets/uiux/Smart 2.png');"></div>
+        <div class="copy">
+          <h3>Guided capture quality</h3>
+          <p class="muted">Before analysis starts, users check setup readiness so the AI has cleaner input and fewer false corrections.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="visual" style="background-image:url('./assets/avatar/AI Breakdown side by side.png');"></div>
+        <div class="copy">
+          <h3>Biomechanics report engine</h3>
+          <p class="muted">MoveNet keypoints flow into angle scoring, benchmark comparisons, and a printable report layout.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="visual" style="background-image:url('./assets/avatar/Persona 4 Tennis.png');"></div>
+        <div class="copy">
+          <h3>Tailored drill prescriptions</h3>
+          <p class="muted">Recommendations are generated from the biggest movement deltas so players know exactly what to fix first.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="visual" style="background-image:url('./assets/uiux/Smart 10.png');"></div>
+        <div class="copy">
+          <h3>Player progress dashboard</h3>
+          <p class="muted">Saved sessions build momentum with trend, confidence, and priority areas visible in one screen.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="visual" style="background-image:url('./assets/avatar/Coach Ace.png');"></div>
+        <div class="copy">
+          <h3>Coach command layer</h3>
+          <p class="muted">Coaches can monitor roster risk, recent sessions, and intervention priorities from one dashboard.</p>
+        </div>
+      </article>
+      <article class="card">
+        <div class="visual" style="background-image:url('./assets/uiux/Smart 5.png');"></div>
+        <div class="copy">
+          <h3>PWA installability</h3>
+          <p class="muted">The app has manifest and service worker support for installable web app behavior during review.</p>
+        </div>
+      </article>
+    </section>
+  </div>
+  <script src="./pwa.js"></script>
+</body>
+</html>

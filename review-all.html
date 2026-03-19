@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Full Review Hub</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(10, 18, 29, 0.9);
+      --line: rgba(255,255,255,0.1);
+      --text: #e9eff6;
+      --muted: #95a4b6;
+      --green: #39ff14;
+      --cyan: #00e5ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,0.1), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,229,255,0.1), transparent 28%),
+        linear-gradient(180deg, #020407 0%, #0a1320 100%);
+      min-height: 100vh;
+    }
+    .page { max-width: 1200px; margin: 0 auto; padding: 24px 20px 56px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    .logo {
+      font-size: 34px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .muted { color: var(--muted); line-height: 1.6; }
+    h2 { font-size: 24px; margin-bottom: 12px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 800;
+      background: rgba(255,255,255,0.03);
+    }
+    .btn-primary {
+      border: none;
+      color: #04110a;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="panel">
+      <div class="logo">SmartSwing AI</div>
+      <h2>Full Review Hub</h2>
+      <p class="muted">
+        Use this page as your single HTML entry point to review the full system:
+        analyzer, player retention loop, coach accountability dashboard, and integration settings.
+      </p>
+    </div>
+
+    <div class="panel">
+      <h2>Core Product</h2>
+      <div class="grid">
+        <div class="item">
+          <h3>Home</h3>
+          <p class="muted">Primary marketing and navigation entry.</p>
+          <a class="btn btn-primary" href="./index.html">Open Home</a>
+        </div>
+        <div class="item">
+          <h3>Analyzer</h3>
+          <p class="muted">Capture guidance, biomechanics scoring, pro-range comparisons, coach-ready report.</p>
+          <a class="btn btn-primary" href="./analyze.html">Open Analyzer</a>
+        </div>
+        <div class="item">
+          <h3>Player Dashboard</h3>
+          <p class="muted">Goals, drill completion, progress timeline, and coach booking.</p>
+          <a class="btn" href="./dashboard.html">Open Player Dashboard</a>
+        </div>
+        <div class="item">
+          <h3>Coach Dashboard</h3>
+          <p class="muted">Roster health, risk triage, assessment feed, and accountability queue.</p>
+          <a class="btn" href="./coach-dashboard.html">Open Coach Dashboard</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Integration and Verification</h2>
+      <div class="grid">
+        <div class="item">
+          <h3>Integration Settings</h3>
+          <p class="muted">Set Supabase URL + anon key to enable cloud sync.</p>
+          <a class="btn" href="./integration-settings.html">Open Integration Settings</a>
+        </div>
+        <div class="item">
+          <h3>Competitor Intel</h3>
+          <p class="muted">Feature and positioning analysis source page.</p>
+          <a class="btn" href="./competitor-analysis.html">Open Competitor Intel</a>
+        </div>
+      </div>
+      <p class="mono" style="margin-top: 14px;">
+        Suggested local URL: http://127.0.0.1:8765/review-all.html
+      </p>
+    </div>
+  </div>
+</body>
+</html>

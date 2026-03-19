@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SmartSwing AI</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void-black: #030508;
+      --deep-navy: #0d1b2a;
+      --neon-green: #39ff14;
+      --electric-cyan: #00e5ff;
+      --silver: #e5e5e5;
+      --gray: #6c757d;
+      --error: #ff4d73;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      color: var(--silver);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top, rgba(57, 255, 20, 0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(0, 229, 255, 0.12), transparent 30%),
+        linear-gradient(160deg, #020406 0%, #0a1520 100%);
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo {
+      display: inline-block;
+      margin-bottom: 24px;
+      font-size: 34px;
+      font-weight: 900;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card {
+      background: rgba(8, 17, 28, 0.88);
+      border: 1px solid rgba(57, 255, 20, 0.18);
+      border-radius: 28px;
+      padding: 36px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .subtext {
+      color: var(--gray);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .alert-error {
+      color: #ffd9e1;
+      background: rgba(255, 77, 115, 0.15);
+      border: 1px solid rgba(255, 77, 115, 0.35);
+    }
+
+    .alert-success {
+      color: #dfffd8;
+      background: rgba(57, 255, 20, 0.12);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+    }
+
+    .demo-box {
+      margin-bottom: 24px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .demo-box strong {
+      color: var(--neon-green);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--silver);
+      font: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: rgba(57, 255, 20, 0.65);
+      box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.12);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-primary {
+      color: #04110a;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+    }
+
+    .btn-secondary {
+      margin-top: 12px;
+      color: var(--silver);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .links {
+      margin-top: 22px;
+      text-align: center;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .links a {
+      color: var(--neon-green);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      color: var(--gray);
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <a class="logo" href="./index.html">SmartSwing AI</a>
+    <div class="card">
+      <h1>Sign In</h1>
+      <p class="subtext">Access saved swing reports, KPI tracking, coach sessions, and your latest biomechanics recommendations.</p>
+
+      <div id="alertBox" class="alert"></div>
+
+      <div class="demo-box">
+        <strong>Demo account</strong>
+        Email: `demo@smartswing.ai`<br>
+        Password: `demo123`
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@example.com" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="Enter your password" required>
+        </div>
+        <button id="loginBtn" class="btn btn-primary" type="submit">Sign In</button>
+      </form>
+
+      <button class="btn btn-secondary" type="button" onclick="loginWithGoogle()">Google Sign-In</button>
+
+      <div class="links">
+        Don't have an account? <a href="./signup.html">Create one</a>
+      </div>
+    </div>
+    <a class="back-link" href="./index.html">Back to homepage</a>
+  </div>
+
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+
+    if (store.getCurrentUser()) {
+      window.location.href = './dashboard.html';
+    }
+
+    function showAlert(message, type = 'error') {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.textContent = message;
+      alertBox.className = `alert alert-${type}`;
+      alertBox.style.display = 'block';
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('loginBtn');
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+
+      try {
+        await store.signIn(email, password);
+        showAlert('Login successful. Redirecting...', 'success');
+        setTimeout(() => {
+          window.location.href = './dashboard.html';
+        }, 600);
+      } catch (error) {
+        showAlert(error.message || 'Login failed.');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
+    }
+
+    async function loginWithGoogle() {
+      try {
+        await store.signInWithGoogle();
+      } catch (error) {
+        showAlert(error.message || 'Google OAuth is not configured. Use email/password or demo account.');
+      }
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get('message');
+    const type = params.get('type');
+    if (message) {
+      showAlert(decodeURIComponent(message), type || 'success');
+    }
+  </script>
+</body>
+</html>

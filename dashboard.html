@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Player Dashboard</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(10, 18, 29, 0.9);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #e9eff6;
+      --muted: #91a1b3;
+      --green: #39ff14;
+      --cyan: #00e5ff;
+      --amber: #ffc94d;
+      --danger: #ff5a7c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57, 255, 20, 0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(0, 229, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      text-decoration: none;
+      font-size: 30px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .btn-primary {
+      border: none;
+      color: #04110a;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: rgba(57, 255, 20, 0.12);
+      color: var(--green);
+    }
+
+    h1 {
+      font-size: 40px;
+      line-height: 1.06;
+      margin: 14px 0 8px;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .impact {
+      min-height: 360px;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(3, 8, 13, 0.08), rgba(3, 8, 13, 0.82)),
+        url('./assets/avatar/Persona 3 Tennis.png') center/cover;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .impact-card {
+      max-width: 420px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(10, 16, 24, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 900;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .item {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .score {
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .excellent { color: var(--green); }
+    .good { color: var(--amber); }
+    .needs-work { color: var(--danger); }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px 13px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font: inherit;
+    }
+
+    select option { color: #111; }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .hero, .content, .stats {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <div class="actions">
+        <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
+        <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
+        <a class="btn btn-primary" href="./analyze.html">New Analysis</a>
+        <button class="btn" type="button" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="panel">
+        <div class="badge">Player control room</div>
+        <h1 id="title">Track your edge before match pressure exposes the gap.</h1>
+        <p class="muted" id="subtitle"></p>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Total sessions</div>
+            <div class="stat-value" id="totalAssessments">0</div>
+            <div class="muted">Saved analyses</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Average score</div>
+            <div class="stat-value" id="avgScore">0</div>
+            <div class="muted">Across all sessions</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Best score</div>
+            <div class="stat-value" id="bestScore">0</div>
+            <div class="muted">Current personal best</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Trend</div>
+            <div class="stat-value" id="improvement">+0</div>
+            <div class="muted">Recent versus baseline</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="impact">
+        <div class="impact-card">
+          <div class="pill">Momentum signal</div>
+          <h3 id="latestShot">No shot tracked yet</h3>
+          <p class="muted" id="focusCopy">Run and save a session to activate personalized drills and next-session planning.</p>
+          <div style="margin-top: 10px;">
+            <span class="pill">Detection confidence</span>
+            <span id="avgConfidence" style="font-weight:900; margin-left:8px;">0%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="panel">
+        <h2>Recent assessments</h2>
+        <div id="assessmentList" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Retention loop</h2>
+        <div id="retentionList" class="list"></div>
+        <h3 style="margin-top: 18px;">Goals</h3>
+        <div id="goalList" class="list"></div>
+        <form onsubmit="createGoal(event)">
+          <label>Goal title
+            <input id="goalTitle" type="text" placeholder="Example: Raise forehand score to 82" required>
+          </label>
+          <label>Metric
+            <select id="goalMetric">
+              <option value="score">Overall score</option>
+              <option value="confidence">AI confidence</option>
+              <option value="setup">Capture setup score</option>
+              <option value="angle:shoulder">Shoulder angle</option>
+              <option value="angle:elbow">Elbow angle</option>
+              <option value="angle:hip">Hip angle</option>
+              <option value="angle:knee">Knee angle</option>
+              <option value="angle:trunk">Trunk angle</option>
+              <option value="angle:wrist">Wrist angle</option>
+            </select>
+          </label>
+          <label>Comparator
+            <select id="goalComparator">
+              <option value="at-least">At least</option>
+              <option value="at-most">At most</option>
+            </select>
+          </label>
+          <label>Target value
+            <input id="goalTarget" type="number" step="1" min="0" required>
+          </label>
+          <button class="btn btn-primary" type="submit">Create goal</button>
+        </form>
+        <div id="goalMessage" class="muted" style="margin-top: 10px;"></div>
+      </div>
+    </section>
+
+    <section class="content" style="margin-top: 18px;">
+      <div class="panel">
+        <h2>Assigned drills and accountability</h2>
+        <div id="focusAreas" class="list"></div>
+        <h3 style="margin-top: 18px;">Progress timeline</h3>
+        <div id="timelineList" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Coach actions</h2>
+        <h3 style="margin-top: 18px;">Book a session</h3>
+        <form onsubmit="bookSession(event)">
+          <label>Coach
+            <select id="coachSelect"></select>
+          </label>
+          <label>Session focus
+            <input id="sessionFocus" type="text" placeholder="Example: contact timing and knee drive">
+          </label>
+          <label>Date and time
+            <input id="sessionTime" type="datetime-local" required>
+          </label>
+          <label>Format
+            <select id="sessionFormat">
+              <option>Virtual</option>
+              <option>In-person</option>
+              <option>Hybrid review</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" type="submit">Book session</button>
+        </form>
+        <div id="sessionMessage" class="muted" style="margin-top: 10px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+    const currentUser = store.getCurrentUser();
+
+    if (!currentUser) {
+      window.location.href = './login.html?message=Please%20sign%20in&type=error';
+    }
+
+    function logout() {
+      store.signOut();
+      window.location.href = './login.html?message=Signed%20out&type=success';
+    }
+
+    function formatShot(value) {
+      return String(value || 'unknown').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+
+    function populateCoachOptions() {
+      const select = document.getElementById('coachSelect');
+      select.innerHTML = store.DEFAULT_COACHES.map((coach) => `
+        <option value="${coach.id}" data-name="${coach.name}" data-specialty="${coach.specialty}">
+          ${coach.name} - ${coach.specialty}
+        </option>
+      `).join('');
+    }
+
+    function renderHeader(metrics) {
+      document.getElementById('title').textContent = `${currentUser.fullName}, keep your gains from disappearing between sessions.`;
+      document.getElementById('subtitle').textContent =
+        `${currentUser.email} | role: ${currentUser.role || 'player'} | preferred hand: ${currentUser.preferredHand || 'right'}`;
+
+      document.getElementById('totalAssessments').textContent = metrics.totalAssessments;
+      document.getElementById('avgScore').textContent = metrics.avgScore;
+      document.getElementById('bestScore').textContent = metrics.bestScore;
+      document.getElementById('improvement').textContent = `${metrics.improvement >= 0 ? '+' : ''}${metrics.improvement}`;
+      document.getElementById('avgConfidence').textContent = `${metrics.avgConfidence}%`;
+      document.getElementById('latestShot').textContent =
+        metrics.totalAssessments ? `Latest tracked shot: ${formatShot(metrics.latestShot)}` : 'No shot tracked yet';
+      document.getElementById('focusCopy').textContent = metrics.accountabilityState === 'at-risk'
+        ? 'You are at risk of regression. Run a new session and complete assigned drills before your next coach slot.'
+        : 'You are on track. Keep the cadence: analyze, execute drills, and review with your coach.';
+    }
+
+    function renderAssessments() {
+      const assessments = store.getUserAssessments();
+      const container = document.getElementById('assessmentList');
+
+      if (!assessments.length) {
+        container.innerHTML = `<div class="empty">No saved sessions yet. Start with a free analysis and save the report to unlock this view.</div>`;
+        return;
+      }
+
+      container.innerHTML = assessments.slice(0, 8).map((assessment) => `
+        <div class="item">
+          <div class="row">
+            <div>
+              <div class="pill">${formatShot(assessment.shotType)}</div>
+              <h3>${new Date(assessment.analyzedAt).toLocaleString()}</h3>
+              <p class="muted">${assessment.framesAnalyzed} frames | confidence ${assessment.avgConfidence}% | grade ${assessment.grade}</p>
+              <p style="margin-top: 8px;">
+                ${(assessment.metricComparisons || []).slice(0, 3).map((metric) =>
+                  `<span class="${metric.status}" style="font-weight:800; margin-right:10px;">${metric.metric}: ${metric.delta > 0 ? '+' : ''}${metric.delta}deg</span>`
+                ).join('')}
+              </p>
+            </div>
+            <div class="score">${assessment.overallScore}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRetention(metrics) {
+      const retention = document.getElementById('retentionList');
+      const nextSession = metrics.nextSession ? new Date(metrics.nextSession.when).toLocaleString() : 'No session booked';
+      retention.innerHTML = `
+        <div class="item">
+          <div class="pill">Drill completion</div>
+          <h3>${metrics.drillCompletionRate || 0}%</h3>
+          <p class="muted">${metrics.completedDrills || 0} of ${metrics.totalDrills || 0} assigned drills completed</p>
+        </div>
+        <div class="item">
+          <div class="pill">Goal execution</div>
+          <h3>${metrics.completedGoals || 0} completed</h3>
+          <p class="muted">${metrics.activeGoals || 0} active goals still open</p>
+        </div>
+        <div class="item">
+          <div class="pill">Coach accountability</div>
+          <h3>${metrics.accountabilityState === 'at-risk' ? 'At Risk' : 'On Track'}</h3>
+          <p class="muted">Next session: ${nextSession}</p>
+        </div>
+      `;
+    }
+
+    function renderGoals() {
+      const list = document.getElementById('goalList');
+      const goals = store.getUserGoals();
+      if (!goals.length) {
+        list.innerHTML = `<div class="empty">Set a measurable goal to keep your progress loop active.</div>`;
+        return;
+      }
+
+      list.innerHTML = goals.slice(0, 6).map((goal) => {
+        const comparatorLabel = goal.comparator === 'at-most' ? '<=' : '>=';
+        return `
+          <div class="item">
+            <div class="row">
+              <div>
+                <div class="pill">${goal.status}</div>
+                <h3>${goal.title}</h3>
+                <p class="muted">Metric ${goal.metric} | target ${comparatorLabel} ${goal.target}</p>
+                <p style="margin-top: 8px;">Baseline ${goal.baseline} -> Current ${goal.current}</p>
+              </div>
+              <div class="score">${goal.status === 'completed' ? 'Done' : 'Open'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function createGoal(event) {
+      event.preventDefault();
+      const msg = document.getElementById('goalMessage');
+      const latest = store.getUserAssessments()[0] || {};
+      const metric = document.getElementById('goalMetric').value;
+      let baseline = 0;
+      if (metric === 'score') baseline = Number(latest.overallScore || 0);
+      else if (metric === 'confidence') baseline = Number(latest.avgConfidence || 0);
+      else if (metric === 'setup') baseline = Number(latest.setupScore || 100);
+      else if (metric.startsWith('angle:')) baseline = Number(latest.avgAngles?.[metric.replace('angle:', '')] || 0);
+
+      try {
+        store.setPlayerGoal({
+          title: document.getElementById('goalTitle').value,
+          metric,
+          baseline,
+          current: baseline,
+          target: Number(document.getElementById('goalTarget').value),
+          comparator: document.getElementById('goalComparator').value
+        });
+        document.getElementById('goalTitle').value = '';
+        document.getElementById('goalTarget').value = '';
+        msg.textContent = 'Goal created and linked to your retention loop.';
+        refreshAll();
+      } catch (error) {
+        msg.textContent = error.message || 'Could not create goal.';
+      }
+    }
+
+    function renderDrills() {
+      const container = document.getElementById('focusAreas');
+      const drills = store.getUserDrillAssignments();
+      if (!drills.length) {
+        const latest = store.getUserAssessments()[0];
+        if (!latest || !(latest.tailoredDrills || []).length) {
+          container.innerHTML = `<div class="empty">Run and save an analysis to generate assigned drills.</div>`;
+          return;
+        }
+        container.innerHTML = latest.tailoredDrills.slice(0, 3).map((drill) => `
+          <div class="item">
+            <div class="pill">${drill.focus}</div>
+            <h3>${drill.title}</h3>
+            <p class="muted">${drill.prescription}</p>
+            <p style="margin-top: 8px;"><strong>Cue:</strong> ${drill.cue}</p>
+          </div>
+        `).join('');
+        return;
+      }
+
+      container.innerHTML = drills.slice(0, 8).map((drill) => `
+        <div class="item">
+          <div class="pill">${drill.status}</div>
+          <h3>${drill.title}</h3>
+          <p class="muted">${drill.prescription}</p>
+          <p style="margin-top: 8px;"><strong>Cue:</strong> ${drill.cue}</p>
+          <p style="margin-top: 8px;" class="muted">Due: ${drill.dueDate ? new Date(drill.dueDate).toLocaleDateString() : 'No due date'}</p>
+          <div style="margin-top: 10px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" type="button" onclick="updateDrillStatus('${drill.id}', 'in_progress')">In Progress</button>
+            <button class="btn btn-primary" type="button" onclick="updateDrillStatus('${drill.id}', 'completed')">Mark Complete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateDrillStatus(drillId, status) {
+      try {
+        store.setDrillStatus(drillId, status);
+        refreshAll();
+      } catch (error) {
+        document.getElementById('sessionMessage').textContent = error.message || 'Could not update drill.';
+      }
+    }
+
+    function renderTimeline() {
+      const timeline = document.getElementById('timelineList');
+      const events = store.getProgressTimeline(undefined, 12);
+      if (!events.length) {
+        timeline.innerHTML = `<div class="empty">Your progress timeline appears after goals, drills, and saved analyses.</div>`;
+        return;
+      }
+      timeline.innerHTML = events.map((event) => `
+        <div class="item">
+          <div class="pill">${event.eventType}</div>
+          <h3>${event.title}</h3>
+          <p class="muted">${new Date(event.createdAt).toLocaleString()}</p>
+          <p style="margin-top: 8px;">${event.detail || ''}</p>
+        </div>
+      `).join('');
+    }
+
+    function bookSession(event) {
+      event.preventDefault();
+      const coachSelect = document.getElementById('coachSelect');
+      const selected = coachSelect.options[coachSelect.selectedIndex];
+      const message = document.getElementById('sessionMessage');
+
+      try {
+        store.bookCoachSession({
+          coachId: selected.value,
+          coachName: selected.dataset.name,
+          specialty: selected.dataset.specialty,
+          when: document.getElementById('sessionTime').value,
+          focus: document.getElementById('sessionFocus').value || 'Technique review',
+          format: document.getElementById('sessionFormat').value
+        });
+        message.textContent = 'Session booked and saved to your dashboard timeline.';
+        document.getElementById('sessionFocus').value = '';
+        document.getElementById('sessionTime').value = '';
+        refreshAll();
+      } catch (error) {
+        message.textContent = error.message || 'Failed to book session.';
+      }
+    }
+
+    function refreshAll() {
+      const metrics = store.getDashboardMetrics();
+      renderHeader(metrics);
+      renderAssessments();
+      renderRetention(metrics);
+      renderGoals();
+      renderDrills();
+      renderTimeline();
+    }
+
+    function init() {
+      if (!currentUser) return;
+      populateCoachOptions();
+      refreshAll();
+      store.syncNow().then(refreshAll).catch(() => {});
+    }
+
+    init();
+  </script>
+</body>
+</html>

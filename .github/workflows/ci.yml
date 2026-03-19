@@ -1,0 +1,18 @@
+name: SmartSwing CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run PowerShell smoke suite
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File ./tests/run-tests.ps1

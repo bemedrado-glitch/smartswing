@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - SmartSwing AI</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void-black: #030508;
+      --deep-navy: #0d1b2a;
+      --neon-green: #39ff14;
+      --electric-cyan: #00e5ff;
+      --silver: #e5e5e5;
+      --gray: #6c757d;
+      --error: #ff4d73;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      color: var(--silver);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(57, 255, 20, 0.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(0, 229, 255, 0.12), transparent 30%),
+        linear-gradient(160deg, #020406 0%, #09131d 100%);
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .logo {
+      display: inline-block;
+      margin-bottom: 24px;
+      font-size: 34px;
+      font-weight: 900;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card {
+      background: rgba(8, 17, 28, 0.9);
+      border: 1px solid rgba(57, 255, 20, 0.2);
+      border-radius: 28px;
+      padding: 36px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .subtext {
+      color: var(--gray);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .alert {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .alert-error {
+      color: #ffd9e1;
+      background: rgba(255, 77, 115, 0.15);
+      border: 1px solid rgba(255, 77, 115, 0.35);
+    }
+
+    .alert-success {
+      color: #dfffd8;
+      background: rgba(57, 255, 20, 0.12);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+    }
+
+    .role-grid,
+    .two-col {
+      display: grid;
+      gap: 14px;
+    }
+
+    .role-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-bottom: 22px;
+    }
+
+    .two-col {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .role-card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .role-card.selected {
+      border-color: rgba(57, 255, 20, 0.7);
+      background: rgba(57, 255, 20, 0.1);
+    }
+
+    .role-title {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .role-copy {
+      color: var(--gray);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 15px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--silver);
+      font: inherit;
+    }
+
+    select option {
+      color: #111;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(57, 255, 20, 0.65);
+      box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.12);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      color: #04110a;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .links {
+      margin-top: 22px;
+      text-align: center;
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .links a,
+    .back-link {
+      color: var(--neon-green);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <a class="logo" href="./index.html">SmartSwing AI</a>
+    <div class="card">
+      <h1>Create Account</h1>
+      <p class="subtext">Set up your player or coach profile, save analyses, compare sessions over time, and schedule targeted training.</p>
+
+      <div id="alertBox" class="alert"></div>
+
+      <div class="role-grid">
+        <div class="role-card selected" data-role="player" onclick="selectRole('player')">
+          <div class="role-title">Player</div>
+          <div class="role-copy">Track technique scores, drills, and progress from session to session.</div>
+        </div>
+        <div class="role-card" data-role="coach" onclick="selectRole('coach')">
+          <div class="role-title">Coach</div>
+          <div class="role-copy">Review athlete assessments and manage training sessions from one dashboard.</div>
+        </div>
+      </div>
+
+      <form onsubmit="handleSignup(event)">
+        <input id="userRole" type="hidden" value="player">
+
+        <div class="two-col">
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input id="fullName" type="text" required>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" required>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" minlength="6" required>
+          </div>
+          <div class="field">
+            <label for="confirmPassword">Confirm password</label>
+            <input id="confirmPassword" type="password" minlength="6" required>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="ageRange">Age range</label>
+            <select id="ageRange">
+              <option value="">Select</option>
+              <option>Under 12</option>
+              <option>12-17</option>
+              <option>18-25</option>
+              <option>26-40</option>
+              <option>41+</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Non-binary</option>
+              <option>Prefer not to say</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="ustaLevel">USTA / NTRP level</label>
+            <input id="ustaLevel" type="text" placeholder="e.g. 4.0">
+          </div>
+          <div class="field">
+            <label for="utrRating">UTR rating</label>
+            <input id="utrRating" type="text" placeholder="e.g. 6.5">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="preferredHand">Preferred hand</label>
+          <select id="preferredHand">
+            <option value="right">Right-handed</option>
+            <option value="left">Left-handed</option>
+          </select>
+        </div>
+
+        <button id="signupBtn" class="btn" type="submit">Create Account</button>
+      </form>
+
+      <div class="links">
+        Already have an account? <a href="./login.html">Sign in</a>
+      </div>
+    </div>
+    <a class="back-link" href="./index.html">Back to homepage</a>
+  </div>
+
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+
+    function showAlert(message, type = 'error') {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.textContent = message;
+      alertBox.className = `alert alert-${type}`;
+      alertBox.style.display = 'block';
+    }
+
+    function selectRole(role) {
+      document.getElementById('userRole').value = role;
+      document.querySelectorAll('.role-card').forEach((card) => {
+        card.classList.toggle('selected', card.dataset.role === role);
+      });
+    }
+
+    async function handleSignup(event) {
+      event.preventDefault();
+      const signupBtn = document.getElementById('signupBtn');
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (password !== confirmPassword) {
+        showAlert('Passwords do not match.');
+        return;
+      }
+
+      signupBtn.disabled = true;
+      signupBtn.textContent = 'Creating account...';
+
+      try {
+        await store.signUp({
+          fullName: document.getElementById('fullName').value,
+          email: document.getElementById('email').value,
+          password,
+          ageRange: document.getElementById('ageRange').value,
+          gender: document.getElementById('gender').value,
+          ustaLevel: document.getElementById('ustaLevel').value,
+          utrRating: document.getElementById('utrRating').value,
+          preferredHand: document.getElementById('preferredHand').value,
+          userRole: document.getElementById('userRole').value
+        });
+
+        showAlert('Account created. Redirecting to your dashboard...', 'success');
+        setTimeout(() => {
+          window.location.href = './dashboard.html';
+        }, 700);
+      } catch (error) {
+        showAlert(error.message || 'Signup failed.');
+        signupBtn.disabled = false;
+        signupBtn.textContent = 'Create Account';
+      }
+    }
+  </script>
+</body>
+</html>

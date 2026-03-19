@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "name": "smartswing-ai",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://editor.wix.com https://*.wix.com https://*.wixsite.com https://smartswingai.com https://www.smartswingai.com"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Pricing</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(12, 20, 32, 0.88);
+      --line: rgba(255,255,255,0.1);
+      --text: #ebf0f6;
+      --muted: #8d99a6;
+      --green: #39ff14;
+      --cyan: #00e5ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
+        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 20px 56px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      text-decoration: none;
+      font-size: 30px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      text-decoration: none;
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .btn-primary {
+      color: #04110a;
+      border: none;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+    }
+
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 44px;
+      margin-bottom: 12px;
+      line-height: 1.04;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .muted { color: var(--muted); line-height: 1.7; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+    }
+
+    .price {
+      font-size: 48px;
+      font-weight: 900;
+      margin: 12px 0;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    ul {
+      margin: 16px 0 22px 18px;
+      color: var(--muted);
+    }
+
+    li { margin-bottom: 10px; }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(57,255,20,0.12);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <div class="nav">
+        <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
+        <a class="btn" href="./review.html">Review Build</a>
+        <a class="btn" href="./dashboard.html">Dashboard</a>
+        <a class="btn btn-primary" href="./analyze.html">Open Analyzer</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="tag">Review Pricing</div>
+      <h1>Get players hooked on visible progress before they drift back to guessing.</h1>
+      <p class="muted">
+        The original pricing page depended on incomplete auth and checkout wiring. This review version reframes the offer around what serious players actually buy: confidence, accountability, and measurable improvement.
+      </p>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Free Review</h2>
+        <div class="price">$0</div>
+        <p class="muted">Best for testing the review build.</p>
+        <ul>
+          <li>Create a local account</li>
+          <li>Run browser-based swing analysis</li>
+          <li>Save reports on this device</li>
+          <li>Open the KPI dashboard</li>
+        </ul>
+        <a class="btn btn-primary" href="./signup.html">Create account</a>
+      </div>
+
+      <div class="card">
+        <h2>Performance</h2>
+        <div class="price">$19</div>
+        <p class="muted">Intended future paid player tier.</p>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Long-term cloud history</li>
+          <li>Premium AI recommendations</li>
+          <li>Exportable reports and sharing</li>
+        </ul>
+        <a class="btn btn-primary" href="./analyze.html">Review analyzer</a>
+      </div>
+
+      <div class="card">
+        <h2>Coach</h2>
+        <div class="price">$49</div>
+        <p class="muted">Intended future coaching workflow tier.</p>
+        <ul>
+          <li>Everything in Performance</li>
+          <li>Athlete roster and coach dashboard</li>
+          <li>Session booking and notes</li>
+          <li>Shared player progress review</li>
+        </ul>
+        <a class="btn btn-primary" href="./dashboard.html">Review dashboard</a>
+      </div>
+    </section>
+  </div>
+  <script src="./pwa.js"></script>
+</body>
+</html>

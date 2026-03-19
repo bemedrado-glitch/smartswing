@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Tennis Biomechanics Analysis</title>
+  <link rel="manifest" href="./manifest.json">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- TensorFlow.js + Pose Detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0"></script>
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  
+  <style>
+    :root {
+      --neon-green: #39FF14;
+      --electric-cyan: #00FF88;
+      --void-black: #000000;
+      --deep-navy: #0D1B2A;
+      --silver: #E8E8E8;
+      --gray: #6C757D;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --error: #FF3E6C;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--void-black);
+      color: var(--silver);
+      line-height: 1.6;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    .wizard-section {
+      background: linear-gradient(135deg, var(--deep-navy), var(--void-black));
+      border-radius: 28px;
+      padding: 48px;
+      border: 1px solid rgba(57, 255, 20, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    
+    .header { text-align: center; margin-bottom: 48px; }
+    
+    .title {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      margin-bottom: 12px;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, var(--neon-green) 0%, var(--electric-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      color: var(--gray);
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    /* Wizard Steps */
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      position: relative;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .wizard-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 0;
+    }
+    
+    .wizard-step {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-weight: 900;
+      transition: all 0.3s ease;
+    }
+    
+    .wizard-step.active .step-circle {
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      border-color: var(--neon-green);
+      color: var(--void-black);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+    }
+    
+    .wizard-step.completed .step-circle {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    
+    .step-label {
+      font-size: 12px;
+      color: var(--gray);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .wizard-step.active .step-label { color: var(--neon-green); }
+    
+    /* Step Content */
+    .step-content { display: none; }
+    .step-content.active { display: block; animation: fadeIn 0.3s ease; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .step-title {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    /* Selection Cards */
+    .selection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+    
+    .selection-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    
+    .selection-card:hover {
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.05);
+      transform: translateY(-4px);
+    }
+    
+    .selection-card.selected {
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.1);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+    }
+    
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .card-subtitle { font-size: 12px; color: var(--gray); font-weight: 600; }
+    
+    /* Buttons */
+    .btn {
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: inherit;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      color: var(--void-black);
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(57, 255, 20, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--silver);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+    
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed rgba(57, 255, 20, 0.3);
+      border-radius: 20px;
+      padding: 60px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(57, 255, 20, 0.02);
+      margin: 32px 0;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.05);
+    }
+    
+    /* Analysis View */
+    .ai-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .ai-status.ready {
+      background: rgba(57, 255, 20, 0.15);
+      color: var(--neon-green);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+    }
+    
+    .ai-status.loading {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .ai-status.error {
+      background: rgba(255, 62, 108, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(255, 62, 108, 0.3);
+    }
+    
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    
+    @media (max-width: 1200px) {
+      .analysis-grid { grid-template-columns: 1fr; }
+    }
+    
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--void-black);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(57, 255, 20, 0.2);
+    }
+    
+    #videoElement, #poseCanvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    
+    #videoElement { object-fit: contain; }
+    
+    .stats-panel {
+      background: rgba(10, 22, 40, 0.6);
+      border-radius: 24px;
+      padding: 32px;
+      border: 1px solid rgba(57, 255, 20, 0.15);
+    }
+    
+    .stat-card {
+      background: rgba(57, 255, 20, 0.05);
+      border: 1px solid rgba(57, 255, 20, 0.15);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--neon-green);
+      line-height: 1;
+    }
+    
+    .angles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .angle-item {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .angle-name {
+      font-size: 10px;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    
+    .angle-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--neon-green);
+    }
+    
+    /* Report Styles */
+    .report-header {
+      text-align: center;
+      padding: 48px;
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 229, 255, 0.05));
+      border-radius: 24px;
+      margin-bottom: 48px;
+    }
+    
+    .smartswing-score {
+      font-size: 120px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    
+    .grade-badge {
+      display: inline-block;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      color: var(--void-black);
+      border-radius: 24px;
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+    
+    .percentile {
+      font-size: 18px;
+      color: var(--gray);
+      margin-bottom: 24px;
+    }
+    
+    .report-section {
+      background: linear-gradient(135deg, rgba(13, 59, 71, 0.2), rgba(10, 22, 40, 0.2));
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(57, 255, 20, 0.1);
+    }
+    
+    .report-section-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: var(--neon-green);
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 24px 0;
+    }
+    
+    .metric-card {
+      background: rgba(10, 22, 40, 0.6);
+      border: 1px solid rgba(57, 255, 20, 0.15);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .metric-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    
+    .metric-value-large {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    
+    .metric-label {
+      font-size: 12px;
+      color: var(--gray);
+    }
+    
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+    
+    .metric-row-label {
+      font-size: 14px;
+      color: var(--gray);
+    }
+    
+    .metric-row-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--neon-green);
+    }
+    
+    .info-box {
+      background: rgba(0, 229, 255, 0.1);
+      border-left: 3px solid var(--electric-cyan);
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    
+    @media print {
+      .btn-group, .wizard-steps, .debug-btn {
+        display: none !important;
+      }
+    }
+    
+    .debug-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 9999;
+      background: var(--error);
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <button class="debug-btn" onclick="debugSmartSwing()">Debug</button>
+
+  <div class="container">
+    <div class="wizard-section">
+      <div class="header">
+        <h1 class="title"><span class="gradient-text">SmartSwing AI</span></h1>
+        <p class="subtitle">Professional Tennis Biomechanics Analysis</p>
+      </div>
+
+      <!-- Wizard Steps -->
+      <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Profile</div>
+        </div>
+        <div class="wizard-step" data-step="2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Shot Type</div>
+        </div>
+        <div class="wizard-step" data-step="3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Upload</div>
+        </div>
+        <div class="wizard-step" data-step="4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Analysis</div>
+        </div>
+        <div class="wizard-step" data-step="5">
+          <div class="step-circle">5</div>
+          <div class="step-label">Report</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Profile -->
+      <div class="step-content active" data-step="1">
+        <h2 class="step-title">Tell us about yourself</h2>
+        
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Gender</h3>
+          <div class="selection-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="selection-card" data-field="gender" data-value="male">
+              <div class="card-title">Male</div>
+            </div>
+            <div class="selection-card" data-field="gender" data-value="female">
+              <div class="card-title">Female</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Age Range</h3>
+          <div class="selection-grid">
+            <div class="selection-card" data-field="age" data-value="5-10"><div class="card-title">5-10</div><div class="card-subtitle">Youth</div></div>
+            <div class="selection-card" data-field="age" data-value="11-15"><div class="card-title">11-15</div><div class="card-subtitle">Junior</div></div>
+            <div class="selection-card" data-field="age" data-value="16-20"><div class="card-title">16-20</div><div class="card-subtitle">Young Adult</div></div>
+            <div class="selection-card" data-field="age" data-value="21-25"><div class="card-title">21-25</div><div class="card-subtitle">Adult</div></div>
+            <div class="selection-card" data-field="age" data-value="26-30"><div class="card-title">26-30</div><div class="card-subtitle">Prime</div></div>
+            <div class="selection-card" data-field="age" data-value="31-35"><div class="card-title">31-35</div><div class="card-subtitle">Prime</div></div>
+            <div class="selection-card" data-field="age" data-value="36-40"><div class="card-title">36-40</div><div class="card-subtitle">Experienced</div></div>
+            <div class="selection-card" data-field="age" data-value="40-45"><div class="card-title">40-45</div><div class="card-subtitle">Master</div></div>
+            <div class="selection-card" data-field="age" data-value="45-50"><div class="card-title">45-50</div><div class="card-subtitle">Master</div></div>
+            <div class="selection-card" data-field="age" data-value="50+"><div class="card-title">50+</div><div class="card-subtitle">Veteran</div></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Playing Level</h3>
+          <div class="selection-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="selection-card" data-field="level" data-value="beginner"><div class="card-title">Beginner</div><div class="card-subtitle">Just started</div></div>
+            <div class="selection-card" data-field="level" data-value="intermediate"><div class="card-title">Intermediate</div><div class="card-subtitle">USTA 3.0-3.5</div></div>
+            <div class="selection-card" data-field="level" data-value="advanced"><div class="card-title">Advanced</div><div class="card-subtitle">USTA 4.0-4.5</div></div>
+            <div class="selection-card" data-field="level" data-value="pro"><div class="card-title">Pro/Elite</div><div class="card-subtitle">USTA 5.0+</div></div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="nextBtn1">Next Step -></button>
+        </div>
+      </div>
+
+      <!-- Step 2: Shot Selection -->
+      <div class="step-content" data-step="2">
+        <h2 class="step-title">Which shot(s) will you analyze?</h2>
+        
+        <div class="selection-grid">
+          <div class="selection-card" data-field="shot" data-value="forehand"><div class="card-title">Forehand</div></div>
+          <div class="selection-card" data-field="shot" data-value="backhand"><div class="card-title">Backhand</div></div>
+          <div class="selection-card" data-field="shot" data-value="serve"><div class="card-title">Serve</div></div>
+          <div class="selection-card" data-field="shot" data-value="volley"><div class="card-title">Volley</div></div>
+          <div class="selection-card" data-field="shot" data-value="slice"><div class="card-title">Slice</div></div>
+          <div class="selection-card" data-field="shot" data-value="drop-shot"><div class="card-title">Drop Shot</div></div>
+          <div class="selection-card" data-field="shot" data-value="lob"><div class="card-title">Lob</div></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn1"><- Back</button>
+          <button class="btn btn-primary" id="nextBtn2">Next Step -></button>
+        </div>
+      </div>
+
+      <!-- Step 3: Upload -->
+      <div class="step-content" data-step="3">
+        <h2 class="step-title">Upload Your Tennis Video</h2>
+        
+        <div class="upload-zone" id="uploadZone">
+          <div style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">VIDEO</div>
+          <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Click to select video</div>
+          <div style="color: var(--gray); font-size: 14px;">Side view | Full body visible | 10-60 seconds</div>
+          <div id="fileName" style="margin-top: 16px; color: var(--neon-green); font-weight: 700;"></div>
+          <input type="file" id="videoInput" accept="video/*" style="display: none;">
+        </div>
+
+        <div class="stats-panel" style="margin-top: 20px;">
+          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; color: var(--neon-green);">
+            Capture Readiness
+          </div>
+          <div style="display: grid; gap: 10px;">
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>Full body stays visible from split-step through follow-through.</span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>Camera is stable on a tripod and high enough to see your movement chain clearly.</span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>Court lines, player shape, and lighting are clean enough for strong AI detection.</span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>This clip focuses on one main stroke goal instead of mixing multiple patterns together.</span>
+            </label>
+          </div>
+          <div style="margin-top: 14px; font-weight: 800; color: var(--electric-cyan);">
+            Setup score: <span id="setupScore">100</span>/100
+          </div>
+          <div id="captureGuidance" class="info-box" style="margin-top: 12px;">
+            Select shot type and session mode to get pre-capture guidance.
+          </div>
+          <div style="margin-top: 16px; display:grid; gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:8px; color:var(--gray);">Session Goal</label>
+              <select id="sessionMode" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--silver); padding:14px; border-radius:12px;">
+                <option value="stroke-tune-up">Stroke tune-up</option>
+                <option value="match-readiness">Match readiness</option>
+                <option value="coach-review">Coach review</option>
+                <option value="injury-safe-rebuild">Injury-safe rebuild</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:8px; color:var(--gray);">What do you want to improve?</label>
+              <input id="sessionGoal" type="text" placeholder="Example: earlier contact point and cleaner hip rotation" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--silver); padding:14px; border-radius:12px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn2">Back</button>
+          <button class="btn btn-primary" id="nextBtn3" disabled>Next Step</button>
+          <button class="btn btn-secondary" id="demoReportBtn">Generate Demo Report</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Analysis -->
+      <div class="step-content" data-step="4">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <div class="ai-status loading" id="aiStatus">
+            <div class="spinner"></div>
+            <span id="statusText">Loading AI...</span>
+          </div>
+        </div>
+
+        <div class="analysis-grid">
+          <div>
+            <div class="canvas-container">
+              <video id="videoElement" muted playsinline></video>
+              <canvas id="poseCanvas"></canvas>
+            </div>
+
+            <div class="btn-group" style="margin-top: 16px; justify-content: flex-start;">
+              <button class="btn btn-primary" id="playBtn">Play</button>
+              <button class="btn btn-primary" id="pauseBtn" style="display: none;">Pause</button>
+              <button class="btn btn-secondary" id="resetBtn">Reset</button>
+              <button class="btn btn-primary" id="saveBtn" style="display: none;">Save Analysis</button>
+              <button class="btn btn-primary" id="generateReportBtn" style="display: none;">Generate Report</button>
+            </div>
+          </div>
+
+          <div class="stats-panel">
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; color: var(--neon-green);">
+              Real-Time Analysis
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Frames Analyzed</div>
+              <div class="stat-value" id="framesCount">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Landmarks Detected</div>
+              <div class="stat-value" id="landmarksCount">0</div>
+              <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">of 17 keypoints</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Average Confidence</div>
+              <div class="stat-value" id="confidenceValue">0%</div>
+            </div>
+
+            <div style="margin-top: 24px;">
+              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--electric-cyan);">
+                Live Angles
+              </div>
+              <div class="angles-grid">
+                <div class="angle-item"><div class="angle-name">Shoulder</div><div class="angle-value" id="angleShoulder">-°</div></div>
+                <div class="angle-item"><div class="angle-name">Elbow</div><div class="angle-value" id="angleElbow">-°</div></div>
+                <div class="angle-item"><div class="angle-name">Hip</div><div class="angle-value" id="angleHip">-°</div></div>
+                <div class="angle-item"><div class="angle-name">Knee</div><div class="angle-value" id="angleKnee">-°</div></div>
+                <div class="angle-item"><div class="angle-name">Trunk</div><div class="angle-value" id="angleTrunk">-°</div></div>
+                <div class="angle-item"><div class="angle-name">Wrist</div><div class="angle-value" id="angleWrist">-°</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn3">Back</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Report -->
+      <div class="step-content" data-step="5">
+        <div id="reportContent"></div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn4">Back to Analysis</button>
+          <button class="btn btn-secondary" id="printBtn">Print Report</button>
+          <button class="btn btn-secondary" id="dashboardBtn">Open Dashboard</button>
+          <button class="btn btn-primary" id="newAnalysisBtn">New Analysis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('🎾 SmartSwing AI - MoveNet 17-Point Version');
+    
+    // Global State
+    const playerProfile = {
+      gender: null,
+      age: null,
+      level: null,
+      shots: [],
+      videoFile: null,
+      sessionMode: 'stroke-tune-up',
+      sessionGoal: '',
+      setupScore: 100
+    };
+
+    const store = window.SmartSwingStore;
+    const currentUser = store ? store.getCurrentUser() : null;
+
+    let currentStep = 1;
+    let detector = null;
+    let backend = 'unknown';
+    let isAnalyzing = false;
+    let rafId = null;
+    let lastPersistedSignature = null;
+
+    const analysisData = {
+      frames: [],
+      angles: {
+        shoulder: [],
+        elbow: [],
+        hip: [],
+        knee: [],
+        trunk: [],
+        wrist: []
+      },
+      landmarks: [],
+      confidence: []
+    };
+
+    // MoveNet 17 Keypoint Indices
+    const KEYPOINT = {
+      NOSE: 0,
+      LEFT_EYE: 1,
+      RIGHT_EYE: 2,
+      LEFT_EAR: 3,
+      RIGHT_EAR: 4,
+      LEFT_SHOULDER: 5,
+      RIGHT_SHOULDER: 6,
+      LEFT_ELBOW: 7,
+      RIGHT_ELBOW: 8,
+      LEFT_WRIST: 9,
+      RIGHT_WRIST: 10,
+      LEFT_HIP: 11,
+      RIGHT_HIP: 12,
+      LEFT_KNEE: 13,
+      RIGHT_KNEE: 14,
+      LEFT_ANKLE: 15,
+      RIGHT_ANKLE: 16
+    };
+
+    // MoveNet Skeleton Connections
+    const POSE_CONNECTIONS = [
+      [KEYPOINT.LEFT_SHOULDER, KEYPOINT.RIGHT_SHOULDER],
+      [KEYPOINT.LEFT_SHOULDER, KEYPOINT.LEFT_ELBOW],
+      [KEYPOINT.LEFT_ELBOW, KEYPOINT.LEFT_WRIST],
+      [KEYPOINT.RIGHT_SHOULDER, KEYPOINT.RIGHT_ELBOW],
+      [KEYPOINT.RIGHT_ELBOW, KEYPOINT.RIGHT_WRIST],
+      [KEYPOINT.LEFT_SHOULDER, KEYPOINT.LEFT_HIP],
+      [KEYPOINT.RIGHT_SHOULDER, KEYPOINT.RIGHT_HIP],
+      [KEYPOINT.LEFT_HIP, KEYPOINT.RIGHT_HIP],
+      [KEYPOINT.LEFT_HIP, KEYPOINT.LEFT_KNEE],
+      [KEYPOINT.LEFT_KNEE, KEYPOINT.LEFT_ANKLE],
+      [KEYPOINT.RIGHT_HIP, KEYPOINT.RIGHT_KNEE],
+      [KEYPOINT.RIGHT_KNEE, KEYPOINT.RIGHT_ANKLE]
+    ];
+
+    // Helpers
+    function kpOk(kp, min = 0.3) {
+      return kp && (kp.score ?? kp.confidence ?? 0) >= min;
+    }
+
+    function calculateAngle(a, b, c) {
+      const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+      let angle = Math.abs((radians * 180) / Math.PI);
+      if (angle > 180) angle = 360 - angle;
+      return Math.round(angle);
+    }
+
+    function midpoint(a, b) {
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function safeNumber(value, fallback = 0) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : fallback;
+    }
+
+    // Initialize MoveNet
+    async function initPoseEngine() {
+      try {
+        await tf.ready();
+        
+        try {
+          await tf.setBackend('webgl');
+          await tf.ready();
+          backend = 'webgl';
+        } catch {
+          await tf.setBackend('cpu');
+          await tf.ready();
+          backend = 'cpu';
+        }
+
+        detector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          {
+            modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+          }
+        );
+
+        console.log('✓ MoveNet initialized:', backend);
+        setStatus('✓ AI Ready (MoveNet)', 'ready');
+        return true;
+      } catch (error) {
+        console.error('Failed to initialize:', error);
+        setStatus('❌ AI Failed', 'error');
+        return false;
+      }
+    }
+
+    function setStatus(text, status = 'loading') {
+      const statusEl = document.getElementById('aiStatus');
+      const textEl = document.getElementById('statusText');
+      
+      statusEl.className = `ai-status ${status}`;
+      textEl.textContent = text;
+      
+      const spinner = statusEl.querySelector('.spinner');
+      if (status === 'loading' && !spinner) {
+        const spinnerEl = document.createElement('div');
+        spinnerEl.className = 'spinner';
+        statusEl.insertBefore(spinnerEl, textEl);
+      } else if (status !== 'loading' && spinner) {
+        spinner.remove();
+      }
+    }
+
+    // Compute Angles
+    function computeAngles(keypoints) {
+      const angles = {};
+      
+      // Determine dominant side
+      const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) + 
+                        (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
+                        (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
+      const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
+                       (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
+                       (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+      
+      const isRight = rightScore >= leftScore;
+      const shoulder = keypoints[isRight ? KEYPOINT.RIGHT_SHOULDER : KEYPOINT.LEFT_SHOULDER];
+      const elbow = keypoints[isRight ? KEYPOINT.RIGHT_ELBOW : KEYPOINT.LEFT_ELBOW];
+      const wrist = keypoints[isRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
+      const hip = keypoints[isRight ? KEYPOINT.RIGHT_HIP : KEYPOINT.LEFT_HIP];
+      const knee = keypoints[isRight ? KEYPOINT.RIGHT_KNEE : KEYPOINT.LEFT_KNEE];
+      const ankle = keypoints[isRight ? KEYPOINT.RIGHT_ANKLE : KEYPOINT.LEFT_ANKLE];
+
+      // Elbow angle: shoulder-elbow-wrist
+      if (kpOk(shoulder) && kpOk(elbow) && kpOk(wrist)) {
+        angles.elbow = calculateAngle(shoulder, elbow, wrist);
+      }
+
+      // Shoulder angle: hip-shoulder-elbow
+      if (kpOk(hip) && kpOk(shoulder) && kpOk(elbow)) {
+        angles.shoulder = calculateAngle(hip, shoulder, elbow);
+      }
+
+      // Knee angle: hip-knee-ankle
+      if (kpOk(hip) && kpOk(knee) && kpOk(ankle)) {
+        angles.knee = calculateAngle(hip, knee, ankle);
+      }
+
+      // Hip angle: shoulder-hip-knee
+      if (kpOk(shoulder) && kpOk(hip) && kpOk(knee)) {
+        angles.hip = calculateAngle(shoulder, hip, knee);
+      }
+
+      // Trunk angle
+      const leftShoulder = keypoints[KEYPOINT.LEFT_SHOULDER];
+      const rightShoulder = keypoints[KEYPOINT.RIGHT_SHOULDER];
+      const leftHip = keypoints[KEYPOINT.LEFT_HIP];
+      const rightHip = keypoints[KEYPOINT.RIGHT_HIP];
+
+      if (kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(leftHip) && kpOk(rightHip)) {
+        const shoulderMid = midpoint(leftShoulder, rightShoulder);
+        const hipMid = midpoint(leftHip, rightHip);
+        const vertical = { x: hipMid.x, y: hipMid.y - 100 };
+        angles.trunk = calculateAngle(shoulderMid, hipMid, vertical);
+      }
+
+      // Wrist angle: elbow-wrist-hand (simplified)
+      if (kpOk(elbow) && kpOk(wrist)) {
+        const hand = { x: wrist.x, y: wrist.y + 20 }; // Approximation
+        angles.wrist = calculateAngle(elbow, wrist, hand);
+      }
+
+      return angles;
+    }
+
+    // Draw Pose
+    function drawPose(keypoints) {
+      const canvas = document.getElementById('poseCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!canvas || !ctx || !keypoints) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw skeleton lines
+      ctx.strokeStyle = 'rgba(57, 255, 20, 0.8)';
+      ctx.lineWidth = 3;
+      
+      POSE_CONNECTIONS.forEach(([i, j]) => {
+        const a = keypoints[i];
+        const b = keypoints[j];
+        
+        if (kpOk(a, 0.3) && kpOk(b, 0.3)) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      });
+
+      // Draw keypoints
+      keypoints.forEach(kp => {
+        if (kpOk(kp, 0.3)) {
+          const gradient = ctx.createRadialGradient(kp.x, kp.y, 0, kp.x, kp.y, 8);
+          gradient.addColorStop(0, 'rgba(57, 255, 20, 1)');
+          gradient.addColorStop(1, 'rgba(0, 229, 255, 0.5)');
+          
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(kp.x, kp.y, 6, 0, 2 * Math.PI);
+          ctx.fill();
+
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.arc(kp.x, kp.y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      });
+    }
+
+    // Analysis Loop
+    async function analyzeFrame() {
+      const video = document.getElementById('videoElement');
+      
+      if (!isAnalyzing || video.paused || !detector) {
+        rafId = requestAnimationFrame(analyzeFrame);
+        return;
+      }
+
+      try {
+        const poses = await detector.estimatePoses(video);
+        
+        if (poses && poses.length > 0) {
+          const keypoints = poses[0].keypoints;
+          const validLandmarks = keypoints.filter(kp => kpOk(kp, 0.3)).length;
+          const confidence = Math.round(
+            (keypoints.reduce((sum, kp) => sum + (kp.score || 0), 0) / keypoints.length) * 100
+          );
+
+          const angles = computeAngles(keypoints);
+
+          // Store data
+          for (const k in angles) {
+            if (angles[k] != null) {
+              analysisData.angles[k].push(angles[k]);
+            }
+          }
+
+          analysisData.frames.push({
+            timestamp: video.currentTime,
+            landmarks: validLandmarks,
+            confidence,
+            angles
+          });
+          analysisData.landmarks.push(validLandmarks);
+          analysisData.confidence.push(confidence);
+
+          // Update UI
+          const framesCount = analysisData.frames.length;
+          document.getElementById('framesCount').textContent = framesCount;
+          document.getElementById('landmarksCount').textContent = validLandmarks;
+          document.getElementById('confidenceValue').textContent = confidence + '%';
+
+          // Update angle displays
+          document.getElementById('angleShoulder').textContent = angles.shoulder != null ? angles.shoulder + '°' : '-°';
+          document.getElementById('angleElbow').textContent = angles.elbow != null ? angles.elbow + '°' : '-°';
+          document.getElementById('angleHip').textContent = angles.hip != null ? angles.hip + '°' : '-°';
+          document.getElementById('angleKnee').textContent = angles.knee != null ? angles.knee + '°' : '-°';
+          document.getElementById('angleTrunk').textContent = angles.trunk != null ? angles.trunk + '°' : '-°';
+          document.getElementById('angleWrist').textContent = angles.wrist != null ? angles.wrist + '°' : '-°';
+
+          // Show save button after 30 frames
+          if (framesCount >= 30) {
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('generateReportBtn').style.display = 'inline-block';
+          }
+
+          drawPose(keypoints);
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+      } finally {
+        rafId = requestAnimationFrame(analyzeFrame);
+      }
+    }
+
+    // ============================================================================
+    // Professional Benchmarks
+    // ============================================================================
+    const PRO_BENCHMARKS = {
+      forehand: {
+        shoulder: { min: 95, max: 115, optimal: 105 },
+        elbow: { min: 135, max: 160, optimal: 147 },
+        hip: { min: 160, max: 180, optimal: 170 },
+        knee: { min: 145, max: 175, optimal: 165 },
+        trunk: { min: 30, max: 50, optimal: 40 },
+        wrist: { min: 155, max: 175, optimal: 165 }
+      },
+      backhand: {
+        shoulder: { min: 85, max: 105, optimal: 95 },
+        elbow: { min: 130, max: 155, optimal: 142 },
+        hip: { min: 155, max: 175, optimal: 165 },
+        knee: { min: 140, max: 170, optimal: 160 },
+        trunk: { min: 25, max: 45, optimal: 35 },
+        wrist: { min: 150, max: 170, optimal: 160 }
+      },
+      serve: {
+        shoulder: { min: 115, max: 145, optimal: 130 },
+        elbow: { min: 90, max: 120, optimal: 105 },
+        hip: { min: 170, max: 190, optimal: 180 },
+        knee: { min: 130, max: 160, optimal: 145 },
+        trunk: { min: 40, max: 60, optimal: 50 },
+        wrist: { min: 140, max: 160, optimal: 150 }
+      },
+      volley: {
+        shoulder: { min: 80, max: 100, optimal: 90 },
+        elbow: { min: 125, max: 150, optimal: 137 },
+        hip: { min: 165, max: 185, optimal: 175 },
+        knee: { min: 155, max: 180, optimal: 170 },
+        trunk: { min: 20, max: 40, optimal: 30 },
+        wrist: { min: 160, max: 180, optimal: 170 }
+      },
+      slice: {
+        shoulder: { min: 82, max: 104, optimal: 93 },
+        elbow: { min: 124, max: 148, optimal: 136 },
+        hip: { min: 156, max: 178, optimal: 167 },
+        knee: { min: 146, max: 170, optimal: 158 },
+        trunk: { min: 18, max: 38, optimal: 28 },
+        wrist: { min: 142, max: 166, optimal: 154 }
+      },
+      'drop-shot': {
+        shoulder: { min: 76, max: 98, optimal: 87 },
+        elbow: { min: 118, max: 142, optimal: 130 },
+        hip: { min: 160, max: 182, optimal: 171 },
+        knee: { min: 150, max: 174, optimal: 162 },
+        trunk: { min: 16, max: 34, optimal: 25 },
+        wrist: { min: 148, max: 170, optimal: 159 }
+      },
+      lob: {
+        shoulder: { min: 98, max: 122, optimal: 110 },
+        elbow: { min: 122, max: 150, optimal: 136 },
+        hip: { min: 164, max: 186, optimal: 175 },
+        knee: { min: 138, max: 164, optimal: 151 },
+        trunk: { min: 34, max: 56, optimal: 45 },
+        wrist: { min: 138, max: 162, optimal: 150 }
+      }
+    };
+
+    const TRACKER_DEFINITIONS = {
+      shoulder: 'Measures unit turn and coil depth. It controls power loading and directional control on contact.',
+      elbow: 'Tracks arm extension efficiency through the hit. It affects racquet head speed and contact stability.',
+      hip: 'Represents lower-body rotation transfer. It is a major driver of kinetic-chain power.',
+      knee: 'Captures leg loading and drive. It influences balance, explosiveness, and timing under pressure.',
+      trunk: 'Shows torso rotation and sequencing. It links lower-body power into upper-body acceleration.',
+      wrist: 'Reflects racquet lag and release timing. It impacts spin potential and directional precision.'
+    };
+
+    const CAPTURE_GUIDE_BY_SHOT = {
+      forehand: 'Capture from side or slight rear angle. Keep split-step, load, and follow-through fully visible.',
+      backhand: 'Capture from open-side baseline angle. Keep contact zone and shoulder line visible.',
+      serve: 'Capture from side-rear view. Include full toss, trophy position, and landing frame.',
+      volley: 'Capture from side-net angle. Keep short backswing and split-step timing in frame.',
+      slice: 'Capture from side angle with stable horizon. Keep racquet path and shoulder level visible.',
+      'drop-shot': 'Capture from side-front angle. Keep grip change, compact prep, and touch release visible.',
+      lob: 'Capture from side-rear angle. Keep loading legs, contact elevation, and finish trajectory visible.'
+    };
+
+    function refreshSetupScore() {
+      const checks = Array.from(document.querySelectorAll('.setup-check'));
+      const checked = checks.filter((input) => input.checked).length;
+      const score = checks.length ? Math.round((checked / checks.length) * 100) : 100;
+      playerProfile.setupScore = score;
+      document.getElementById('setupScore').textContent = score;
+      renderCaptureGuidance();
+    }
+
+    function getBenchmarkForShot(shotType) {
+      return PRO_BENCHMARKS[shotType] || PRO_BENCHMARKS.forehand;
+    }
+
+    function renderCaptureGuidance() {
+      const target = document.getElementById('captureGuidance');
+      if (!target) return;
+      const shot = playerProfile.shots[0] || 'forehand';
+      const mode = playerProfile.sessionMode || 'stroke-tune-up';
+      const score = safeNumber(playerProfile.setupScore, 100);
+      const modeCue = mode === 'coach-review'
+        ? 'State your top question for your coach and keep one stroke priority only.'
+        : mode === 'match-readiness'
+          ? 'Use match-tempo reps with no jump cuts so timing errors are visible.'
+          : mode === 'injury-safe-rebuild'
+            ? 'Use lower-intensity reps and avoid hidden compensations outside the frame.'
+            : 'Use controlled reps first, then live tempo reps in the same camera setup.';
+      const qualityCue = score >= 90
+        ? 'Capture quality is strong for high-confidence tracking.'
+        : score >= 70
+          ? 'Capture quality is usable; improve framing before final scoring.'
+          : 'Capture quality is weak. Fix checklist issues before analyzing to avoid misleading feedback.';
+      target.innerHTML = `
+        <strong>Pre-capture guidance (${shot.replace('-', ' ')}):</strong><br>
+        ${CAPTURE_GUIDE_BY_SHOT[shot] || CAPTURE_GUIDE_BY_SHOT.forehand}<br>
+        ${modeCue}<br>
+        ${qualityCue}
+      `;
+    }
+
+    // ============================================================================
+    // Scoring Functions
+    // ============================================================================
+    function calculateScore(avgAngles, avgLandmarks, avgConfidence, shotType) {
+      console.log('📊 Calculating score...');
+      console.log('   avgAngles:', avgAngles);
+      
+      if (!avgAngles || Object.keys(avgAngles).length === 0) {
+        console.error('❌ No angle data');
+        return 50;
+      }
+
+      const bench = getBenchmarkForShot(shotType);
+      let total = 0, count = 0;
+
+      for (const k in avgAngles) {
+        if (!bench[k]) continue;
+        const v = avgAngles[k];
+        const optimal = bench[k].optimal;
+        const range = bench[k].max - bench[k].min;
+        const deviation = Math.abs(v - optimal);
+        const angleScore = Math.max(0, 100 - (deviation / range) * 100);
+        total += angleScore;
+        count++;
+      }
+
+      const angleAvg = count ? total / count : 0;
+      const landmarkScore = (avgLandmarks / 17) * 100;
+      const finalScore = angleAvg * 0.6 + landmarkScore * 0.25 + avgConfidence * 0.15;
+      
+      const result = Math.round(Math.min(100, Math.max(50, finalScore)));
+      console.log('   Final score:', result);
+      return result;
+    }
+
+    function getGrade(score) {
+      if (score == null || isNaN(score)) return 'N/A';
+      if (score >= 95) return 'A+';
+      if (score >= 90) return 'A';
+      if (score >= 85) return 'A-';
+      if (score >= 80) return 'B+';
+      if (score >= 75) return 'B';
+      if (score >= 70) return 'B-';
+      if (score >= 65) return 'C+';
+      if (score >= 60) return 'C';
+      if (score >= 55) return 'C-';
+      return 'D+';
+    }
+
+    function getPercentile(score) {
+      if (score == null || isNaN(score)) return 0;
+      if (score >= 95) return 1;
+      if (score >= 90) return 3;
+      if (score >= 85) return 7;
+      if (score >= 80) return 15;
+      if (score >= 75) return 25;
+      if (score >= 70) return 40;
+      if (score >= 65) return 55;
+      if (score >= 60) return 70;
+      return 85;
+    }
+
+    // ============================================================================
+    // Session Building - WITH DEBUG LOGGING
+    // ============================================================================
+    function buildSession() {
+      console.log('🔨 buildSession() called');
+      console.log('   Total frames:', analysisData.frames.length);
+      
+      const shotType = playerProfile.shots[0] || 'forehand';
+
+      // Calculate average angles
+      const avgAngles = {};
+      for (const k in analysisData.angles) {
+        const arr = analysisData.angles[k];
+        console.log(`   ${k}: ${arr.length} values`, arr.length > 0 ? `[${arr.slice(0,3).join(', ')}...]` : '[empty]');
+        if (arr.length) {
+          avgAngles[k] = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+        }
+      }
+      
+      console.log('   Average angles:', avgAngles);
+      console.log('   Keys in avgAngles:', Object.keys(avgAngles).length);
+
+      const avgLandmarks = analysisData.landmarks.length
+        ? Math.round(analysisData.landmarks.reduce((a, b) => a + b, 0) / analysisData.landmarks.length)
+        : 0;
+
+      const avgConfidence = analysisData.confidence.length
+        ? Math.round(analysisData.confidence.reduce((a, b) => a + b, 0) / analysisData.confidence.length)
+        : 0;
+
+      const bench = getBenchmarkForShot(shotType);
+      const score = calculateScore(avgAngles, avgLandmarks, avgConfidence, shotType);
+      const grade = getGrade(score);
+      const percentile = getPercentile(score);
+      const metricComparisons = store ? store.compareAgainstBenchmark(avgAngles, bench) : [];
+      const benchmarkSummary = metricComparisons
+        .slice(0, 3)
+        .map((item) => `${item.metric}: ${item.delta > 0 ? '+' : ''}${item.delta}°`)
+        .join(' • ');
+      const tailoredDrills = store ? store.buildTailoredDrills({
+        shotType,
+        metricComparisons,
+        level: playerProfile.level,
+        sessionGoal: playerProfile.sessionGoal || '',
+        sessionMode: playerProfile.sessionMode || 'stroke-tune-up'
+      }) : [];
+
+      return {
+        profile: playerProfile,
+        summary: {
+          framesAnalyzed: analysisData.frames.length,
+          avgLandmarks,
+          avgConfidence,
+          avgAngles,
+          score,
+          grade,
+          percentile,
+          shotType,
+          metricComparisons,
+          benchmarkSummary,
+          tailoredDrills,
+          sessionMode: playerProfile.sessionMode,
+          sessionGoal: playerProfile.sessionGoal,
+          setupScore: playerProfile.setupScore
+        },
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    function generateReport(session) {
+      console.log('generateReport() called');
+      const s = session.summary;
+      const bench = getBenchmarkForShot(s.shotType);
+      const tailoredDrillsHtml = generateTailoredDrillsHtml(s.tailoredDrills || []);
+
+      const html = `
+        <div class="report-header">
+          <div class="smartswing-score">${s.score}</div>
+          <div class="grade-badge">Grade ${s.grade}</div>
+          <div class="percentile">
+            Top ${s.percentile}% | ${session.profile.level} | Age ${session.profile.age} | ${session.profile.gender}
+          </div>
+          <div style="font-size: 14px; color: var(--gray); margin-top: 16px;">
+            Analysis Date: ${new Date(session.timestamp).toLocaleDateString()} | Shot: ${s.shotType}
+          </div>
+          <div style="font-size: 14px; color: var(--gray); margin-top: 8px;">
+            Capture quality: ${s.setupScore || 100}/100 | Goal: ${s.sessionGoal || 'General improvement'} | Mode: ${s.sessionMode || 'stroke-tune-up'}
+          </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Score Breakdown</div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-title">Total Score</div>
+              <div class="metric-value-large">${s.score}</div>
+              <div class="metric-label">Out of 100</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Frames Analyzed</div>
+              <div class="metric-value-large">${s.framesAnalyzed}</div>
+              <div class="metric-label">Video frames</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Avg Confidence</div>
+              <div class="metric-value-large">${s.avgConfidence}%</div>
+              <div class="metric-label">AI certainty</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Landmarks</div>
+              <div class="metric-value-large">${s.avgLandmarks}</div>
+              <div class="metric-label">of 17 points</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Angles vs Pro Benchmarks</div>
+          ${generateAngleComparisons(s.avgAngles, bench, s.shotType)}
+          <div class="info-box">
+            <strong>How to read this:</strong><br>
+            Excellent = within 5 degrees of pro-optimal.<br>
+            Good = within 10 degrees of pro-optimal.<br>
+            Needs Work = above 10 degrees of deviation.
+          </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Tracker Definitions (Why each metric matters)</div>
+          ${generateTrackerDefinitionsHtml()}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Biomechanics Analysis</div>
+          ${generateBiomechanicsInsights(s.avgAngles, bench, s.shotType)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Coach-ready Summary</div>
+          ${generateCoachReadySummaryHtml(s)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Tailored Drill Plan</div>
+          ${tailoredDrillsHtml}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Additional Recommendations</div>
+          ${generateRecommendations(s.avgAngles, bench, s.shotType)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Next Steps</div>
+          <div style="font-size: 14px; line-height: 1.8;">
+            <p><strong>To improve your ${s.shotType} score:</strong></p>
+            <ol style="margin-left: 20px; margin-top: 12px;">
+              <li><strong>Focus on top deltas:</strong> Prioritize drills tied to the largest deviation first.</li>
+              <li><strong>Repeat analysis weekly:</strong> Use the same shot and camera setup for cleaner trend data.</li>
+              <li><strong>Save and compare:</strong> Keep each report to track score movement and confidence changes.</li>
+              <li><strong>Book a coach session:</strong> Convert this report into an immediate correction plan.</li>
+            </ol>
+            <p style="margin-top: 16px;">
+              <strong>Progress tracking:</strong> This analysis is saved locally and pushed to dashboards when signed in.
+            </p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('reportContent').innerHTML = html;
+    }
+
+    function generateTailoredDrillsHtml(drills) {
+      if (!drills.length) {
+        return '<div class="info-box">No high-risk deltas detected. Keep using repeatability and pressure drills to maintain form.</div>';
+      }
+
+      return drills.slice(0, 4).map((drill, index) => `
+        <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 12px;">
+          <div style="font-weight: 800; color: var(--neon-green); margin-bottom: 6px;">${index + 1}. ${drill.title}</div>
+          <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Focus: ${drill.focus}</div>
+          <div style="font-size: 14px; margin-bottom: 8px;"><strong>Prescription:</strong> ${drill.prescription}</div>
+          <div style="font-size: 14px;"><strong>Coaching cue:</strong> ${drill.cue}</div>
+        </div>
+      `).join('');
+    }
+
+    function generateTrackerDefinitionsHtml() {
+      const ordered = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'wrist'];
+      return ordered.map((metric) => `
+        <div style="padding: 14px; margin-bottom: 10px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
+          <div style="font-weight: 800; margin-bottom: 6px; text-transform: capitalize;">${metric}</div>
+          <div style="font-size: 14px; color: var(--silver); line-height: 1.6;">${TRACKER_DEFINITIONS[metric]}</div>
+        </div>
+      `).join('');
+    }
+
+    function generateCoachReadySummaryHtml(summary) {
+      const ranked = [...(summary.metricComparisons || [])]
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 3);
+      const urgency = summary.score < 70 ? 'High' : summary.score < 82 ? 'Medium' : 'Low';
+      const nextSessionFocus = ranked[0]
+        ? `${ranked[0].metric} correction and contact timing`
+        : `${summary.shotType} repeatability under pressure`;
+      const accountability = (summary.setupScore || 100) < 80
+        ? 'Capture quality dropped below 80/100. Re-record with corrected setup before coach review.'
+        : 'Capture quality is reliable enough for coach progression checks.';
+
+      return `
+        <div class="info-box">
+          <strong>Urgency:</strong> ${urgency}<br>
+          <strong>Session mode:</strong> ${summary.sessionMode || 'stroke-tune-up'}<br>
+          <strong>Player goal:</strong> ${summary.sessionGoal || 'General improvement'}<br>
+          <strong>Next coach focus:</strong> ${nextSessionFocus}<br>
+          <strong>Accountability note:</strong> ${accountability}
+        </div>
+        <div style="margin-top: 12px;">
+          ${ranked.length ? ranked.map((item, index) => `
+            <div style="padding: 12px; margin-bottom: 8px; background: rgba(57, 255, 20, 0.06); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 10px;">
+              <strong>Priority ${index + 1}:</strong> ${item.metric} (${item.delta > 0 ? '+' : ''}${item.delta}deg vs target)
+            </div>
+          `).join('') : '<div class="info-box">No high-risk deltas detected in this session.</div>'}
+        </div>
+      `;
+    }
+
+    function generateAngleComparisons(avgAngles, bench, shotType) {
+      if (!avgAngles || Object.keys(avgAngles).length === 0) {
+        return '<p>No angle data available. Please ensure your full body is visible in the video.</p>';
+      }
+
+      let html = '';
+      
+      const angleOrder = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'wrist'];
+      
+      for (const angleName of angleOrder) {
+        if (avgAngles[angleName] == null) continue;
+        
+        const yourAngle = avgAngles[angleName];
+        const optimal = bench[angleName]?.optimal;
+        const minBench = bench[angleName]?.min;
+        const maxBench = bench[angleName]?.max;
+        
+        if (!optimal) continue;
+        
+        const diff = yourAngle - optimal;
+        const absDiff = Math.abs(diff);
+        
+        let status, statusColor, statusIcon;
+        if (absDiff <= 5) {
+          status = 'Excellent';
+          statusColor = 'var(--neon-green)';
+          statusIcon = '✓';
+        } else if (absDiff <= 10) {
+          status = 'Good';
+          statusColor = 'var(--electric-cyan)';
+          statusIcon = '○';
+        } else {
+          status = 'Needs Work';
+          statusColor = 'var(--warning)';
+          statusIcon = '△';
+        }
+        
+        html += `
+          <div class="metric-row">
+            <div class="metric-row-label">
+              <strong>${angleName.charAt(0).toUpperCase() + angleName.slice(1)}</strong>
+              <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">
+                Pro range: ${minBench}° - ${maxBench}° (optimal: ${optimal}°)
+              </div>
+            </div>
+            <div class="metric-row-value" style="text-align: right;">
+              <div style="font-size: 24px; font-weight: 800;">${yourAngle}°</div>
+              <div style="font-size: 14px; color: ${statusColor}; margin-top: 4px;">
+                ${statusIcon} ${status}
+                ${diff !== 0 ? `<span style="font-size: 12px; margin-left: 8px;">(${diff > 0 ? '+' : ''}${diff}°)</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      return html || '<p>Insufficient angle data for comparison.</p>';
+    }
+
+    function generateBiomechanicsInsights(avgAngles, bench, shotType) {
+      const insights = [];
+      
+      // Shoulder analysis
+      if (avgAngles.shoulder != null && bench.shoulder) {
+        const diff = avgAngles.shoulder - bench.shoulder.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Shoulder Rotation',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Your shoulder rotation (${avgAngles.shoulder}°) is optimal for ${shotType}. This indicates good unit turn and preparation.`
+          });
+        } else if (diff > 10) {
+          insights.push({
+            title: 'Shoulder Over-Rotation',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your shoulder is rotating ${diff}° beyond optimal. This may cause inconsistency and loss of control.`
+          });
+        } else if (diff < -10) {
+          insights.push({
+            title: 'Limited Shoulder Turn',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your shoulder rotation is ${Math.abs(diff)}° below optimal. Increasing your turn will generate more power.`
+          });
+        }
+      }
+      
+      // Elbow analysis
+      if (avgAngles.elbow != null && bench.elbow) {
+        const diff = avgAngles.elbow - bench.elbow.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Elbow Position',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Excellent arm extension at contact (${avgAngles.elbow}°). This promotes racquet head speed and control.`
+          });
+        } else if (diff < -10) {
+          insights.push({
+            title: 'Elbow Too Bent',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your elbow is ${Math.abs(diff)}° more bent than optimal. Work on extending through contact for more power.`
+          });
+        }
+      }
+      
+      // Knee analysis
+      if (avgAngles.knee != null && bench.knee) {
+        const diff = avgAngles.knee - bench.knee.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Leg Drive',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Good knee flexion (${avgAngles.knee}°) for explosive leg drive. This generates power from the ground up.`
+          });
+        } else if (diff > 15) {
+          insights.push({
+            title: 'Legs Too Straight',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your knees are too straight (${avgAngles.knee}°). Add more bend for explosive power and better balance.`
+          });
+        } else if (diff < -15) {
+          insights.push({
+            title: 'Excessive Knee Bend',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your knees are overly bent. Practice driving upward through the ball for more power transfer.`
+          });
+        }
+      }
+      
+      // Trunk analysis
+      if (avgAngles.trunk != null && bench.trunk) {
+        const diff = avgAngles.trunk - bench.trunk.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Core Rotation',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Excellent trunk rotation (${avgAngles.trunk}°). Your core is generating good rotational power.`
+          });
+        }
+      }
+      
+      if (insights.length === 0) {
+        insights.push({
+          title: 'Biomechanics Analysis',
+          icon: '📊',
+          color: 'var(--electric-cyan)',
+          text: 'Your technique shows a mix of strengths and areas for improvement. Focus on the angles marked as "Needs Work" for best results.'
+        });
+      }
+      
+      return insights.map(insight => `
+        <div style="padding: 16px; margin-bottom: 12px; background: rgba(57, 255, 20, 0.05); border-left: 3px solid ${insight.color}; border-radius: 8px;">
+          <div style="font-weight: 700; margin-bottom: 8px; color: ${insight.color};">
+            ${insight.icon} ${insight.title}
+          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: var(--silver);">
+            ${insight.text}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function generateRecommendations(avgAngles, bench, shotType) {
+      const recommendations = [];
+      
+      for (const angleName in avgAngles) {
+        if (!bench[angleName]) continue;
+        
+        const value = avgAngles[angleName];
+        const optimal = bench[angleName].optimal;
+        const diff = value - optimal;
+        
+        if (Math.abs(diff) > 10) {
+          let drill = '';
+          
+          switch(angleName) {
+            case 'shoulder':
+              drill = diff > 0 ? 
+                'Practice compact unit turns. Drill: Shadow swings focusing on controlled rotation, use mirror to check position.' :
+                'Increase shoulder turn. Drill: Medicine ball rotations, practice full coiling with resistance bands.';
+              break;
+            case 'elbow':
+              drill = diff > 0 ?
+                'Control arm extension. Drill: Wall drills focusing on contact point, avoid over-reaching.' :
+                'Extend through contact. Drill: Practice hitting against a wall, focus on arm extension at impact point.';
+              break;
+            case 'hip':
+              drill = diff > 0 ?
+                'Reduce excessive hip rotation. Drill: Split-step drills, practice stable base with controlled rotation.' :
+                'Increase hip rotation. Drill: Medicine ball twists, explosive hip rotation exercises.';
+              break;
+            case 'knee':
+              drill = diff > 0 ?
+                'Add more knee bend. Drill: Squat position practice, explosive leg drive exercises, box jumps.' :
+                'Drive upward through legs. Drill: Vertical jump practice, explosive push-off drills.';
+              break;
+            case 'trunk':
+              drill = diff > 0 ?
+                'Control trunk rotation. Drill: Core stability exercises, practice smooth rotation without over-twisting.' :
+                'Increase core rotation. Drill: Russian twists, medicine ball slams, torso rotation exercises.';
+              break;
+            case 'wrist':
+              drill = 'Practice wrist lag drills. Focus on maintaining proper wrist position through contact.';
+              break;
+          }
+          
+          if (drill) {
+            recommendations.push({
+              angle: angleName.charAt(0).toUpperCase() + angleName.slice(1),
+              current: value,
+              optimal: optimal,
+              diff: diff,
+              drill: drill
+            });
+          }
+        }
+      }
+      
+      if (recommendations.length === 0) {
+        return `
+          <div class="info-box" style="background: rgba(57, 255, 20, 0.1); border-left-color: var(--neon-green);">
+            <strong>Excellent Biomechanics</strong><br>
+            All your angles are within 10deg of professional benchmarks. 
+            Focus on consistency and building muscle memory through repetition.<br><br>
+            <strong>Maintain your form with:</strong><br>
+            - Regular practice sessions<br>
+            - Video analysis every 2-3 weeks<br>
+            - Strength and conditioning work<br>
+            - Match play to test under pressure
+          </div>
+        `;
+      }
+      
+      // Sort by impact (largest deviation first)
+      recommendations.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+      
+      let html = '<div style="font-size: 14px; line-height: 1.8; margin-bottom: 16px;"><strong>Priority Focus Areas (sorted by impact):</strong></div>';
+      
+      recommendations.slice(0, 3).forEach((rec, idx) => {
+        html += `
+          <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 12px;">
+            <div style="font-weight: 700; margin-bottom: 8px; color: var(--neon-green);">
+              ${idx + 1}. ${rec.angle}: ${rec.current}deg (Target: ${rec.optimal}deg, Deviation: ${rec.diff > 0 ? '+' : ''}${rec.diff}deg)
+            </div>
+            <div style="font-size: 14px; line-height: 1.6;">
+              <strong>Recommended Drill:</strong> ${rec.drill}
+            </div>
+          </div>
+        `;
+      });
+      
+      if (recommendations.length > 3) {
+        html += `<div style="font-size: 12px; color: var(--gray); margin-top: 12px;">+ ${recommendations.length - 3} more areas identified. Focus on the top 3 first for best results.</div>`;
+      }
+      
+      return html;
+    }
+
+    // UI Event Handlers
+    document.querySelectorAll('.setup-check').forEach(input => {
+      input.addEventListener('change', refreshSetupScore);
+    });
+
+    document.getElementById('sessionMode').addEventListener('change', (event) => {
+      playerProfile.sessionMode = event.target.value;
+      renderCaptureGuidance();
+    });
+
+    document.getElementById('sessionGoal').addEventListener('input', (event) => {
+      playerProfile.sessionGoal = event.target.value;
+    });
+
+    refreshSetupScore();
+
+    document.querySelectorAll('.selection-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const field = card.dataset.field;
+        const value = card.dataset.value;
+
+        if (field === 'shot') {
+          card.classList.toggle('selected');
+          const index = playerProfile.shots.indexOf(value);
+          if (index === -1) {
+            playerProfile.shots.push(value);
+          } else {
+            playerProfile.shots.splice(index, 1);
+          }
+          renderCaptureGuidance();
+        } else {
+          document.querySelectorAll(`[data-field="${field}"]`).forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          playerProfile[field] = value;
+        }
+      });
+    });
+
+    function setStep(step) {
+      currentStep = step;
+      
+      document.querySelectorAll('.wizard-step').forEach(el => {
+        const stepNum = parseInt(el.dataset.step);
+        el.classList.remove('active', 'completed');
+        if (stepNum === step) el.classList.add('active');
+        if (stepNum < step) el.classList.add('completed');
+        
+        const circle = el.querySelector('.step-circle');
+        circle.textContent = stepNum < step ? 'OK' : stepNum;
+      });
+
+      document.querySelectorAll('.step-content').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.step) === step);
+      });
+    }
+
+    document.getElementById('nextBtn1').addEventListener('click', () => {
+      if (!playerProfile.gender || !playerProfile.age || !playerProfile.level) {
+        alert('Please complete all selections');
+        return;
+      }
+      setStep(2);
+    });
+
+    document.getElementById('backBtn1').addEventListener('click', () => setStep(1));
+
+    document.getElementById('nextBtn2').addEventListener('click', () => {
+      if (playerProfile.shots.length === 0) {
+        alert('Please select at least one shot type');
+        return;
+      }
+      setStep(3);
+    });
+
+    document.getElementById('backBtn2').addEventListener('click', () => setStep(2));
+
+    const uploadZone = document.getElementById('uploadZone');
+    const videoInput = document.getElementById('videoInput');
+    const nextBtn3 = document.getElementById('nextBtn3');
+
+    uploadZone.addEventListener('click', () => videoInput.click());
+
+    videoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        playerProfile.videoFile = file;
+        document.getElementById('fileName').textContent = `OK ${file.name}`;
+        nextBtn3.disabled = false;
+      }
+    });
+
+    document.getElementById('nextBtn3').addEventListener('click', async () => {
+      if (playerProfile.setupScore < 70) {
+        const proceed = window.confirm('Setup score is below 70/100. Continue anyway? Low capture quality can reduce feedback accuracy.');
+        if (!proceed) return;
+      }
+      setStep(4);
+      await startAnalysis();
+    });
+
+    document.getElementById('backBtn3').addEventListener('click', () => setStep(3));
+    document.getElementById('demoReportBtn').addEventListener('click', runDemoReport);
+
+    function runDemoReport() {
+      if (!playerProfile.gender) playerProfile.gender = 'male';
+      if (!playerProfile.age) playerProfile.age = '21-25';
+      if (!playerProfile.level) playerProfile.level = 'intermediate';
+      if (!playerProfile.shots.length) playerProfile.shots = ['forehand'];
+      if (!playerProfile.sessionGoal) playerProfile.sessionGoal = 'Improve consistency under pressure.';
+
+      const shotType = playerProfile.shots[0] || 'forehand';
+      const bench = getBenchmarkForShot(shotType);
+      const metrics = Object.keys(analysisData.angles);
+
+      analysisData.frames = Array.from({ length: 90 }, (_, index) => index + 1);
+      analysisData.landmarks = Array.from({ length: 90 }, () => 16 + Math.round(Math.random()));
+      analysisData.confidence = Array.from({ length: 90 }, () => 87 + Math.round(Math.random() * 9));
+
+      metrics.forEach((metric) => {
+        const benchmark = bench[metric]?.optimal ?? 150;
+        const drift = metric === 'knee' ? -12 : metric === 'shoulder' ? 9 : metric === 'hip' ? 13 : 4;
+        analysisData.angles[metric] = Array.from({ length: 90 }, (_, i) => {
+          const wave = Math.sin(i / 9) * 2;
+          return Math.round(benchmark + drift + wave);
+        });
+      });
+
+      document.getElementById('framesCount').textContent = String(analysisData.frames.length);
+      document.getElementById('landmarksCount').textContent = String(Math.round(analysisData.landmarks.reduce((a, b) => a + b, 0) / analysisData.landmarks.length));
+      document.getElementById('confidenceValue').textContent = `${Math.round(analysisData.confidence.reduce((a, b) => a + b, 0) / analysisData.confidence.length)}%`;
+
+      const angleMap = [
+        ['shoulder', 'angleShoulder'],
+        ['elbow', 'angleElbow'],
+        ['hip', 'angleHip'],
+        ['knee', 'angleKnee'],
+        ['trunk', 'angleTrunk'],
+        ['wrist', 'angleWrist']
+      ];
+
+      angleMap.forEach(([metric, id]) => {
+        const values = analysisData.angles[metric] || [];
+        const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+        document.getElementById(id).textContent = `${avg}°`;
+      });
+
+      const session = buildSession();
+      const persisted = persistSession(session);
+      if (persisted && store?.uploadSessionArtifacts && playerProfile.videoFile) {
+        store.uploadSessionArtifacts(persisted.id, {
+          videoFile: playerProfile.videoFile
+        }).catch(() => {});
+      }
+      generateReport(session);
+      setStep(5);
+    }
+
+    async function startAnalysis() {
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+
+      // Reset
+      analysisData.frames = [];
+      for (const k in analysisData.angles) {
+        analysisData.angles[k] = [];
+      }
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      lastPersistedSignature = null;
+
+      video.src = URL.createObjectURL(playerProfile.videoFile);
+      
+      video.addEventListener('loadedmetadata', async () => {
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+
+        setStatus('Loading AI...', 'loading');
+        await initPoseEngine();
+      }, { once: true });
+    }
+
+    document.getElementById('playBtn').addEventListener('click', async () => {
+      const video = document.getElementById('videoElement');
+      
+      if (!detector) {
+        alert('AI not ready');
+        return;
+      }
+
+      await video.play();
+      isAnalyzing = true;
+      
+      document.getElementById('playBtn').style.display = 'none';
+      document.getElementById('pauseBtn').style.display = 'inline-block';
+      
+      analyzeFrame();
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      const video = document.getElementById('videoElement');
+      video.pause();
+      isAnalyzing = false;
+      
+      document.getElementById('pauseBtn').style.display = 'none';
+      document.getElementById('playBtn').style.display = 'inline-block';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.pause();
+      video.currentTime = 0;
+      isAnalyzing = false;
+      
+      analysisData.frames = [];
+      for (const k in analysisData.angles) {
+        analysisData.angles[k] = [];
+      }
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      lastPersistedSignature = null;
+
+      document.getElementById('framesCount').textContent = '0';
+      document.getElementById('landmarksCount').textContent = '0';
+      document.getElementById('confidenceValue').textContent = '0%';
+      
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
+        document.getElementById(id).textContent = '-°';
+      });
+
+      document.getElementById('saveBtn').style.display = 'none';
+      document.getElementById('generateReportBtn').style.display = 'none';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      document.getElementById('pauseBtn').style.display = 'none';
+      document.getElementById('playBtn').style.display = 'inline-block';
+    });
+
+    function persistSession(session) {
+      const signature = JSON.stringify({
+        shotType: session.summary.shotType,
+        score: session.summary.score,
+        framesAnalyzed: session.summary.framesAnalyzed,
+        avgAngles: session.summary.avgAngles
+      });
+
+      if (signature === lastPersistedSignature) {
+        return null;
+      }
+
+      lastPersistedSignature = signature;
+      localStorage.setItem('smartswing_last_session', JSON.stringify(session));
+
+      if (!store || !currentUser) {
+        return null;
+      }
+
+      return store.saveAssessment({
+        overallScore: session.summary.score,
+        grade: session.summary.grade,
+        percentile: session.summary.percentile,
+        shotType: session.summary.shotType,
+        framesAnalyzed: session.summary.framesAnalyzed,
+        avgConfidence: session.summary.avgConfidence,
+        avgLandmarks: session.summary.avgLandmarks,
+        avgAngles: session.summary.avgAngles,
+        metricComparisons: session.summary.metricComparisons,
+        benchmarkSummary: session.summary.benchmarkSummary,
+        tailoredDrills: session.summary.tailoredDrills,
+        sessionMode: session.summary.sessionMode,
+        sessionGoal: session.summary.sessionGoal,
+        setupScore: session.summary.setupScore,
+        notes: `${session.summary.sessionMode || 'stroke-tune-up'} | ${session.summary.sessionGoal || 'General improvement'} | setup ${session.summary.setupScore || 100}/100`,
+        playerProfile: session.profile
+      });
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      console.log('Save clicked, frames:', analysisData.frames.length);
+      console.log('Angles data:', analysisData.angles);
+      
+      const session = buildSession();
+      const persisted = persistSession(session);
+      
+      alert('Analysis saved.\n\n' +
+            'Frames: ' + analysisData.frames.length + '\n' +
+            'Score: ' + session.summary.score + '\n' +
+            'Grade: ' + session.summary.grade +
+            (currentUser ? '\nDashboard updated.' : '\nSign in to keep a history across sessions.'));
+    });
+
+    // Generate Report Button
+    document.getElementById('generateReportBtn').addEventListener('click', () => {
+      console.log('🎯 Generate Report button clicked!');
+      console.log('   Frames:', analysisData.frames.length);
+      console.log('   Angle data keys:', Object.keys(analysisData.angles));
+      console.log('   Sample angles:', {
+        shoulder: analysisData.angles.shoulder?.length,
+        elbow: analysisData.angles.elbow?.length
+      });
+      
+      if (analysisData.frames.length < 30) {
+        alert('Analyze at least 30 frames before generating report');
+        return;
+      }
+
+      console.log('✅ Building session...');
+      const session = buildSession();
+      console.log('✅ Session built:', session);
+      
+      const persisted = persistSession(session);
+      console.log('✅ Generating report HTML...');
+      
+      generateReport(session);
+      if (persisted && store?.uploadSessionArtifacts) {
+        const reportHtml = document.getElementById('reportContent')?.innerHTML || '';
+        store.uploadSessionArtifacts(persisted.id, {
+          videoFile: playerProfile.videoFile || null,
+          reportHtml
+        }).catch(() => {});
+      }
+      console.log('✅ Switching to step 5...');
+      setStep(5);
+      console.log('✅ Report should be visible now!');
+    });
+
+    // Report Navigation Buttons
+    document.getElementById('backBtn4').addEventListener('click', () => {
+      setStep(4);
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('dashboardBtn').addEventListener('click', () => {
+      window.location.href = currentUser ? './dashboard.html' : './login.html?message=Sign%20in%20to%20view%20your%20dashboard&type=success';
+    });
+
+    document.getElementById('newAnalysisBtn').addEventListener('click', () => {
+      // Reset everything
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.pause();
+      video.currentTime = 0;
+      isAnalyzing = false;
+      
+      analysisData.frames = [];
+      for (const k in analysisData.angles) {
+        analysisData.angles[k] = [];
+      }
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      lastPersistedSignature = null;
+
+      document.getElementById('framesCount').textContent = '0';
+      document.getElementById('landmarksCount').textContent = '0';
+      document.getElementById('confidenceValue').textContent = '0%';
+      
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
+        document.getElementById(id).textContent = '-°';
+      });
+
+      document.getElementById('saveBtn').style.display = 'none';
+      document.getElementById('generateReportBtn').style.display = 'none';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      document.getElementById('pauseBtn').style.display = 'none';
+      document.getElementById('playBtn').style.display = 'inline-block';
+      
+      // Go back to step 1
+      setStep(1);
+    });
+
+    // Debug Function
+    window.debugSmartSwing = function() {
+      console.clear();
+      console.log('=== SMARTSWING DEBUG ===');
+      console.log('Profile:', playerProfile);
+      console.log('Detector:', detector ? 'Ready' : 'Not loaded');
+      console.log('Backend:', backend);
+      console.log('Frames:', analysisData.frames.length);
+      console.log('Angle arrays:');
+      for (const k in analysisData.angles) {
+        const arr = analysisData.angles[k];
+        console.log(`  ${k}: ${arr.length} values`, arr.slice(0, 5));
+      }
+      console.log('Landmarks:', analysisData.landmarks.slice(0, 5));
+      console.log('Confidence:', analysisData.confidence.slice(0, 5));
+      return analysisData;
+    };
+
+    console.log('SmartSwing AI MoveNet loaded ✓');
+    console.log('Press F12 → click Debug button for diagnostics');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('demo') === '1') {
+      setTimeout(() => {
+        try {
+          runDemoReport();
+        } catch (error) {
+          console.error('Demo report generation failed:', error);
+        }
+      }, 350);
+    }
+  </script>
+</body>
+</html>
