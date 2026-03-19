@@ -1,22 +1,28 @@
-const CACHE_NAME = 'smartswing-shell-v4';
+const CACHE_NAME = 'smartswing-shell-v5';
 const APP_ASSETS = [
   './',
   './index.html',
   './index-integrated.html',
-  './login.html',
-  './signup.html',
-  './dashboard.html',
-  './coach-dashboard.html',
-  './analyze.html',
+  './features.html',
+  './how-it-works.html',
   './pricing.html',
   './library.html',
+  './analyze.html',
+  './dashboard.html',
+  './coach-dashboard.html',
   './review-all.html',
-  './app-data.js',
-  './pwa.js',
+  './login.html',
+  './signup.html',
   './manifest.json',
+  './pwa.js',
+  './app-data.js',
   './advanced-biomechanics-engine.js',
   './improved-pose-detection.js'
 ];
+
+function isHtmlRequest(request) {
+  return request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html');
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -37,33 +43,52 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  const isNavigation =
-    event.request.mode === 'navigate' ||
-    (event.request.headers.get('accept') || '').includes('text/html');
+  const url = new URL(event.request.url);
+  const sameOrigin = url.origin === self.location.origin;
 
-  if (isNavigation) {
+  // Never hijack third-party requests with local HTML fallbacks.
+  if (!sameOrigin) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  const destination = event.request.destination || '';
+  const htmlRequest = isHtmlRequest(event.request);
+  const networkFirst = htmlRequest || destination === 'script' || destination === 'style' || destination === 'worker';
+
+  if (networkFirst) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => null);
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => null);
+          }
           return response;
         })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          if (htmlRequest) return caches.match('./index.html');
+          return new Response('Offline resource unavailable.', { status: 503, statusText: 'Offline' });
+        })
     );
     return;
   }
 
+  // Cache-first for static media and other same-origin assets.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => null);
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => null);
+          }
           return response;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => new Response('Offline resource unavailable.', { status: 503, statusText: 'Offline' }));
     })
   );
 });

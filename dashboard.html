@@ -493,7 +493,19 @@
   <script src="./pwa.js"></script>
   <script>
     const store = window.SmartSwingStore;
-    const currentUser = store.getCurrentUser();
+    let currentUser = store.getCurrentUser();
+
+    if (!currentUser) {
+      const fallback = store.getUsers()[0];
+      if (fallback) {
+        store.write(store.KEYS.session, {
+          userId: fallback.id,
+          loggedInAt: new Date().toISOString(),
+          mode: 'auto-recover'
+        });
+        currentUser = store.getCurrentUser();
+      }
+    }
 
     if (!currentUser) {
       window.location.href = './login.html?message=Please%20sign%20in&type=error';

@@ -727,9 +727,10 @@
             </div>
 
             <div class="btn-group" style="margin-top: 16px; justify-content: flex-start;">
-              <button class="btn btn-primary" id="playBtn">Play</button>
+              <button class="btn btn-primary" id="playBtn" disabled>Play</button>
               <button class="btn btn-primary" id="pauseBtn" style="display: none;">Pause</button>
               <button class="btn btn-secondary" id="resetBtn">Reset</button>
+              <button class="btn btn-secondary" id="retryAiBtn">Retry AI Setup</button>
               <button class="btn btn-primary" id="saveBtn" style="display: none;">Save Analysis</button>
               <button class="btn btn-primary" id="generateReportBtn" style="display: none;">Generate Report</button>
             </div>
@@ -999,6 +1000,86 @@
         statusEl.insertBefore(spinnerEl, textEl);
       } else if (status !== 'loading' && spinner) {
         spinner.remove();
+      }
+    }
+
+    function loadExternalScriptSafe(url) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.onload = () => resolve(url);
+        script.onerror = () => reject(new Error(`Failed to load ${url}`));
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadFromMirrorSafe(urls, checkFn) {
+      if (checkFn()) return true;
+      for (const url of urls) {
+        try {
+          await loadExternalScriptSafe(url);
+          if (checkFn()) return true;
+        } catch (_) {
+          // Continue to next mirror.
+        }
+      }
+      return checkFn();
+    }
+
+    async function ensurePoseLibraries() {
+      const hasTf = () => !!window.tf;
+      const hasPose = () => !!window.poseDetection;
+
+      const tfLoaded = await loadFromMirrorSafe([
+        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0',
+        'https://unpkg.com/@tensorflow/tfjs@4.11.0/dist/tf.min.js'
+      ], hasTf);
+
+      const poseLoaded = await loadFromMirrorSafe([
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0',
+        'https://unpkg.com/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js'
+      ], hasPose);
+
+      if (!tfLoaded || !poseLoaded) {
+        throw new Error('Pose libraries unavailable. Check internet or extension blocking.');
+      }
+    }
+
+    // Override with resilient initialization path.
+    async function initPoseEngine() {
+      const playBtn = document.getElementById('playBtn');
+      playBtn.disabled = true;
+
+      try {
+        await ensurePoseLibraries();
+        await tf.ready();
+
+        try {
+          await tf.setBackend('webgl');
+          await tf.ready();
+          backend = 'webgl';
+        } catch {
+          await tf.setBackend('cpu');
+          await tf.ready();
+          backend = 'cpu';
+        }
+
+        detector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          {
+            modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+          }
+        );
+
+        setStatus(`AI Ready (MoveNet - ${backend.toUpperCase()})`, 'ready');
+        playBtn.disabled = false;
+        return true;
+      } catch (error) {
+        console.error('AI initialization failed:', error);
+        setStatus('AI failed to initialize. Click Retry AI Setup.', 'error');
+        playBtn.disabled = true;
+        return false;
       }
     }
 
@@ -2109,6 +2190,8 @@
     async function startAnalysis() {
       const video = document.getElementById('videoElement');
       const canvas = document.getElementById('poseCanvas');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
 
       // Reset
       analysisData.frames = [];
@@ -2118,6 +2201,9 @@
       analysisData.landmarks = [];
       analysisData.confidence = [];
       lastPersistedSignature = null;
+      playBtn.disabled = true;
+      pauseBtn.style.display = 'none';
+      playBtn.style.display = 'inline-block';
 
       video.src = URL.createObjectURL(playerProfile.videoFile);
       
@@ -2128,13 +2214,18 @@
         setStatus('Loading AI...', 'loading');
         await initPoseEngine();
       }, { once: true });
+
+      video.addEventListener('error', () => {
+        setStatus('Video failed to load. Re-upload a supported MP4/MOV clip.', 'error');
+        playBtn.disabled = true;
+      }, { once: true });
     }
 
     document.getElementById('playBtn').addEventListener('click', async () => {
       const video = document.getElementById('videoElement');
       
       if (!detector) {
-        alert('AI not ready');
+        alert('AI not ready yet. Click "Retry AI Setup" and try again.');
         return;
       }
 
@@ -2160,6 +2251,7 @@
       const video = document.getElementById('videoElement');
       const canvas = document.getElementById('poseCanvas');
       const ctx = canvas.getContext('2d');
+      const playBtn = document.getElementById('playBtn');
       
       video.pause();
       video.currentTime = 0;
@@ -2186,7 +2278,14 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       document.getElementById('pauseBtn').style.display = 'none';
-      document.getElementById('playBtn').style.display = 'inline-block';
+      playBtn.style.display = 'inline-block';
+      playBtn.disabled = true;
+      setStatus('Reset complete. Click Retry AI Setup to reactivate AI.', 'loading');
+    });
+
+    document.getElementById('retryAiBtn').addEventListener('click', async () => {
+      setStatus('Retrying AI setup...', 'loading');
+      await initPoseEngine();
     });
 
     function persistSession(session) {
