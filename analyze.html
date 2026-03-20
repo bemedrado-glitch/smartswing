@@ -819,6 +819,15 @@
     let rafId = null;
     let lastPersistedSignature = null;
     let aiInitInFlight = null;
+    let previousPoseSnapshot = null;
+
+    const AI_SETTINGS = {
+      libraryTimeoutMs: 15000,
+      backendTimeoutMs: 8000,
+      detectorTimeoutMs: 12000,
+      metadataTimeoutMs: 12000,
+      poseFpsCap: 24
+    };
 
     const analysisData = {
       frames: [],
@@ -831,8 +840,23 @@
         wrist: []
       },
       landmarks: [],
-      confidence: []
+      confidence: [],
+      biometrics: {
+        xFactor: [],
+        stanceWidthRatio: [],
+        contactHeightRatio: [],
+        lateralSpeed: []
+      }
     };
+
+    function withTimeout(promise, timeoutMs, label) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+        })
+      ]);
+    }
 
     function refreshPlanStrip() {
       const strip = document.getElementById('planStrip');
@@ -948,6 +972,64 @@
 
     function midpoint(a, b) {
       return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function distance(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function computeAdvancedKpis(keypoints, timestampSeconds) {
+      const leftShoulder = keypoints[KEYPOINT.LEFT_SHOULDER];
+      const rightShoulder = keypoints[KEYPOINT.RIGHT_SHOULDER];
+      const leftHip = keypoints[KEYPOINT.LEFT_HIP];
+      const rightHip = keypoints[KEYPOINT.RIGHT_HIP];
+      const leftAnkle = keypoints[KEYPOINT.LEFT_ANKLE];
+      const rightAnkle = keypoints[KEYPOINT.RIGHT_ANKLE];
+
+      const sideIsRight =
+        (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) + (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0)
+        >= (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) + (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+      const wrist = keypoints[sideIsRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
+
+      const result = {};
+
+      if (kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(leftHip) && kpOk(rightHip)) {
+        const shoulderMid = midpoint(leftShoulder, rightShoulder);
+        const hipMid = midpoint(leftHip, rightHip);
+        const shoulderDx = rightShoulder.x - leftShoulder.x;
+        const shoulderDy = rightShoulder.y - leftShoulder.y;
+        const hipDx = rightHip.x - leftHip.x;
+        const hipDy = rightHip.y - leftHip.y;
+        const shoulderAngle = Math.atan2(shoulderDy, shoulderDx) * (180 / Math.PI);
+        const hipAngle = Math.atan2(hipDy, hipDx) * (180 / Math.PI);
+        result.xFactor = Math.round(Math.abs(shoulderAngle - hipAngle));
+
+        if (kpOk(leftAnkle) && kpOk(rightAnkle)) {
+          const ankleMid = midpoint(leftAnkle, rightAnkle);
+          const torsoLen = Math.max(1, distance(shoulderMid, hipMid));
+          const stanceWidth = distance(leftAnkle, rightAnkle);
+          result.stanceWidthRatio = Number((stanceWidth / torsoLen).toFixed(2));
+          if (kpOk(wrist)) {
+            const hipToAnkle = Math.max(1, Math.abs(ankleMid.y - hipMid.y));
+            result.contactHeightRatio = Number(((hipMid.y - wrist.y) / hipToAnkle).toFixed(2));
+          }
+        }
+
+        if (previousPoseSnapshot && Number.isFinite(previousPoseSnapshot.time)) {
+          const dt = timestampSeconds - previousPoseSnapshot.time;
+          if (dt > 0.001) {
+            const prev = previousPoseSnapshot;
+            const lateralPxPerSec = Math.abs(hipMid.x - prev.hipMid.x) / dt;
+            result.lateralSpeed = Math.round(lateralPxPerSec);
+          }
+        }
+
+        previousPoseSnapshot = { time: timestampSeconds, hipMid };
+      }
+
+      return result;
     }
 
     function safeNumber(value, fallback = 0) {
@@ -1072,25 +1154,53 @@
       playBtn.disabled = true;
       aiInitInFlight = (async () => {
         try {
-          await ensurePoseLibraries();
-          await tf.ready();
+          setStatus('Loading AI libraries...', 'loading');
+          await withTimeout(ensurePoseLibraries(), AI_SETTINGS.libraryTimeoutMs, 'AI library loading');
+          await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
 
-          try {
-            await tf.setBackend('webgl');
-            await tf.ready();
-            backend = 'webgl';
-          } catch {
-            await tf.setBackend('cpu');
-            await tf.ready();
-            backend = 'cpu';
+          setStatus('Preparing AI backend...', 'loading');
+          let backendReady = false;
+          for (const nextBackend of ['webgl', 'wasm', 'cpu']) {
+            try {
+              await withTimeout(tf.setBackend(nextBackend), AI_SETTINGS.backendTimeoutMs, `${nextBackend} backend setup`);
+              await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, `${nextBackend} backend ready`);
+              backend = nextBackend;
+              backendReady = true;
+              break;
+            } catch (backendError) {
+              console.warn(`Backend ${nextBackend} unavailable:`, backendError);
+            }
+          }
+          if (!backendReady) {
+            throw new Error('No TensorFlow backend was available.');
           }
 
-          detector = await poseDetection.createDetector(
-            poseDetection.SupportedModels.MoveNet,
-            {
-              modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+          setStatus('Creating pose detector...', 'loading');
+          const detectorConfigs = [
+            { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING, enableSmoothing: true },
+            { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, enableSmoothing: true }
+          ];
+
+          let detectorCreated = false;
+          for (const config of detectorConfigs) {
+            try {
+              detector = await withTimeout(
+                poseDetection.createDetector(
+                  poseDetection.SupportedModels.MoveNet,
+                  config
+                ),
+                AI_SETTINGS.detectorTimeoutMs,
+                'Pose detector creation'
+              );
+              detectorCreated = !!detector;
+              if (detectorCreated) break;
+            } catch (detectorError) {
+              console.warn('Detector config failed, trying fallback:', detectorError);
             }
-          );
+          }
+          if (!detectorCreated) {
+            throw new Error('Unable to initialize pose detector.');
+          }
 
           setStatus(`AI Ready (MoveNet - ${backend.toUpperCase()})`, 'ready');
           playBtn.disabled = false;
@@ -1267,6 +1377,11 @@
           document.getElementById('angleWrist').textContent = angles.wrist != null ? angles.wrist + '°' : '-°';
 
           // Show save button after 30 frames
+          ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach((id) => {
+            const current = String(document.getElementById(id).textContent || '');
+            document.getElementById(id).textContent = current.replace('Â°', '°');
+          });
+
           if (framesCount >= 30) {
             document.getElementById('saveBtn').style.display = 'inline-block';
             document.getElementById('generateReportBtn').style.display = 'inline-block';
@@ -1278,6 +1393,85 @@
         console.error('Analysis error:', error);
       } finally {
         rafId = requestAnimationFrame(analyzeFrame);
+      }
+    }
+
+    // Optimized analysis loop override for reliability/performance.
+    async function analyzeFrame() {
+      const video = document.getElementById('videoElement');
+
+      if (!isAnalyzing || video.paused || !detector) {
+        rafId = null;
+        return;
+      }
+
+      try {
+        const lastFrame = analysisData.frames[analysisData.frames.length - 1];
+        if (lastFrame && Number.isFinite(lastFrame.timestamp)) {
+          const minDelta = 1 / AI_SETTINGS.poseFpsCap;
+          const elapsed = video.currentTime - lastFrame.timestamp;
+          if (elapsed < minDelta) {
+            rafId = requestAnimationFrame(analyzeFrame);
+            return;
+          }
+        }
+
+        const poses = await detector.estimatePoses(video);
+        if (poses && poses.length > 0) {
+          const keypoints = poses[0].keypoints;
+          const validLandmarks = keypoints.filter(kp => kpOk(kp, 0.3)).length;
+          const confidence = Math.round(
+            (keypoints.reduce((sum, kp) => sum + (kp.score || 0), 0) / keypoints.length) * 100
+          );
+          const angles = computeAngles(keypoints);
+          const advancedKpis = computeAdvancedKpis(keypoints, video.currentTime);
+
+          for (const k in angles) {
+            if (angles[k] != null) analysisData.angles[k].push(angles[k]);
+          }
+          for (const k in advancedKpis) {
+            if (!analysisData.biometrics[k]) analysisData.biometrics[k] = [];
+            if (Number.isFinite(advancedKpis[k])) analysisData.biometrics[k].push(advancedKpis[k]);
+          }
+
+          analysisData.frames.push({
+            timestamp: video.currentTime,
+            landmarks: validLandmarks,
+            confidence,
+            angles,
+            advancedKpis
+          });
+          analysisData.landmarks.push(validLandmarks);
+          analysisData.confidence.push(confidence);
+
+          const framesCount = analysisData.frames.length;
+          document.getElementById('framesCount').textContent = framesCount;
+          document.getElementById('landmarksCount').textContent = validLandmarks;
+          document.getElementById('confidenceValue').textContent = confidence + '%';
+          document.getElementById('angleShoulder').textContent = angles.shoulder != null ? `${angles.shoulder}°` : '-°';
+          document.getElementById('angleElbow').textContent = angles.elbow != null ? `${angles.elbow}°` : '-°';
+          document.getElementById('angleHip').textContent = angles.hip != null ? `${angles.hip}°` : '-°';
+          document.getElementById('angleKnee').textContent = angles.knee != null ? `${angles.knee}°` : '-°';
+          document.getElementById('angleTrunk').textContent = angles.trunk != null ? `${angles.trunk}°` : '-°';
+          document.getElementById('angleWrist').textContent = angles.wrist != null ? `${angles.wrist}°` : '-°';
+
+          if (framesCount >= 30) {
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('generateReportBtn').style.display = 'inline-block';
+          }
+
+          drawPose(keypoints);
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+        setStatus('AI frame processing slowed down. Pausing analysis to recover.', 'error');
+        isAnalyzing = false;
+      } finally {
+        if (isAnalyzing && !video.paused) {
+          rafId = requestAnimationFrame(analyzeFrame);
+        } else {
+          rafId = null;
+        }
       }
     }
 
@@ -1498,10 +1692,20 @@
       const grade = getGrade(score);
       const percentile = getPercentile(score);
       const metricComparisons = store ? store.compareAgainstBenchmark(avgAngles, bench) : [];
+      const avgBiomechanics = {};
+      for (const key in analysisData.biometrics) {
+        const values = analysisData.biometrics[key] || [];
+        if (values.length) {
+          avgBiomechanics[key] = Number((values.reduce((a, b) => a + b, 0) / values.length).toFixed(2));
+        }
+      }
       const benchmarkSummary = metricComparisons
         .slice(0, 3)
         .map((item) => `${item.metric}: ${item.delta > 0 ? '+' : ''}${item.delta}°`)
         .join(' • ');
+      const benchmarkSummaryClean = String(benchmarkSummary || '')
+        .replaceAll('Â°', '°')
+        .replaceAll('â€¢', '•');
       const tailoredDrills = store ? store.buildTailoredDrills({
         shotType,
         metricComparisons,
@@ -1524,12 +1728,13 @@
           avgLandmarks,
           avgConfidence,
           avgAngles,
+          avgBiomechanics,
           score,
           grade,
           percentile,
           shotType,
           metricComparisons,
-          benchmarkSummary,
+          benchmarkSummary: benchmarkSummaryClean,
           tailoredDrills,
           tailoredTactics,
           sessionMode: playerProfile.sessionMode,
@@ -1586,6 +1791,11 @@
               <div class="metric-label">of 17 points</div>
             </div>
           </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Performance KPI Snapshot</div>
+          ${generateKpiSnapshotHtml(s.avgBiomechanics || {})}
         </div>
 
         <div class="report-section">
@@ -1651,7 +1861,15 @@
         </div>
       `;
 
-      document.getElementById('reportContent').innerHTML = html;
+      const reportContent = document.getElementById('reportContent');
+      reportContent.innerHTML = html;
+      reportContent.innerHTML = reportContent.innerHTML
+        .replaceAll('Â°', '°')
+        .replaceAll('â€¢', '•')
+        .replaceAll('âœ“', '✓')
+        .replaceAll('â—‹', '○')
+        .replaceAll('â–³', '△')
+        .replaceAll('âš ', '⚠');
     }
 
     function generateTailoredDrillsHtml(drills) {
@@ -1718,6 +1936,12 @@
       const accountability = (summary.setupScore || 100) < 80
         ? 'Capture quality dropped below 80/100. Re-record with corrected setup before coach review.'
         : 'Capture quality is reliable enough for coach progression checks.';
+      const kpiPieces = [];
+      if (Number.isFinite(summary.avgBiomechanics?.xFactor)) kpiPieces.push(`X-Factor ${summary.avgBiomechanics.xFactor}°`);
+      if (Number.isFinite(summary.avgBiomechanics?.stanceWidthRatio)) kpiPieces.push(`Stance ${summary.avgBiomechanics.stanceWidthRatio}x`);
+      if (Number.isFinite(summary.avgBiomechanics?.contactHeightRatio)) kpiPieces.push(`Contact ${summary.avgBiomechanics.contactHeightRatio}`);
+      if (Number.isFinite(summary.avgBiomechanics?.lateralSpeed)) kpiPieces.push(`Lateral ${summary.avgBiomechanics.lateralSpeed} px/s`);
+      const kpiLine = kpiPieces.length ? kpiPieces.join(' | ') : 'KPI snapshot pending (needs enough clear frames).';
 
       return `
         <div class="info-box">
@@ -1725,7 +1949,8 @@
           <strong>Session mode:</strong> ${summary.sessionMode || 'stroke-tune-up'}<br>
           <strong>Player goal:</strong> ${summary.sessionGoal || 'General improvement'}<br>
           <strong>Next coach focus:</strong> ${nextSessionFocus}<br>
-          <strong>Accountability note:</strong> ${accountability}
+          <strong>Accountability note:</strong> ${accountability}<br>
+          <strong>KPI snapshot:</strong> ${kpiLine}
         </div>
         <div style="margin-top: 12px;">
           ${ranked.length ? ranked.map((item, index) => `
@@ -1844,6 +2069,51 @@
       }
       
       return html || '<p>Insufficient angle data for comparison.</p>';
+    }
+
+    function generateKpiSnapshotHtml(kpis) {
+      const entries = [
+        {
+          label: 'X-Factor Separation',
+          key: 'xFactor',
+          unit: '°',
+          hint: 'Hip-shoulder separation quality for power transfer.'
+        },
+        {
+          label: 'Stance Width Ratio',
+          key: 'stanceWidthRatio',
+          unit: 'x torso',
+          hint: 'Lower-body base stability and balance under load.'
+        },
+        {
+          label: 'Contact Height Ratio',
+          key: 'contactHeightRatio',
+          unit: 'hip-to-ankle',
+          hint: 'Relative strike height control through contact.'
+        },
+        {
+          label: 'Lateral Speed',
+          key: 'lateralSpeed',
+          unit: 'px/s',
+          hint: 'Footwork reactivity and side-to-side recovery speed.'
+        }
+      ].filter((entry) => Number.isFinite(kpis[entry.key]));
+
+      if (!entries.length) {
+        return '<div class="info-box">KPI snapshot needs at least 30 clean frames. Improve camera framing and retry.</div>';
+      }
+
+      return `
+        <div class="metrics-grid">
+          ${entries.map((entry) => `
+            <div class="metric-card">
+              <div class="metric-title">${entry.label}</div>
+              <div class="metric-value-large">${kpis[entry.key]}${entry.unit ? ` ${entry.unit}` : ''}</div>
+              <div class="metric-label">${entry.hint}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
     }
 
     function generateBiomechanicsInsights(avgAngles, bench, shotType) {
@@ -2198,6 +2468,10 @@
       analysisData.frames = Array.from({ length: 90 }, (_, index) => index + 1);
       analysisData.landmarks = Array.from({ length: 90 }, () => 16 + Math.round(Math.random()));
       analysisData.confidence = Array.from({ length: 90 }, () => 87 + Math.round(Math.random() * 9));
+      analysisData.biometrics.xFactor = Array.from({ length: 90 }, () => 28 + Math.round(Math.random() * 10));
+      analysisData.biometrics.stanceWidthRatio = Array.from({ length: 90 }, () => Number((1.1 + Math.random() * 0.35).toFixed(2)));
+      analysisData.biometrics.contactHeightRatio = Array.from({ length: 90 }, () => Number((0.45 + Math.random() * 0.35).toFixed(2)));
+      analysisData.biometrics.lateralSpeed = Array.from({ length: 90 }, () => 130 + Math.round(Math.random() * 80));
 
       metrics.forEach((metric) => {
         const benchmark = bench[metric]?.optimal ?? 150;
@@ -2227,6 +2501,18 @@
         document.getElementById(id).textContent = `${avg}°`;
       });
 
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach((id) => {
+        const current = String(document.getElementById(id).textContent || '');
+        document.getElementById(id).textContent = current.replace('Â°', '°');
+      });
+
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach((id) => {
+        const current = String(document.getElementById(id).textContent || '');
+        document.getElementById(id).textContent = current
+          .replaceAll('Ã‚Â°', '°')
+          .replaceAll('Â°', '°');
+      });
+
       const session = buildSession();
       const persisted = persistSession(session);
       if (persisted && store?.uploadSessionArtifacts && playerProfile.videoFile) {
@@ -2252,6 +2538,10 @@
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
+      for (const key in analysisData.biometrics) {
+        analysisData.biometrics[key] = [];
+      }
+      previousPoseSnapshot = null;
       lastPersistedSignature = null;
       playBtn.disabled = true;
       pauseBtn.style.display = 'none';
@@ -2265,18 +2555,28 @@
 
       let metadataResolved = false;
       const metadataReady = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          video.removeEventListener('loadedmetadata', onLoadedMetadata);
+          video.removeEventListener('error', onError);
+          reject(new Error('Video metadata timeout.'));
+        }, AI_SETTINGS.metadataTimeoutMs);
         const onLoadedMetadata = () => {
           metadataResolved = true;
+          clearTimeout(timeout);
           video.removeEventListener('error', onError);
           resolve();
         };
         const onError = () => {
+          clearTimeout(timeout);
           video.removeEventListener('loadedmetadata', onLoadedMetadata);
           reject(new Error('Video metadata unavailable.'));
         };
         video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
         video.addEventListener('error', onError, { once: true });
       });
+
+      setStatus('Initializing AI core...', 'loading');
+      const aiInitPromise = initPoseEngine();
 
       video.src = URL.createObjectURL(file);
       video.load();
@@ -2296,8 +2596,11 @@
       canvas.width = video.videoWidth || 1280;
       canvas.height = video.videoHeight || 720;
 
-      setStatus('Loading AI...', 'loading');
-      await initPoseEngine();
+      const aiReady = await aiInitPromise;
+      if (!aiReady) {
+        setStatus('AI failed to initialize. Use Retry AI Setup and try again.', 'error');
+        playBtn.disabled = true;
+      }
     }
 
     document.getElementById('playBtn').addEventListener('click', async () => {
@@ -2313,7 +2616,7 @@
       
       document.getElementById('playBtn').style.display = 'none';
       document.getElementById('pauseBtn').style.display = 'inline-block';
-      
+      if (rafId) cancelAnimationFrame(rafId);
       analyzeFrame();
     });
 
@@ -2321,12 +2624,67 @@
       const video = document.getElementById('videoElement');
       video.pause();
       isAnalyzing = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       
       document.getElementById('pauseBtn').style.display = 'none';
       document.getElementById('playBtn').style.display = 'inline-block';
     });
 
+    function clearAnalysisState(options = {}) {
+      const goToStepOne = !!options.goToStepOne;
+      const requireRetry = !!options.requireRetry;
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+      const ctx = canvas.getContext('2d');
+      const playBtn = document.getElementById('playBtn');
+
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+
+      isAnalyzing = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
+      analysisData.frames = [];
+      for (const k in analysisData.angles) analysisData.angles[k] = [];
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      for (const key in analysisData.biometrics) analysisData.biometrics[key] = [];
+      previousPoseSnapshot = null;
+      lastPersistedSignature = null;
+
+      document.getElementById('framesCount').textContent = '0';
+      document.getElementById('landmarksCount').textContent = '0';
+      document.getElementById('confidenceValue').textContent = '0%';
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach((id) => {
+        document.getElementById(id).textContent = '-°';
+      });
+
+      document.getElementById('saveBtn').style.display = 'none';
+      document.getElementById('generateReportBtn').style.display = 'none';
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('pauseBtn').style.display = 'none';
+      playBtn.style.display = 'inline-block';
+      playBtn.disabled = requireRetry;
+
+      if (requireRetry) {
+        setStatus('Reset complete. Click Retry AI Setup to reactivate AI.', 'loading');
+      }
+      if (goToStepOne) {
+        setStep(1);
+      }
+    }
+
     document.getElementById('resetBtn').addEventListener('click', () => {
+      clearAnalysisState({ requireRetry: true });
+      return;
       const video = document.getElementById('videoElement');
       const canvas = document.getElementById('poseCanvas');
       const ctx = canvas.getContext('2d');
@@ -2335,6 +2693,10 @@
       video.pause();
       video.currentTime = 0;
       isAnalyzing = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       
       analysisData.frames = [];
       for (const k in analysisData.angles) {
@@ -2342,16 +2704,30 @@
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
+      for (const key in analysisData.biometrics) {
+        analysisData.biometrics[key] = [];
+      }
+      previousPoseSnapshot = null;
       lastPersistedSignature = null;
 
       document.getElementById('framesCount').textContent = '0';
       document.getElementById('landmarksCount').textContent = '0';
       document.getElementById('confidenceValue').textContent = '0%';
+      document.getElementById('angleShoulder').textContent = '-°';
+      document.getElementById('angleElbow').textContent = '-°';
+      document.getElementById('angleHip').textContent = '-°';
+      document.getElementById('angleKnee').textContent = '-°';
+      document.getElementById('angleTrunk').textContent = '-°';
+      document.getElementById('angleWrist').textContent = '-°';
       
       ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
         document.getElementById(id).textContent = '-°';
       });
 
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
+        const current = String(document.getElementById(id).textContent || '');
+        document.getElementById(id).textContent = current.replace('Â°', '°');
+      });
       document.getElementById('saveBtn').style.display = 'none';
       document.getElementById('generateReportBtn').style.display = 'none';
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2395,6 +2771,7 @@
         avgConfidence: session.summary.avgConfidence,
         avgLandmarks: session.summary.avgLandmarks,
         avgAngles: session.summary.avgAngles,
+        performanceKpis: session.summary.avgBiomechanics || {},
         metricComparisons: session.summary.metricComparisons,
         benchmarkSummary: session.summary.benchmarkSummary,
         tailoredDrills: session.summary.tailoredDrills,
@@ -2490,6 +2867,8 @@
     });
 
     document.getElementById('newAnalysisBtn').addEventListener('click', () => {
+      clearAnalysisState({ goToStepOne: true });
+      return;
       // Reset everything
       const video = document.getElementById('videoElement');
       const canvas = document.getElementById('poseCanvas');
@@ -2498,6 +2877,10 @@
       video.pause();
       video.currentTime = 0;
       isAnalyzing = false;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       
       analysisData.frames = [];
       for (const k in analysisData.angles) {
@@ -2505,16 +2888,30 @@
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
+      for (const key in analysisData.biometrics) {
+        analysisData.biometrics[key] = [];
+      }
+      previousPoseSnapshot = null;
       lastPersistedSignature = null;
 
       document.getElementById('framesCount').textContent = '0';
       document.getElementById('landmarksCount').textContent = '0';
       document.getElementById('confidenceValue').textContent = '0%';
+      document.getElementById('angleShoulder').textContent = '-°';
+      document.getElementById('angleElbow').textContent = '-°';
+      document.getElementById('angleHip').textContent = '-°';
+      document.getElementById('angleKnee').textContent = '-°';
+      document.getElementById('angleTrunk').textContent = '-°';
+      document.getElementById('angleWrist').textContent = '-°';
       
       ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
         document.getElementById(id).textContent = '-°';
       });
 
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
+        const current = String(document.getElementById(id).textContent || '');
+        document.getElementById(id).textContent = current.replace('Â°', '°');
+      });
       document.getElementById('saveBtn').style.display = 'none';
       document.getElementById('generateReportBtn').style.display = 'none';
       ctx.clearRect(0, 0, canvas.width, canvas.height);
