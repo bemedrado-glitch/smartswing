@@ -803,12 +803,19 @@
       const current = safeNumber(value, null);
       if (!benchmark || current == null) return null;
       const delta = Math.round(current - benchmark.optimal);
+      const range = Math.max(1, safeNumber(benchmark.max) - safeNumber(benchmark.min));
+      const softWindow = Math.max(5, Math.round(range * 0.2));
+      const goodWindow = Math.max(9, Math.round(range * 0.42));
       return {
         metric: name,
         current,
         target: benchmark.optimal,
+        min: benchmark.min,
+        max: benchmark.max,
         delta,
-        status: Math.abs(delta) <= 5 ? 'excellent' : Math.abs(delta) <= 10 ? 'good' : 'needs-work'
+        deviation: Math.abs(delta),
+        score: Math.max(40, Math.round(100 - ((Math.abs(delta) / range) * 100))),
+        status: Math.abs(delta) <= softWindow ? 'excellent' : Math.abs(delta) <= goodWindow ? 'good' : Math.abs(delta) <= Math.round(range * 0.72) ? 'workable' : 'needs-work'
       };
     }).filter(Boolean);
   }
@@ -845,6 +852,12 @@
     if (metric === 'knee') return up ? 'Add loading depth before drive.' : 'Push up and forward through contact.';
     if (metric === 'trunk') return up ? 'Stabilize trunk tilt and sequence rotation.' : 'Increase torso rotation through contact.';
     if (metric === 'wrist') return up ? 'Quiet late wrist action for control.' : 'Create cleaner lag and release timing.';
+    if (metric === 'stanceWidth') return up ? 'Tighten the base slightly so rotation does not stall.' : 'Create a slightly wider athletic base before the strike.';
+    if (metric === 'contactHeight') return up ? 'Meet the ball a little lower and farther in front.' : 'Raise the strike window with earlier preparation and leg timing.';
+    if (metric === 'reach') return up ? 'Avoid over-reaching. Let spacing come from footwork.' : 'Create more spacing before contact so the arm can extend naturally.';
+    if (metric === 'balance') return up ? 'Stay centered over your base through contact and recovery.' : 'Hold the center line and avoid drifting early.';
+    if (metric === 'alignmentGap') return up ? 'Keep shoulders and hips working in the same posture window.' : 'Maintain cleaner upper-lower body connection.';
+    if (metric === 'footworkLoad') return up ? 'Keep the feet active, then quiet the finish.' : 'Add a stronger split-step and first move into the ball.';
     return up ? 'Tighten movement sequence.' : 'Increase movement range into target window.';
   }
 
@@ -1270,6 +1283,8 @@
 
   function saveAssessment(payload) {
     const user = requireUser();
+    const previousSameShot = getAssessments().filter((item) => item.userId === user.id && item.shotType === slugShot(payload.shotType));
+    const previousBest = previousSameShot.length ? Math.max(...previousSameShot.map((item) => safeNumber(item.overallScore))) : 0;
     const assessment = {
       id: uid('assessment'),
       externalId: uid('assessment_ext'),
@@ -1280,13 +1295,21 @@
       percentile: safeNumber(payload.percentile),
       shotType: slugShot(payload.shotType),
       framesAnalyzed: safeNumber(payload.framesAnalyzed),
+      focusFramesAnalyzed: safeNumber(payload.focusFramesAnalyzed),
       avgConfidence: safeNumber(payload.avgConfidence),
       avgLandmarks: safeNumber(payload.avgLandmarks),
       avgAngles: payload.avgAngles || {},
+      avgDerivedMetrics: payload.avgDerivedMetrics || {},
       benchmarkSummary: payload.benchmarkSummary || '',
       metricComparisons: payload.metricComparisons || [],
       tailoredDrills: payload.tailoredDrills || [],
       tailoredTactics: payload.tailoredTactics || [],
+      componentScores: payload.componentScores || {},
+      performanceKpis: payload.performanceKpis || {},
+      progressContext: payload.progressContext || {},
+      milestone: payload.milestone || null,
+      achievements: payload.achievements || [],
+      scoringMeta: payload.scoringMeta || {},
       sessionMode: payload.sessionMode || 'stroke-tune-up',
       sessionGoal: payload.sessionGoal || '',
       setupScore: safeNumber(payload.setupScore, 100),
@@ -1308,6 +1331,14 @@
         shotType: assessment.shotType
       }
     });
+    if (assessment.overallScore > previousBest) {
+      createProgressEvent({
+        eventType: 'milestone',
+        title: `${assessment.shotType} personal best`,
+        detail: `New best score ${assessment.overallScore}${assessment.milestone?.current ? ` | ${assessment.milestone.current}` : ''}`,
+        payload: { assessmentId: assessment.externalId, shotType: assessment.shotType, score: assessment.overallScore }
+      });
+    }
     updateGoalsFromAssessment(assessment);
     void syncAssessmentToCloud(assessment);
     return assessment;
@@ -1320,9 +1351,35 @@
       .sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
   }
 
+  function getMilestoneSnapshot(userId) {
+    const assessments = getUserAssessments(userId);
+    if (!assessments.length) {
+      return {
+        currentBand: 'Foundation',
+        nextBand: 'Groove Builder',
+        gapToNext: 72,
+        latestScore: 0,
+        personalBest: 0
+      };
+    }
+
+    const latest = assessments[0];
+    const best = Math.max(...assessments.map((item) => safeNumber(item.overallScore)));
+    const band = latest.milestone?.current || 'Foundation';
+    const next = latest.milestone?.next || 'Peak Band';
+    return {
+      currentBand: band,
+      nextBand: next,
+      gapToNext: safeNumber(latest.milestone?.gapToNext, 0),
+      latestScore: safeNumber(latest.overallScore),
+      personalBest: best
+    };
+  }
+
   function getDashboardMetrics(userId) {
     const assessments = getUserAssessments(userId);
     const retention = getRetentionSnapshot(userId);
+    const milestone = getMilestoneSnapshot(userId);
     if (!assessments.length) {
       return {
         totalAssessments: 0,
@@ -1331,6 +1388,8 @@
         improvement: 0,
         latestShot: 'n/a',
         avgConfidence: 0,
+        latestAchievements: [],
+        milestone,
         ...retention
       };
     }
@@ -1344,6 +1403,8 @@
       improvement: Math.round((recent.reduce((a, b) => a + b, 0) / recent.length) - (baseline.reduce((a, b) => a + b, 0) / baseline.length)),
       latestShot: assessments[0].shotType,
       avgConfidence: Math.round(assessments.reduce((sum, item) => sum + safeNumber(item.avgConfidence), 0) / assessments.length),
+      latestAchievements: assessments[0].achievements || [],
+      milestone,
       ...retention
     };
   }
@@ -1593,6 +1654,7 @@
     saveAssessment,
     getUserAssessments,
     getDashboardMetrics,
+    getMilestoneSnapshot,
     getRetentionSnapshot,
     getRecommendedFocusAreas,
     getCoachSummary,

@@ -449,7 +449,7 @@
               <div class="pill">${label}</div>
               <h3>${entry.user.fullName}</h3>
               <p class="muted">${entry.retention.activeGoals} active goals | drill completion ${entry.retention.drillCompletionRate}%</p>
-              ${latest ? `<p style="margin-top: 8px;">Latest: ${formatShot(latest.shotType)} score ${latest.overallScore} | mode ${latest.sessionMode || 'stroke-tune-up'}</p>` : '<p style="margin-top: 8px;">No session logged yet.</p>'}
+              ${latest ? `<p style="margin-top: 8px;">Latest: ${formatShot(latest.shotType)} score ${latest.overallScore} | band ${latest.milestone?.current || 'Foundation'} | readiness ${latest.performanceKpis?.readinessIndex ?? '-'} | mode ${latest.sessionMode || 'stroke-tune-up'}</p>` : '<p style="margin-top: 8px;">No session logged yet.</p>'}
               ${top ? `<p class="${klass}" style="margin-top: 6px;">Top gap: ${top.metric} (${top.delta > 0 ? '+' : ''}${top.delta}deg)</p>` : ''}
               ${entry.retention.daysSinceLastAssessment != null ? `<p class="muted" style="margin-top: 6px;">${entry.retention.daysSinceLastAssessment} days since analysis</p>` : ''}
             </div>
@@ -469,7 +469,7 @@
             <div class="item">
               <h3>${user ? user.fullName : 'Athlete'} - ${formatShot(assessment.shotType)}</h3>
               <p class="muted">${new Date(assessment.analyzedAt).toLocaleString()}</p>
-              <p style="margin-top: 6px;">Score ${assessment.overallScore} | Grade ${assessment.grade} | Setup ${assessment.setupScore || 100}/100</p>
+              <p style="margin-top: 6px;">Score ${assessment.overallScore} | Grade ${assessment.grade} | Band ${assessment.milestone?.current || 'Foundation'} | Setup ${assessment.setupScore || 100}/100</p>
               <p style="margin-top: 6px;" class="muted">Goal: ${assessment.sessionGoal || 'General improvement'}</p>
               ${top ? `<p class="${riskClass(top.delta)}" style="margin-top: 6px;">Primary issue: ${top.metric} (${top.delta > 0 ? '+' : ''}${top.delta}deg)</p>` : ''}
             </div>

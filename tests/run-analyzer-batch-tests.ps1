@@ -40,6 +40,10 @@ $scenarios = @(
 $requiredMarkers = @(
   'report-header',
   'Score Breakdown',
+  'Milestone Track',
+  'Achievement Unlocks',
+  'Performance KPIs',
+  'Fair Score Logic',
   'Tracker Definitions (Why each metric matters)',
   'Coach-ready Summary',
   'Tailored Drill Plan',
@@ -50,7 +54,9 @@ $requiredMarkers = @(
   'Hip',
   'Knee',
   'Trunk',
-  'Wrist'
+  'Base width',
+  'Contact height',
+  'Reach / spacing'
 )
 
 $failed = $false

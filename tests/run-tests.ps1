@@ -121,8 +121,17 @@ try {
   Assert-True -Condition ($analyzeSource -like '*function buildSession()*') -Message 'Analyzer contains buildSession()'
   Assert-True -Condition ($analyzeSource -like '*function generateReport(session)*') -Message 'Analyzer contains generateReport(session)'
   Assert-True -Condition ($analyzeSource -like '*function generateTailoredDrillsHtml(drills)*') -Message 'Analyzer contains tailored drill rendering function'
+  Assert-True -Condition ($analyzeSource -like '*function calculatePerformanceKpis(*') -Message 'Analyzer contains performance KPI scoring'
+  Assert-True -Condition ($analyzeSource -like '*function getMilestoneSummary(*') -Message 'Analyzer contains milestone scoring helper'
   Assert-True -Condition ($analyzeSource -like '*Tracker Definitions (Why each metric matters)*') -Message 'Analyzer report includes tracker definitions section'
   Assert-True -Condition ($analyzeSource -like '*Coach-ready Summary*') -Message 'Analyzer report includes coach-ready summary section'
+  Assert-True -Condition ($analyzeSource -like '*Milestone Track*') -Message 'Analyzer report includes milestone section'
+  Assert-True -Condition ($analyzeSource -like '*Achievement Unlocks*') -Message 'Analyzer report includes achievement section'
+  Assert-True -Condition ($analyzeSource -like '*Performance KPIs*') -Message 'Analyzer report includes KPI section'
+  Assert-True -Condition ($analyzeSource -like '*Fair Score Logic*') -Message 'Analyzer report includes fair-score explanation'
+  Assert-True -Condition ($analyzeSource -like '*function getAchievementSummary(*') -Message 'Analyzer contains achievement scoring helper'
+  Assert-True -Condition ($analyzeSource -like '*function getAdjustedBenchmark(*') -Message 'Analyzer contains personalized benchmark adjustment helper'
+  Assert-True -Condition ($analyzeSource -like '*function getMetricExpectationScale(*') -Message 'Analyzer contains expectation scaling helper'
   Assert-True -Condition ($analyzeSource -like '*captureGuidance*') -Message 'Analyzer includes pre-capture guidance element'
   Assert-True -Condition ($analyzeSource -like '*assets/vendor/mediapipe/pose/pose.js*') -Message 'Analyzer loads MediaPipe pose runtime explicitly'
   Assert-True -Condition ($analyzeSource -like '*function runDemoReport()*') -Message 'Analyzer contains demo report function'
@@ -130,6 +139,8 @@ try {
 
   $dashboardSource = Get-Content -Path (Join-Path $root 'dashboard.html') -Raw
   Assert-True -Condition ($dashboardSource -like '*Retention loop*') -Message 'Player dashboard includes retention loop section'
+  Assert-True -Condition ($dashboardSource -like '*Milestone track*') -Message 'Player dashboard includes milestone track surface'
+  Assert-True -Condition ($dashboardSource -like '*Latest unlock:*') -Message 'Player dashboard shows latest achievement surface'
   Assert-True -Condition ($dashboardSource -like '*function createGoal(event)*') -Message 'Player dashboard supports goal creation'
   Assert-True -Condition ($dashboardSource -like '*function renderTimeline()*') -Message 'Player dashboard renders progress timeline'
 
@@ -143,6 +154,8 @@ try {
   Assert-True -Condition ($storeSource -like '*function setPlayerGoal(payload)*') -Message 'Store exposes goal creation'
   Assert-True -Condition ($storeSource -like '*function setDrillStatus(drillId, status)*') -Message 'Store exposes drill status updates'
   Assert-True -Condition ($storeSource -like '*function getRetentionSnapshot(userId)*') -Message 'Store exposes retention metrics'
+  Assert-True -Condition ($storeSource -like '*function getMilestoneSnapshot(userId)*') -Message 'Store exposes milestone snapshot'
+  Assert-True -Condition ($storeSource -like '*latestAchievements*') -Message 'Store exposes latest achievement context'
 
   $edge = Find-EdgeBinary
   if ($null -eq $edge) {
@@ -164,6 +177,9 @@ try {
     } else {
       Assert-True -Condition ($domOutput -like '*Tailored Drill Plan*') -Message 'Headless analyzer demo renders Tailored Drill Plan'
       Assert-True -Condition ($domOutput -like '*Score Breakdown*') -Message 'Headless analyzer demo renders Score Breakdown'
+      Assert-True -Condition ($domOutput -like '*Milestone Track*') -Message 'Headless analyzer demo renders milestone section'
+      Assert-True -Condition ($domOutput -like '*Achievement Unlocks*') -Message 'Headless analyzer demo renders achievement section'
+      Assert-True -Condition ($domOutput -like '*Performance KPIs*') -Message 'Headless analyzer demo renders KPI section'
       Assert-True -Condition ($domOutput -like '*report-header*') -Message 'Headless analyzer demo renders report header markup'
     }
 

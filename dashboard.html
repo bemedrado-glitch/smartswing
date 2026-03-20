@@ -545,8 +545,8 @@
       document.getElementById('latestShot').textContent =
         metrics.totalAssessments ? `Latest tracked shot: ${formatShot(metrics.latestShot)}` : 'No shot tracked yet';
       document.getElementById('focusCopy').textContent = metrics.accountabilityState === 'at-risk'
-        ? 'You are at risk of regression. Run a new session and complete assigned drills before your next coach slot.'
-        : 'You are on track. Keep the cadence: analyze, execute drills, and review with your coach.';
+        ? `You are at risk of regression. Protect your ${metrics.milestone?.currentBand || 'current'} band with one new session before your next coach slot.`
+        : `You are on track. Current band: ${metrics.milestone?.currentBand || 'Foundation'}. ${metrics.milestone?.gapToNext || 0} points to ${metrics.milestone?.nextBand || 'the next band'}.`;
     }
 
     function renderAssessments() {
@@ -564,7 +564,8 @@
             <div>
               <div class="pill">${formatShot(assessment.shotType)}</div>
               <h3>${new Date(assessment.analyzedAt).toLocaleString()}</h3>
-              <p class="muted">${assessment.framesAnalyzed} frames | confidence ${assessment.avgConfidence}% | grade ${assessment.grade}</p>
+              <p class="muted">${assessment.focusFramesAnalyzed || assessment.framesAnalyzed} focus frames | confidence ${assessment.avgConfidence}% | grade ${assessment.grade}</p>
+              <p style="margin-top: 6px;">${assessment.milestone?.current ? `Band ${assessment.milestone.current}` : 'Band building'} | readiness ${assessment.performanceKpis?.readinessIndex ?? '-'}</p>
               <p style="margin-top: 8px;">
                 ${(assessment.metricComparisons || []).slice(0, 3).map((metric) =>
                   `<span class="${metric.status}" style="font-weight:800; margin-right:10px;">${metric.metric}: ${metric.delta > 0 ? '+' : ''}${metric.delta}deg</span>`
@@ -600,6 +601,12 @@
           <div class="pill">Coach accountability</div>
           <h3>${metrics.accountabilityState === 'at-risk' ? 'At Risk' : 'On Track'}</h3>
           <p class="muted">Next session: ${nextSession}</p>
+        </div>
+        <div class="item">
+          <div class="pill">Milestone track</div>
+          <h3>${metrics.milestone?.currentBand || 'Foundation'}</h3>
+          <p class="muted">Latest ${metrics.milestone?.latestScore || 0} | Best ${metrics.milestone?.personalBest || 0} | ${metrics.milestone?.gapToNext || 0} pts to ${metrics.milestone?.nextBand || 'next band'}</p>
+          <p class="muted" style="margin-top:8px;">Latest unlock: ${(metrics.latestAchievements || []).slice(0, 2).map((item) => item.label).join(' | ') || 'Keep building your next unlock'}</p>
         </div>
       `;
     }

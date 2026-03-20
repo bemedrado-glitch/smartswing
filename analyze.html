@@ -851,6 +851,16 @@
         trunk: [],
         wrist: []
       },
+      derivedMetrics: {
+        shoulderTilt: [],
+        hipTilt: [],
+        stanceWidth: [],
+        contactHeight: [],
+        reach: [],
+        balance: [],
+        alignmentGap: [],
+        footworkLoad: []
+      },
       landmarks: [],
       confidence: []
     };
@@ -984,6 +994,75 @@
 
     function midpoint(a, b) {
       return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function distance(a, b) {
+      if (!a || !b) return null;
+      return Math.hypot(safeNumber(b.x, 0) - safeNumber(a.x, 0), safeNumber(b.y, 0) - safeNumber(a.y, 0));
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function average(values) {
+      const list = (values || []).filter((value) => Number.isFinite(value));
+      return list.length ? list.reduce((sum, value) => sum + value, 0) / list.length : null;
+    }
+
+    function roundMetric(value, digits = 0) {
+      if (!Number.isFinite(value)) return null;
+      const factor = 10 ** digits;
+      return Math.round(value * factor) / factor;
+    }
+
+    function standardDeviation(values) {
+      const list = (values || []).filter((value) => Number.isFinite(value));
+      if (!list.length) return null;
+      const avg = average(list);
+      const variance = average(list.map((value) => (value - avg) ** 2));
+      return Math.sqrt(variance);
+    }
+
+    function normalizeLevel(value) {
+      const input = String(value || '').toLowerCase();
+      if (input.includes('beginner')) return 'beginner';
+      if (input.includes('advanced')) return 'advanced';
+      if (input.includes('pro')) return 'pro';
+      return 'intermediate';
+    }
+
+    function parseAgeMidpoint(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      if (raw.includes('+')) {
+        const base = Number.parseInt(raw, 10);
+        return Number.isFinite(base) ? base + 5 : null;
+      }
+      if (raw.includes('-')) {
+        const [start, end] = raw.split('-').map((part) => Number.parseInt(part, 10));
+        if (Number.isFinite(start) && Number.isFinite(end)) {
+          return (start + end) / 2;
+        }
+      }
+      const direct = Number.parseInt(raw, 10);
+      return Number.isFinite(direct) ? direct : null;
+    }
+
+    function formatMetricName(metric) {
+      return String(metric || '')
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/[-_]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    }
+
+    function calculateLineTilt(a, b) {
+      if (!a || !b) return null;
+      let angle = Math.abs(Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI));
+      if (angle > 90) angle = 180 - angle;
+      return roundMetric(angle);
     }
 
     function safeNumber(value, fallback = 0) {
@@ -1504,6 +1583,89 @@
       return angles;
     }
 
+    function computeDerivedMetrics(keypoints, poseMotion = 0) {
+      const metrics = {
+        shoulderTilt: null,
+        hipTilt: null,
+        stanceWidth: null,
+        contactHeight: null,
+        reach: null,
+        balance: null,
+        alignmentGap: null,
+        footworkLoad: null
+      };
+
+      const leftShoulder = keypoints[KEYPOINT.LEFT_SHOULDER];
+      const rightShoulder = keypoints[KEYPOINT.RIGHT_SHOULDER];
+      const leftHip = keypoints[KEYPOINT.LEFT_HIP];
+      const rightHip = keypoints[KEYPOINT.RIGHT_HIP];
+      const leftAnkle = keypoints[KEYPOINT.LEFT_ANKLE];
+      const rightAnkle = keypoints[KEYPOINT.RIGHT_ANKLE];
+      const nose = keypoints[KEYPOINT.NOSE];
+
+      const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) +
+        (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
+        (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
+      const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
+        (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
+        (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+      const isRight = rightScore >= leftScore;
+      const shoulder = keypoints[isRight ? KEYPOINT.RIGHT_SHOULDER : KEYPOINT.LEFT_SHOULDER];
+      const wrist = keypoints[isRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
+
+      if (kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        metrics.shoulderTilt = calculateLineTilt(leftShoulder, rightShoulder);
+      }
+
+      if (kpOk(leftHip) && kpOk(rightHip)) {
+        metrics.hipTilt = calculateLineTilt(leftHip, rightHip);
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        const shoulderWidth = distance(leftShoulder, rightShoulder);
+        const ankleWidth = distance(leftAnkle, rightAnkle);
+        if (shoulderWidth && ankleWidth) {
+          metrics.stanceWidth = roundMetric((ankleWidth / shoulderWidth) * 100);
+        }
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(wrist)) {
+        const ankleMid = midpoint(leftAnkle, rightAnkle);
+        const shoulderMid = midpoint(leftShoulder, rightShoulder);
+        const usableHeight = Math.max(1, ankleMid.y - shoulderMid.y);
+        metrics.contactHeight = roundMetric(((ankleMid.y - wrist.y) / usableHeight) * 100);
+      }
+
+      if (kpOk(shoulder) && kpOk(wrist) && kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(leftHip) && kpOk(rightHip)) {
+        const shoulderWidth = distance(leftShoulder, rightShoulder);
+        const torsoHeight = distance(midpoint(leftShoulder, rightShoulder), midpoint(leftHip, rightHip));
+        const scale = Math.max(shoulderWidth || 0, torsoHeight || 0, 1);
+        metrics.reach = roundMetric((distance(shoulder, wrist) / scale) * 100);
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(leftHip) && kpOk(rightHip)) {
+        const ankleMid = midpoint(leftAnkle, rightAnkle);
+        const hipMid = midpoint(leftHip, rightHip);
+        const stance = Math.max(distance(leftAnkle, rightAnkle) || 0, 1);
+        metrics.balance = roundMetric((Math.abs(hipMid.x - ankleMid.x) / stance) * 100);
+      }
+
+      if (metrics.shoulderTilt != null && metrics.hipTilt != null) {
+        metrics.alignmentGap = roundMetric(Math.abs(metrics.shoulderTilt - metrics.hipTilt));
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(nose)) {
+        const ankleMid = midpoint(leftAnkle, rightAnkle);
+        const stance = Math.max(distance(leftAnkle, rightAnkle) || 0, 1);
+        const headOffset = Math.abs(nose.x - ankleMid.x) / stance;
+        metrics.footworkLoad = roundMetric(clamp((poseMotion * 8) + (headOffset * 55), 0, 100));
+      } else {
+        metrics.footworkLoad = roundMetric(clamp(poseMotion * 8, 0, 100));
+      }
+
+      return metrics;
+    }
+
     // Draw Pose
     function drawPose(keypoints) {
       const canvas = document.getElementById('poseCanvas');
@@ -1691,6 +1853,7 @@
             (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
           );
           const angles = computeAngles(metricKeypoints);
+          const derivedMetrics = computeDerivedMetrics(metricKeypoints, poseMotion);
           const shouldStoreFrame = validLandmarks >= 10 && (
             analysisData.frames.length < 5 ||
             poseMotion >= AI_SETTINGS.minPoseMotionPx
@@ -1702,13 +1865,19 @@
                 pushWithCap(analysisData.angles[k], angles[k]);
               }
             }
+            for (const k in derivedMetrics) {
+              if (derivedMetrics[k] != null && analysisData.derivedMetrics[k]) {
+                pushWithCap(analysisData.derivedMetrics[k], derivedMetrics[k]);
+              }
+            }
 
             pushWithCap(analysisData.frames, {
               timestamp: video.currentTime,
               landmarks: validLandmarks,
               confidence,
               poseMotion,
-              angles
+              angles,
+              derivedMetrics
             });
             pushWithCap(analysisData.landmarks, validLandmarks);
             pushWithCap(analysisData.confidence, confidence);
@@ -1819,13 +1988,121 @@
       }
     };
 
+    const SHOT_SCORING_MODELS = {
+      forehand: {
+        weights: { shoulder: 18, elbow: 14, hip: 18, knee: 12, trunk: 14, stanceWidth: 7, contactHeight: 7, reach: 5, balance: 5 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 88, max: 150, optimal: 114 },
+          contactHeight: { min: 58, max: 104, optimal: 79 },
+          reach: { min: 82, max: 146, optimal: 112 },
+          balance: { min: 0, max: 26, optimal: 9, lowerIsBetter: true }
+        }
+      },
+      backhand: {
+        weights: { shoulder: 16, elbow: 15, hip: 17, knee: 13, trunk: 14, stanceWidth: 8, contactHeight: 7, reach: 5, balance: 5 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 92, max: 154, optimal: 118 },
+          contactHeight: { min: 55, max: 96, optimal: 74 },
+          reach: { min: 84, max: 138, optimal: 108 },
+          balance: { min: 0, max: 24, optimal: 8, lowerIsBetter: true }
+        }
+      },
+      serve: {
+        weights: { shoulder: 18, elbow: 16, hip: 18, knee: 16, trunk: 16, contactHeight: 8, reach: 4, balance: 4 },
+        derivedBenchmarks: {
+          contactHeight: { min: 105, max: 176, optimal: 138 },
+          reach: { min: 96, max: 170, optimal: 128 },
+          balance: { min: 0, max: 28, optimal: 11, lowerIsBetter: true },
+          stanceWidth: { min: 78, max: 138, optimal: 102 }
+        }
+      },
+      volley: {
+        weights: { shoulder: 15, elbow: 15, hip: 14, knee: 14, trunk: 12, stanceWidth: 10, contactHeight: 8, reach: 6, balance: 6 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 90, max: 160, optimal: 122 },
+          contactHeight: { min: 70, max: 128, optimal: 96 },
+          reach: { min: 76, max: 126, optimal: 98 },
+          balance: { min: 0, max: 20, optimal: 6, lowerIsBetter: true }
+        }
+      },
+      slice: {
+        weights: { shoulder: 16, elbow: 14, hip: 15, knee: 12, trunk: 14, stanceWidth: 9, contactHeight: 8, reach: 6, balance: 6 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 90, max: 152, optimal: 116 },
+          contactHeight: { min: 52, max: 98, optimal: 76 },
+          reach: { min: 82, max: 140, optimal: 109 },
+          balance: { min: 0, max: 24, optimal: 8, lowerIsBetter: true }
+        }
+      },
+      'drop-shot': {
+        weights: { shoulder: 14, elbow: 14, hip: 14, knee: 12, trunk: 12, stanceWidth: 10, contactHeight: 10, reach: 7, balance: 7 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 88, max: 148, optimal: 112 },
+          contactHeight: { min: 54, max: 102, optimal: 78 },
+          reach: { min: 78, max: 130, optimal: 101 },
+          balance: { min: 0, max: 22, optimal: 7, lowerIsBetter: true }
+        }
+      },
+      lob: {
+        weights: { shoulder: 16, elbow: 14, hip: 15, knee: 12, trunk: 15, stanceWidth: 8, contactHeight: 10, reach: 5, balance: 5 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 88, max: 150, optimal: 114 },
+          contactHeight: { min: 92, max: 158, optimal: 126 },
+          reach: { min: 88, max: 150, optimal: 117 },
+          balance: { min: 0, max: 24, optimal: 8, lowerIsBetter: true }
+        }
+      }
+    };
+
+    const PROFILE_SCORE_CURVE = {
+      beginner: { tolerance: 1.45, boost: 7, percentileShift: 9 },
+      intermediate: { tolerance: 1.28, boost: 5, percentileShift: 5 },
+      advanced: { tolerance: 1.12, boost: 3, percentileShift: 2 },
+      pro: { tolerance: 1, boost: 1, percentileShift: 0 }
+    };
+
+    const LEVEL_EXPECTATIONS = {
+      beginner: 0.55,
+      intermediate: 0.75,
+      advanced: 0.9,
+      pro: 1
+    };
+
+    const AGE_ADJUSTMENTS = {
+      under_13: { power: 0.6, flexibility: 1.15, tolerance: 2.0 },
+      '13_17': { power: 0.75, flexibility: 1.1, tolerance: 1.5 },
+      '18_24': { power: 1.0, flexibility: 1.05, tolerance: 1.0 },
+      '25_34': { power: 0.98, flexibility: 1.0, tolerance: 1.0 },
+      '35_44': { power: 0.92, flexibility: 0.95, tolerance: 1.1 },
+      '45_54': { power: 0.85, flexibility: 0.9, tolerance: 1.25 },
+      '55_plus': { power: 0.75, flexibility: 0.85, tolerance: 1.5 }
+    };
+
+    const GENDER_ADJUSTMENTS = {
+      male: { power: 1.0, flexibility: 1.0 },
+      female: { power: 0.85, flexibility: 1.1 },
+      other: { power: 0.92, flexibility: 1.05 },
+      unspecified: { power: 1.0, flexibility: 1.0 }
+    };
+
+    const POWER_METRICS = new Set(['hip', 'knee', 'trunk', 'contactHeight', 'reach']);
+    const FLEX_METRICS = new Set(['shoulder', 'elbow', 'knee', 'hip', 'trunk']);
+
     const TRACKER_DEFINITIONS = {
       shoulder: 'Measures unit turn and coil depth. It controls power loading and directional control on contact.',
       elbow: 'Tracks arm extension efficiency through the hit. It affects racquet head speed and contact stability.',
       hip: 'Represents lower-body rotation transfer. It is a major driver of kinetic-chain power.',
       knee: 'Captures leg loading and drive. It influences balance, explosiveness, and timing under pressure.',
       trunk: 'Shows torso rotation and sequencing. It links lower-body power into upper-body acceleration.',
-      wrist: 'Reflects racquet lag and release timing. It impacts spin potential and directional precision.'
+      wrist: 'Reflects racquet lag and release timing. It impacts spin potential and directional precision.',
+      shoulderTilt: 'Shows whether your shoulders stay level through the strike window instead of leaking posture early.',
+      hipTilt: 'Measures pelvic stability and helps flag balance losses during loading and recovery.',
+      stanceWidth: 'Tracks base width. Too narrow reduces stability; too wide can slow rotation and recovery.',
+      contactHeight: 'Estimates the strike height window relative to your body. It strongly affects shape, depth, and control.',
+      reach: 'Represents spacing from your body into contact. Clean spacing supports speed and consistency.',
+      balance: 'Measures how centered your body stays over the base. Better balance improves repeatability under pressure.',
+      alignmentGap: 'Compares upper-body and lower-body tilt. Lower gaps usually mean cleaner positioning and transfer.',
+      footworkLoad: 'Captures lower-body activity and repositioning demand through the clip.'
     };
 
     const CAPTURE_GUIDE_BY_SHOT = {
@@ -1880,36 +2157,432 @@
     // ============================================================================
     // Scoring Functions
     // ============================================================================
-    function calculateScore(avgAngles, avgLandmarks, avgConfidence, shotType) {
-      console.log('📊 Calculating score...');
-      console.log('   avgAngles:', avgAngles);
-      
-      if (!avgAngles || Object.keys(avgAngles).length === 0) {
-        console.error('❌ No angle data');
-        return 50;
+    function getShotScoringModel(shotType) {
+      return SHOT_SCORING_MODELS[shotType] || SHOT_SCORING_MODELS.forehand;
+    }
+
+    function getProfileContext(profile) {
+      return {
+        level: normalizeLevel(profile?.level || currentUser?.ustaLevel || 'intermediate'),
+        ageMid: parseAgeMidpoint(profile?.age || currentUser?.ageRange || ''),
+        gender: String(profile?.gender || currentUser?.gender || 'unspecified').toLowerCase(),
+        preferredHand: String(currentUser?.preferredHand || 'right').toLowerCase()
+      };
+    }
+
+    function getAgeBucket(ageMid) {
+      if (ageMid == null || !Number.isFinite(ageMid)) return '25_34';
+      if (ageMid < 13) return 'under_13';
+      if (ageMid < 18) return '13_17';
+      if (ageMid < 25) return '18_24';
+      if (ageMid < 35) return '25_34';
+      if (ageMid < 45) return '35_44';
+      if (ageMid < 55) return '45_54';
+      return '55_plus';
+    }
+
+    function getGenderBucket(gender) {
+      const normalized = String(gender || '').toLowerCase();
+      if (normalized === 'female' || normalized === 'woman') return 'female';
+      if (normalized === 'male' || normalized === 'man') return 'male';
+      if (normalized === 'non-binary' || normalized === 'nonbinary' || normalized === 'other') return 'other';
+      return 'unspecified';
+    }
+
+    function getProfileAdjustments(profileContext) {
+      const ageBucket = getAgeBucket(profileContext?.ageMid);
+      const genderBucket = getGenderBucket(profileContext?.gender);
+      return {
+        ageBucket,
+        genderBucket,
+        levelExpectation: LEVEL_EXPECTATIONS[profileContext?.level] || LEVEL_EXPECTATIONS.intermediate,
+        ageAdjustment: AGE_ADJUSTMENTS[ageBucket] || AGE_ADJUSTMENTS['25_34'],
+        genderAdjustment: GENDER_ADJUSTMENTS[genderBucket] || GENDER_ADJUSTMENTS.unspecified
+      };
+    }
+
+    function getProfileToleranceMultiplier(profile, shotType) {
+      const context = getProfileContext(profile);
+      const adjustments = getProfileAdjustments(context);
+      let multiplier = PROFILE_SCORE_CURVE[context.level]?.tolerance || 1.25;
+      multiplier *= adjustments.ageAdjustment.tolerance;
+
+      if (adjustments.genderBucket === 'female') {
+        multiplier *= shotType === 'serve' ? 1.06 : 1.03;
+      } else if (adjustments.genderBucket === 'other') {
+        multiplier *= 1.04;
       }
 
-      const bench = getBenchmarkForShot(shotType);
-      let total = 0, count = 0;
+      return clamp(multiplier, 1, 3.25);
+    }
 
-      for (const k in avgAngles) {
-        if (!bench[k]) continue;
-        const v = avgAngles[k];
-        const optimal = bench[k].optimal;
-        const range = bench[k].max - bench[k].min;
-        const deviation = Math.abs(v - optimal);
-        const angleScore = Math.max(0, 100 - (deviation / range) * 100);
-        total += angleScore;
-        count++;
+    function getMetricExpectationScale(metricName, profileContext) {
+      const adjustments = getProfileAdjustments(profileContext);
+      const expectation = adjustments.levelExpectation;
+      const powerScale = adjustments.ageAdjustment.power * adjustments.genderAdjustment.power;
+      const flexibilityScale = adjustments.ageAdjustment.flexibility * adjustments.genderAdjustment.flexibility;
+
+      if (metricName === 'contactHeight' || metricName === 'reach') {
+        return clamp(0.82 + (expectation * 0.22), 0.86, 1.04);
       }
 
-      const angleAvg = count ? total / count : 0;
-      const landmarkScore = (avgLandmarks / 17) * 100;
-      const finalScore = angleAvg * 0.6 + landmarkScore * 0.25 + avgConfidence * 0.15;
-      
-      const result = Math.round(Math.min(100, Math.max(50, finalScore)));
-      console.log('   Final score:', result);
-      return result;
+      if (POWER_METRICS.has(metricName)) {
+        return clamp(expectation * powerScale, 0.5, 1.02);
+      }
+
+      if (FLEX_METRICS.has(metricName)) {
+        return clamp(expectation * flexibilityScale, 0.52, 1.08);
+      }
+
+      if (metricName === 'stanceWidth') {
+        return clamp(0.92 + (expectation * 0.1), 0.95, 1.03);
+      }
+
+      if (metricName === 'balance' || metricName === 'alignmentGap') {
+        return clamp(1 + ((1 - expectation) * 0.18), 1, 1.12);
+      }
+
+      return clamp(0.88 + (expectation * 0.15), 0.92, 1.04);
+    }
+
+    function getAdjustedBenchmark(metricName, benchmark, profileContext) {
+      if (!benchmark) return null;
+
+      const scale = getMetricExpectationScale(metricName, profileContext);
+      const adjusted = { ...benchmark };
+
+      if (adjusted.lowerIsBetter) {
+        adjusted.min = safeNumber(benchmark.min);
+        adjusted.max = roundMetric(safeNumber(benchmark.max) * clamp(scale, 1, 1.18));
+        adjusted.optimal = roundMetric(safeNumber(benchmark.optimal) * clamp(scale, 1, 1.15));
+        return adjusted;
+      }
+
+      adjusted.min = roundMetric(safeNumber(benchmark.min) * scale);
+      adjusted.max = roundMetric(safeNumber(benchmark.max) * scale);
+      adjusted.optimal = roundMetric(safeNumber(benchmark.optimal) * scale);
+      return adjusted;
+    }
+
+    function getExtendedBenchmarks(shotType) {
+      const model = getShotScoringModel(shotType);
+      return {
+        ...(PRO_BENCHMARKS[shotType] || PRO_BENCHMARKS.forehand),
+        ...(model.derivedBenchmarks || {})
+      };
+    }
+
+    function scoreMetricAgainstBenchmark(metricName, currentValue, benchmark, toleranceMultiplier = 1, shotType = 'forehand', profileContext = null) {
+      const current = safeNumber(currentValue, null);
+      if (current == null || !benchmark) return null;
+
+      const adjustedBenchmark = getAdjustedBenchmark(metricName, benchmark, profileContext);
+      const range = Math.max(1, safeNumber(adjustedBenchmark.max) - safeNumber(adjustedBenchmark.min));
+      const target = safeNumber(adjustedBenchmark.optimal);
+      const deviation = Math.abs(current - target);
+      const softWindow = Math.max(4, range * 0.28 * toleranceMultiplier);
+      const goodWindow = Math.max(8, range * 0.55 * toleranceMultiplier);
+      const fairWindow = Math.max(12, range * 0.95 * toleranceMultiplier);
+
+      let score;
+      if (deviation <= softWindow) score = 100 - ((deviation / softWindow) * 8);
+      else if (deviation <= goodWindow) score = 92 - (((deviation - softWindow) / Math.max(1, goodWindow - softWindow)) * 14);
+      else if (deviation <= fairWindow) score = 78 - (((deviation - goodWindow) / Math.max(1, fairWindow - goodWindow)) * 18);
+      else score = 60 - Math.min(22, ((deviation - fairWindow) / Math.max(1, fairWindow)) * 18);
+
+      const roundedScore = clamp(Math.round(score), 38, 100);
+      let status = 'needs-work';
+      if (deviation <= softWindow) status = 'excellent';
+      else if (deviation <= goodWindow) status = 'good';
+      else if (deviation <= fairWindow) status = 'workable';
+
+      return {
+        metric: metricName,
+        current: roundMetric(current),
+        target,
+        min: adjustedBenchmark.min,
+        max: adjustedBenchmark.max,
+        delta: roundMetric(current - target),
+        deviation: roundMetric(deviation, 1),
+        score: roundedScore,
+        status,
+        category: Object.prototype.hasOwnProperty.call(PRO_BENCHMARKS[shotType] || {}, metricName) ? 'angle' : 'movement'
+      };
+    }
+
+    function getFrameMetric(frame, key) {
+      if (!frame) return null;
+      if (frame.angles && Object.prototype.hasOwnProperty.call(frame.angles, key)) return safeNumber(frame.angles[key], null);
+      if (frame.derivedMetrics && Object.prototype.hasOwnProperty.call(frame.derivedMetrics, key)) return safeNumber(frame.derivedMetrics[key], null);
+      if (Object.prototype.hasOwnProperty.call(frame, key)) return safeNumber(frame[key], null);
+      return null;
+    }
+
+    function averageMetricMapFromFrames(frames, keys) {
+      const summary = {};
+      (keys || []).forEach((key) => {
+        const values = (frames || []).map((frame) => getFrameMetric(frame, key)).filter((value) => Number.isFinite(value));
+        const avg = average(values);
+        if (avg != null) {
+          summary[key] = Math.round(avg);
+        }
+      });
+      return summary;
+    }
+
+    function selectAssessmentFrames(frames, shotType) {
+      const list = Array.isArray(frames) ? frames.filter((frame) => frame?.angles) : [];
+      if (list.length <= 24) return list;
+
+      const scored = list.map((frame, index) => {
+        const poseMotion = safeNumber(frame.poseMotion, 0);
+        const reach = safeNumber(frame.derivedMetrics?.reach, 0);
+        const contactHeight = safeNumber(frame.derivedMetrics?.contactHeight, 0);
+        const footworkLoad = safeNumber(frame.derivedMetrics?.footworkLoad, 0);
+        const trunk = safeNumber(frame.angles?.trunk, 0);
+
+        let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18;
+        if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
+        else activation += reach * 0.25 + contactHeight * 0.18;
+
+        return { frame, index, activation };
+      });
+
+      const takeCount = clamp(Math.round(list.length * 0.38), 18, 72);
+      const selectedIndexes = new Set(
+        scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount).map((item) => item.index)
+      );
+
+      return list.filter((_, index) => selectedIndexes.has(index));
+    }
+
+    function calculateConsistencyScore(frames, shotType, profileContext) {
+      const benchmarks = getExtendedBenchmarks(shotType);
+      const keys = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'stanceWidth', 'contactHeight', 'reach', 'balance'];
+      const scores = keys.map((key) => {
+        const values = (frames || []).map((frame) => getFrameMetric(frame, key)).filter((value) => Number.isFinite(value));
+        const std = standardDeviation(values);
+        if (std == null || !benchmarks[key]) return null;
+        const adjustedBenchmark = getAdjustedBenchmark(key, benchmarks[key], profileContext) || benchmarks[key];
+        const range = Math.max(1, safeNumber(adjustedBenchmark.max) - safeNumber(adjustedBenchmark.min));
+        return clamp(Math.round(100 - ((std / range) * 120)), 48, 100);
+      }).filter((value) => Number.isFinite(value));
+
+      return scores.length ? Math.round(average(scores)) : 70;
+    }
+
+    function calculatePerformanceKpis(focusFrames, avgDerivedMetrics, avgLandmarks, avgConfidence, setupScore, shotType, profileContext) {
+      const model = getShotScoringModel(shotType);
+      const derivedBench = model.derivedBenchmarks || {};
+      const avgPoseMotion = average((focusFrames || []).map((frame) => safeNumber(frame.poseMotion, 0))) || 0;
+      const timingConsistency = calculateConsistencyScore(focusFrames, shotType, profileContext);
+      const movementSpeed = clamp(Math.round(avgPoseMotion * 9), 28, 100);
+      const trackingReliability = clamp(Math.round((avgConfidence * 0.58) + ((avgLandmarks / 17) * 42)), 0, 100);
+      const contactHeightScore = scoreMetricAgainstBenchmark('contactHeight', avgDerivedMetrics.contactHeight, derivedBench.contactHeight, 1, shotType, profileContext)?.score ?? trackingReliability;
+      const spacingScore = scoreMetricAgainstBenchmark('reach', avgDerivedMetrics.reach, derivedBench.reach, 1, shotType, profileContext)?.score ?? 72;
+      const baseScore = scoreMetricAgainstBenchmark('stanceWidth', avgDerivedMetrics.stanceWidth, derivedBench.stanceWidth, 1, shotType, profileContext)?.score ?? 72;
+      const balanceScore = scoreMetricAgainstBenchmark('balance', avgDerivedMetrics.balance, derivedBench.balance, 1, shotType, profileContext)?.score ?? 72;
+      const positioningScore = Math.round(average([baseScore, balanceScore, clamp(100 - safeNumber(avgDerivedMetrics.alignmentGap, 12) * 3, 45, 100)]));
+      const readinessIndex = clamp(Math.round((timingConsistency * 0.42) + (trackingReliability * 0.3) + (safeNumber(setupScore, 100) * 0.28)), 0, 100);
+      const footworkScore = clamp(Math.round(average([
+        baseScore,
+        balanceScore,
+        clamp(100 - Math.abs(safeNumber(avgDerivedMetrics.footworkLoad, 55) - 58), 45, 98)
+      ])), 0, 100);
+
+      return {
+        timingConsistency,
+        movementSpeed,
+        footworkScore,
+        positioningScore,
+        contactHeightScore,
+        spacingScore,
+        trackingReliability,
+        readinessIndex
+      };
+    }
+
+    function getProgressContext(shotType, projectedScore) {
+      if (!store || !currentUser) {
+        return { delta: 0, personalBest: false, recentAverage: null, sameShotCount: 0, scoreBonus: 0, consistencyStreak: false };
+      }
+
+      const sameShot = store.getUserAssessments()
+        .filter((assessment) => assessment.shotType === shotType)
+        .slice(0, 6);
+      if (!sameShot.length) {
+        return { delta: 0, personalBest: true, recentAverage: null, sameShotCount: 0, scoreBonus: 1, consistencyStreak: false };
+      }
+
+      const recentAverage = average(sameShot.slice(0, 3).map((assessment) => safeNumber(assessment.overallScore, 0)));
+      const bestPrevious = Math.max(...sameShot.map((assessment) => safeNumber(assessment.overallScore, 0)));
+      const delta = recentAverage != null ? Math.round(projectedScore - recentAverage) : 0;
+      const personalBest = projectedScore > bestPrevious;
+      const streakScores = sameShot.slice(0, 3).map((assessment) => safeNumber(assessment.overallScore, 0));
+      const consistencyStreak = streakScores.every((score, index, arr) => index === 0 || score >= arr[index - 1] - 2);
+      const scoreBonus = clamp((delta > 0 ? delta * 0.18 : 0) + (personalBest ? 2 : 0) + (consistencyStreak ? 1 : 0), 0, 4);
+
+      return {
+        delta,
+        personalBest,
+        recentAverage: recentAverage != null ? Math.round(recentAverage) : null,
+        sameShotCount: sameShot.length,
+        consistencyStreak,
+        scoreBonus
+      };
+    }
+
+    function getMilestoneSummary(score, level, progressContext) {
+      const thresholds = {
+        beginner: [
+          { id: 'launch', label: 'Launch Pad', min: 60 },
+          { id: 'groove', label: 'Groove Builder', min: 70 },
+          { id: 'pressure', label: 'Pressure Ready', min: 78 },
+          { id: 'match', label: 'Match Builder', min: 86 }
+        ],
+        intermediate: [
+          { id: 'foundation', label: 'Foundation', min: 62 },
+          { id: 'groove', label: 'Groove Builder', min: 72 },
+          { id: 'pressure', label: 'Pressure Ready', min: 80 },
+          { id: 'match', label: 'Competitive Match', min: 88 }
+        ],
+        advanced: [
+          { id: 'competitive', label: 'Competitive Engine', min: 64 },
+          { id: 'pressure', label: 'Pressure Ready', min: 76 },
+          { id: 'match', label: 'Match Weapon', min: 84 },
+          { id: 'elite', label: 'Elite Window', min: 92 }
+        ],
+        pro: [
+          { id: 'tour', label: 'Tour Standard', min: 68 },
+          { id: 'pressure', label: 'Pressure Window', min: 80 },
+          { id: 'match', label: 'Match Weapon', min: 88 },
+          { id: 'elite', label: 'Elite Window', min: 95 }
+        ]
+      }[level] || [];
+
+      const current = [...thresholds].reverse().find((item) => score >= item.min) || thresholds[0];
+      const next = thresholds.find((item) => item.min > score) || null;
+      const gapToNext = next ? Math.max(0, next.min - score) : 0;
+
+      return {
+        current: current?.label || 'Foundation',
+        next: next?.label || 'Peak Band',
+        gapToNext,
+        momentum: progressContext.personalBest ? 'Personal best unlocked' : progressContext.delta > 0 ? 'Trending up' : 'Hold and stabilize',
+        celebration: progressContext.personalBest || progressContext.delta >= 4
+      };
+    }
+
+    function getAchievementSummary(score, performanceKpis, progressContext) {
+      const unlocks = [];
+      if (score >= 95) unlocks.push({ id: 'platinum-technique', icon: 'Diamond', label: 'Platinum Technique', copy: 'Elite execution window unlocked.' });
+      else if (score >= 85) unlocks.push({ id: 'gold-technique', icon: 'Gold', label: 'Gold Technique', copy: 'High-performance mechanics for your profile.' });
+      else if (score >= 75) unlocks.push({ id: 'silver-technique', icon: 'Silver', label: 'Silver Technique', copy: 'Strong repeatable mechanics are showing up.' });
+      else if (score >= 60) unlocks.push({ id: 'bronze-technique', icon: 'Bronze', label: 'Bronze Technique', copy: 'Foundation mechanics are now measurable.' });
+
+      if (safeNumber(performanceKpis?.timingConsistency, 0) >= 82) {
+        unlocks.push({ id: 'timing-engine', icon: 'Tempo', label: 'Timing Engine', copy: 'Your strike window is staying repeatable across live frames.' });
+      }
+
+      if (safeNumber(performanceKpis?.footworkScore, 0) >= 82) {
+        unlocks.push({ id: 'base-control', icon: 'Base', label: 'Base Control', copy: 'Your balance and base width are supporting the shot.' });
+      }
+
+      if (progressContext?.personalBest) {
+        unlocks.push({ id: 'personal-best', icon: 'Peak', label: 'New Peak', copy: 'This session is ahead of your prior best for the same shot.' });
+      } else if (safeNumber(progressContext?.delta, 0) >= 4) {
+        unlocks.push({ id: 'uptrend', icon: 'Rise', label: 'Trend Up', copy: 'You are moving clearly above your recent average.' });
+      }
+
+      return unlocks.slice(0, 4);
+    }
+
+    function calculateScore(avgAngles, avgDerivedMetrics, avgLandmarks, avgConfidence, shotType, profile, focusFrames, setupScore) {
+      const profileContext = getProfileContext(profile);
+      const adjustments = getProfileAdjustments(profileContext);
+      const curve = PROFILE_SCORE_CURVE[profileContext.level] || PROFILE_SCORE_CURVE.intermediate;
+      const toleranceMultiplier = getProfileToleranceMultiplier(profile, shotType);
+      const model = getShotScoringModel(shotType);
+      const angleBenchmarks = getBenchmarkForShot(shotType);
+      const derivedBenchmarks = model.derivedBenchmarks || {};
+      const weights = model.weights || {};
+      const comparisons = [];
+      let weightedTotal = 0;
+      let weightCount = 0;
+
+      Object.entries(weights).forEach(([metric, weight]) => {
+        const current = Object.prototype.hasOwnProperty.call(avgAngles || {}, metric)
+          ? avgAngles[metric]
+          : avgDerivedMetrics?.[metric];
+        const benchmark = angleBenchmarks[metric] || derivedBenchmarks[metric];
+        const comparison = scoreMetricAgainstBenchmark(metric, current, benchmark, toleranceMultiplier, shotType, profileContext);
+        if (!comparison) return;
+        comparisons.push(comparison);
+        weightedTotal += comparison.score * weight;
+        weightCount += weight;
+      });
+
+      const biomechanicsScore = weightCount ? Math.round(weightedTotal / weightCount) : 68;
+      const performanceKpis = calculatePerformanceKpis(
+        focusFrames,
+        avgDerivedMetrics,
+        avgLandmarks,
+        avgConfidence,
+        setupScore,
+        shotType,
+        profileContext
+      );
+      const readinessScore = Math.round((performanceKpis.readinessIndex * 0.45) + (performanceKpis.trackingReliability * 0.25) + (safeNumber(setupScore, 100) * 0.3));
+      const progressContext = getProgressContext(shotType, biomechanicsScore + curve.boost);
+      const levelFloor = { beginner: 66, intermediate: 61, advanced: 58, pro: 55 }[profileContext.level] || 60;
+      const rawScore = Math.round(
+        (biomechanicsScore * 0.62) +
+        (performanceKpis.timingConsistency * 0.14) +
+        (performanceKpis.footworkScore * 0.08) +
+        (performanceKpis.positioningScore * 0.08) +
+        (readinessScore * 0.08)
+      );
+
+      const overallScore = clamp(
+        Math.round(rawScore + curve.boost + progressContext.scoreBonus + (safeNumber(setupScore, 100) >= 90 ? 1 : 0)),
+        levelFloor,
+        99
+      );
+      const milestone = getMilestoneSummary(overallScore, profileContext.level, progressContext);
+      const achievements = getAchievementSummary(overallScore, performanceKpis, progressContext);
+
+      return {
+        overallScore,
+        grade: getGrade(overallScore),
+        percentile: getPercentile(overallScore, profileContext.level),
+        componentScores: {
+          biomechanics: biomechanicsScore,
+          timing: performanceKpis.timingConsistency,
+          footwork: performanceKpis.footworkScore,
+          positioning: performanceKpis.positioningScore,
+          readiness: readinessScore
+        },
+        comparisons: comparisons.sort((a, b) => {
+          const severity = { 'needs-work': 4, workable: 3, good: 2, excellent: 1 };
+          if (severity[a.status] !== severity[b.status]) {
+            return severity[b.status] - severity[a.status];
+          }
+          return Math.abs(b.delta) - Math.abs(a.delta);
+        }),
+        performanceKpis,
+        progressContext,
+        milestone,
+        achievements,
+        scoringMeta: {
+          toleranceMultiplier: roundMetric(toleranceMultiplier, 2),
+          level: profileContext.level,
+          ageMid: profileContext.ageMid,
+          ageBucket: adjustments.ageBucket,
+          gender: profileContext.gender,
+          genderBucket: adjustments.genderBucket,
+          levelExpectation: adjustments.levelExpectation
+        }
+      };
     }
 
     function getGrade(score) {
@@ -1926,40 +2599,43 @@
       return 'D+';
     }
 
-    function getPercentile(score) {
+    function getPercentile(score, level = 'intermediate') {
       if (score == null || isNaN(score)) return 0;
-      if (score >= 95) return 1;
-      if (score >= 90) return 3;
-      if (score >= 85) return 7;
-      if (score >= 80) return 15;
-      if (score >= 75) return 25;
-      if (score >= 70) return 40;
-      if (score >= 65) return 55;
-      if (score >= 60) return 70;
-      return 85;
+      const distributions = {
+        beginner: { mean: 55, stdDev: 12 },
+        intermediate: { mean: 70, stdDev: 10 },
+        advanced: { mean: 82, stdDev: 8 },
+        pro: { mean: 92, stdDev: 5 }
+      };
+      const dist = distributions[level] || distributions.intermediate;
+      const z = (score - dist.mean) / dist.stdDev;
+      const percentile = 50 * (1 + Math.tanh(z / 1.7));
+      return clamp(Math.round(percentile), 1, 99);
+    }
+
+    function formatOrdinal(value) {
+      const num = safeNumber(value, 0);
+      const mod100 = num % 100;
+      if (mod100 >= 11 && mod100 <= 13) return `${num}th`;
+      switch (num % 10) {
+        case 1: return `${num}st`;
+        case 2: return `${num}nd`;
+        case 3: return `${num}rd`;
+        default: return `${num}th`;
+      }
     }
 
     // ============================================================================
-    // Session Building - WITH DEBUG LOGGING
+    // Session Building
     // ============================================================================
     function buildSession() {
       console.log('🔨 buildSession() called');
       console.log('   Total frames:', analysisData.frames.length);
       
       const shotType = playerProfile.shots[0] || 'forehand';
-
-      // Calculate average angles
-      const avgAngles = {};
-      for (const k in analysisData.angles) {
-        const arr = analysisData.angles[k];
-        console.log(`   ${k}: ${arr.length} values`, arr.length > 0 ? `[${arr.slice(0,3).join(', ')}...]` : '[empty]');
-        if (arr.length) {
-          avgAngles[k] = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
-        }
-      }
-      
-      console.log('   Average angles:', avgAngles);
-      console.log('   Keys in avgAngles:', Object.keys(avgAngles).length);
+      const focusFrames = selectAssessmentFrames(analysisData.frames, shotType);
+      const avgAngles = averageMetricMapFromFrames(focusFrames, Object.keys(analysisData.angles));
+      const avgDerivedMetrics = averageMetricMapFromFrames(focusFrames, Object.keys(analysisData.derivedMetrics));
 
       const avgLandmarks = analysisData.landmarks.length
         ? Math.round(analysisData.landmarks.reduce((a, b) => a + b, 0) / analysisData.landmarks.length)
@@ -1970,13 +2646,20 @@
         : 0;
 
       const bench = getBenchmarkForShot(shotType);
-      const score = calculateScore(avgAngles, avgLandmarks, avgConfidence, shotType);
-      const grade = getGrade(score);
-      const percentile = getPercentile(score);
-      const metricComparisons = store ? store.compareAgainstBenchmark(avgAngles, bench) : [];
+      const scoreResult = calculateScore(
+        avgAngles,
+        avgDerivedMetrics,
+        avgLandmarks,
+        avgConfidence,
+        shotType,
+        playerProfile,
+        focusFrames,
+        playerProfile.setupScore
+      );
+      const metricComparisons = scoreResult.comparisons;
       const benchmarkSummary = metricComparisons
         .slice(0, 3)
-        .map((item) => `${item.metric}: ${item.delta > 0 ? '+' : ''}${item.delta}°`)
+        .map((item) => `${formatMetricName(item.metric)}: ${item.delta > 0 ? '+' : ''}${item.delta}`)
         .join(' • ');
       const tailoredDrills = store ? store.buildTailoredDrills({
         shotType,
@@ -1997,17 +2680,25 @@
         profile: playerProfile,
         summary: {
           framesAnalyzed: analysisData.frames.length,
+          focusFramesAnalyzed: focusFrames.length,
           avgLandmarks,
           avgConfidence,
           avgAngles,
-          score,
-          grade,
-          percentile,
+          avgDerivedMetrics,
+          score: scoreResult.overallScore,
+          grade: scoreResult.grade,
+          percentile: scoreResult.percentile,
           shotType,
           metricComparisons,
           benchmarkSummary,
           tailoredDrills,
           tailoredTactics,
+          componentScores: scoreResult.componentScores,
+          performanceKpis: scoreResult.performanceKpis,
+          progressContext: scoreResult.progressContext,
+          milestone: scoreResult.milestone,
+          achievements: scoreResult.achievements,
+          scoringMeta: scoreResult.scoringMeta,
           sessionMode: playerProfile.sessionMode,
           sessionGoal: playerProfile.sessionGoal,
           setupScore: playerProfile.setupScore
@@ -2028,13 +2719,16 @@
           <div class="smartswing-score">${s.score}</div>
           <div class="grade-badge">Grade ${s.grade}</div>
           <div class="percentile">
-            Top ${s.percentile}% | ${session.profile.level} | Age ${session.profile.age} | ${session.profile.gender}
+            ${formatOrdinal(s.percentile)} percentile within ${s.scoringMeta?.level || session.profile.level} peers | ${session.profile.level} | Age ${session.profile.age} | ${session.profile.gender}
           </div>
           <div style="font-size: 14px; color: var(--gray); margin-top: 16px;">
             Analysis Date: ${new Date(session.timestamp).toLocaleDateString()} | Shot: ${s.shotType}
           </div>
           <div style="font-size: 14px; color: var(--gray); margin-top: 8px;">
             Capture quality: ${s.setupScore || 100}/100 | Goal: ${s.sessionGoal || 'General improvement'} | Mode: ${s.sessionMode || 'stroke-tune-up'}
+          </div>
+          <div style="font-size: 15px; margin-top: 12px; color: var(--electric-cyan); font-weight: 800;">
+            Milestone: ${s.milestone?.current || 'Foundation'} | Momentum: ${s.milestone?.momentum || 'Build repeatability'}
           </div>
         </div>
 
@@ -2047,32 +2741,50 @@
               <div class="metric-label">Out of 100</div>
             </div>
             <div class="metric-card">
-              <div class="metric-title">Frames Analyzed</div>
-              <div class="metric-value-large">${s.framesAnalyzed}</div>
-              <div class="metric-label">Video frames</div>
+              <div class="metric-title">Focus Frames</div>
+              <div class="metric-value-large">${s.focusFramesAnalyzed}</div>
+              <div class="metric-label">High-value motion frames</div>
             </div>
             <div class="metric-card">
-              <div class="metric-title">Avg Confidence</div>
-              <div class="metric-value-large">${s.avgConfidence}%</div>
-              <div class="metric-label">AI certainty</div>
+              <div class="metric-title">Readiness Index</div>
+              <div class="metric-value-large">${s.performanceKpis?.readinessIndex || 0}</div>
+              <div class="metric-label">Blend of timing, capture, and tracking</div>
             </div>
             <div class="metric-card">
-              <div class="metric-title">Landmarks</div>
-              <div class="metric-value-large">${s.avgLandmarks}</div>
-              <div class="metric-label">of 17 points</div>
+              <div class="metric-title">Momentum</div>
+              <div class="metric-value-large">${s.progressContext?.delta != null ? `${s.progressContext.delta > 0 ? '+' : ''}${s.progressContext.delta}` : '0'}</div>
+              <div class="metric-label">${s.progressContext?.personalBest ? 'Personal best pace' : 'Vs recent shot average'}</div>
             </div>
           </div>
         </div>
 
         <div class="report-section">
-          <div class="report-section-title">Angles vs Pro Benchmarks</div>
-          ${generateAngleComparisons(s.avgAngles, bench, s.shotType)}
+          <div class="report-section-title">Milestone Track</div>
+          ${generateMilestoneHtml(s)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Achievement Unlocks</div>
+          ${generateAchievementsHtml(s)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Performance KPIs</div>
+          ${generatePerformanceKpisHtml(s)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Angles vs Personalized Benchmark Window</div>
+          ${generateAngleComparisons(s.avgAngles, bench, s.shotType, s.metricComparisons)}
           <div class="info-box">
             <strong>How to read this:</strong><br>
-            Excellent = within 5 degrees of pro-optimal.<br>
-            Good = within 10 degrees of pro-optimal.<br>
-            Needs Work = above 10 degrees of deviation.
+            SmartSwing starts from elite mechanics, then shifts the target window for level, age, and gender so the score stays fair while still pointing toward high-performance movement.
           </div>
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Movement, Footwork, Positioning, and Height</div>
+          ${generateDerivedMetricsHtml(s)}
         </div>
 
         <div class="report-section">
@@ -2088,6 +2800,11 @@
         <div class="report-section">
           <div class="report-section-title">Coach-ready Summary</div>
           ${generateCoachReadySummaryHtml(s)}
+        </div>
+
+        <div class="report-section">
+          <div class="report-section-title">Fair Score Logic</div>
+          ${generateFairnessExplanationHtml(s)}
         </div>
 
         <div class="report-section">
@@ -2173,23 +2890,133 @@
       `).join('');
     }
 
+    function generateMilestoneHtml(summary) {
+      const milestone = summary.milestone || {};
+      const progress = summary.progressContext || {};
+      return `
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-title">Current Band</div>
+            <div class="metric-value-large" style="font-size:36px;">${milestone.current || 'Foundation'}</div>
+            <div class="metric-label">${milestone.momentum || 'Build repeatability'}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Next Band</div>
+            <div class="metric-value-large" style="font-size:36px;">${milestone.next || 'Peak Band'}</div>
+            <div class="metric-label">${milestone.gapToNext || 0} points away</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Progress Delta</div>
+            <div class="metric-value-large" style="font-size:36px;">${progress.delta != null ? `${progress.delta > 0 ? '+' : ''}${progress.delta}` : '0'}</div>
+            <div class="metric-label">${progress.personalBest ? 'New personal best pace' : 'Vs recent same-shot average'}</div>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>Make progress tangible:</strong> Save this report, complete the first drill block, then re-run the same shot from the same camera angle. SmartSwing will measure whether you are closing the ${milestone.gapToNext || 0}-point gap to <strong>${milestone.next || 'the next band'}</strong>.
+        </div>
+      `;
+    }
+
+    function generateAchievementsHtml(summary) {
+      const achievements = summary.achievements || [];
+      if (!achievements.length) {
+        return '<div class="info-box">No achievement unlocked yet. Save this report, repeat the drill block, and re-test the same shot to trigger your next unlock.</div>';
+      }
+
+      return `
+        <div class="metrics-grid">
+          ${achievements.map((item) => `
+            <div class="metric-card">
+              <div class="metric-title">${item.icon}</div>
+              <div class="metric-value-large" style="font-size:32px;">${item.label}</div>
+              <div class="metric-label">${item.copy}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function generatePerformanceKpisHtml(summary) {
+      const kpis = summary.performanceKpis || {};
+      const cards = [
+        ['Timing consistency', kpis.timingConsistency, 'How repeatable your strike window stays across the best motion frames.'],
+        ['Footwork score', kpis.footworkScore, 'How well your base, balance, and lower-body activity support the stroke.'],
+        ['Positioning score', kpis.positioningScore, 'How centered and stable you stay through load, strike, and recovery.'],
+        ['Contact height score', kpis.contactHeightScore, 'How well your strike height matches the ideal window for this shot.'],
+        ['Spacing score', kpis.spacingScore, 'How cleanly you create distance from your body into contact.'],
+        ['Tracking reliability', kpis.trackingReliability, 'Blend of landmark quality and confidence so you know how trustworthy the sample is.'],
+        ['Movement speed', kpis.movementSpeed, 'Tempo index from your live movement demand in the clip.'],
+        ['Readiness index', kpis.readinessIndex, 'Overall execution readiness after timing, capture quality, and tracking are blended.']
+      ];
+
+      return `
+        <div class="metrics-grid">
+          ${cards.map(([label, value, copy]) => `
+            <div class="metric-card">
+              <div class="metric-title">${label}</div>
+              <div class="metric-value-large" style="font-size:42px;">${safeNumber(value, 0)}</div>
+              <div class="metric-label">${copy}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function generateDerivedMetricsHtml(summary) {
+      const metrics = summary.avgDerivedMetrics || {};
+      const rows = [
+        ['stanceWidth', 'Base width', '% of shoulder width'],
+        ['contactHeight', 'Contact height', 'Normalized body-height index'],
+        ['reach', 'Reach / spacing', '% of body scale'],
+        ['balance', 'Balance offset', 'Lower is cleaner'],
+        ['shoulderTilt', 'Shoulder tilt', 'Degrees from level'],
+        ['hipTilt', 'Hip tilt', 'Degrees from level'],
+        ['alignmentGap', 'Upper-lower alignment gap', 'Lower usually means cleaner transfer'],
+        ['footworkLoad', 'Footwork load', 'Movement demand index']
+      ];
+
+      return rows.map(([key, label, helper]) => `
+        <div class="metric-row">
+          <div class="metric-row-label">
+            <strong>${label}</strong>
+            <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">${helper}</div>
+          </div>
+          <div class="metric-row-value">${metrics[key] != null ? metrics[key] : '-'}</div>
+        </div>
+      `).join('');
+    }
+
     function generateTrackerDefinitionsHtml() {
-      const ordered = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'wrist'];
+      const ordered = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'stanceWidth', 'contactHeight', 'reach', 'balance', 'alignmentGap', 'footworkLoad'];
       return ordered.map((metric) => `
         <div style="padding: 14px; margin-bottom: 10px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
-          <div style="font-weight: 800; margin-bottom: 6px; text-transform: capitalize;">${metric}</div>
+          <div style="font-weight: 800; margin-bottom: 6px;">${formatMetricName(metric)}</div>
           <div style="font-size: 14px; color: var(--silver); line-height: 1.6;">${TRACKER_DEFINITIONS[metric]}</div>
         </div>
       `).join('');
+    }
+
+    function generateFairnessExplanationHtml(summary) {
+      const meta = summary.scoringMeta || {};
+      const progress = summary.progressContext || {};
+      return `
+        <div class="info-box">
+          <strong>Why this score is fairer:</strong><br>
+          1. SmartSwing starts from elite biomechanics, then shifts the target window to fit your <strong>${meta.level || 'intermediate'}</strong> level expectation.<br>
+          2. Age bucket <strong>${meta.ageBucket || '25_34'}</strong>${meta.ageMid ? ` (${meta.ageMid})` : ''} and gender context <strong>${meta.genderBucket || meta.gender || 'unspecified'}</strong> adjust power and flexibility expectations before scoring.<br>
+          3. The final score blends biomechanics, timing consistency, footwork, positioning, readiness, and momentum instead of punishing one angle in isolation.<br>
+          4. Progress is rewarded: ${progress.personalBest ? 'this sample is pacing above your previous best for this shot.' : progress.delta > 0 ? `you are ${progress.delta} points above your recent same-shot average.` : 'the model is asking for stability before pushing the next score jump.'}
+        </div>
+      `;
     }
 
     function generateCoachReadySummaryHtml(summary) {
       const ranked = [...(summary.metricComparisons || [])]
         .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
         .slice(0, 3);
-      const urgency = summary.score < 70 ? 'High' : summary.score < 82 ? 'Medium' : 'Low';
+      const urgency = summary.performanceKpis?.readinessIndex < 65 ? 'High' : summary.performanceKpis?.readinessIndex < 80 ? 'Medium' : 'Low';
       const nextSessionFocus = ranked[0]
-        ? `${ranked[0].metric} correction and contact timing`
+        ? `${formatMetricName(ranked[0].metric)} correction and contact timing`
         : `${summary.shotType} repeatability under pressure`;
       const accountability = (summary.setupScore || 100) < 80
         ? 'Capture quality dropped below 80/100. Re-record with corrected setup before coach review.'
@@ -2206,7 +3033,7 @@
         <div style="margin-top: 12px;">
           ${ranked.length ? ranked.map((item, index) => `
             <div style="padding: 12px; margin-bottom: 8px; background: rgba(57, 255, 20, 0.06); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 10px;">
-              <strong>Priority ${index + 1}:</strong> ${item.metric} (${item.delta > 0 ? '+' : ''}${item.delta}deg vs target)
+              <strong>Priority ${index + 1}:</strong> ${formatMetricName(item.metric)} (${item.delta > 0 ? '+' : ''}${item.delta} deg vs target)
             </div>
           `).join('') : '<div class="info-box">No high-risk deltas detected in this session.</div>'}
         </div>
@@ -2217,8 +3044,8 @@
       const ranked = [...(summary.metricComparisons || [])]
         .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
         .slice(0, 2);
-      const primary = ranked[0]?.metric || 'timing';
-      const secondary = ranked[1]?.metric || 'consistency';
+      const primary = formatMetricName(ranked[0]?.metric || 'timing');
+      const secondary = formatMetricName(ranked[1]?.metric || 'consistency');
       const focusDrill = summary.tailoredDrills?.[0]?.title || `${summary.shotType} precision drill`;
       const supportDrill = summary.tailoredDrills?.[1]?.title || `${summary.shotType} repeatability block`;
 
@@ -2320,6 +3147,53 @@
       }
       
       return html || '<p>Insufficient angle data for comparison.</p>';
+    }
+
+    function generateAngleComparisons(avgAngles, bench, shotType, metricComparisons = []) {
+      if (!avgAngles || Object.keys(avgAngles).length === 0) {
+        return '<p>No angle data available. Please ensure your full body is visible in the video.</p>';
+      }
+
+      const angleOrder = ['shoulder', 'elbow', 'hip', 'knee', 'trunk'];
+      const rows = angleOrder
+        .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
+        .map((metric) => {
+          const comparison = metricComparisons.find((item) => item.metric === metric) || null;
+          const current = avgAngles[metric];
+          const optimal = comparison?.target ?? bench[metric].optimal;
+          const minRange = comparison?.min ?? bench[metric].min;
+          const maxRange = comparison?.max ?? bench[metric].max;
+          const diff = comparison ? comparison.delta : current - optimal;
+          const status = comparison?.status || 'workable';
+          const statusColor = status === 'excellent'
+            ? 'var(--neon-green)'
+            : status === 'good'
+              ? 'var(--electric-cyan)'
+              : status === 'workable'
+                ? '#ffd166'
+                : 'var(--warning)';
+          const statusLabel = status === 'needs-work' ? 'Needs work' : status.charAt(0).toUpperCase() + status.slice(1);
+
+          return `
+            <div class="metric-row">
+              <div class="metric-row-label">
+                <strong>${formatMetricName(metric)}</strong>
+                <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">
+                  Personalized range: ${minRange} deg - ${maxRange} deg (target: ${optimal} deg)
+                </div>
+              </div>
+              <div class="metric-row-value" style="text-align: right;">
+                <div style="font-size: 24px; font-weight: 800;">${current} deg</div>
+                <div style="font-size: 14px; color: ${statusColor}; margin-top: 4px;">
+                  ${statusLabel}
+                  ${diff !== 0 ? `<span style="font-size: 12px; margin-left: 8px;">(${diff > 0 ? '+' : ''}${diff} deg)</span>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+      return rows.join('') || '<p>Insufficient angle data for comparison.</p>';
     }
 
     function generateBiomechanicsInsights(avgAngles, bench, shotType) {
@@ -2669,9 +3543,10 @@
 
       const shotType = playerProfile.shots[0] || 'forehand';
       const bench = getBenchmarkForShot(shotType);
+      const model = getShotScoringModel(shotType);
       const metrics = Object.keys(analysisData.angles);
+      const derivedMetricKeys = Object.keys(analysisData.derivedMetrics);
 
-      analysisData.frames = Array.from({ length: 90 }, (_, index) => index + 1);
       analysisData.landmarks = Array.from({ length: 90 }, () => 16 + Math.round(Math.random()));
       analysisData.confidence = Array.from({ length: 90 }, () => 87 + Math.round(Math.random() * 9));
 
@@ -2682,6 +3557,35 @@
           const wave = Math.sin(i / 9) * 2;
           return Math.round(benchmark + drift + wave);
         });
+      });
+
+      derivedMetricKeys.forEach((metric) => {
+        const benchmark = model.derivedBenchmarks?.[metric]?.optimal ?? 72;
+        const drift = metric === 'balance' ? 3 : metric === 'footworkLoad' ? -4 : 5;
+        analysisData.derivedMetrics[metric] = Array.from({ length: 90 }, (_, i) => {
+          const wave = Math.cos(i / 8) * 3;
+          return Math.round(benchmark + drift + wave);
+        });
+      });
+
+      analysisData.frames = Array.from({ length: 90 }, (_, index) => {
+        const angles = {};
+        const derivedMetrics = {};
+        metrics.forEach((metric) => {
+          angles[metric] = analysisData.angles[metric][index];
+        });
+        derivedMetricKeys.forEach((metric) => {
+          derivedMetrics[metric] = analysisData.derivedMetrics[metric][index];
+        });
+
+        return {
+          timestamp: index / 30,
+          landmarks: analysisData.landmarks[index],
+          confidence: analysisData.confidence[index],
+          poseMotion: 6 + Math.sin(index / 5) * 2,
+          angles,
+          derivedMetrics
+        };
       });
 
       document.getElementById('framesCount').textContent = String(analysisData.frames.length);
@@ -2725,6 +3629,9 @@
       analysisData.frames = [];
       for (const k in analysisData.angles) {
         analysisData.angles[k] = [];
+      }
+      for (const k in analysisData.derivedMetrics) {
+        analysisData.derivedMetrics[k] = [];
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
@@ -2866,6 +3773,9 @@
       for (const k in analysisData.angles) {
         analysisData.angles[k] = [];
       }
+      for (const k in analysisData.derivedMetrics) {
+        analysisData.derivedMetrics[k] = [];
+      }
       analysisData.landmarks = [];
       analysisData.confidence = [];
       lastPersistedSignature = null;
@@ -2938,13 +3848,21 @@
         percentile: session.summary.percentile,
         shotType: session.summary.shotType,
         framesAnalyzed: session.summary.framesAnalyzed,
+        focusFramesAnalyzed: session.summary.focusFramesAnalyzed,
         avgConfidence: session.summary.avgConfidence,
         avgLandmarks: session.summary.avgLandmarks,
         avgAngles: session.summary.avgAngles,
+        avgDerivedMetrics: session.summary.avgDerivedMetrics,
         metricComparisons: session.summary.metricComparisons,
         benchmarkSummary: session.summary.benchmarkSummary,
         tailoredDrills: session.summary.tailoredDrills,
         tailoredTactics: session.summary.tailoredTactics,
+        componentScores: session.summary.componentScores,
+        performanceKpis: session.summary.performanceKpis,
+        progressContext: session.summary.progressContext,
+        milestone: session.summary.milestone,
+        achievements: session.summary.achievements,
+        scoringMeta: session.summary.scoringMeta,
         sessionMode: session.summary.sessionMode,
         sessionGoal: session.summary.sessionGoal,
         setupScore: session.summary.setupScore,
@@ -3057,6 +3975,9 @@
       analysisData.frames = [];
       for (const k in analysisData.angles) {
         analysisData.angles[k] = [];
+      }
+      for (const k in analysisData.derivedMetrics) {
+        analysisData.derivedMetrics[k] = [];
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
