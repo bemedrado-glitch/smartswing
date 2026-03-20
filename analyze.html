@@ -340,6 +340,7 @@
     }
     
     #videoElement { object-fit: contain; }
+    #poseCanvas { pointer-events: none; }
     
     .stats-panel {
       background: rgba(10, 22, 40, 0.6);
@@ -823,13 +824,16 @@
     let lastFrameAt = 0;
     let aiInitStage = 'idle';
     let detectorLabel = 'Not initialized';
+    let lastAnalyzedVideoTime = -1;
 
     const AI_SETTINGS = {
       libraryTimeoutMs: 30000,
       backendTimeoutMs: 20000,
       detectorTimeoutMs: 50000,
       metadataTimeoutMs: 20000,
-      poseFpsCap: 24
+      poseFpsCap: 24,
+      fallbackPoseFpsCap: 12,
+      maxStoredFrames: 1800
     };
 
     const analysisData = {
@@ -982,16 +986,54 @@
       return Number.isFinite(num) ? num : fallback;
     }
 
-    function normalizeKeypointsToMoveNet(rawKeypoints) {
+    function getCanvasDisplaySize() {
+      const canvas = document.getElementById('poseCanvas');
+      if (!canvas) return { width: 1280, height: 720 };
+
+      const width = Math.max(1, Math.round(canvas.clientWidth || 1280));
+      const height = Math.max(1, Math.round(canvas.clientHeight || 720));
+      return { width, height };
+    }
+
+    function syncCanvasToViewport() {
+      const canvas = document.getElementById('poseCanvas');
+      if (!canvas) return;
+      const size = getCanvasDisplaySize();
+      if (canvas.width !== size.width || canvas.height !== size.height) {
+        canvas.width = size.width;
+        canvas.height = size.height;
+      }
+    }
+
+    function getVideoFitTransform(video, canvas) {
+      const sourceWidth = Math.max(1, safeNumber(video?.videoWidth, 0) || safeNumber(canvas?.width, 1280));
+      const sourceHeight = Math.max(1, safeNumber(video?.videoHeight, 0) || safeNumber(canvas?.height, 720));
+      const targetWidth = Math.max(1, safeNumber(canvas?.width, 1280));
+      const targetHeight = Math.max(1, safeNumber(canvas?.height, 720));
+      const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+      const drawWidth = sourceWidth * scale;
+      const drawHeight = sourceHeight * scale;
+      const offsetX = (targetWidth - drawWidth) / 2;
+      const offsetY = (targetHeight - drawHeight) / 2;
+      return { sourceWidth, sourceHeight, scale, offsetX, offsetY };
+    }
+
+    function normalizeKeypointsToMoveNet(rawKeypoints, sourceWidth = 0, sourceHeight = 0) {
       if (!Array.isArray(rawKeypoints) || rawKeypoints.length === 0) {
         return [];
       }
 
       const toPoint = (kp) => {
         if (!kp) return { x: 0, y: 0, score: 0 };
+        let x = safeNumber(kp.x, 0);
+        let y = safeNumber(kp.y, 0);
+        if (sourceWidth > 2 && sourceHeight > 2 && x >= 0 && x <= 1.5 && y >= 0 && y <= 1.5) {
+          x *= sourceWidth;
+          y *= sourceHeight;
+        }
         return {
-          x: safeNumber(kp.x, 0),
-          y: safeNumber(kp.y, 0),
+          x,
+          y,
           score: safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0)
         };
       };
@@ -1001,6 +1043,22 @@
       }
 
       return BLAZEPOSE_TO_MOVENET_INDEX.map((sourceIndex) => toPoint(rawKeypoints[sourceIndex]));
+    }
+
+    function projectKeypointsToCanvas(keypoints, transform) {
+      if (!Array.isArray(keypoints) || keypoints.length === 0) return [];
+      return keypoints.map((kp) => ({
+        ...kp,
+        x: transform.offsetX + (safeNumber(kp.x, 0) * transform.scale),
+        y: transform.offsetY + (safeNumber(kp.y, 0) * transform.scale)
+      }));
+    }
+
+    function pushWithCap(arr, value) {
+      arr.push(value);
+      if (arr.length > AI_SETTINGS.maxStoredFrames) {
+        arr.splice(0, arr.length - AI_SETTINGS.maxStoredFrames);
+      }
     }
 
     // Legacy initializer kept for compatibility debugging.
@@ -1108,7 +1166,7 @@
     async function initPoseEngine() {
       const playBtn = document.getElementById('playBtn');
       if (detector) {
-        setStatus(`AI Ready (${detectorLabel})`, 'ready');
+        setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
         playBtn.disabled = false;
         return true;
       }
@@ -1226,8 +1284,12 @@
             throw lastDetectorError || new Error('Unable to initialize pose detector.');
           }
 
+          AI_SETTINGS.poseFpsCap = detectorLabel.includes('BlazePose')
+            ? AI_SETTINGS.fallbackPoseFpsCap
+            : 24;
+
           aiInitStage = 'ready';
-          setStatus(`AI Ready (${detectorLabel})`, 'ready');
+          setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
           playBtn.disabled = false;
           return true;
         } catch (error) {
@@ -1312,15 +1374,15 @@
     // Draw Pose
     function drawPose(keypoints) {
       const canvas = document.getElementById('poseCanvas');
+      if (!canvas || !Array.isArray(keypoints)) return;
       const ctx = canvas.getContext('2d');
-      
-      if (!canvas || !ctx || !keypoints) return;
+      if (!ctx) return;
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Draw skeleton lines
       ctx.strokeStyle = 'rgba(57, 255, 20, 0.8)';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = Math.max(2, Math.round(canvas.width / 450));
       
       POSE_CONNECTIONS.forEach(([i, j]) => {
         const a = keypoints[i];
@@ -1337,18 +1399,14 @@
       // Draw keypoints
       keypoints.forEach(kp => {
         if (kpOk(kp, 0.3)) {
-          const gradient = ctx.createRadialGradient(kp.x, kp.y, 0, kp.x, kp.y, 8);
-          gradient.addColorStop(0, 'rgba(57, 255, 20, 1)');
-          gradient.addColorStop(1, 'rgba(0, 229, 255, 0.5)');
-          
-          ctx.fillStyle = gradient;
+          ctx.fillStyle = 'rgba(57, 255, 20, 0.95)';
           ctx.beginPath();
-          ctx.arc(kp.x, kp.y, 6, 0, 2 * Math.PI);
+          ctx.arc(kp.x, kp.y, Math.max(3, Math.round(canvas.width / 420)), 0, 2 * Math.PI);
           ctx.fill();
 
           ctx.fillStyle = 'white';
           ctx.beginPath();
-          ctx.arc(kp.x, kp.y, 2, 0, 2 * Math.PI);
+          ctx.arc(kp.x, kp.y, Math.max(1.5, Math.round(canvas.width / 1000)), 0, 2 * Math.PI);
           ctx.fill();
         }
       });
@@ -1364,6 +1422,13 @@
       }
 
       try {
+        syncCanvasToViewport();
+        if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
+          rafId = requestAnimationFrame(analyzeFrame);
+          return;
+        }
+        lastAnalyzedVideoTime = video.currentTime;
+
         const now = performance.now();
         const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
         if (lastFrameAt && now - lastFrameAt < minDelta) {
@@ -1375,29 +1440,36 @@
         const poses = await detector.estimatePoses(video);
         
         if (poses && poses.length > 0) {
-          const keypoints = normalizeKeypointsToMoveNet(poses[0].keypoints || []);
-          const validLandmarks = keypoints.filter(kp => kpOk(kp, 0.3)).length;
+          const canvas = document.getElementById('poseCanvas');
+          const transform = getVideoFitTransform(video, canvas);
+          const metricKeypoints = normalizeKeypointsToMoveNet(
+            poses[0].keypoints || [],
+            transform.sourceWidth,
+            transform.sourceHeight
+          );
+          const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
+          const validLandmarks = metricKeypoints.filter(kp => kpOk(kp, 0.3)).length;
           const confidence = Math.round(
-            (keypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, keypoints.length)) * 100
+            (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
           );
 
-          const angles = computeAngles(keypoints);
+          const angles = computeAngles(metricKeypoints);
 
           // Store data
           for (const k in angles) {
             if (angles[k] != null) {
-              analysisData.angles[k].push(angles[k]);
+              pushWithCap(analysisData.angles[k], angles[k]);
             }
           }
 
-          analysisData.frames.push({
+          pushWithCap(analysisData.frames, {
             timestamp: video.currentTime,
             landmarks: validLandmarks,
             confidence,
             angles
           });
-          analysisData.landmarks.push(validLandmarks);
-          analysisData.confidence.push(confidence);
+          pushWithCap(analysisData.landmarks, validLandmarks);
+          pushWithCap(analysisData.confidence, confidence);
 
           // Update UI
           const framesCount = analysisData.frames.length;
@@ -1419,7 +1491,7 @@
             document.getElementById('generateReportBtn').style.display = 'inline-block';
           }
 
-          drawPose(keypoints);
+          drawPose(drawKeypoints);
         }
       } catch (error) {
         console.error('Analysis error:', error);
@@ -2461,9 +2533,9 @@
         return;
       }
 
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
+      syncCanvasToViewport();
       lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
 
       const aiReady = await aiInitPromise;
       if (!aiReady) {
@@ -2488,6 +2560,7 @@
       }
       isAnalyzing = true;
       lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
       
       document.getElementById('playBtn').style.display = 'none';
       document.getElementById('pauseBtn').style.display = 'inline-block';
@@ -2526,6 +2599,7 @@
         rafId = null;
       }
       lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
       if (activeVideoUrl) {
         URL.revokeObjectURL(activeVideoUrl);
         activeVideoUrl = null;
@@ -2708,6 +2782,7 @@
         rafId = null;
       }
       lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
       if (activeVideoUrl) {
         URL.revokeObjectURL(activeVideoUrl);
         activeVideoUrl = null;

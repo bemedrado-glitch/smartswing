@@ -55,6 +55,10 @@ $requiredMarkers = @(
 
 $failed = $false
 $skipped = $false
+$edgeProfileDir = Join-Path $PSScriptRoot 'edge-profile-batch'
+if (-not (Test-Path $edgeProfileDir)) {
+  New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
+}
 
 function Get-ScenarioDom {
   param(
@@ -62,11 +66,13 @@ function Get-ScenarioDom {
     [string]$Url
   )
 
-  $maxAttempts = 3
+  $maxAttempts = 4
   $bestDom = ''
 
   for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-    $edgeCommand = """$EdgeBinary"" --headless --disable-gpu --virtual-time-budget=18000 --dump-dom ""$Url"" 2>nul"
+    $virtualBudget = if ($attempt -le 2) { 26000 } else { 36000 }
+    $gpuFlag = if ($attempt -le 2) { '--disable-gpu' } else { '' }
+    $edgeCommand = """$EdgeBinary"" --headless $gpuFlag --disable-extensions --user-data-dir=""$edgeProfileDir"" --virtual-time-budget=$virtualBudget --dump-dom ""$Url"" 2>nul"
     $domOutput = (cmd /c $edgeCommand | Out-String)
     if (-not [string]::IsNullOrWhiteSpace($domOutput)) {
       $bestDom = $domOutput
