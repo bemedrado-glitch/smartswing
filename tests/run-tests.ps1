@@ -150,6 +150,14 @@ try {
     Assert-True -Condition ($domOutput -like '*Score Breakdown*') -Message 'Headless analyzer demo renders Score Breakdown'
     Assert-True -Condition ($domOutput -like '*report-header*') -Message 'Headless analyzer demo renders report header markup'
   }
+
+  $batchScript = Join-Path $PSScriptRoot 'run-analyzer-batch-tests.ps1'
+  if (Test-Path $batchScript) {
+    & $batchScript -Port $port
+    Assert-True -Condition ($LASTEXITCODE -eq 0) -Message 'Analyzer batch test suite validates 10 player scenarios'
+  } else {
+    Assert-True -Condition $false -Message 'Missing run-analyzer-batch-tests.ps1 script'
+  }
 }
 finally {
   if ($server -and -not $server.HasExited) {

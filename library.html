@@ -182,7 +182,7 @@
     const hasLibrary = store.canAccessLibrary();
 
     function renderPlanSummary() {
-      const usage = store.canGenerateReport();
+      const usage = user ? store.canGenerateReport(user.id) : { used: 0, limit: 1 };
       const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
       document.getElementById('planSummary').textContent =
         `Active plan: ${plan.name}. Monthly reports used: ${usageText}. ${hasLibrary ? 'Library links are unlocked.' : 'Upgrade to Performance or Tournament plan to unlock library links and tactical video access.'}`;

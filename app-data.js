@@ -85,293 +85,69 @@
   };
 
   const DRILL_LIBRARY = [
-    {
-      id: 'drill_beginner_complete_lesson',
-      title: 'Complete Beginner Lesson: Forehand, Backhand & Serve',
-      videoUrl: 'https://www.youtube.com/watch?v=YqgcykDGB2A',
-      channel: 'Intuitive Tennis',
-      strokeType: 'multi',
-      skillLevel: 'beginner',
-      duration: '~20 min',
-      focus: 'Foundations for first sessions',
-      metricTags: ['shoulder', 'elbow', 'knee']
-    },
-    {
-      id: 'drill_beginner_rally',
-      title: 'Beginner Rally Lesson: Keep the Ball in Play',
-      videoUrl: 'https://www.youtube.com/watch?v=mdfFGXCsHYI',
-      channel: 'Intuitive Tennis',
-      strokeType: 'multi',
-      skillLevel: 'beginner',
-      duration: '12:15',
-      focus: 'Consistency and contact quality',
-      metricTags: ['shoulder', 'wrist']
-    },
-    {
-      id: 'drill_serve_masterclass_beginner',
-      title: 'Simple Tennis Serve Technique Masterclass',
-      videoUrl: 'https://www.youtube.com/watch?v=IiRGdagtOKE',
-      channel: 'Top Tennis Training',
-      strokeType: 'serve',
-      skillLevel: 'beginner',
-      duration: '16:42',
-      focus: 'Serve fundamentals',
-      metricTags: ['shoulder', 'knee', 'trunk', 'wrist']
-    },
-    {
-      id: 'drill_forehand_guide_beginner',
-      title: 'Mastering the Tennis Forehand: Complete Guide',
-      videoUrl: 'https://www.youtube.com/watch?v=r9VroI2sNzI',
-      channel: 'Essential Tennis',
-      strokeType: 'forehand',
-      skillLevel: 'beginner',
-      duration: '15:40',
-      focus: 'Forehand setup and contact point',
-      metricTags: ['shoulder', 'elbow', 'hip']
-    },
-    {
-      id: 'drill_backhand_easy',
-      title: '4 Easy Tennis Drills to Improve Your Backhand',
-      videoUrl: 'https://www.youtube.com/watch?v=d_jfsCXePG8',
-      channel: 'Tennis Coaching',
-      strokeType: 'backhand',
-      skillLevel: 'beginner',
-      duration: '~13 min',
-      focus: 'Backhand timing and footwork',
-      metricTags: ['shoulder', 'elbow', 'knee']
-    },
-    {
-      id: 'drill_forehand_img',
-      title: '3 Tennis Drills to Hit a Better Forehand',
-      videoUrl: 'https://www.youtube.com/watch?v=QZtxvwHvNe4',
-      channel: 'IMG Academy',
-      strokeType: 'forehand',
-      skillLevel: 'intermediate',
-      duration: '~8 min',
-      focus: 'Forehand acceleration and spacing',
-      metricTags: ['hip', 'knee', 'trunk']
-    },
-    {
-      id: 'drill_volley_img',
-      title: '3 Tennis Drills to Hit a Better Volley',
-      videoUrl: 'https://www.youtube.com/watch?v=nQbI8gl6VGg',
-      channel: 'IMG Academy',
-      strokeType: 'volley',
-      skillLevel: 'intermediate',
-      duration: '~8 min',
-      focus: 'Touch and net control',
-      metricTags: ['shoulder', 'wrist', 'trunk']
-    },
-    {
-      id: 'drill_return_reaction',
-      title: 'Return of Serve Drills: Improve Reaction Time',
-      videoUrl: 'https://www.youtube.com/watch?v=mY0j4CgxgIQ',
-      channel: 'Intuitive Tennis',
-      strokeType: 'return',
-      skillLevel: 'intermediate',
-      duration: '~12 min',
-      focus: 'Return timing and split-step',
-      metricTags: ['knee', 'trunk']
-    },
-    {
-      id: 'drill_modern_forehand',
-      title: 'Modern Forehand Tennis Lesson',
-      videoUrl: 'https://www.youtube.com/watch?v=W1Ef8HFZAuU',
-      channel: 'Intuitive Tennis',
-      strokeType: 'forehand',
-      skillLevel: 'intermediate',
-      duration: '~15 min',
-      focus: 'Topspin forehand mechanics',
-      metricTags: ['shoulder', 'hip', 'wrist']
-    },
-    {
-      id: 'drill_slice_serve',
-      title: 'Slice Serve Drill and Technique',
-      videoUrl: 'https://www.youtube.com/watch?v=l0dqozevSEk',
-      channel: 'Feel Tennis',
-      strokeType: 'serve',
-      skillLevel: 'intermediate',
-      duration: '~10 min',
-      focus: 'Slice serve spin path',
-      metricTags: ['wrist', 'shoulder']
-    },
-    {
-      id: 'drill_kinetic_chain_serve',
-      title: 'Serve Kinetic Chain Drill',
-      videoUrl: 'https://www.youtube.com/watch?v=xed3lmub3Fo',
-      channel: 'Rick Macci',
-      strokeType: 'serve',
-      skillLevel: 'intermediate',
-      duration: '~1 min',
-      focus: 'Power transfer sequence',
-      metricTags: ['knee', 'hip', 'trunk']
-    },
-    {
-      id: 'drill_serve_plus_one',
-      title: 'Serve Plus One Strategy Drill',
-      videoUrl: 'https://www.youtube.com/watch?v=UguFrKS-NfA',
-      channel: 'Top Tennis Training',
-      strokeType: 'serve',
-      skillLevel: 'intermediate',
-      duration: '~12 min',
-      focus: 'Serve + first ball pattern',
-      metricTags: ['shoulder', 'trunk']
-    },
-    {
-      id: 'drill_advanced_volley_set',
-      title: 'Volley Drills: Power, Control, Placement & Footwork',
-      videoUrl: 'https://www.youtube.com/watch?v=ebSB47mHNuQ',
-      channel: 'Intuitive Tennis',
-      strokeType: 'volley',
-      skillLevel: 'advanced',
-      duration: '~25 min',
-      focus: 'Advanced net movement and finishing',
-      metricTags: ['knee', 'trunk', 'wrist']
-    },
-    {
-      id: 'drill_advanced_forehand_masterclass',
-      title: 'Forehand Masterclass (14-Minute Breakdown)',
-      videoUrl: 'https://www.youtube.com/watch?v=Gq0hPQoxG68',
-      channel: 'Rick Macci',
-      strokeType: 'forehand',
-      skillLevel: 'advanced',
-      duration: '~14 min',
-      focus: 'Forehand lag, drop, and acceleration',
-      metricTags: ['shoulder', 'elbow', 'wrist']
-    },
-    {
-      id: 'drill_advanced_return',
-      title: 'Return of Serve: Advanced Technique and Positioning',
-      videoUrl: 'https://www.youtube.com/watch?v=phKa3TEolPM',
-      channel: 'Rick Macci',
-      strokeType: 'return',
-      skillLevel: 'advanced',
-      duration: '~8 min',
-      focus: 'Return pressure and early contact',
-      metricTags: ['knee', 'trunk', 'shoulder']
-    },
-    {
-      id: 'drill_split_step_foundation',
-      title: 'Split Step Drill Demonstration',
-      videoUrl: 'https://www.youtube.com/watch?v=dU6tm_gaqO4',
-      channel: 'Tennis Coaching',
-      strokeType: 'multi',
-      skillLevel: 'all',
-      duration: '~5 min',
-      focus: 'First-step explosiveness',
-      metricTags: ['knee', 'hip']
-    }
+    { id: 'drill_01_complete_beginner', title: 'Complete Beginner Lesson: Forehand, Backhand & Serve', videoUrl: 'https://www.youtube.com/watch?v=YqgcykDGB2A', channel: 'Intuitive Tennis', strokeType: 'multi', skillLevel: 'beginner', duration: '~20 min', focus: 'Complete stroke foundations', metricTags: ['shoulder', 'elbow', 'knee'] },
+    { id: 'drill_02_beginner_rally', title: 'Beginner Rally Lesson: How to Keep the Ball in Play', videoUrl: 'https://www.youtube.com/watch?v=mdfFGXCsHYI', channel: 'Intuitive Tennis', strokeType: 'multi', skillLevel: 'beginner', duration: '12:15', focus: 'Rally consistency', metricTags: ['shoulder', 'trunk', 'wrist'] },
+    { id: 'drill_03_serve_masterclass', title: 'Simple Tennis Serve Technique Masterclass for Beginners', videoUrl: 'https://www.youtube.com/watch?v=IiRGdagtOKE', channel: 'Top Tennis Training', strokeType: 'serve', skillLevel: 'beginner', duration: '~16 min', focus: 'Serve mechanics from scratch', metricTags: ['shoulder', 'knee', 'trunk', 'wrist'] },
+    { id: 'drill_04_forehand_complete', title: 'Mastering the Tennis Forehand: A Complete Guide', videoUrl: 'https://www.youtube.com/watch?v=r9VroI2sNzI', channel: 'Essential Tennis', strokeType: 'forehand', skillLevel: 'beginner', duration: '~15 min', focus: 'Forehand fundamentals', metricTags: ['shoulder', 'elbow', 'hip'] },
+    { id: 'drill_05_basic_serve_venus', title: 'How To Hit A Basic Tennis Serve', videoUrl: 'https://www.youtube.com/watch?v=bRCQwLgEs9M', channel: 'Venus Williams', strokeType: 'serve', skillLevel: 'beginner', duration: '~13 min', focus: 'Simple reliable first serve', metricTags: ['shoulder', 'knee', 'wrist'] },
+    { id: 'drill_06_serve_drills_img', title: '3 Tennis Drills to Improve Your Serve', videoUrl: 'https://www.youtube.com/watch?v=4UKvZkFVmyA', channel: 'IMG Academy', strokeType: 'serve', skillLevel: 'beginner', duration: '~8 min', focus: 'Serve toss and stance consistency', metricTags: ['shoulder', 'trunk', 'wrist'] },
+    { id: 'drill_07_backhand_easy', title: '4 Easy Tennis Drills to Improve Your Backhand', videoUrl: 'https://www.youtube.com/watch?v=d_jfsCXePG8', channel: 'Tennis Coaching', strokeType: 'backhand', skillLevel: 'beginner', duration: '~13 min', focus: 'Backhand contact and footwork', metricTags: ['shoulder', 'elbow', 'knee'] },
+    { id: 'drill_08_forehand_img', title: '3 Tennis Drills to Hit a Better Forehand', videoUrl: 'https://www.youtube.com/watch?v=QZtxvwHvNe4', channel: 'IMG Academy', strokeType: 'forehand', skillLevel: 'intermediate', duration: '~8 min', focus: 'Forehand spacing and acceleration', metricTags: ['hip', 'knee', 'trunk'] },
+    { id: 'drill_09_volley_img', title: '3 Tennis Drills to Hit a Better Volley', videoUrl: 'https://www.youtube.com/watch?v=nQbI8gl6VGg', channel: 'IMG Academy', strokeType: 'volley', skillLevel: 'intermediate', duration: '~8 min', focus: 'Touch and net control', metricTags: ['shoulder', 'wrist', 'trunk'] },
+    { id: 'drill_10_modern_forehand', title: 'Modern Forehand Tennis Lesson', videoUrl: 'https://www.youtube.com/watch?v=W1Ef8HFZAuU', channel: 'Intuitive Tennis', strokeType: 'forehand', skillLevel: 'intermediate', duration: '~15 min', focus: 'Modern topspin forehand', metricTags: ['shoulder', 'hip', 'wrist'] },
+    { id: 'drill_11_slice_serve_feel', title: 'Slice Serve Drill and Technique', videoUrl: 'https://www.youtube.com/watch?v=l0dqozevSEk', channel: 'Feel Tennis', strokeType: 'serve', skillLevel: 'intermediate', duration: '~10 min', focus: 'Slice serve spin path', metricTags: ['shoulder', 'wrist', 'trunk'] },
+    { id: 'drill_12_kinetic_chain', title: 'Serve Kinetic Chain Drill', videoUrl: 'https://www.youtube.com/watch?v=xed3lmub3Fo', channel: 'Rick Macci Tennis', strokeType: 'serve', skillLevel: 'intermediate', duration: '~1 min', focus: 'Serve sequence power transfer', metricTags: ['knee', 'hip', 'trunk'] },
+    { id: 'drill_13_watch_ball', title: 'How To Watch The Ball in Tennis', videoUrl: 'https://www.youtube.com/watch?v=eW_iHszB1Ck', channel: 'Essential Tennis', strokeType: 'multi', skillLevel: 'intermediate', duration: '~10 min', focus: 'Ball tracking and cleaner contact', metricTags: ['shoulder', 'trunk'] },
+    { id: 'drill_14_mouratoglou_forehand', title: 'How Good Can Her Forehand Get in One Lesson?', videoUrl: 'https://www.youtube.com/watch?v=8XYxMn0sXsY', channel: 'Patrick Mouratoglou', strokeType: 'forehand', skillLevel: 'intermediate', duration: '~15 min', focus: 'Forehand rebuild progression', metricTags: ['shoulder', 'hip', 'wrist'] },
+    { id: 'drill_15_serve_plus_one', title: 'Serve Plus One Strategy Drill', videoUrl: 'https://www.youtube.com/watch?v=UguFrKS-NfA', channel: 'Top Tennis Training', strokeType: 'serve', skillLevel: 'intermediate', duration: '~12 min', focus: 'Serve + first ball planning', metricTags: ['shoulder', 'trunk'] },
+    { id: 'drill_16_return_reaction', title: 'Return of Serve Drills: Improve Your Reaction Time', videoUrl: 'https://www.youtube.com/watch?v=mY0j4CgxgIQ', channel: 'Intuitive Tennis', strokeType: 'return', skillLevel: 'intermediate', duration: '~12 min', focus: 'Return timing and split-step', metricTags: ['knee', 'trunk', 'shoulder'] },
+    { id: 'drill_17_volley_elite_set', title: 'Tennis Volley Drills: Power, Control, Placement & Footwork', videoUrl: 'https://www.youtube.com/watch?v=ebSB47mHNuQ', channel: 'Intuitive Tennis', strokeType: 'volley', skillLevel: 'advanced', duration: '~25 min', focus: 'Advanced net movement and finishing', metricTags: ['knee', 'trunk', 'wrist'] },
+    { id: 'drill_18_slice_serve_macci', title: 'Slice Serve Method: Slicing at 3 O\'Clock', videoUrl: 'https://www.youtube.com/watch?v=axQQGnUdHwg', channel: 'Rick Macci Tennis', strokeType: 'serve', skillLevel: 'advanced', duration: '~5 min', focus: 'Penetrating slice serve', metricTags: ['shoulder', 'wrist'] },
+    { id: 'drill_19_forehand_masterclass_macci', title: 'Forehand Masterclass - 14-Minute Breakdown', videoUrl: 'https://www.youtube.com/watch?v=Gq0hPQoxG68', channel: 'Rick Macci Tennis', strokeType: 'forehand', skillLevel: 'advanced', duration: '~14 min', focus: 'Lag, drop, and acceleration', metricTags: ['shoulder', 'elbow', 'wrist'] },
+    { id: 'drill_20_return_advanced', title: 'Return of Serve: Advanced Technique and Positioning', videoUrl: 'https://www.youtube.com/watch?v=phKa3TEolPM', channel: 'Rick Macci Tennis', strokeType: 'return', skillLevel: 'advanced', duration: '~8 min', focus: 'Aggressive return positioning', metricTags: ['knee', 'trunk', 'shoulder'] },
+    { id: 'drill_21_split_step', title: 'Split Step Drill Demonstration', videoUrl: 'https://www.youtube.com/watch?v=dU6tm_gaqO4', channel: 'Tennis Coaching', strokeType: 'multi', skillLevel: 'all', duration: '~5 min', focus: 'Explosive first step', metricTags: ['knee', 'hip'] },
+    { id: 'drill_22_footwork_5_drills', title: 'Tennis Footwork - 5 Drills to Improve Your Movement', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Tennis%20Footwork%205%20Drills%20to%20Improve%20Your%20Movement', channel: 'Top Tennis Training', strokeType: 'multi', skillLevel: 'all', duration: '~10 min', focus: 'On-court movement patterns', metricTags: ['knee', 'hip', 'trunk'] },
+    { id: 'drill_23_ball_machine_set', title: 'Ball Machine Drills - Forehand, Backhand & Volleys', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Ball%20Machine%20Drills%20Forehand%20Backhand%20Volleys', channel: 'Top Tennis Training', strokeType: 'multi', skillLevel: 'advanced', duration: '~15 min', focus: 'Machine-feed decision and recovery', metricTags: ['shoulder', 'knee', 'trunk'] },
+    { id: 'drill_24_agility_no_equipment', title: '5 Agility & Footwork Drills - No Equipment Needed', videoUrl: 'https://www.functionaltennis.com/blogs/news/5-agility-footwork-drill-for-tennis-players', channel: 'Functional Tennis / IMG Academy', strokeType: 'multi', skillLevel: 'advanced', duration: '~8 min', focus: 'Off-court speed and agility', metricTags: ['knee', 'hip', 'trunk'] },
+    { id: 'drill_25_fix_forehand_mistakes', title: 'How to Fix the 5 Most Common Tennis Forehand Mistakes', videoUrl: 'https://www.youtube.com/@IntuitiveTennis/search?query=5%20most%20common%20tennis%20forehand%20mistakes', channel: 'Intuitive Tennis', strokeType: 'forehand', skillLevel: 'intermediate', duration: '~12 min', focus: 'Correct high-frequency forehand errors', metricTags: ['shoulder', 'hip', 'wrist'] },
+    { id: 'drill_26_windshield_wiper', title: 'How to Hit Topspin on Your Forehand - Windshield Wiper Technique', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=How%20to%20Hit%20Topspin%20on%20Your%20Forehand%20Windshield%20Wiper%20Technique', channel: 'Top Tennis Training', strokeType: 'forehand', skillLevel: 'intermediate', duration: '~10 min', focus: 'Forehand topspin mechanics', metricTags: ['shoulder', 'wrist', 'trunk'] },
+    { id: 'drill_27_wrist_lag', title: 'Tennis Forehand Wrist Lag in 3 Steps', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Tennis%20Forehand%20Wrist%20Lag%20in%203%20Steps', channel: 'Top Tennis Training', strokeType: 'forehand', skillLevel: 'advanced', duration: '~8 min', focus: 'Racquet-head speed through lag', metricTags: ['wrist', 'elbow', 'shoulder'] },
+    { id: 'drill_28_topspin_5_steps', title: 'Topspin Secrets: How To Hit Perfect Topspin in 5 Steps', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Topspin%20Secrets%20How%20To%20Hit%20Perfect%20Topspin%20in%205%20Steps', channel: 'Top Tennis Training', strokeType: 'multi', skillLevel: 'intermediate', duration: '~12 min', focus: 'Heavy topspin repeatability', metricTags: ['shoulder', 'trunk', 'wrist'] },
+    { id: 'drill_29_warmup_coordination', title: 'Tennis Warm-Up Coordination & Footwork Drills', videoUrl: 'https://www.feeltennis.net/warm-up-drills/', channel: 'Feel Tennis', strokeType: 'multi', skillLevel: 'all', duration: '~15 min', focus: 'Rhythm and stroke coordination', metricTags: ['knee', 'hip', 'trunk'] },
+    { id: 'drill_30_basics_footwork', title: 'Basics of Tennis Footwork: Less (Steps) is More (Time)', videoUrl: 'https://www.feeltennis.net/basics-of-tennis-footwork/', channel: 'Feel Tennis', strokeType: 'multi', skillLevel: 'all', duration: '~10 min', focus: 'Court positioning efficiency', metricTags: ['knee', 'hip', 'trunk'] }
   ];
 
   const TACTIC_LIBRARY = [
-    {
-      id: 'tactic_crosscourt_geometry',
-      title: 'Where to Aim in Singles: Crosscourt vs Down the Line',
-      videoUrl: 'https://youtu.be/ESYuG4qObNc',
-      channel: 'Love Tennis',
-      situation: 'baseline',
-      skillLevel: 'beginner',
-      summary: 'Use crosscourt as the default high-margin pattern and choose down-the-line selectively.'
-    },
-    {
-      id: 'tactic_four_zones',
-      title: 'Singles Strategy: Control the Four Zones',
-      videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Control%20The%20Four%20Zones',
-      channel: 'Top Tennis Training',
-      situation: 'point-construction',
-      skillLevel: 'beginner',
-      summary: 'Identify defensive, neutral, attack, and kill zones and pick shots accordingly.'
-    },
-    {
-      id: 'tactic_serve_plus_one',
-      title: 'Serve Plus One Strategy',
-      videoUrl: 'https://www.youtube.com/watch?v=UguFrKS-NfA',
-      channel: 'Top Tennis Training',
-      situation: 'serve',
-      skillLevel: 'intermediate',
-      summary: 'Plan serve placement and first groundstroke together to control points immediately.'
-    },
-    {
-      id: 'tactic_dominate_net',
-      title: 'How to Dominate the Net in Singles',
-      videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Dominate%20the%20Net%20in%20Singles',
-      channel: 'Top Tennis Training',
-      situation: 'net',
-      skillLevel: 'intermediate',
-      summary: 'Choose approach direction, split-step timing, and volley positioning to close points.'
-    },
-    {
-      id: 'tactic_beat_pusher',
-      title: '5 Tactics to Beat the Tennis Pusher',
-      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=5%20tactics%20to%20beat%20the%20tennis%20pusher',
-      channel: 'Tennis Evolution',
-      situation: 'defense',
-      skillLevel: 'intermediate',
-      summary: 'Use width, pace variation, net pressure, and drop shots to break defensive opponents.'
-    },
-    {
-      id: 'tactic_slice_vs_kick',
-      title: 'Slice Serve vs Kick Serve: When to Use Each',
-      videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Slice%20Serve%20vs%20Kick%20Serve',
-      channel: 'Top Tennis Training',
-      situation: 'serve',
-      skillLevel: 'intermediate',
-      summary: 'Deploy serve types by score, side, and opponent return tendencies.'
-    },
-    {
-      id: 'tactic_wawrinka_djokovic_breakdown',
-      title: 'AO Analyst: Wawrinka vs Djokovic Strategic Breakdown',
-      videoUrl: 'https://www.youtube.com/watch?v=8NrA-BanUfM',
-      channel: 'Australian Open / Brain Game Tennis',
-      situation: 'point-construction',
-      skillLevel: 'advanced',
-      summary: 'Data-driven first-4-shots tactics for serve+1 and return+1 phases.'
-    },
-    {
-      id: 'tactic_play_like_pros',
-      title: '3 Keys to Play Singles Like the Pros',
-      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=3%20keys%20to%20play%20like%20the%20pros',
-      channel: 'Tennis Evolution',
-      situation: 'point-construction',
-      skillLevel: 'advanced',
-      summary: 'Control center court, chain two-shot combos, and exploit repeatable opponent patterns.'
-    },
-    {
-      id: 'tactic_smart_defense',
-      title: 'Smart Defense and Passing Shots',
-      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=smart%20defense%20passing%20shots',
-      channel: 'Tennis Evolution',
-      situation: 'defense',
-      skillLevel: 'advanced',
-      summary: 'Turn defense into offense with targeted passing lanes and recovery decisions.'
-    },
-    {
-      id: 'tactic_inside_out_forehand',
-      title: 'Inside-Out Forehand Pattern',
-      videoUrl: 'https://www.youtube.com/@EssentialTennis/search?query=inside%20out%20forehand',
-      channel: 'Essential Tennis',
-      situation: 'forehand',
-      skillLevel: 'advanced',
-      summary: 'Run around the backhand at the right moments to attack with inside-out forehands.'
-    },
-    {
-      id: 'tactic_down_line_targets',
-      title: 'How to Play Down the Line with Margin',
-      videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=play%20down%20the%20line%20smart%20targets',
-      channel: 'Tennis Evolution',
-      situation: 'baseline',
-      skillLevel: 'advanced',
-      summary: 'Use high-net-clearance direction changes to reduce risk when changing pattern.'
-    },
-    {
-      id: 'tactic_general_match_strategy',
-      title: 'PlayYourCourt Match Strategy',
-      videoUrl: 'https://www.youtube.com/watch?v=Y96A26lfkJQ',
-      channel: 'PlayYourCourt',
-      situation: 'general',
-      skillLevel: 'intermediate',
-      summary: 'Manage momentum swings and decide when to stay aggressive or play percentage tennis.'
-    }
+    { id: 'tactic_01_crosscourt_geometry', title: 'Tennis Tactics: Where to Aim in Singles (Crosscourt vs Down the Line)', videoUrl: 'https://youtu.be/ESYuG4qObNc', channel: 'Love Tennis', situation: 'baseline', skillLevel: 'beginner', summary: 'Crosscourt gives more margin, lower net clearance risk, and better recovery geometry.' },
+    { id: 'tactic_02_watch_ball', title: 'How To Watch The Ball in Tennis', videoUrl: 'https://www.youtube.com/watch?v=eW_iHszB1Ck', channel: 'Essential Tennis', situation: 'general', skillLevel: 'beginner', summary: 'Improves tactical decision quality by improving visual tracking and reducing rushed errors.' },
+    { id: 'tactic_03_beginner_consistency', title: 'Beginner Rally Lesson: Keeping the Ball in Play', videoUrl: 'https://www.youtube.com/watch?v=mdfFGXCsHYI', channel: 'Intuitive Tennis', situation: 'defense', skillLevel: 'beginner', summary: 'Build the highest-impact beginner tactic: win by reducing unforced errors first.' },
+    { id: 'tactic_04_four_zones', title: 'Tennis Singles Strategy: Control The Four Zones', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Control%20The%20Four%20Zones', channel: 'Top Tennis Training', situation: 'point-construction', skillLevel: 'intermediate', summary: 'Choose shots based on defensive, neutral, attack, and finish court positions.' },
+    { id: 'tactic_05_where_to_aim', title: 'Tennis Tactics: Where To Aim In Singles', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Where%20To%20Aim%20In%20Singles', channel: 'Top Tennis Training', situation: 'baseline', skillLevel: 'intermediate', summary: 'Apply an 80/20 direction model: mostly crosscourt, selective down-the-line changes.' },
+    { id: 'tactic_06_serve_reliability', title: '3 Tennis Drills to Improve Serve Reliability', videoUrl: 'https://www.youtube.com/watch?v=4UKvZkFVmyA', channel: 'IMG Academy', situation: 'serve', skillLevel: 'beginner', summary: 'Start points with reliable serve patterns before chasing power.' },
+    { id: 'tactic_07_serve_plus_one', title: 'Serve Plus One Strategy', videoUrl: 'https://www.youtube.com/watch?v=UguFrKS-NfA', channel: 'Top Tennis Training', situation: 'serve', skillLevel: 'intermediate', summary: 'Plan serve direction and first ball location together to control the rally early.' },
+    { id: 'tactic_08_serve_plus_one_essential', title: 'Serve Plus ONE: Tennis Singles Strategy Lesson', videoUrl: 'https://www.essentialtennis.com/serve-plus-one-tennis-singles-strategy-lesson/', channel: 'Essential Tennis', situation: 'serve', skillLevel: 'intermediate', summary: 'Four practical serve+1 scenarios for proactive singles construction.' },
+    { id: 'tactic_09_dominate_net', title: 'Tennis Tactics: How to Dominate the Net in Singles', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=How%20to%20Dominate%20the%20Net%20in%20Singles', channel: 'Top Tennis Training', situation: 'net', skillLevel: 'intermediate', summary: 'Approach direction, split-step timing, and first-volley positioning for net control.' },
+    { id: 'tactic_10_return_positioning', title: 'Return of Serve: Technique and Positioning', videoUrl: 'https://www.youtube.com/watch?v=phKa3TEolPM', channel: 'Rick Macci Tennis', situation: 'serve', skillLevel: 'intermediate', summary: 'Adjust return stance and swing length by server pace and spin profile.' },
+    { id: 'tactic_11_approach_mastery', title: 'Tennis Approach Shot Mastery: When and How to Attack the Net', videoUrl: 'https://www.feeltennis.net/approach-shot/', channel: 'Feel Tennis', situation: 'net', skillLevel: 'intermediate', summary: 'Use a repeatable decision tree for when to approach, where to aim, and how to close.' },
+    { id: 'tactic_12_beat_pusher', title: 'Singles Strategy: 5 Tactics to Beat the Tennis Pusher', videoUrl: 'https://tennisevolution.com/singles-strategy-5-ways-to-beat-the-tennis-pusher/', channel: 'Tennis Evolution', situation: 'defense', skillLevel: 'intermediate', summary: 'Break passive defenders with angle, depth, and selective net pressure.' },
+    { id: 'tactic_13_slice_vs_kick', title: 'Slice Serve vs Kick Serve: How and When to Use Each', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=Slice%20Serve%20vs%20Kick%20Serve', channel: 'Top Tennis Training', situation: 'serve', skillLevel: 'intermediate', summary: 'Choose serve type by score context, returner position, and side of court.' },
+    { id: 'tactic_14_dominate_singles', title: 'Tennis Tactics: 5 Ways to Dominate in Singles', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=5%20Ways%20to%20Dominate%20in%20Singles', channel: 'Top Tennis Training', situation: 'general', skillLevel: 'intermediate', summary: 'Structure points with clear intent instead of reactive shot selection.' },
+    { id: 'tactic_15_crosscourt_habit', title: 'Smart Players Hit Cross Court', videoUrl: 'https://www.essentialtennis.com/smart-players-hit-cross-court/', channel: 'Essential Tennis', situation: 'baseline', skillLevel: 'intermediate', summary: 'Use percentages and geometry to build a safer baseline default pattern.' },
+    { id: 'tactic_16_first_four_shots', title: 'AO Analyst Strategic Breakdown (Craig O\'Shannessy)', videoUrl: 'https://www.youtube.com/watch?v=8NrA-BanUfM', channel: 'Australian Open / Brain Game Tennis', situation: 'point-construction', skillLevel: 'advanced', summary: 'First 4 shots framework for elite serve+1 and return+1 execution.' },
+    { id: 'tactic_17_one_two_pattern', title: 'Singles Strategy: Play Winning Tennis - The 1-2 Tactic', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Play%20Winning%20Tennis%20The%201-2%20Tactic', channel: 'Tennis Evolution', situation: 'point-construction', skillLevel: 'advanced', summary: 'Sequence setup and finish balls instead of isolated shot attempts.' },
+    { id: 'tactic_18_serve_plus_one_advanced', title: 'Singles Tactics: Smart SERVE +1 Strategy', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Smart%20Serve%20%2B1%20Strategy', channel: 'Tennis Evolution', situation: 'serve', skillLevel: 'advanced', summary: 'Advanced serve+1 combinations under pressure and return variation.' },
+    { id: 'tactic_19_down_line_margin', title: 'Tennis Strategy: How To Play Down the Line (Smart Targets)', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=How%20To%20Play%20Down%20the%20Line%20Smart%20Targets', channel: 'Tennis Evolution', situation: 'baseline', skillLevel: 'advanced', summary: 'Use high-margin direction changes instead of flat low-percentage line drives.' },
+    { id: 'tactic_20_smart_defense', title: 'Singles Strategy: Play Smart Defense and Hit Passing Shots', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Play%20Smart%20Defense%20Passing%20Shots', channel: 'Tennis Evolution', situation: 'defense', skillLevel: 'advanced', summary: 'Convert defensive positions into neutral or offensive outcomes with intent.' },
+    { id: 'tactic_21_return_case_study', title: 'Case Study: Forehand Return Shot Selection Strategy', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Forehand%20Return%20Shot%20Selection%20Strategy', channel: 'Tennis Evolution', situation: 'serve', skillLevel: 'advanced', summary: 'Return decision templates for pace, spin, and court positioning.' },
+    { id: 'tactic_22_inside_out_fix', title: 'Inside-Out Forehand: The Weak Backhand Fix', videoUrl: 'https://www.essentialtennis.com/inside-out-forehand-the-weak-backhand-fix/', channel: 'Essential Tennis', situation: 'point-construction', skillLevel: 'advanced', summary: 'Run-around patterns to protect backhand liabilities and dictate forehand exchanges.' },
+    { id: 'tactic_23_inside_out_perfect', title: 'How to Hit the Perfect Inside-Out Forehand in Tennis', videoUrl: 'https://www.youtube.com/@TopTennisTraining/search?query=How%20to%20Hit%20the%20Perfect%20Inside-Out%20Forehand%20in%20Tennis', channel: 'Top Tennis Training', situation: 'point-construction', skillLevel: 'advanced', summary: 'Combine footwork and direction control to create forehand advantage patterns.' },
+    { id: 'tactic_24_backhand_defense', title: 'Tennis Backhand: How To Play Smarter Defense', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Backhand%20How%20To%20Play%20Smarter%20Defense', channel: 'Tennis Evolution', situation: 'defense', skillLevel: 'advanced', summary: 'Use backhand neutralizers and recovery positioning to extend points intelligently.' },
+    { id: 'tactic_25_outsmart_opponent', title: 'Singles Strategy: Outsmart Your Opponent', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Outsmart%20Your%20Opponent', channel: 'Tennis Evolution', situation: 'general', skillLevel: 'advanced', summary: 'Read tendencies early and adapt patterns during the match.' },
+    { id: 'tactic_26_golden_rules', title: 'Craig O\'Shannessy: 25 Golden Rules of Singles Strategy', videoUrl: 'https://braingametennis.com/25-golden-rules-of-singles-strategy/', channel: 'Brain Game Tennis', situation: 'point-construction', skillLevel: 'all', summary: 'Data-driven strategic rules for high-percentage singles decision making.' },
+    { id: 'tactic_27_baseline_patterns', title: 'Tennis Baseline Strategy Patterns, Percentages & Drills', videoUrl: 'https://braingametennis.com/webinar-7-baseline-strategy-patterns-and-percentages/', channel: 'Brain Game Tennis', situation: 'baseline', skillLevel: 'advanced', summary: 'Baseline targeting model and percentage choices for competitive rallies.' },
+    { id: 'tactic_28_attack_net', title: 'How to Attack the Net: Tennis Approach Strategy', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=How%20to%20Attack%20the%20Net%20Tennis%20Approach%20Strategy', channel: 'Tennis Evolution', situation: 'net', skillLevel: 'advanced', summary: 'Approach selection and transition-to-net execution under match pressure.' },
+    { id: 'tactic_29_footwork_positioning', title: 'Tennis Strategy: Footwork Tactic & Positioning', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=Footwork%20Tactic%20and%20Positioning', channel: 'Tennis Evolution', situation: 'general', skillLevel: 'advanced', summary: 'Court position determines tactical options and shot-quality outcomes.' },
+    { id: 'tactic_30_one_way_beat_pusher', title: 'The 1 Strategy to Beat the Pusher', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=The%201%20Strategy%20to%20Beat%20the%20Pusher', channel: 'Tennis Evolution', situation: 'defense', skillLevel: 'intermediate', summary: 'One repeatable pattern to stop losing control against moonball and pusher styles.' }
   ];
 
   const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
@@ -574,8 +350,16 @@
   }
 
   function getMonthlyUsage(userId, monthKey) {
-    const id = userId || requireUser().id;
+    const id = userId || getCurrentUser()?.id;
     const month = monthKey || getMonthKey();
+    if (!id) {
+      return {
+        userId: null,
+        monthKey: month,
+        count: 0,
+        history: []
+      };
+    }
     return getReportUsage().find((entry) => entry.userId === id && entry.monthKey === month) || {
       userId: id,
       monthKey: month,
