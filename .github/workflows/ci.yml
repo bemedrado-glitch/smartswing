@@ -15,4 +15,4 @@ jobs:
       - name: Run PowerShell smoke suite
         shell: pwsh
         run: |
-          powershell -ExecutionPolicy Bypass -File ./tests/run-tests.ps1
+          ./tests/run-tests.ps1

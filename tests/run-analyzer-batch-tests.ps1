@@ -63,25 +63,31 @@ $requiredMarkers = @(
 
 $failed = $false
 $skipped = $false
-$edgeProfileDir = Join-Path $PSScriptRoot 'edge-profile-batch'
-if (Test-Path $edgeProfileDir) {
-  Remove-Item -Recurse -Force $edgeProfileDir
+$edgeProfileRoot = Join-Path $PSScriptRoot 'edge-profile-batch'
+if (Test-Path $edgeProfileRoot) {
+  Remove-Item -Recurse -Force $edgeProfileRoot
 }
-New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
+New-Item -ItemType Directory -Path $edgeProfileRoot | Out-Null
 
 function Get-ScenarioDom {
   param(
     [string]$EdgeBinary,
-    [string]$Url
+    [string]$Url,
+    [string]$ProfileDir
   )
 
   $maxAttempts = 4
   $bestDom = ''
 
   for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+    if (Test-Path $ProfileDir) {
+      Remove-Item -Recurse -Force $ProfileDir
+    }
+    New-Item -ItemType Directory -Path $ProfileDir | Out-Null
+
     $virtualBudget = if ($attempt -le 2) { 26000 } else { 36000 }
     $gpuFlag = if ($attempt -le 2) { '--disable-gpu' } else { '' }
-    $edgeCommand = """$EdgeBinary"" --headless $gpuFlag --disable-extensions --user-data-dir=""$edgeProfileDir"" --virtual-time-budget=$virtualBudget --dump-dom ""$Url"" 2>nul"
+    $edgeCommand = """$EdgeBinary"" --headless $gpuFlag --disable-extensions --no-first-run --user-data-dir=""$ProfileDir"" --virtual-time-budget=$virtualBudget --dump-dom ""$Url"" 2>nul"
     $domOutput = (cmd /c $edgeCommand | Out-String)
     if (-not [string]::IsNullOrWhiteSpace($domOutput)) {
       $bestDom = $domOutput
@@ -98,7 +104,9 @@ function Get-ScenarioDom {
 foreach ($scenario in $scenarios) {
   $query = "demo=1&shot=$($scenario.Shot)&level=$($scenario.Level)&gender=$($scenario.Gender)&age=$([System.Uri]::EscapeDataString($scenario.Age))&mode=$($scenario.Mode)&goal=$([System.Uri]::EscapeDataString($scenario.Goal))"
   $url = "http://127.0.0.1:$Port/analyze.html?$query"
-  $domOutput = Get-ScenarioDom -EdgeBinary $edge -Url $url
+  $safeName = ($scenario.Name -replace '[^A-Za-z0-9_-]', '_')
+  $scenarioProfileDir = Join-Path $edgeProfileRoot $safeName
+  $domOutput = Get-ScenarioDom -EdgeBinary $edge -Url $url -ProfileDir $scenarioProfileDir
   if ([string]::IsNullOrWhiteSpace($domOutput)) {
     Write-Host "[WARN] Headless DOM output unavailable in this sandbox; skipping analyzer batch runtime assertions." -ForegroundColor Yellow
     $skipped = $true

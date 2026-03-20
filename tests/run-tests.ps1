@@ -55,6 +55,20 @@ function Find-EdgeBinary {
   return $null
 }
 
+function Get-PowerShellBinary {
+  $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+  if ($pwsh) {
+    return $pwsh.Source
+  }
+
+  $powershell = Get-Command powershell -ErrorAction SilentlyContinue
+  if ($powershell) {
+    return $powershell.Source
+  }
+
+  throw 'No PowerShell executable found in PATH.'
+}
+
 function Wait-Server {
   param([string]$Url)
 
@@ -74,7 +88,8 @@ function Wait-Server {
 
 $server = $null
 try {
-  $server = Start-Process -FilePath 'powershell' -ArgumentList @(
+  $powerShellBinary = Get-PowerShellBinary
+  $server = Start-Process -FilePath $powerShellBinary -ArgumentList @(
     '-NoProfile',
     '-ExecutionPolicy', 'Bypass',
     '-File', $serverScript,
@@ -219,7 +234,7 @@ try {
   $batchScript = Join-Path $PSScriptRoot 'run-analyzer-batch-tests.ps1'
   if (Test-Path $batchScript) {
     $batchPort = $port + 1
-    $batchServer = Start-Process -FilePath 'powershell' -ArgumentList @(
+    $batchServer = Start-Process -FilePath $powerShellBinary -ArgumentList @(
       '-NoProfile',
       '-ExecutionPolicy', 'Bypass',
       '-File', $serverScript,
