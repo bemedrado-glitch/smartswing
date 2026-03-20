@@ -822,6 +822,7 @@
     let activeVideoUrl = null;
     let lastFrameAt = 0;
     let aiInitStage = 'idle';
+    let detectorLabel = 'Not initialized';
 
     const AI_SETTINGS = {
       libraryTimeoutMs: 30000,
@@ -954,6 +955,12 @@
       [KEYPOINT.RIGHT_KNEE, KEYPOINT.RIGHT_ANKLE]
     ];
 
+    const BLAZEPOSE_TO_MOVENET_INDEX = [
+      0, 2, 5, 7, 8,
+      11, 12, 13, 14, 15, 16,
+      23, 24, 25, 26, 27, 28
+    ];
+
     // Helpers
     function kpOk(kp, min = 0.3) {
       return kp && (kp.score ?? kp.confidence ?? 0) >= min;
@@ -973,6 +980,27 @@
     function safeNumber(value, fallback = 0) {
       const num = Number(value);
       return Number.isFinite(num) ? num : fallback;
+    }
+
+    function normalizeKeypointsToMoveNet(rawKeypoints) {
+      if (!Array.isArray(rawKeypoints) || rawKeypoints.length === 0) {
+        return [];
+      }
+
+      const toPoint = (kp) => {
+        if (!kp) return { x: 0, y: 0, score: 0 };
+        return {
+          x: safeNumber(kp.x, 0),
+          y: safeNumber(kp.y, 0),
+          score: safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0)
+        };
+      };
+
+      if (rawKeypoints.length <= 17) {
+        return rawKeypoints.map((kp) => toPoint(kp));
+      }
+
+      return BLAZEPOSE_TO_MOVENET_INDEX.map((sourceIndex) => toPoint(rawKeypoints[sourceIndex]));
     }
 
     // Legacy initializer kept for compatibility debugging.
@@ -1080,7 +1108,7 @@
     async function initPoseEngine() {
       const playBtn = document.getElementById('playBtn');
       if (detector) {
-        setStatus(`AI Ready (MoveNet - ${backend.toUpperCase()})`, 'ready');
+        setStatus(`AI Ready (${detectorLabel})`, 'ready');
         playBtn.disabled = false;
         return true;
       }
@@ -1095,58 +1123,111 @@
           aiInitStage = 'load-libraries';
           setStatus('Loading AI libraries...', 'loading');
           await withTimeout(ensurePoseLibraries(), AI_SETTINGS.libraryTimeoutMs, 'AI library loading');
-          aiInitStage = 'tf-ready';
-          await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
+          let tfBackendReady = false;
+          if (window.tf && typeof tf.ready === 'function') {
+            aiInitStage = 'tf-ready';
+            await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
 
-          setStatus('Preparing AI backend...', 'loading');
-          let backendReady = false;
-          for (const nextBackend of ['webgl', 'cpu']) {
-            try {
-              aiInitStage = `backend-${nextBackend}`;
-              await withTimeout(tf.setBackend(nextBackend), AI_SETTINGS.backendTimeoutMs, `${nextBackend} setup`);
-              await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, `${nextBackend} ready`);
-              backend = nextBackend;
-              backendReady = true;
-              break;
-            } catch (backendError) {
-              console.warn(`Backend ${nextBackend} unavailable:`, backendError);
+            setStatus('Preparing AI backend...', 'loading');
+            for (const nextBackend of ['webgl', 'cpu']) {
+              try {
+                aiInitStage = `backend-${nextBackend}`;
+                await withTimeout(tf.setBackend(nextBackend), AI_SETTINGS.backendTimeoutMs, `${nextBackend} setup`);
+                await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, `${nextBackend} ready`);
+                backend = nextBackend;
+                tfBackendReady = true;
+                break;
+              } catch (backendError) {
+                console.warn(`Backend ${nextBackend} unavailable:`, backendError);
+              }
             }
           }
 
-          if (!backendReady) {
-            throw new Error('No TensorFlow backend available.');
+          setStatus('Creating pose detector...', 'loading');
+          const detectorStrategies = [];
+          if (tfBackendReady) {
+            detectorStrategies.push(
+              {
+                id: 'movenet-lightning',
+                label: `MoveNet Lightning (${backend.toUpperCase()})`,
+                stage: 'detector-movenet-lightning',
+                create: () => poseDetection.createDetector(
+                  poseDetection.SupportedModels.MoveNet,
+                  { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING, enableSmoothing: true }
+                )
+              },
+              {
+                id: 'movenet-thunder',
+                label: `MoveNet Thunder (${backend.toUpperCase()})`,
+                stage: 'detector-movenet-thunder',
+                create: () => poseDetection.createDetector(
+                  poseDetection.SupportedModels.MoveNet,
+                  { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, enableSmoothing: true }
+                )
+              }
+            );
+          } else {
+            console.warn('TensorFlow backend unavailable. Falling back to local MediaPipe runtime.');
           }
 
-          setStatus('Creating pose detector...', 'loading');
-          const detectorConfigs = [
-            { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING, enableSmoothing: true },
-            { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, enableSmoothing: true }
-          ];
+          detectorStrategies.push(
+            {
+              id: 'blazepose-mediapipe-full',
+              label: 'BlazePose Full (MediaPipe local)',
+              stage: 'detector-blazepose-full',
+              create: () => poseDetection.createDetector(
+                poseDetection.SupportedModels.BlazePose,
+                {
+                  runtime: 'mediapipe',
+                  modelType: 'full',
+                  enableSmoothing: true,
+                  solutionPath: './assets/vendor/mediapipe/pose'
+                }
+              )
+            },
+            {
+              id: 'blazepose-mediapipe-lite',
+              label: 'BlazePose Lite (MediaPipe local)',
+              stage: 'detector-blazepose-lite',
+              create: () => poseDetection.createDetector(
+                poseDetection.SupportedModels.BlazePose,
+                {
+                  runtime: 'mediapipe',
+                  modelType: 'lite',
+                  enableSmoothing: true,
+                  solutionPath: './assets/vendor/mediapipe/pose'
+                }
+              )
+            }
+          );
 
           let created = false;
-          for (const config of detectorConfigs) {
+          let lastDetectorError = null;
+          for (const strategy of detectorStrategies) {
             try {
-              aiInitStage = `detector-${config.modelType}`;
+              aiInitStage = strategy.stage;
               detector = await withTimeout(
-                poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, config),
+                strategy.create(),
                 AI_SETTINGS.detectorTimeoutMs,
                 'Pose detector creation'
               );
               if (detector) {
+                detectorLabel = strategy.label;
                 created = true;
                 break;
               }
             } catch (detectorError) {
-              console.warn('Detector config failed:', detectorError);
+              lastDetectorError = detectorError;
+              console.warn(`Detector strategy failed (${strategy.id}):`, detectorError);
             }
           }
 
           if (!created) {
-            throw new Error('Unable to initialize pose detector.');
+            throw lastDetectorError || new Error('Unable to initialize pose detector.');
           }
 
           aiInitStage = 'ready';
-          setStatus(`AI Ready (MoveNet - ${backend.toUpperCase()})`, 'ready');
+          setStatus(`AI Ready (${detectorLabel})`, 'ready');
           playBtn.disabled = false;
           return true;
         } catch (error) {
@@ -1294,10 +1375,10 @@
         const poses = await detector.estimatePoses(video);
         
         if (poses && poses.length > 0) {
-          const keypoints = poses[0].keypoints;
+          const keypoints = normalizeKeypointsToMoveNet(poses[0].keypoints || []);
           const validLandmarks = keypoints.filter(kp => kpOk(kp, 0.3)).length;
           const confidence = Math.round(
-            (keypoints.reduce((sum, kp) => sum + (kp.score || 0), 0) / keypoints.length) * 100
+            (keypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, keypoints.length)) * 100
           );
 
           const angles = computeAngles(keypoints);
@@ -2694,6 +2775,11 @@
         } catch (error) {
           console.error('Demo report generation failed:', error);
         }
+      });
+    }
+    if (params.get('selftest') !== '1') {
+      requestAnimationFrame(() => {
+        initPoseEngine().catch(() => null);
       });
     }
   </script>

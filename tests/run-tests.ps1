@@ -21,7 +21,9 @@ $assets = @(
   '/assets/avatar/Persona%203%20Tennis.png',
   '/assets/avatar/Coach%20Ace%2016_9.png',
   '/assets/vendor/tf.min.js',
-  '/assets/vendor/pose-detection.min.js'
+  '/assets/vendor/pose-detection.min.js',
+  '/assets/vendor/mediapipe/pose/pose.js',
+  '/assets/vendor/mediapipe/pose/pose_solution_simd_wasm_bin.wasm'
 )
 
 $failures = New-Object System.Collections.Generic.List[string]

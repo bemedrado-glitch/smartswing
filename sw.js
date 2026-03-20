@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartswing-shell-v7';
+const CACHE_NAME = 'smartswing-shell-v8';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -19,6 +19,18 @@ const APP_ASSETS = [
   './app-data.js',
   './assets/vendor/tf.min.js',
   './assets/vendor/pose-detection.min.js',
+  './assets/vendor/mediapipe/pose/pose.js',
+  './assets/vendor/mediapipe/pose/pose_web.binarypb',
+  './assets/vendor/mediapipe/pose/pose_solution_packed_assets_loader.js',
+  './assets/vendor/mediapipe/pose/pose_solution_packed_assets.data',
+  './assets/vendor/mediapipe/pose/pose_solution_simd_wasm_bin.js',
+  './assets/vendor/mediapipe/pose/pose_solution_simd_wasm_bin.data',
+  './assets/vendor/mediapipe/pose/pose_solution_simd_wasm_bin.wasm',
+  './assets/vendor/mediapipe/pose/pose_solution_wasm_bin.js',
+  './assets/vendor/mediapipe/pose/pose_solution_wasm_bin.wasm',
+  './assets/vendor/mediapipe/pose/pose_landmark_lite.tflite',
+  './assets/vendor/mediapipe/pose/pose_landmark_full.tflite',
+  './assets/vendor/mediapipe/pose/pose_landmark_heavy.tflite',
   './advanced-biomechanics-engine.js',
   './improved-pose-detection.js'
 ];
