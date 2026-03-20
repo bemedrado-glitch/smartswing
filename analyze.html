@@ -8,7 +8,9 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- TensorFlow.js + Pose Detection are loaded on demand to avoid startup stalls -->
+  <!-- Local AI runtime first for stability; fallback mirrors are used only if these fail -->
+  <script src="./assets/vendor/tf.min.js"></script>
+  <script src="./assets/vendor/pose-detection.min.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
   
@@ -819,12 +821,13 @@
     let aiInitInFlight = null;
     let activeVideoUrl = null;
     let lastFrameAt = 0;
+    let aiInitStage = 'idle';
 
     const AI_SETTINGS = {
-      libraryTimeoutMs: 18000,
-      backendTimeoutMs: 10000,
-      detectorTimeoutMs: 14000,
-      metadataTimeoutMs: 12000,
+      libraryTimeoutMs: 30000,
+      backendTimeoutMs: 20000,
+      detectorTimeoutMs: 50000,
+      metadataTimeoutMs: 20000,
       poseFpsCap: 24
     };
 
@@ -1058,14 +1061,12 @@
       const hasTf = () => !!window.tf;
       const hasPose = () => !!window.poseDetection?.SupportedModels;
 
-      const tfLoaded = await loadFromMirrorSafe([
-        './assets/vendor/tf.min.js',
+      const tfLoaded = hasTf() || await loadFromMirrorSafe([
         'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js',
         'https://unpkg.com/@tensorflow/tfjs@4.11.0/dist/tf.min.js'
       ], hasTf);
 
-      const poseLoaded = await loadFromMirrorSafe([
-        './assets/vendor/pose-detection.min.js',
+      const poseLoaded = hasPose() || await loadFromMirrorSafe([
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js',
         'https://unpkg.com/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js'
       ], hasPose);
@@ -1091,14 +1092,17 @@
       playBtn.disabled = true;
       aiInitInFlight = (async () => {
         try {
+          aiInitStage = 'load-libraries';
           setStatus('Loading AI libraries...', 'loading');
           await withTimeout(ensurePoseLibraries(), AI_SETTINGS.libraryTimeoutMs, 'AI library loading');
+          aiInitStage = 'tf-ready';
           await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
 
           setStatus('Preparing AI backend...', 'loading');
           let backendReady = false;
           for (const nextBackend of ['webgl', 'cpu']) {
             try {
+              aiInitStage = `backend-${nextBackend}`;
               await withTimeout(tf.setBackend(nextBackend), AI_SETTINGS.backendTimeoutMs, `${nextBackend} setup`);
               await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, `${nextBackend} ready`);
               backend = nextBackend;
@@ -1122,6 +1126,7 @@
           let created = false;
           for (const config of detectorConfigs) {
             try {
+              aiInitStage = `detector-${config.modelType}`;
               detector = await withTimeout(
                 poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, config),
                 AI_SETTINGS.detectorTimeoutMs,
@@ -1140,16 +1145,20 @@
             throw new Error('Unable to initialize pose detector.');
           }
 
+          aiInitStage = 'ready';
           setStatus(`AI Ready (MoveNet - ${backend.toUpperCase()})`, 'ready');
           playBtn.disabled = false;
           return true;
         } catch (error) {
           console.error('AI initialization failed:', error);
           const reason = (error && error.message) ? ` ${error.message}` : '';
-          setStatus(`AI failed to initialize.${reason} Click Retry AI Setup.`, 'error');
+          setStatus(`AI failed (${aiInitStage}).${reason} Click Retry AI Setup.`, 'error');
           playBtn.disabled = true;
           return false;
         } finally {
+          if (aiInitStage !== 'ready') {
+            aiInitStage = 'idle';
+          }
           aiInitInFlight = null;
         }
       })();
