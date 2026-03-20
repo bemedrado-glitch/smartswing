@@ -1059,11 +1059,13 @@
       const hasPose = () => !!window.poseDetection?.SupportedModels;
 
       const tfLoaded = await loadFromMirrorSafe([
+        './assets/vendor/tf.min.js',
         'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js',
         'https://unpkg.com/@tensorflow/tfjs@4.11.0/dist/tf.min.js'
       ], hasTf);
 
       const poseLoaded = await loadFromMirrorSafe([
+        './assets/vendor/pose-detection.min.js',
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js',
         'https://unpkg.com/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js'
       ], hasPose);
@@ -1143,7 +1145,8 @@
           return true;
         } catch (error) {
           console.error('AI initialization failed:', error);
-          setStatus('AI failed to initialize. Click Retry AI Setup.', 'error');
+          const reason = (error && error.message) ? ` ${error.message}` : '';
+          setStatus(`AI failed to initialize.${reason} Click Retry AI Setup.`, 'error');
           playBtn.disabled = true;
           return false;
         } finally {
@@ -2668,6 +2671,13 @@
     console.log('SmartSwing AI MoveNet loaded ✓');
     console.log('Press F12 → click Debug button for diagnostics');
     const params = new URLSearchParams(window.location.search);
+    if (params.get('selftest') === '1') {
+      requestAnimationFrame(async () => {
+        setStatus('Running AI self-test...', 'loading');
+        const ok = await initPoseEngine();
+        document.body.setAttribute('data-ai-selftest', ok ? 'pass' : 'fail');
+      });
+    }
     if (params.get('demo') === '1') {
       requestAnimationFrame(() => {
         try {

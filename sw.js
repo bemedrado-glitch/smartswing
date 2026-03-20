@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartswing-shell-v6';
+const CACHE_NAME = 'smartswing-shell-v7';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -17,6 +17,8 @@ const APP_ASSETS = [
   './manifest.json',
   './pwa.js',
   './app-data.js',
+  './assets/vendor/tf.min.js',
+  './assets/vendor/pose-detection.min.js',
   './advanced-biomechanics-engine.js',
   './improved-pose-detection.js'
 ];
