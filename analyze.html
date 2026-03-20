@@ -524,30 +524,13 @@
     }
     
     @media print {
-      .btn-group, .wizard-steps, .debug-btn {
+      .btn-group, .wizard-steps {
         display: none !important;
       }
-    }
-    
-    .debug-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 9999;
-      background: var(--error);
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
 <body>
-  <button class="debug-btn" onclick="debugSmartSwing()">Debug</button>
-
   <div class="container">
     <div class="wizard-section">
       <div class="header">
@@ -825,6 +808,9 @@
     let aiInitStage = 'idle';
     let detectorLabel = 'Not initialized';
     let lastAnalyzedVideoTime = -1;
+    let lastStableKeypoints = [];
+    let lastUiRefreshAt = 0;
+    let videoFrameCallbackId = null;
 
     const AI_SETTINGS = {
       libraryTimeoutMs: 30000,
@@ -833,7 +819,11 @@
       metadataTimeoutMs: 20000,
       poseFpsCap: 24,
       fallbackPoseFpsCap: 12,
-      maxStoredFrames: 1800
+      maxStoredFrames: 1800,
+      uiRefreshMs: 90,
+      minKeypointConfidence: 0.18,
+      smoothingAlpha: 0.68,
+      carryForwardDecay: 0.92
     };
 
     const analysisData = {
@@ -1054,11 +1044,76 @@
       }));
     }
 
+    function stabilizeKeypoints(keypoints) {
+      if (!Array.isArray(keypoints) || keypoints.length === 0) {
+        return lastStableKeypoints.map((kp) => ({ ...kp }));
+      }
+
+      const stabilized = keypoints.map((kp, index) => {
+        const current = {
+          x: safeNumber(kp?.x, 0),
+          y: safeNumber(kp?.y, 0),
+          score: safeNumber(kp?.score ?? kp?.confidence ?? kp?.visibility, 0)
+        };
+        const previous = lastStableKeypoints[index];
+
+        if (!previous) {
+          return current;
+        }
+
+        if (current.score < AI_SETTINGS.minKeypointConfidence) {
+          return {
+            x: previous.x,
+            y: previous.y,
+            score: Math.max(current.score, previous.score * AI_SETTINGS.carryForwardDecay)
+          };
+        }
+
+        return {
+          x: previous.x + ((current.x - previous.x) * AI_SETTINGS.smoothingAlpha),
+          y: previous.y + ((current.y - previous.y) * AI_SETTINGS.smoothingAlpha),
+          score: Math.max(current.score, previous.score * 0.35)
+        };
+      });
+
+      lastStableKeypoints = stabilized.map((kp) => ({ ...kp }));
+      return stabilized;
+    }
+
     function pushWithCap(arr, value) {
       arr.push(value);
       if (arr.length > AI_SETTINGS.maxStoredFrames) {
         arr.splice(0, arr.length - AI_SETTINGS.maxStoredFrames);
       }
+    }
+
+    function clearAnalyzerLoop(video) {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (videoFrameCallbackId != null && video && typeof video.cancelVideoFrameCallback === 'function') {
+        video.cancelVideoFrameCallback(videoFrameCallbackId);
+      }
+      videoFrameCallbackId = null;
+    }
+
+    function scheduleAnalyzeFrame(video) {
+      if (!isAnalyzing || !video || video.paused || !detector) {
+        rafId = null;
+        videoFrameCallbackId = null;
+        return;
+      }
+
+      if (typeof video.requestVideoFrameCallback === 'function') {
+        videoFrameCallbackId = video.requestVideoFrameCallback(() => {
+          videoFrameCallbackId = null;
+          analyzeFrame();
+        });
+        return;
+      }
+
+      rafId = requestAnimationFrame(analyzeFrame);
     }
 
     // Legacy initializer kept for compatibility debugging.
@@ -1388,7 +1443,7 @@
         const a = keypoints[i];
         const b = keypoints[j];
         
-        if (kpOk(a, 0.3) && kpOk(b, 0.3)) {
+        if (kpOk(a, AI_SETTINGS.minKeypointConfidence) && kpOk(b, AI_SETTINGS.minKeypointConfidence)) {
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
@@ -1398,7 +1453,7 @@
 
       // Draw keypoints
       keypoints.forEach(kp => {
-        if (kpOk(kp, 0.3)) {
+        if (kpOk(kp, AI_SETTINGS.minKeypointConfidence)) {
           ctx.fillStyle = 'rgba(57, 255, 20, 0.95)';
           ctx.beginPath();
           ctx.arc(kp.x, kp.y, Math.max(3, Math.round(canvas.width / 420)), 0, 2 * Math.PI);
@@ -1417,6 +1472,7 @@
       const video = document.getElementById('videoElement');
       
       if (!isAnalyzing || video.paused || !detector) {
+        videoFrameCallbackId = null;
         rafId = null;
         return;
       }
@@ -1424,7 +1480,7 @@
       try {
         syncCanvasToViewport();
         if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
-          rafId = requestAnimationFrame(analyzeFrame);
+          scheduleAnalyzeFrame(video);
           return;
         }
         lastAnalyzedVideoTime = video.currentTime;
@@ -1432,7 +1488,7 @@
         const now = performance.now();
         const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
         if (lastFrameAt && now - lastFrameAt < minDelta) {
-          rafId = requestAnimationFrame(analyzeFrame);
+          scheduleAnalyzeFrame(video);
           return;
         }
         lastFrameAt = now;
@@ -1442,13 +1498,14 @@
         if (poses && poses.length > 0) {
           const canvas = document.getElementById('poseCanvas');
           const transform = getVideoFitTransform(video, canvas);
-          const metricKeypoints = normalizeKeypointsToMoveNet(
+          const rawMetricKeypoints = normalizeKeypointsToMoveNet(
             poses[0].keypoints || [],
             transform.sourceWidth,
             transform.sourceHeight
           );
+          const metricKeypoints = stabilizeKeypoints(rawMetricKeypoints);
           const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
-          const validLandmarks = metricKeypoints.filter(kp => kpOk(kp, 0.3)).length;
+          const validLandmarks = metricKeypoints.filter(kp => kpOk(kp, AI_SETTINGS.minKeypointConfidence)).length;
           const confidence = Math.round(
             (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
           );
@@ -1505,6 +1562,97 @@
         }
       }
     }
+
+    analyzeFrame = async function() {
+      const video = document.getElementById('videoElement');
+
+      if (!isAnalyzing || !video || video.paused || !detector) {
+        videoFrameCallbackId = null;
+        rafId = null;
+        return;
+      }
+
+      try {
+        syncCanvasToViewport();
+        if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
+          scheduleAnalyzeFrame(video);
+          return;
+        }
+        lastAnalyzedVideoTime = video.currentTime;
+
+        const now = performance.now();
+        const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
+        if (lastFrameAt && now - lastFrameAt < minDelta) {
+          scheduleAnalyzeFrame(video);
+          return;
+        }
+        lastFrameAt = now;
+
+        const poses = await detector.estimatePoses(video);
+        if (poses && poses.length > 0) {
+          const canvas = document.getElementById('poseCanvas');
+          const transform = getVideoFitTransform(video, canvas);
+          const rawMetricKeypoints = normalizeKeypointsToMoveNet(
+            poses[0].keypoints || [],
+            transform.sourceWidth,
+            transform.sourceHeight
+          );
+          const metricKeypoints = stabilizeKeypoints(rawMetricKeypoints);
+          const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
+          const validLandmarks = metricKeypoints.filter((kp) => kpOk(kp, AI_SETTINGS.minKeypointConfidence)).length;
+          const confidence = Math.round(
+            (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
+          );
+          const angles = computeAngles(metricKeypoints);
+
+          for (const k in angles) {
+            if (angles[k] != null) {
+              pushWithCap(analysisData.angles[k], angles[k]);
+            }
+          }
+
+          pushWithCap(analysisData.frames, {
+            timestamp: video.currentTime,
+            landmarks: validLandmarks,
+            confidence,
+            angles
+          });
+          pushWithCap(analysisData.landmarks, validLandmarks);
+          pushWithCap(analysisData.confidence, confidence);
+
+          if (!lastUiRefreshAt || now - lastUiRefreshAt >= AI_SETTINGS.uiRefreshMs) {
+            lastUiRefreshAt = now;
+            document.getElementById('framesCount').textContent = analysisData.frames.length;
+            document.getElementById('landmarksCount').textContent = validLandmarks;
+            document.getElementById('confidenceValue').textContent = confidence + '%';
+            document.getElementById('angleShoulder').textContent = angles.shoulder != null ? angles.shoulder + 'Â°' : '-Â°';
+            document.getElementById('angleElbow').textContent = angles.elbow != null ? angles.elbow + 'Â°' : '-Â°';
+            document.getElementById('angleHip').textContent = angles.hip != null ? angles.hip + 'Â°' : '-Â°';
+            document.getElementById('angleKnee').textContent = angles.knee != null ? angles.knee + 'Â°' : '-Â°';
+            document.getElementById('angleTrunk').textContent = angles.trunk != null ? angles.trunk + 'Â°' : '-Â°';
+            document.getElementById('angleWrist').textContent = angles.wrist != null ? angles.wrist + 'Â°' : '-Â°';
+          }
+
+          if (analysisData.frames.length >= 30) {
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('generateReportBtn').style.display = 'inline-block';
+          }
+
+          drawPose(drawKeypoints);
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+        isAnalyzing = false;
+        setStatus('AI processing paused due to an error. Retry AI Setup and continue.', 'error');
+      } finally {
+        if (isAnalyzing && !video.paused && detector) {
+          scheduleAnalyzeFrame(video);
+        } else {
+          videoFrameCallbackId = null;
+          rafId = null;
+        }
+      }
+    };
 
     // ============================================================================
     // Professional Benchmarks
@@ -2478,6 +2626,9 @@
       analysisData.landmarks = [];
       analysisData.confidence = [];
       lastPersistedSignature = null;
+      lastStableKeypoints = [];
+      lastUiRefreshAt = 0;
+      clearAnalyzerLoop(video);
       playBtn.disabled = true;
       pauseBtn.style.display = 'none';
       playBtn.style.display = 'inline-block';
@@ -2561,13 +2712,11 @@
       isAnalyzing = true;
       lastFrameAt = 0;
       lastAnalyzedVideoTime = -1;
+      lastUiRefreshAt = 0;
       
       document.getElementById('playBtn').style.display = 'none';
       document.getElementById('pauseBtn').style.display = 'inline-block';
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+      clearAnalyzerLoop(video);
       
       analyzeFrame();
     });
@@ -2576,10 +2725,7 @@
       const video = document.getElementById('videoElement');
       video.pause();
       isAnalyzing = false;
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+      clearAnalyzerLoop(video);
       
       document.getElementById('pauseBtn').style.display = 'none';
       document.getElementById('playBtn').style.display = 'inline-block';
@@ -2594,12 +2740,11 @@
       video.pause();
       video.currentTime = 0;
       isAnalyzing = false;
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+      clearAnalyzerLoop(video);
       lastFrameAt = 0;
       lastAnalyzedVideoTime = -1;
+      lastStableKeypoints = [];
+      lastUiRefreshAt = 0;
       if (activeVideoUrl) {
         URL.revokeObjectURL(activeVideoUrl);
         activeVideoUrl = null;
@@ -2633,6 +2778,9 @@
 
     document.getElementById('retryAiBtn').addEventListener('click', async () => {
       setStatus('Retrying AI setup...', 'loading');
+      const video = document.getElementById('videoElement');
+      clearAnalyzerLoop(video);
+      isAnalyzing = false;
       try {
         if (detector && typeof detector.dispose === 'function') {
           detector.dispose();
@@ -2643,6 +2791,10 @@
       detector = null;
       backend = 'unknown';
       aiInitInFlight = null;
+      lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
+      lastStableKeypoints = [];
+      lastUiRefreshAt = 0;
       await initPoseEngine();
     });
 
@@ -2777,12 +2929,11 @@
       video.pause();
       video.currentTime = 0;
       isAnalyzing = false;
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+      clearAnalyzerLoop(video);
       lastFrameAt = 0;
       lastAnalyzedVideoTime = -1;
+      lastStableKeypoints = [];
+      lastUiRefreshAt = 0;
       if (activeVideoUrl) {
         URL.revokeObjectURL(activeVideoUrl);
         activeVideoUrl = null;
@@ -2815,26 +2966,7 @@
       setStep(1);
     });
 
-    // Debug Function
-    window.debugSmartSwing = function() {
-      console.clear();
-      console.log('=== SMARTSWING DEBUG ===');
-      console.log('Profile:', playerProfile);
-      console.log('Detector:', detector ? 'Ready' : 'Not loaded');
-      console.log('Backend:', backend);
-      console.log('Frames:', analysisData.frames.length);
-      console.log('Angle arrays:');
-      for (const k in analysisData.angles) {
-        const arr = analysisData.angles[k];
-        console.log(`  ${k}: ${arr.length} values`, arr.slice(0, 5));
-      }
-      console.log('Landmarks:', analysisData.landmarks.slice(0, 5));
-      console.log('Confidence:', analysisData.confidence.slice(0, 5));
-      return analysisData;
-    };
-
     console.log('SmartSwing AI MoveNet loaded ✓');
-    console.log('Press F12 → click Debug button for diagnostics');
     const params = new URLSearchParams(window.location.search);
     if (params.get('selftest') === '1') {
       requestAnimationFrame(async () => {
