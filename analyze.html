@@ -817,8 +817,11 @@
       backendTimeoutMs: 20000,
       detectorTimeoutMs: 50000,
       metadataTimeoutMs: 20000,
-      poseFpsCap: 24,
+      poseFpsCap: 14,
       fallbackPoseFpsCap: 12,
+      litePoseFpsCap: 14,
+      fullPoseFpsCap: 10,
+      cpuMoveNetFpsCap: 12,
       maxStoredFrames: 1800,
       uiRefreshMs: 90,
       minKeypointConfidence: 0.18,
@@ -1236,72 +1239,13 @@
           aiInitStage = 'load-libraries';
           setStatus('Loading AI libraries...', 'loading');
           await withTimeout(ensurePoseLibraries(), AI_SETTINGS.libraryTimeoutMs, 'AI library loading');
-          let tfBackendReady = false;
-          if (window.tf && typeof tf.ready === 'function') {
-            aiInitStage = 'tf-ready';
-            await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
-
-            setStatus('Preparing AI backend...', 'loading');
-            for (const nextBackend of ['webgl', 'cpu']) {
-              try {
-                aiInitStage = `backend-${nextBackend}`;
-                await withTimeout(tf.setBackend(nextBackend), AI_SETTINGS.backendTimeoutMs, `${nextBackend} setup`);
-                await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, `${nextBackend} ready`);
-                backend = nextBackend;
-                tfBackendReady = true;
-                break;
-              } catch (backendError) {
-                console.warn(`Backend ${nextBackend} unavailable:`, backendError);
-              }
-            }
-          }
-
           setStatus('Creating pose detector...', 'loading');
-          const detectorStrategies = [];
-          if (tfBackendReady) {
-            detectorStrategies.push(
-              {
-                id: 'movenet-lightning',
-                label: `MoveNet Lightning (${backend.toUpperCase()})`,
-                stage: 'detector-movenet-lightning',
-                create: () => poseDetection.createDetector(
-                  poseDetection.SupportedModels.MoveNet,
-                  { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING, enableSmoothing: true }
-                )
-              },
-              {
-                id: 'movenet-thunder',
-                label: `MoveNet Thunder (${backend.toUpperCase()})`,
-                stage: 'detector-movenet-thunder',
-                create: () => poseDetection.createDetector(
-                  poseDetection.SupportedModels.MoveNet,
-                  { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, enableSmoothing: true }
-                )
-              }
-            );
-          } else {
-            console.warn('TensorFlow backend unavailable. Falling back to local MediaPipe runtime.');
-          }
-
-          detectorStrategies.push(
-            {
-              id: 'blazepose-mediapipe-full',
-              label: 'BlazePose Full (MediaPipe local)',
-              stage: 'detector-blazepose-full',
-              create: () => poseDetection.createDetector(
-                poseDetection.SupportedModels.BlazePose,
-                {
-                  runtime: 'mediapipe',
-                  modelType: 'full',
-                  enableSmoothing: true,
-                  solutionPath: './assets/vendor/mediapipe/pose'
-                }
-              )
-            },
+          const detectorStrategies = [
             {
               id: 'blazepose-mediapipe-lite',
               label: 'BlazePose Lite (MediaPipe local)',
               stage: 'detector-blazepose-lite',
+              fpsCap: AI_SETTINGS.litePoseFpsCap,
               create: () => poseDetection.createDetector(
                 poseDetection.SupportedModels.BlazePose,
                 {
@@ -1311,8 +1255,46 @@
                   solutionPath: './assets/vendor/mediapipe/pose'
                 }
               )
+            },
+            {
+              id: 'blazepose-mediapipe-full',
+              label: 'BlazePose Full (MediaPipe local)',
+              stage: 'detector-blazepose-full',
+              fpsCap: AI_SETTINGS.fullPoseFpsCap,
+              create: () => poseDetection.createDetector(
+                poseDetection.SupportedModels.BlazePose,
+                {
+                  runtime: 'mediapipe',
+                  modelType: 'full',
+                  enableSmoothing: true,
+                  solutionPath: './assets/vendor/mediapipe/pose'
+                }
+              )
             }
-          );
+          ];
+
+          if (window.tf && typeof tf.ready === 'function') {
+            try {
+              aiInitStage = 'tf-ready';
+              await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
+              aiInitStage = 'backend-cpu';
+              await withTimeout(tf.setBackend('cpu'), AI_SETTINGS.backendTimeoutMs, 'cpu setup');
+              await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'cpu ready');
+              backend = 'cpu';
+              detectorStrategies.push({
+                id: 'movenet-thunder-cpu',
+                label: 'MoveNet Thunder (CPU fallback)',
+                stage: 'detector-movenet-thunder-cpu',
+                fpsCap: AI_SETTINGS.cpuMoveNetFpsCap,
+                create: () => poseDetection.createDetector(
+                  poseDetection.SupportedModels.MoveNet,
+                  { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, enableSmoothing: true }
+                )
+              });
+            } catch (backendError) {
+              console.warn('TensorFlow CPU fallback unavailable:', backendError);
+            }
+          }
 
           let created = false;
           let lastDetectorError = null;
@@ -1326,6 +1308,7 @@
               );
               if (detector) {
                 detectorLabel = strategy.label;
+                AI_SETTINGS.poseFpsCap = strategy.fpsCap || AI_SETTINGS.poseFpsCap;
                 created = true;
                 break;
               }
@@ -1338,10 +1321,6 @@
           if (!created) {
             throw lastDetectorError || new Error('Unable to initialize pose detector.');
           }
-
-          AI_SETTINGS.poseFpsCap = detectorLabel.includes('BlazePose')
-            ? AI_SETTINGS.fallbackPoseFpsCap
-            : 24;
 
           aiInitStage = 'ready';
           setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
