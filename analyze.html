@@ -2857,9 +2857,16 @@
       return drills.slice(0, 4).map((drill, index) => `
         <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 12px;">
           <div style="font-weight: 800; color: var(--neon-green); margin-bottom: 6px;">${index + 1}. ${drill.title}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+            <span style="font-size: 12px; font-weight: 800; color: var(--void-black); background: var(--neon-green); padding: 4px 10px; border-radius: 999px;">${drill.priorityLabel || 'Priority'}</span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--silver); background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 999px;">${drill.duration || drill.recommendedPracticeTime || '10-15 min'}</span>
+          </div>
           <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Focus: ${drill.focus}</div>
           <div style="font-size: 14px; margin-bottom: 8px;"><strong>Prescription:</strong> ${drill.prescription}</div>
           <div style="font-size: 14px;"><strong>Coaching cue:</strong> ${drill.cue}</div>
+          ${drill.targets?.length ? `<div style="font-size: 14px; margin-top: 8px;"><strong>Targets:</strong> ${drill.targets.join(' | ')}</div>` : ''}
+          ${drill.expectedImprovement ? `<div style="font-size: 14px; margin-top: 8px;"><strong>Expected gain:</strong> ${drill.expectedImprovement}</div>` : ''}
+          ${drill.whyThisFits ? `<div style="font-size: 14px; margin-top: 8px;"><strong>Why this fits:</strong> ${drill.whyThisFits}</div>` : ''}
           ${drill.videoUrl
             ? hasLibraryAccess
               ? `<div style="font-size: 13px; margin-top: 8px;"><strong>Video:</strong> <a href="${drill.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${drill.videoTitle || 'Open drill video'}</a>${drill.channel ? ` (${drill.channel})` : ''}</div>`
@@ -2881,6 +2888,9 @@
           <div style="font-weight: 800; color: var(--electric-cyan); margin-bottom: 6px;">${index + 1}. ${tactic.title}</div>
           <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Situation: ${tactic.situation || 'general'} | Level: ${tactic.skillLevel || 'all'}</div>
           <div style="font-size: 14px; margin-bottom: 8px;">${tactic.summary || ''}</div>
+          ${tactic.message ? `<div style="font-size: 14px; margin-bottom: 8px;"><strong>Why now:</strong> ${tactic.message}</div>` : ''}
+          ${tactic.tacticalFocus?.length ? `<div style="font-size: 14px; margin-bottom: 8px;"><strong>Tactical focus:</strong> ${tactic.tacticalFocus.join(' | ')}</div>` : ''}
+          ${tactic.expectedImprovement ? `<div style="font-size: 14px; margin-bottom: 8px;"><strong>Expected impact:</strong> ${Object.values(tactic.expectedImprovement).slice(0, 2).join(' | ')}</div>` : ''}
           ${tactic.videoUrl
             ? hasLibraryAccess
               ? `<div style="font-size: 13px;"><strong>Video:</strong> <a href="${tactic.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${tactic.channel || 'Open tactic video'}</a></div>`

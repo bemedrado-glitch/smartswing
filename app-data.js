@@ -150,6 +150,50 @@
     { id: 'tactic_30_one_way_beat_pusher', title: 'The 1 Strategy to Beat the Pusher', videoUrl: 'https://www.youtube.com/@TennisEvolution/search?query=The%201%20Strategy%20to%20Beat%20the%20Pusher', channel: 'Tennis Evolution', situation: 'defense', skillLevel: 'intermediate', summary: 'One repeatable pattern to stop losing control against moonball and pusher styles.' }
   ];
 
+  const METRIC_TO_WEAKNESS = {
+    shoulder: 'shoulder_rotation_low',
+    elbow: 'elbow_extension_low',
+    hip: 'hip_rotation_low',
+    knee: 'leg_drive_low',
+    trunk: 'trunk_rotation_low',
+    wrist: 'racquet_speed_low',
+    stanceWidth: 'base_width_unstable',
+    contactHeight: 'contact_height_inconsistent',
+    reach: 'spacing_inconsistent',
+    balance: 'balance_unstable',
+    alignmentGap: 'kinetic_chain_disconnect',
+    footworkLoad: 'footwork_slow',
+    timing: 'timing_inconsistent',
+    positioning: 'court_positioning_low',
+    consistency: 'consistency_low'
+  };
+
+  const WEAKNESS_TO_DRILL_MAP = {
+    shoulder_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_01_complete_beginner', 'drill_04_forehand_complete', 'drill_10_modern_forehand', 'drill_19_forehand_masterclass_macci'], targets: ['shoulder rotation', 'unit turn', 'coil depth'], expectedGain: '6-12 deg cleaner unit turn in 2-3 sessions', practice: '12-15 min/day' },
+    elbow_extension_low: { strokeFilter: ['forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_04_forehand_complete', 'drill_07_backhand_easy', 'drill_09_volley_img', 'drill_19_forehand_masterclass_macci'], targets: ['contact extension', 'arm path', 'ball control'], expectedGain: '4-8 deg cleaner contact structure', practice: '10-12 min/day' },
+    hip_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_12_kinetic_chain', 'drill_14_mouratoglou_forehand', 'drill_24_agility_no_equipment'], targets: ['hip drive', 'kinetic chain', 'power transfer'], expectedGain: '5-10 deg more lower-body contribution', practice: '12-18 min/day' },
+    leg_drive_low: { strokeFilter: ['serve', 'forehand', 'volley', 'multi'], drillIds: ['drill_03_serve_masterclass', 'drill_06_serve_drills_img', 'drill_12_kinetic_chain', 'drill_21_split_step'], targets: ['leg drive', 'loading depth', 'explosiveness'], expectedGain: '5-9 points in power/readiness blend', practice: '10-15 min/day' },
+    trunk_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_10_modern_forehand', 'drill_12_kinetic_chain', 'drill_28_topspin_5_steps', 'drill_29_warmup_coordination'], targets: ['torso sequencing', 'rotation timing', 'core transfer'], expectedGain: '5-8 deg cleaner torso transfer', practice: '12-15 min/day' },
+    racquet_speed_low: { strokeFilter: ['forehand', 'serve', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_12_kinetic_chain', 'drill_19_forehand_masterclass_macci', 'drill_27_wrist_lag'], targets: ['racquet-head speed', 'lag and release', 'acceleration'], expectedGain: '4-9 mph equivalent speed gain', practice: '10-14 min/day' },
+    contact_height_inconsistent: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_02_beginner_rally', 'drill_13_watch_ball', 'drill_23_ball_machine_set', 'drill_25_fix_forehand_mistakes'], targets: ['contact window', 'spacing', 'timing'], expectedGain: '6-10 points in contact-height score', practice: '10-12 min/day' },
+    spacing_inconsistent: { strokeFilter: ['forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_16_return_reaction', 'drill_23_ball_machine_set', 'drill_30_basics_footwork'], targets: ['spacing', 'distance from body', 'recovery positioning'], expectedGain: '6-10 points in spacing score', practice: '10-15 min/day' },
+    balance_unstable: { strokeFilter: ['forehand', 'backhand', 'volley', 'serve', 'multi'], drillIds: ['drill_09_volley_img', 'drill_17_volley_elite_set', 'drill_21_split_step', 'drill_29_warmup_coordination'], targets: ['balance', 'base control', 'centered strike'], expectedGain: '5-9 points in footwork score', practice: '8-12 min/day' },
+    footwork_slow: { strokeFilter: ['multi', 'forehand', 'backhand', 'return'], drillIds: ['drill_16_return_reaction', 'drill_21_split_step', 'drill_22_footwork_5_drills', 'drill_24_agility_no_equipment', 'drill_30_basics_footwork'], targets: ['split step', 'first move', 'court recovery'], expectedGain: '8-14 points in footwork/readiness', practice: '10-15 min/day' },
+    consistency_low: { strokeFilter: ['multi', 'forehand', 'backhand'], drillIds: ['drill_02_beginner_rally', 'drill_13_watch_ball', 'drill_23_ball_machine_set', 'drill_28_topspin_5_steps'], targets: ['repeatability', 'margin', 'clean contact'], expectedGain: '6-12 points in timing consistency', practice: '12-18 min/day' },
+    timing_inconsistent: { strokeFilter: ['multi', 'forehand', 'backhand', 'serve'], drillIds: ['drill_02_beginner_rally', 'drill_13_watch_ball', 'drill_16_return_reaction', 'drill_29_warmup_coordination'], targets: ['strike timing', 'ball tracking', 'tempo'], expectedGain: '6-12 points in timing consistency', practice: '8-12 min/day' },
+    court_positioning_low: { strokeFilter: ['multi', 'forehand', 'backhand', 'return'], drillIds: ['drill_21_split_step', 'drill_22_footwork_5_drills', 'drill_24_agility_no_equipment', 'drill_30_basics_footwork'], targets: ['court position', 'recovery routes', 'base width'], expectedGain: '5-10 points in positioning score', practice: '10-12 min/day' },
+    kinetic_chain_disconnect: { strokeFilter: ['forehand', 'serve', 'backhand', 'multi'], drillIds: ['drill_10_modern_forehand', 'drill_12_kinetic_chain', 'drill_19_forehand_masterclass_macci', 'drill_29_warmup_coordination'], targets: ['upper-lower sync', 'chain transfer', 'posture control'], expectedGain: '5-8 points in biomechanics blend', practice: '10-14 min/day' }
+  };
+
+  const TACTIC_RECOMMENDATION_MAP = [
+    { id: 'baseline-margin', situations: ['baseline'], tacticIds: ['tactic_01_crosscourt_geometry', 'tactic_05_where_to_aim', 'tactic_15_crosscourt_habit'], when: (ctx) => ctx.shotType !== 'serve' },
+    { id: 'serve-patterns', situations: ['serve'], tacticIds: ['tactic_07_serve_plus_one', 'tactic_08_serve_plus_one_essential', 'tactic_13_slice_vs_kick'], when: (ctx) => ctx.shotType === 'serve' || ctx.readiness < 78 },
+    { id: 'net-pressure', situations: ['net'], tacticIds: ['tactic_09_dominate_net', 'tactic_11_approach_mastery', 'tactic_28_attack_net'], when: (ctx) => ctx.shotType === 'volley' || ctx.positioning < 76 },
+    { id: 'defense-reset', situations: ['defense'], tacticIds: ['tactic_12_beat_pusher', 'tactic_20_smart_defense', 'tactic_24_backhand_defense', 'tactic_30_one_way_beat_pusher'], when: (ctx) => ctx.footwork < 78 || ctx.mode.includes('injury') || ctx.mode.includes('rebuild') },
+    { id: 'point-construction', situations: ['point-construction'], tacticIds: ['tactic_16_first_four_shots', 'tactic_17_one_two_pattern', 'tactic_22_inside_out_fix', 'tactic_26_golden_rules'], when: (ctx) => ctx.mode.includes('match') || ctx.score >= 78 },
+    { id: 'general-discipline', situations: ['general'], tacticIds: ['tactic_02_watch_ball', 'tactic_04_four_zones', 'tactic_14_dominate_singles', 'tactic_25_outsmart_opponent'], when: () => true }
+  ];
+
   const SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   let supabaseClient = null;
   let supabaseLoadPromise = null;
@@ -223,6 +267,233 @@
     }
     if (shot === 'return') return stroke.includes('return') || stroke.includes('serve');
     return stroke.includes(shot);
+  }
+
+  function isLevelAppropriate(resourceLevel, userLevel) {
+    const resourceRank = skillRank(resourceLevel);
+    const userRank = levelRank(userLevel);
+    if (resourceRank === 0) return true;
+    return resourceRank >= Math.max(1, userRank - 1) && resourceRank <= Math.min(4, userRank + 1);
+  }
+
+  function uniqueList(values) {
+    return [...new Set((values || []).filter(Boolean))];
+  }
+
+  function humanizeWeaknessKey(key) {
+    return String(key || '')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function enrichDrillResource(drill) {
+    const mappings = Object.entries(WEAKNESS_TO_DRILL_MAP).filter(([, config]) => (config.drillIds || []).includes(drill.id));
+    const targets = uniqueList(mappings.flatMap(([, config]) => config.targets || []));
+    const weaknessMatch = mappings.reduce((acc, [weaknessKey]) => {
+      acc[weaknessKey] = 0.9;
+      return acc;
+    }, {});
+    const expectedImprovement = mappings.reduce((acc, [weaknessKey, config]) => {
+      acc[weaknessKey] = config.expectedGain;
+      return acc;
+    }, {});
+
+    return {
+      ...drill,
+      strokeTypeLabel: String(drill.strokeType || '').replace(/multi/g, 'Multi-stroke'),
+      targets,
+      weaknessMatch,
+      expectedImprovement,
+      recommendedPracticeTime: mappings[0]?.[1]?.practice || '10-15 min/day'
+    };
+  }
+
+  function enrichTacticResource(tactic) {
+    const tacticalFocus = uniqueList([
+      tactic.situation,
+      tactic.situation === 'baseline' ? 'percentage play' : '',
+      tactic.situation === 'serve' ? 'serve plus one' : '',
+      tactic.situation === 'net' ? 'transition pressure' : '',
+      tactic.situation === 'defense' ? 'neutralizing patterns' : '',
+      tactic.situation === 'point-construction' ? 'pattern building' : '',
+      tactic.situation === 'general' ? 'match discipline' : ''
+    ]);
+
+    return {
+      ...tactic,
+      tacticalFocus,
+      expectedImprovement: tactic.situation === 'serve'
+        ? { pointConstruction: '+10-18%', firstBallIntent: '+12-20%' }
+        : tactic.situation === 'baseline'
+          ? { consistency: '+10-15%', decisionMaking: '+12-18%' }
+          : tactic.situation === 'defense'
+            ? { neutralBalls: '+10-16%', recovery: '+8-14%' }
+            : { decisionMaking: '+8-15%', tacticalClarity: '+10-18%' }
+    };
+  }
+
+  function metricScoreLookup(assessment) {
+    const lookup = {};
+    (assessment.metricComparisons || []).forEach((item) => {
+      lookup[item.metric] = safeNumber(item.score, 70);
+    });
+    lookup.timing = safeNumber(assessment.componentScores?.timing, safeNumber(assessment.performanceKpis?.timingConsistency, 70));
+    lookup.footwork = safeNumber(assessment.componentScores?.footwork, safeNumber(assessment.performanceKpis?.footworkScore, 70));
+    lookup.positioning = safeNumber(assessment.componentScores?.positioning, safeNumber(assessment.performanceKpis?.positioningScore, 70));
+    lookup.readiness = safeNumber(assessment.componentScores?.readiness, safeNumber(assessment.performanceKpis?.readinessIndex, 70));
+    lookup.consistency = safeNumber(assessment.performanceKpis?.timingConsistency, 70);
+    return lookup;
+  }
+
+  function detectWeaknesses(assessment) {
+    const directMetrics = [...(assessment.metricComparisons || [])]
+      .filter((item) => item.status === 'needs-work' || item.status === 'workable' || safeNumber(item.score, 80) < 78)
+      .sort((a, b) => {
+        if (safeNumber(a.score, 0) !== safeNumber(b.score, 0)) return safeNumber(a.score, 0) - safeNumber(b.score, 0);
+        return Math.abs(safeNumber(b.delta, 0)) - Math.abs(safeNumber(a.delta, 0));
+      })
+      .map((item) => ({
+        weaknessKey: METRIC_TO_WEAKNESS[item.metric] || `${item.metric}_low`,
+        metric: item.metric,
+        score: safeNumber(item.score, 70),
+        severity: item.status === 'needs-work' ? 'high' : 'moderate',
+        priority: item.status === 'needs-work' ? 1 : 2,
+        delta: safeNumber(item.delta, 0),
+        label: humanizeWeaknessKey(METRIC_TO_WEAKNESS[item.metric] || `${item.metric}_low`)
+      }));
+
+    const supplemental = [];
+    const kpis = assessment.performanceKpis || {};
+    if (safeNumber(kpis.timingConsistency, 100) < 76) supplemental.push({ weaknessKey: 'timing_inconsistent', metric: 'timing', score: safeNumber(kpis.timingConsistency, 70), severity: 'high', priority: 1, delta: 0, label: 'Timing Inconsistent' });
+    if (safeNumber(kpis.footworkScore, 100) < 76) supplemental.push({ weaknessKey: 'footwork_slow', metric: 'footwork', score: safeNumber(kpis.footworkScore, 70), severity: 'high', priority: 1, delta: 0, label: 'Footwork Slow' });
+    if (safeNumber(kpis.positioningScore, 100) < 76) supplemental.push({ weaknessKey: 'court_positioning_low', metric: 'positioning', score: safeNumber(kpis.positioningScore, 70), severity: 'moderate', priority: 2, delta: 0, label: 'Court Positioning Low' });
+    if (safeNumber(kpis.spacingScore, 100) < 76) supplemental.push({ weaknessKey: 'spacing_inconsistent', metric: 'reach', score: safeNumber(kpis.spacingScore, 70), severity: 'moderate', priority: 2, delta: 0, label: 'Spacing Inconsistent' });
+
+    const merged = [...directMetrics, ...supplemental];
+    const byKey = new Map();
+    merged.forEach((item) => {
+      if (!byKey.has(item.weaknessKey) || safeNumber(item.score, 100) < safeNumber(byKey.get(item.weaknessKey).score, 100)) {
+        byKey.set(item.weaknessKey, item);
+      }
+    });
+
+    return [...byKey.values()]
+      .sort((a, b) => a.priority - b.priority || safeNumber(a.score, 100) - safeNumber(b.score, 100))
+      .slice(0, 5);
+  }
+
+  function calculateDrillRelevance(drill, weakness, assessment) {
+    const mapping = WEAKNESS_TO_DRILL_MAP[weakness.weaknessKey];
+    if (!mapping) return 0;
+    let score = 0;
+    if ((mapping.drillIds || []).includes(drill.id)) score += 55;
+    if ((drill.metricTags || []).includes(weakness.metric)) score += 20;
+    if (supportsShot(drill.strokeType, assessment.shotType)) score += 15;
+    if (isLevelAppropriate(drill.skillLevel, assessment.level || assessment.playerLevel)) score += 10;
+    if (String(drill.channel || '').includes('Intuitive') || String(drill.channel || '').includes('Top Tennis') || String(drill.channel || '').includes('Rick Macci')) score += 5;
+    return score;
+  }
+
+  function matchDrillsToWeaknesses(assessment) {
+    const shotType = normalizeShot(assessment.shotType || 'forehand');
+    const level = normalizeLevel(assessment.level || assessment.playerLevel || 'intermediate');
+    const weaknesses = detectWeaknesses(assessment);
+    const recommendations = [];
+    const used = new Set();
+
+    weaknesses.forEach((weakness) => {
+      const mapping = WEAKNESS_TO_DRILL_MAP[weakness.weaknessKey];
+      if (!mapping) return;
+      const candidates = getDrillLibrary({ level, shotType })
+        .filter((drill) => !used.has(drill.id))
+        .filter((drill) => (mapping.drillIds || []).includes(drill.id) || (mapping.strokeFilter || []).some((stroke) => supportsShot(drill.strokeType, stroke)))
+        .map((drill) => ({
+          weakness,
+          drill,
+          relevanceScore: calculateDrillRelevance(drill, weakness, { ...assessment, shotType, level })
+        }))
+        .sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+      const top = candidates[0];
+      if (!top) return;
+      used.add(top.drill.id);
+      recommendations.push({
+        id: top.drill.id,
+        title: top.drill.title,
+        focus: `${humanizeWeaknessKey(weakness.weaknessKey)} | ${top.drill.focus}`,
+        prescription: `${mapping.practice || top.drill.recommendedPracticeTime || '10-15 min/day'} with one focused correction cue, then 6-10 live-ball reps.`,
+        cue: metricCue(weakness.metric, safeNumber(weakness.delta, 0)),
+        videoUrl: top.drill.videoUrl,
+        videoTitle: top.drill.title,
+        channel: top.drill.channel,
+        duration: top.drill.duration || '',
+        libraryFocus: top.drill.focus || '',
+        priority: weakness.priority,
+        priorityLabel: weakness.severity === 'high' ? 'High priority' : 'Build next',
+        weaknessKey: weakness.weaknessKey,
+        weaknessLabel: weakness.label,
+        targets: mapping.targets || top.drill.targets || [],
+        expectedImprovement: mapping.expectedGain,
+        whyThisFits: `Recommended because ${weakness.label.toLowerCase()} is one of the largest gaps in this session and this drill directly trains ${((mapping.targets || []).slice(0, 2).join(' and ')) || 'the needed movement pattern'}.`,
+        relevanceScore: top.relevanceScore,
+        recommendedPracticeTime: mapping.practice || top.drill.recommendedPracticeTime || '10-15 min/day'
+      });
+    });
+
+    return recommendations.slice(0, 5);
+  }
+
+  function calculateTacticRelevance(tactic, context, assessment) {
+    let score = 0;
+    if ((context.tacticIds || []).includes(tactic.id)) score += 55;
+    if (String(tactic.situation || '').includes(context.situations?.[0] || '')) score += 20;
+    if (isLevelAppropriate(tactic.skillLevel, assessment.level || assessment.playerLevel)) score += 15;
+    if (assessment.sessionMode && String(tactic.summary || '').toLowerCase().includes('pressure')) score += 5;
+    return score;
+  }
+
+  function matchTacticsToProfile(assessment) {
+    const level = normalizeLevel(assessment.level || assessment.playerLevel || 'intermediate');
+    const score = safeNumber(assessment.overallScore, assessment.score, 70);
+    const metrics = metricScoreLookup(assessment);
+    const mode = String(assessment.sessionMode || '').toLowerCase();
+    const ctx = {
+      shotType: normalizeShot(assessment.shotType || 'forehand'),
+      mode,
+      score,
+      readiness: safeNumber(assessment.performanceKpis?.readinessIndex, safeNumber(metrics.readiness, 70)),
+      footwork: safeNumber(assessment.performanceKpis?.footworkScore, safeNumber(metrics.footwork, 70)),
+      positioning: safeNumber(assessment.performanceKpis?.positioningScore, safeNumber(metrics.positioning, 70))
+    };
+
+    const picks = [];
+    const used = new Set();
+    TACTIC_RECOMMENDATION_MAP.forEach((context) => {
+      if (!context.when(ctx)) return;
+      const candidate = getTacticLibrary({ level, situation: context.situations[0] })
+        .filter((item) => !used.has(item.id))
+        .map((item) => ({ tactic: item, score: calculateTacticRelevance(item, context, assessment) }))
+        .sort((a, b) => b.score - a.score)[0];
+      if (!candidate) return;
+      used.add(candidate.tactic.id);
+      picks.push({
+        ...candidate.tactic,
+        relevanceScore: candidate.score,
+        message: context.id === 'serve-patterns'
+          ? 'You are ready for a serve-plus-one plan so the serve and next ball work as one pattern.'
+          : context.id === 'baseline-margin'
+            ? 'Your report needs higher-margin baseline decisions, not just cleaner mechanics.'
+            : context.id === 'net-pressure'
+              ? 'These tactics help you turn improved movement into finishing patterns at the net.'
+              : context.id === 'defense-reset'
+                ? 'Use these tactical resets to survive pressure while the mechanics catch up.'
+                : context.id === 'point-construction'
+                  ? 'Your score is high enough to benefit from intentional point-building patterns.'
+                  : 'These match-play habits raise decision quality and reduce free points given away.'
+      });
+    });
+
+    return picks.slice(0, 3);
   }
 
   function getMonthKey(date = new Date()) {
@@ -827,10 +1098,10 @@
 
     return DRILL_LIBRARY.filter((item) => {
       if (shotType && !supportsShot(item.strokeType, shotType)) return false;
-      if (level && skillRank(item.skillLevel) > levelRank(level)) return false;
+      if (level && !isLevelAppropriate(item.skillLevel, level)) return false;
       if (metric && !(item.metricTags || []).includes(metric)) return false;
       return true;
-    });
+    }).map(enrichDrillResource);
   }
 
   function getTacticLibrary(filters = {}) {
@@ -838,10 +1109,10 @@
     const situation = String(filters.situation || '').toLowerCase();
 
     return TACTIC_LIBRARY.filter((item) => {
-      if (level && skillRank(item.skillLevel) > levelRank(level)) return false;
+      if (level && !isLevelAppropriate(item.skillLevel, level)) return false;
       if (situation && !String(item.situation || '').toLowerCase().includes(situation)) return false;
       return true;
-    });
+    }).map(enrichTacticResource);
   }
 
   function metricCue(metric, delta) {
@@ -862,83 +1133,11 @@
   }
 
   function buildTailoredDrills(assessment) {
-    const shotType = normalizeShot(assessment.shotType || 'forehand');
-    const level = normalizeLevel(assessment.level || assessment.playerLevel || 'intermediate');
-    const levelProfile = {
-      beginner: { sets: 2, reps: 8 },
-      intermediate: { sets: 3, reps: 10 },
-      advanced: { sets: 4, reps: 12 },
-      pro: { sets: 4, reps: 14 }
-    }[level] || { sets: 3, reps: 10 };
-
-    const ranked = [...(assessment.metricComparisons || [])]
-      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-      .slice(0, 4);
-
-    const usedLibrary = new Set();
-    const plan = [];
-
-    const issues = ranked.length ? ranked : [{ metric: 'timing', delta: 0, status: 'good' }];
-
-    issues.forEach((issue, index) => {
-      const metric = String(issue.metric || 'timing').toLowerCase();
-      const match = getDrillLibrary({ shotType, level, metric }).find((item) => !usedLibrary.has(item.id))
-        || getDrillLibrary({ shotType, level }).find((item) => !usedLibrary.has(item.id))
-        || getDrillLibrary({ level }).find((item) => !usedLibrary.has(item.id));
-
-      if (match) usedLibrary.add(match.id);
-
-      const titleMetric = metric === 'timing' ? 'timing' : `${metric}`;
-      plan.push({
-        title: `${titleMetric.charAt(0).toUpperCase() + titleMetric.slice(1)} correction block`,
-        focus: `${shotType} mechanics`,
-        prescription: `${levelProfile.sets} x ${levelProfile.reps + index} controlled reps, then ${levelProfile.reps + 2} live-ball reps with immediate reset.`,
-        cue: metricCue(metric, safeNumber(issue.delta)),
-        videoUrl: match?.videoUrl || '',
-        videoTitle: match?.title || '',
-        channel: match?.channel || '',
-        duration: match?.duration || '',
-        libraryFocus: match?.focus || ''
-      });
-    });
-
-    return plan.slice(0, 4);
+    return matchDrillsToWeaknesses(assessment);
   }
 
   function getTacticRecommendations(assessment) {
-    const shotType = normalizeShot(assessment.shotType || 'forehand');
-    const level = normalizeLevel(assessment.level || assessment.playerLevel || 'intermediate');
-    const mode = String(assessment.sessionMode || '').toLowerCase();
-    const topIssue = [...(assessment.metricComparisons || [])]
-      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
-
-    const contexts = [];
-    if (shotType === 'serve') contexts.push('serve');
-    if (shotType === 'volley') contexts.push('net');
-    if (shotType === 'forehand' || shotType === 'backhand' || shotType === 'slice' || shotType === 'drop-shot' || shotType === 'lob') contexts.push('baseline');
-    if (mode.includes('match')) contexts.push('point-construction');
-    if (mode.includes('injury') || mode.includes('rebuild')) contexts.push('defense');
-    if (!contexts.length) contexts.push('general');
-
-    const picks = [];
-    contexts.forEach((context) => {
-      const candidate = getTacticLibrary({ level, situation: context })[0];
-      if (candidate && !picks.some((item) => item.id === candidate.id)) picks.push(candidate);
-    });
-
-    if (topIssue && (topIssue.metric === 'trunk' || topIssue.metric === 'hip')) {
-      const construction = getTacticLibrary({ level, situation: 'point-construction' })[0];
-      if (construction && !picks.some((item) => item.id === construction.id)) picks.push(construction);
-    }
-
-    if (picks.length < 3) {
-      getTacticLibrary({ level }).forEach((item) => {
-        if (picks.length >= 3) return;
-        if (!picks.some((entry) => entry.id === item.id)) picks.push(item);
-      });
-    }
-
-    return picks.slice(0, 3);
+    return matchTacticsToProfile(assessment);
   }
 
   function evaluateGoalStatus(goal) {
@@ -1651,6 +1850,9 @@
     getDrillLibrary,
     getTacticLibrary,
     getTacticRecommendations,
+    detectWeaknesses,
+    matchDrillsToWeaknesses,
+    matchTacticsToProfile,
     saveAssessment,
     getUserAssessments,
     getDashboardMetrics,

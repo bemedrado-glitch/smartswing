@@ -49,6 +49,8 @@ $requiredMarkers = @(
   'Tailored Drill Plan',
   'Match Tactics for This Session',
   '7-Day Execution Plan',
+  'Expected gain',
+  'Why this fits',
   'Shoulder',
   'Elbow',
   'Hip',

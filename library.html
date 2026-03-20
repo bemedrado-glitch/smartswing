@@ -205,6 +205,8 @@
             <div class="title">${drill.title}</div>
             <div class="meta">${drill.channel} | ${drill.skillLevel} | ${drill.strokeType} | ${drill.duration || ''}</div>
             <div class="muted">${drill.focus}</div>
+            ${drill.targets?.length ? `<div class="muted" style="margin-top:8px;"><strong>Targets:</strong> ${drill.targets.slice(0, 3).join(' | ')}</div>` : ''}
+            ${drill.expectedImprovement && Object.keys(drill.expectedImprovement).length ? `<div class="muted" style="margin-top:8px;"><strong>Expected gain:</strong> ${Object.values(drill.expectedImprovement).slice(0, 2).join(' | ')}</div>` : ''}
             ${hasLibrary ? `<div style="margin-top:8px;"><a href="${drill.videoUrl}" target="_blank" rel="noopener">Open video</a></div>` : '<div class="lock">Upgrade required to open external drill video links.</div>'}
           </div>
         `).join('');
@@ -219,6 +221,8 @@
             <div class="title">${tactic.title}</div>
             <div class="meta">${tactic.channel} | ${tactic.skillLevel} | ${tactic.situation}</div>
             <div class="muted">${tactic.summary}</div>
+            ${tactic.tacticalFocus?.length ? `<div class="muted" style="margin-top:8px;"><strong>Focus:</strong> ${tactic.tacticalFocus.slice(0, 3).join(' | ')}</div>` : ''}
+            ${tactic.expectedImprovement ? `<div class="muted" style="margin-top:8px;"><strong>Expected impact:</strong> ${Object.values(tactic.expectedImprovement).slice(0, 2).join(' | ')}</div>` : ''}
             ${hasLibrary ? `<div style="margin-top:8px;"><a href="${tactic.videoUrl}" target="_blank" rel="noopener">Open tactical video</a></div>` : '<div class="lock">Upgrade required to open tactical video links.</div>'}
           </div>
         `).join('');

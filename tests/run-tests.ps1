@@ -132,6 +132,8 @@ try {
   Assert-True -Condition ($analyzeSource -like '*function getAchievementSummary(*') -Message 'Analyzer contains achievement scoring helper'
   Assert-True -Condition ($analyzeSource -like '*function getAdjustedBenchmark(*') -Message 'Analyzer contains personalized benchmark adjustment helper'
   Assert-True -Condition ($analyzeSource -like '*function getMetricExpectationScale(*') -Message 'Analyzer contains expectation scaling helper'
+  Assert-True -Condition ($analyzeSource -like '*Expected gain:*') -Message 'Analyzer drill recommendations include expected gains'
+  Assert-True -Condition ($analyzeSource -like '*Why this fits:*') -Message 'Analyzer drill recommendations explain recommendation fit'
   Assert-True -Condition ($analyzeSource -like '*captureGuidance*') -Message 'Analyzer includes pre-capture guidance element'
   Assert-True -Condition ($analyzeSource -like '*assets/vendor/mediapipe/pose/pose.js*') -Message 'Analyzer loads MediaPipe pose runtime explicitly'
   Assert-True -Condition ($analyzeSource -like '*function runDemoReport()*') -Message 'Analyzer contains demo report function'
@@ -144,18 +146,28 @@ try {
   Assert-True -Condition ($dashboardSource -like '*function createGoal(event)*') -Message 'Player dashboard supports goal creation'
   Assert-True -Condition ($dashboardSource -like '*function renderTimeline()*') -Message 'Player dashboard renders progress timeline'
 
+  $librarySource = Get-Content -Path (Join-Path $root 'library.html') -Raw
+  Assert-True -Condition ($librarySource -like '*Targets:*') -Message 'Library page shows drill targets'
+  Assert-True -Condition ($librarySource -like '*Expected impact:*') -Message 'Library page shows tactic impact'
+
   $coachDashboardSource = Get-Content -Path (Join-Path $root 'coach-dashboard.html') -Raw
   Assert-True -Condition ($coachDashboardSource -like '*Accountability queue*') -Message 'Coach dashboard includes accountability queue'
   Assert-True -Condition ($coachDashboardSource -like '*function buildQueue(summary)*') -Message 'Coach dashboard includes alert queue logic'
 
   $storeSource = Get-Content -Path (Join-Path $root 'app-data.js') -Raw
   Assert-True -Condition ($storeSource -like '*function buildTailoredDrills(assessment)*') -Message 'Store exposes tailored drill builder'
-  Assert-True -Condition ($storeSource -like '*levelProfile*') -Message 'Tailored drill builder adapts to player level'
+  Assert-True -Condition ($storeSource -like '*isLevelAppropriate(resourceLevel, userLevel)*') -Message 'Tailored drill builder adapts recommendations to player level'
   Assert-True -Condition ($storeSource -like '*function setPlayerGoal(payload)*') -Message 'Store exposes goal creation'
   Assert-True -Condition ($storeSource -like '*function setDrillStatus(drillId, status)*') -Message 'Store exposes drill status updates'
   Assert-True -Condition ($storeSource -like '*function getRetentionSnapshot(userId)*') -Message 'Store exposes retention metrics'
   Assert-True -Condition ($storeSource -like '*function getMilestoneSnapshot(userId)*') -Message 'Store exposes milestone snapshot'
   Assert-True -Condition ($storeSource -like '*latestAchievements*') -Message 'Store exposes latest achievement context'
+  Assert-True -Condition ($storeSource -like '*function detectWeaknesses(assessment)*') -Message 'Store exposes weakness detection helper'
+  Assert-True -Condition ($storeSource -like '*function matchDrillsToWeaknesses(assessment)*') -Message 'Store exposes drill matching helper'
+  Assert-True -Condition ($storeSource -like '*function matchTacticsToProfile(assessment)*') -Message 'Store exposes tactic matching helper'
+
+  $trainingMigration = Join-Path $root 'supabase\migrations\20260320_smartswing_training_recommendations.sql'
+  Assert-True -Condition (Test-Path $trainingMigration) -Message 'Supabase training resources migration exists'
 
   $edge = Find-EdgeBinary
   if ($null -eq $edge) {
@@ -206,12 +218,31 @@ try {
 
   $batchScript = Join-Path $PSScriptRoot 'run-analyzer-batch-tests.ps1'
   if (Test-Path $batchScript) {
-    & $batchScript -Port $port
-    if ($LASTEXITCODE -ne 0) {
-      Start-Sleep -Seconds 2
-      & $batchScript -Port $port
+    $batchPort = $port + 1
+    $batchServer = Start-Process -FilePath 'powershell' -ArgumentList @(
+      '-NoProfile',
+      '-ExecutionPolicy', 'Bypass',
+      '-File', $serverScript,
+      '-Port', $batchPort
+    ) -PassThru -WindowStyle Hidden
+    try {
+      $batchReady = Wait-Server -Url "http://127.0.0.1:$batchPort/index.html"
+      Assert-True -Condition $batchReady -Message 'Dedicated batch test server starts'
+      if (-not $batchReady) {
+        throw 'Dedicated batch test server did not start in time.'
+      }
+      & $batchScript -Port $batchPort
+      if ($LASTEXITCODE -ne 0) {
+        Start-Sleep -Seconds 2
+        & $batchScript -Port $batchPort
+      }
+      Assert-True -Condition ($LASTEXITCODE -eq 0) -Message 'Analyzer batch test suite validates 10 player scenarios'
     }
-    Assert-True -Condition ($LASTEXITCODE -eq 0) -Message 'Analyzer batch test suite validates 10 player scenarios'
+    finally {
+      if ($batchServer -and -not $batchServer.HasExited) {
+        Stop-Process -Id $batchServer.Id -Force
+      }
+    }
   } else {
     Assert-True -Condition $false -Message 'Missing run-analyzer-batch-tests.ps1 script'
   }
