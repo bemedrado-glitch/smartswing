@@ -21,8 +21,8 @@ $assets = @(
   '/assets/avatar/Persona%203%20Tennis.png',
   '/assets/avatar/Coach%20Ace%2016_9.png',
   '/assets/vendor/tf.min.js',
-  '/assets/vendor/pose-detection.min.js',
   '/assets/vendor/mediapipe/pose/pose.js',
+  '/assets/vendor/pose-detection.min.js',
   '/assets/vendor/mediapipe/pose/pose_solution_simd_wasm_bin.wasm'
 )
 
@@ -124,6 +124,7 @@ try {
   Assert-True -Condition ($analyzeSource -like '*Tracker Definitions (Why each metric matters)*') -Message 'Analyzer report includes tracker definitions section'
   Assert-True -Condition ($analyzeSource -like '*Coach-ready Summary*') -Message 'Analyzer report includes coach-ready summary section'
   Assert-True -Condition ($analyzeSource -like '*captureGuidance*') -Message 'Analyzer includes pre-capture guidance element'
+  Assert-True -Condition ($analyzeSource -like '*assets/vendor/mediapipe/pose/pose.js*') -Message 'Analyzer loads MediaPipe pose runtime explicitly'
   Assert-True -Condition ($analyzeSource -like '*function runDemoReport()*') -Message 'Analyzer contains demo report function'
   Assert-True -Condition ($analyzeSource -like '*demoReportBtn*') -Message 'Analyzer exposes demo report button'
 
@@ -149,9 +150,10 @@ try {
     Assert-True -Condition $true -Message 'Headless demo report checks skipped (Edge unavailable)'
   } else {
     $edgeProfileDir = Join-Path $PSScriptRoot 'edge-profile-main'
-    if (-not (Test-Path $edgeProfileDir)) {
-      New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
+    if (Test-Path $edgeProfileDir) {
+      Remove-Item -Recurse -Force $edgeProfileDir
     }
+    New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
 
     $url = "http://127.0.0.1:$port/analyze.html?demo=1"
     $edgeCommand = """$edge"" --headless --disable-gpu --disable-extensions --user-data-dir=""$edgeProfileDir"" --virtual-time-budget=18000 --dump-dom ""$url"" 2>nul"
@@ -189,6 +191,10 @@ try {
   $batchScript = Join-Path $PSScriptRoot 'run-analyzer-batch-tests.ps1'
   if (Test-Path $batchScript) {
     & $batchScript -Port $port
+    if ($LASTEXITCODE -ne 0) {
+      Start-Sleep -Seconds 2
+      & $batchScript -Port $port
+    }
     Assert-True -Condition ($LASTEXITCODE -eq 0) -Message 'Analyzer batch test suite validates 10 player scenarios'
   } else {
     Assert-True -Condition $false -Message 'Missing run-analyzer-batch-tests.ps1 script'

@@ -10,6 +10,7 @@
   
   <!-- Local AI runtime first for stability; fallback mirrors are used only if these fail -->
   <script src="./assets/vendor/tf.min.js"></script>
+  <script src="./assets/vendor/mediapipe/pose/pose.js"></script>
   <script src="./assets/vendor/pose-detection.min.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
@@ -1203,6 +1204,7 @@
 
     async function ensurePoseLibraries() {
       const hasTf = () => !!window.tf;
+      const hasMediaPipePose = () => !!window.Pose;
       const hasPose = () => !!window.poseDetection?.SupportedModels;
 
       const tfLoaded = hasTf() || await loadFromMirrorSafe([
@@ -1210,12 +1212,16 @@
         'https://unpkg.com/@tensorflow/tfjs@4.11.0/dist/tf.min.js'
       ], hasTf);
 
+      const mediaPipeLoaded = hasMediaPipePose() || await loadFromMirrorSafe([
+        './assets/vendor/mediapipe/pose/pose.js'
+      ], hasMediaPipePose);
+
       const poseLoaded = hasPose() || await loadFromMirrorSafe([
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js',
         'https://unpkg.com/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js'
       ], hasPose);
 
-      if (!tfLoaded || !poseLoaded) {
+      if (!tfLoaded || !mediaPipeLoaded || !poseLoaded) {
         throw new Error('Pose libraries unavailable. Check internet or extension blocking.');
       }
     }

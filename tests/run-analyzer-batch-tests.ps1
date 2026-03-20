@@ -56,9 +56,10 @@ $requiredMarkers = @(
 $failed = $false
 $skipped = $false
 $edgeProfileDir = Join-Path $PSScriptRoot 'edge-profile-batch'
-if (-not (Test-Path $edgeProfileDir)) {
-  New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
+if (Test-Path $edgeProfileDir) {
+  Remove-Item -Recurse -Force $edgeProfileDir
 }
+New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
 
 function Get-ScenarioDom {
   param(
