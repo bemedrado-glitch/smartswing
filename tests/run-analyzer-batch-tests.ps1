@@ -56,11 +56,34 @@ $requiredMarkers = @(
 $failed = $false
 $skipped = $false
 
+function Get-ScenarioDom {
+  param(
+    [string]$EdgeBinary,
+    [string]$Url
+  )
+
+  $maxAttempts = 3
+  $bestDom = ''
+
+  for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+    $edgeCommand = """$EdgeBinary"" --headless --disable-gpu --virtual-time-budget=18000 --dump-dom ""$Url"" 2>nul"
+    $domOutput = (cmd /c $edgeCommand | Out-String)
+    if (-not [string]::IsNullOrWhiteSpace($domOutput)) {
+      $bestDom = $domOutput
+      if ($domOutput -like '*report-header*') {
+        return $domOutput
+      }
+    }
+    Start-Sleep -Milliseconds 250
+  }
+
+  return $bestDom
+}
+
 foreach ($scenario in $scenarios) {
   $query = "demo=1&shot=$($scenario.Shot)&level=$($scenario.Level)&gender=$($scenario.Gender)&age=$([System.Uri]::EscapeDataString($scenario.Age))&mode=$($scenario.Mode)&goal=$([System.Uri]::EscapeDataString($scenario.Goal))"
   $url = "http://127.0.0.1:$Port/analyze.html?$query"
-  $edgeCommand = """$edge"" --headless --disable-gpu --virtual-time-budget=18000 --dump-dom ""$url"" 2>nul"
-  $domOutput = (cmd /c $edgeCommand | Out-String)
+  $domOutput = Get-ScenarioDom -EdgeBinary $edge -Url $url
   if ([string]::IsNullOrWhiteSpace($domOutput)) {
     Write-Host "[WARN] Headless DOM output unavailable in this sandbox; skipping analyzer batch runtime assertions." -ForegroundColor Yellow
     $skipped = $true

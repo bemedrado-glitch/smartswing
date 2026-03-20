@@ -1,8 +1,9 @@
-const CACHE_NAME = 'smartswing-shell-v5';
+const CACHE_NAME = 'smartswing-shell-v6';
 const APP_ASSETS = [
   './',
   './index.html',
   './index-integrated.html',
+  './index-analyzer.html',
   './features.html',
   './how-it-works.html',
   './pricing.html',
