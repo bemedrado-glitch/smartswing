@@ -10,8 +10,11 @@ $pages = @(
   @{ Path = '/features.html'; Expected = 'Feature Stack' },
   @{ Path = '/how-it-works.html'; Expected = 'Capture. Analyze. Correct. Track.' },
   @{ Path = '/contact.html'; Expected = 'Send message' },
-  @{ Path = '/dashboard.html'; Expected = 'Player control room' },
+  @{ Path = '/dashboard.html'; Expected = 'Weekly action plan' },
   @{ Path = '/coach-dashboard.html'; Expected = 'Coach Command Layer' },
+  @{ Path = '/manager-analytics.html'; Expected = 'Manager Analytics' },
+  @{ Path = '/cart.html'; Expected = 'Your cart' },
+  @{ Path = '/checkout.html'; Expected = 'Checkout' },
   @{ Path = '/analyze.html'; Expected = 'Professional Tennis Biomechanics Analysis' }
 )
 
@@ -136,15 +139,13 @@ try {
   Assert-True -Condition ($analyzeSource -like '*function buildSession()*') -Message 'Analyzer contains buildSession()'
   Assert-True -Condition ($analyzeSource -like '*function generateReport(session)*') -Message 'Analyzer contains generateReport(session)'
   Assert-True -Condition ($analyzeSource -like '*function generateTailoredDrillsHtml(drills)*') -Message 'Analyzer contains tailored drill rendering function'
+  Assert-True -Condition ($analyzeSource -like '*function buildExpandableInsight(*') -Message 'Analyzer contains expandable insight helper'
   Assert-True -Condition ($analyzeSource -like '*function calculatePerformanceKpis(*') -Message 'Analyzer contains performance KPI scoring'
-  Assert-True -Condition ($analyzeSource -like '*function getMilestoneSummary(*') -Message 'Analyzer contains milestone scoring helper'
-  Assert-True -Condition ($analyzeSource -like '*Tracker Definitions (Why each metric matters)*') -Message 'Analyzer report includes tracker definitions section'
+  Assert-True -Condition ($analyzeSource -like '*Quick Read*') -Message 'Analyzer report includes quick read section'
+  Assert-True -Condition ($analyzeSource -like '*Angles and What They Mean*') -Message 'Analyzer report includes angle interpretation section'
   Assert-True -Condition ($analyzeSource -like '*Coach-ready Summary*') -Message 'Analyzer report includes coach-ready summary section'
-  Assert-True -Condition ($analyzeSource -like '*Milestone Track*') -Message 'Analyzer report includes milestone section'
-  Assert-True -Condition ($analyzeSource -like '*Achievement Unlocks*') -Message 'Analyzer report includes achievement section'
   Assert-True -Condition ($analyzeSource -like '*Performance KPIs*') -Message 'Analyzer report includes KPI section'
-  Assert-True -Condition ($analyzeSource -like '*Fair Score Logic*') -Message 'Analyzer report includes fair-score explanation'
-  Assert-True -Condition ($analyzeSource -like '*function getAchievementSummary(*') -Message 'Analyzer contains achievement scoring helper'
+  Assert-True -Condition ($analyzeSource -like '*Movement, Footwork, Positioning, and Height*') -Message 'Analyzer report includes readable movement section'
   Assert-True -Condition ($analyzeSource -like '*function getAdjustedBenchmark(*') -Message 'Analyzer contains personalized benchmark adjustment helper'
   Assert-True -Condition ($analyzeSource -like '*function getMetricExpectationScale(*') -Message 'Analyzer contains expectation scaling helper'
   Assert-True -Condition ($analyzeSource -like '*Expected gain:*') -Message 'Analyzer drill recommendations include expected gains'
@@ -155,11 +156,11 @@ try {
   Assert-True -Condition ($analyzeSource -like '*demoReportBtn*') -Message 'Analyzer exposes demo report button'
 
   $dashboardSource = Get-Content -Path (Join-Path $root 'dashboard.html') -Raw
-  Assert-True -Condition ($dashboardSource -like '*Retention loop*') -Message 'Player dashboard includes retention loop section'
-  Assert-True -Condition ($dashboardSource -like '*Milestone track*') -Message 'Player dashboard includes milestone track surface'
-  Assert-True -Condition ($dashboardSource -like '*Latest unlock:*') -Message 'Player dashboard shows latest achievement surface'
-  Assert-True -Condition ($dashboardSource -like '*function createGoal(event)*') -Message 'Player dashboard supports goal creation'
-  Assert-True -Condition ($dashboardSource -like '*function renderTimeline()*') -Message 'Player dashboard renders progress timeline'
+  Assert-True -Condition ($dashboardSource -like '*Weekly action plan*') -Message 'Player dashboard includes weekly action plan section'
+  Assert-True -Condition ($dashboardSource -like '*Top 3 feedback*') -Message 'Player dashboard includes top feedback section'
+  Assert-True -Condition ($dashboardSource -like '*Readable KPI view*') -Message 'Player dashboard includes readable KPI section'
+  Assert-True -Condition ($dashboardSource -like '*Privacy and access*') -Message 'Player dashboard includes privacy and access section'
+  Assert-True -Condition ($dashboardSource -like '*Coach booking unlocks on Performance and Tournament plans.*') -Message 'Player dashboard explains booking entitlement guardrail'
 
   $librarySource = Get-Content -Path (Join-Path $root 'library.html') -Raw
   Assert-True -Condition ($librarySource -like '*Targets:*') -Message 'Library page shows drill targets'
@@ -167,7 +168,8 @@ try {
 
   $coachDashboardSource = Get-Content -Path (Join-Path $root 'coach-dashboard.html') -Raw
   Assert-True -Condition ($coachDashboardSource -like '*Accountability queue*') -Message 'Coach dashboard includes accountability queue'
-  Assert-True -Condition ($coachDashboardSource -like '*function buildQueue(summary)*') -Message 'Coach dashboard includes alert queue logic'
+  Assert-True -Condition ($coachDashboardSource -like '*Message feed*') -Message 'Coach dashboard includes messaging surface'
+  Assert-True -Condition ($coachDashboardSource -like '*Athlete roster*') -Message 'Coach dashboard includes athlete roster'
 
   $storeSource = Get-Content -Path (Join-Path $root 'app-data.js') -Raw
   Assert-True -Condition ($storeSource -like '*function buildTailoredDrills(assessment)*') -Message 'Store exposes tailored drill builder'
@@ -175,14 +177,18 @@ try {
   Assert-True -Condition ($storeSource -like '*function setPlayerGoal(payload)*') -Message 'Store exposes goal creation'
   Assert-True -Condition ($storeSource -like '*function setDrillStatus(drillId, status)*') -Message 'Store exposes drill status updates'
   Assert-True -Condition ($storeSource -like '*function getRetentionSnapshot(userId)*') -Message 'Store exposes retention metrics'
-  Assert-True -Condition ($storeSource -like '*function getMilestoneSnapshot(userId)*') -Message 'Store exposes milestone snapshot'
-  Assert-True -Condition ($storeSource -like '*latestAchievements*') -Message 'Store exposes latest achievement context'
   Assert-True -Condition ($storeSource -like '*function detectWeaknesses(assessment)*') -Message 'Store exposes weakness detection helper'
   Assert-True -Condition ($storeSource -like '*function matchDrillsToWeaknesses(assessment)*') -Message 'Store exposes drill matching helper'
   Assert-True -Condition ($storeSource -like '*function matchTacticsToProfile(assessment)*') -Message 'Store exposes tactic matching helper'
+  Assert-True -Condition ($storeSource -like '*function getTrialEligibility(userId, planId)*') -Message 'Store exposes trial eligibility helper'
+  Assert-True -Condition ($storeSource -like '*function getVisibleMessagesForCurrentUser(userId)*') -Message 'Store exposes scoped message visibility helper'
+  Assert-True -Condition ($storeSource -like '*function getMessagingTargets(userId)*') -Message 'Store exposes scoped messaging target helper'
+  Assert-True -Condition ($storeSource -like '*function canAccessUserRecord(targetUserId, access = getAccessContext())*') -Message 'Store exposes scoped access helper'
 
   $trainingMigration = Join-Path $root 'supabase\migrations\20260320_smartswing_training_recommendations.sql'
   Assert-True -Condition (Test-Path $trainingMigration) -Message 'Supabase training resources migration exists'
+  $guardrailMigration = Join-Path $root 'supabase\migrations\20260320_smartswing_access_guardrails.sql'
+  Assert-True -Condition (Test-Path $guardrailMigration) -Message 'Supabase access guardrails migration exists'
 
   $edge = Find-EdgeBinary
   if ($null -eq $edge) {
@@ -203,10 +209,11 @@ try {
       Assert-True -Condition $true -Message 'Headless analyzer demo checks skipped (sandbox blocked)'
     } else {
       Assert-True -Condition ($domOutput -like '*Tailored Drill Plan*') -Message 'Headless analyzer demo renders Tailored Drill Plan'
-      Assert-True -Condition ($domOutput -like '*Score Breakdown*') -Message 'Headless analyzer demo renders Score Breakdown'
-      Assert-True -Condition ($domOutput -like '*Milestone Track*') -Message 'Headless analyzer demo renders milestone section'
-      Assert-True -Condition ($domOutput -like '*Achievement Unlocks*') -Message 'Headless analyzer demo renders achievement section'
+      Assert-True -Condition ($domOutput -like '*Shot:*') -Message 'Headless analyzer demo renders shot metadata'
+      Assert-True -Condition ($domOutput -like '*Quick Read*') -Message 'Headless analyzer demo renders quick read section'
+      Assert-True -Condition ($domOutput -like '*Angles and What They Mean*') -Message 'Headless analyzer demo renders angle explanation section'
       Assert-True -Condition ($domOutput -like '*Performance KPIs*') -Message 'Headless analyzer demo renders KPI section'
+      Assert-True -Condition ($domOutput -like '*Coach-ready Summary*') -Message 'Headless analyzer demo renders coach summary section'
       Assert-True -Condition ($domOutput -like '*report-header*') -Message 'Headless analyzer demo renders report header markup'
     }
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Checkout</title>
+  <link rel="manifest" href="./manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#081426;--bg2:#0c1f39;--panel:rgba(10,24,43,.9);--line:rgba(255,255,255,.14);--text:#eaf2fb;--muted:#9db2c9;--orange:#ff6d00}
+    *{box-sizing:border-box;margin:0;padding:0} body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--text);background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{max-width:1040px;margin:0 auto;padding:24px 20px 64px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-weight:700;text-decoration:none;cursor:pointer}.btn.primary{border:none;background:linear-gradient(135deg,var(--orange),#ff8f00);color:#fff} input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)} .list{display:grid;gap:12px} h1,h2{font-family:"Sora",sans-serif;letter-spacing:-.02em} h1{font-size:40px;margin-bottom:12px} h2{font-size:22px;margin-bottom:8px}.muted{color:var(--muted);line-height:1.6}
+    @media (max-width:860px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="panel" style="margin-bottom:16px">
+      <h1>Checkout</h1>
+      <p class="muted">This page is ready for Stripe API integration. Right now it captures the chosen plan and activates trial access in the app so you can review the full purchase flow.</p>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h2>Billing details</h2>
+        <form id="checkoutForm" class="list">
+          <div><label for="fullName">Full name</label><input id="fullName" type="text" required></div>
+          <div><label for="email">Email</label><input id="email" type="email" required></div>
+          <div><label for="card">Card placeholder</label><input id="card" type="text" placeholder="4242 4242 4242 4242"></div>
+          <button class="btn primary" type="submit">Start 14-day trial</button>
+        </form>
+      </div>
+      <div class="panel">
+        <h2 id="summaryTitle">Order summary</h2>
+        <div class="list" id="summaryList"></div>
+      </div>
+    </div>
+  </div>
+  <script src="./app-data.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+    const params = new URLSearchParams(window.location.search);
+    const planId = params.get('plan') || 'pro';
+    const plan = store.PLAN_DEFINITIONS[planId] || store.PLAN_DEFINITIONS.pro;
+    const activeUser = store.getCurrentUser();
+    const trialEligibility = store.getTrialEligibility(activeUser?.id, planId);
+    document.getElementById('summaryTitle').textContent = `${plan.name} | $${plan.monthlyPrice}/month`;
+    document.getElementById('summaryList').innerHTML = [
+      `Plan: ${plan.name}`,
+      `Monthly reviews: ${Number.isFinite(plan.monthlyReviews) ? plan.monthlyReviews : 'Unlimited'}`,
+      `Trial: ${plan.id === 'free' ? 'No trial required' : (trialEligibility.eligible ? '14-day trial enabled before billing' : (trialEligibility.reason || 'Trial unavailable'))}`,
+      `Perks: ${plan.perks.join(' | ')}`
+    ].map((item) => `<div class="muted">${item}</div>`).join('');
+    document.getElementById('checkoutForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const user = store.getCurrentUser();
+      if (!user) {
+        window.location.href = `./signup.html?plan=${encodeURIComponent(planId)}${planId !== 'free' ? '&trial=1' : ''}`;
+        return;
+      }
+      try {
+        if (planId !== 'free' && store.getTrialEligibility(user.id, planId).eligible) store.startPlanTrial(planId, user.id);
+        else store.setCurrentPlan(planId, user.id);
+      } catch (error) {
+        alert(error.message || 'Unable to activate this plan.');
+        return;
+      }
+      window.location.href = './dashboard.html';
+    });
+  </script>
+</body>
+</html>

@@ -4,6 +4,7 @@
     session: 'smartswing_session',
     assessments: 'smartswing_assessments',
     coachSessions: 'smartswing_coach_sessions',
+    messages: 'smartswing_messages',
     goals: 'smartswing_goals',
     drillAssignments: 'smartswing_drill_assignments',
     progressEvents: 'smartswing_progress_events',
@@ -218,6 +219,12 @@
 
   function nowIso() {
     return new Date().toISOString();
+  }
+
+  function addDaysIso(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString();
   }
 
   function safeNumber(value, fallback = 0) {
@@ -575,6 +582,10 @@
     return read(KEYS.goals, []);
   }
 
+  function getMessages() {
+    return read(KEYS.messages, []);
+  }
+
   function getDrillAssignments() {
     return read(KEYS.drillAssignments, []);
   }
@@ -601,12 +612,60 @@
     return PLAN_DEFINITIONS[planId] || PLAN_DEFINITIONS.free;
   }
 
+  function isTrialActive(user) {
+    if (!user?.trialEndsAt) return false;
+    return new Date(user.trialEndsAt).getTime() > Date.now();
+  }
+
+  function isManagerRole(role) {
+    return role === 'manager' || role === 'admin';
+  }
+
+  function getTrialHistory(user) {
+    return Array.isArray(user?.trialHistory) ? user.trialHistory : [];
+  }
+
+  function hasConsumedTrial(user, planId) {
+    const history = getTrialHistory(user);
+    if (!history.length) return false;
+    if (!planId) return true;
+    return history.some((entry) => (entry.planId || entry.plan || '').toLowerCase() === String(planId).toLowerCase());
+  }
+
+  function getTrialEligibility(userId, planId) {
+    const user = userId
+      ? getUsers().find((entry) => entry.id === userId)
+      : getCurrentUser();
+    const normalizedPlanId = String(planId || user?.planId || 'free').toLowerCase();
+    if (normalizedPlanId === 'free') {
+      return { eligible: false, reason: 'Free plan does not use trial access.' };
+    }
+    if (!user) {
+      return { eligible: true, reason: 'Available after account creation.' };
+    }
+    if (isTrialActive(user)) {
+      return { eligible: false, reason: 'A trial is already active on this account.' };
+    }
+    if (hasConsumedTrial(user, normalizedPlanId) || getTrialHistory(user).length > 0) {
+      return { eligible: false, reason: 'Trial already used on this account.' };
+    }
+    return { eligible: true, reason: '' };
+  }
+
   function getCurrentPlan(userId) {
     const user = userId
       ? getUsers().find((entry) => entry.id === userId)
       : getCurrentUser();
-    const planId = user?.planId || 'free';
-    return getPlanDefinition(planId);
+    const planId = isTrialActive(user)
+      ? (user?.trialPlanId || user?.planId || 'free')
+      : (user?.planId || 'free');
+    const plan = getPlanDefinition(planId);
+    return {
+      ...plan,
+      isTrial: isTrialActive(user),
+      trialEndsAt: user?.trialEndsAt || null,
+      subscriptionStatus: user?.subscriptionStatus || 'active'
+    };
   }
 
   function setCurrentPlan(planId, userId) {
@@ -615,9 +674,51 @@
     const users = getUsers();
     const idx = users.findIndex((entry) => entry.id === targetUserId);
     if (idx < 0) throw new Error('User not found for plan update.');
-    users[idx] = { ...users[idx], planId: plan.id, updatedAt: nowIso() };
+    users[idx] = {
+      ...users[idx],
+      planId: plan.id,
+      trialPlanId: null,
+      trialStartedAt: null,
+      trialEndsAt: null,
+      updatedAt: nowIso(),
+      subscriptionStatus: plan.id === 'free' ? 'free' : 'active'
+    };
     persistUsers(users);
     return plan;
+  }
+
+  function startPlanTrial(planId, userId) {
+    const plan = getPlanDefinition(planId);
+    const targetUserId = userId || requireUser().id;
+    const users = getUsers();
+    const idx = users.findIndex((entry) => entry.id === targetUserId);
+    if (idx < 0) throw new Error('User not found for trial update.');
+    const eligibility = getTrialEligibility(targetUserId, plan.id);
+    if (!eligibility.eligible) {
+      throw new Error(eligibility.reason || 'Trial not available for this account.');
+    }
+    const startedAt = nowIso();
+    const trialEndsAt = addDaysIso(14);
+    const trialHistory = [
+      {
+        planId: plan.id,
+        startedAt,
+        endsAt: trialEndsAt
+      },
+      ...getTrialHistory(users[idx])
+    ].slice(0, 10);
+    users[idx] = {
+      ...users[idx],
+      planId: plan.id,
+      trialPlanId: plan.id,
+      trialStartedAt: startedAt,
+      trialEndsAt,
+      trialHistory,
+      subscriptionStatus: plan.id === 'free' ? 'free' : 'trial',
+      updatedAt: nowIso()
+    };
+    persistUsers(users);
+    return getCurrentPlan(targetUserId);
   }
 
   function getMonthlyUsage(userId, monthKey) {
@@ -721,6 +822,11 @@
     return goals;
   }
 
+  function persistMessages(messages) {
+    write(KEYS.messages, messages);
+    return messages;
+  }
+
   function persistDrillAssignments(assignments) {
     write(KEYS.drillAssignments, assignments);
     return assignments;
@@ -759,7 +865,13 @@
       ustaLevel: fields.ustaLevel || '',
       utrRating: fields.utrRating || '',
       preferredHand: fields.preferredHand || 'right',
+      avatarDataUrl: fields.avatarDataUrl || '',
       planId: plan.id,
+      trialPlanId: fields.trialPlanId || null,
+      trialStartedAt: fields.trialStartedAt || null,
+      trialEndsAt: fields.trialEndsAt || null,
+      trialHistory: Array.isArray(fields.trialHistory) ? fields.trialHistory : [],
+      subscriptionStatus: fields.subscriptionStatus || (plan.id === 'free' ? 'free' : 'active'),
       createdAt: nowIso()
     };
   }
@@ -776,13 +888,53 @@
       gender: user.gender || null,
       usta_level: user.ustaLevel || null,
       utr_rating: user.utrRating || null,
-      preferred_hand: user.preferredHand || 'right'
+      preferred_hand: user.preferredHand || 'right',
+      avatar_url: user.avatarDataUrl || null,
+      subscription_tier: user.planId || 'free',
+      subscription_status: user.subscriptionStatus || 'free',
+      trial_plan_id: user.trialPlanId || null,
+      trial_started_at: user.trialStartedAt || null,
+      trial_ends_at: user.trialEndsAt || null,
+      trial_history: getTrialHistory(user)
     }, { onConflict: 'id' });
   }
 
   async function pullRemoteState(userId) {
     const client = await getSupabaseClient();
     if (!client || !userId) return;
+
+    const { data: profile } = await client
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profile) {
+      const users = getUsers();
+      const idx = users.findIndex((entry) => entry.id === userId || entry.email === profile.email);
+      if (idx >= 0) {
+        users[idx] = {
+          ...users[idx],
+          email: profile.email || users[idx].email,
+          fullName: profile.full_name || users[idx].fullName,
+          role: profile.role || users[idx].role || 'player',
+          ageRange: profile.age_range || users[idx].ageRange || '',
+          gender: profile.gender || users[idx].gender || '',
+          ustaLevel: profile.usta_level || users[idx].ustaLevel || '',
+          utrRating: profile.utr_rating || users[idx].utrRating || '',
+          preferredHand: profile.preferred_hand || users[idx].preferredHand || 'right',
+          avatarDataUrl: users[idx].avatarDataUrl || profile.avatar_url || '',
+          planId: profile.subscription_tier || users[idx].planId || 'free',
+          trialPlanId: profile.trial_plan_id || users[idx].trialPlanId || null,
+          trialStartedAt: profile.trial_started_at || users[idx].trialStartedAt || null,
+          trialEndsAt: profile.trial_ends_at || users[idx].trialEndsAt || null,
+          trialHistory: Array.isArray(profile.trial_history) ? profile.trial_history : getTrialHistory(users[idx]),
+          subscriptionStatus: profile.subscription_status || users[idx].subscriptionStatus || 'free',
+          createdAt: profile.created_at || users[idx].createdAt || nowIso()
+        };
+        persistUsers(users);
+      }
+    }
 
     const { data: assessments, error: assessmentError } = await client
       .from('assessments')
@@ -954,6 +1106,37 @@
       });
       persistProgressEvents(Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     }
+
+    const { data: messages, error: messageError } = await client
+      .from('inbox_messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(300);
+
+    if (!messageError && Array.isArray(messages)) {
+      const local = getMessages();
+      const map = new Map(local.map((item) => [item.externalId || item.id, item]));
+      messages.forEach((row) => {
+        const externalId = row.external_id || row.id;
+        map.set(externalId, {
+          ...map.get(externalId),
+          id: externalId,
+          externalId,
+          remoteId: row.id,
+          userId: row.user_id || row.from_user_id,
+          fromUserId: row.from_user_id || row.user_id,
+          toUserId: row.to_user_id || null,
+          fromName: row.from_name || map.get(externalId)?.fromName || 'SmartSwing',
+          toName: row.to_name || map.get(externalId)?.toName || 'Inbox',
+          subject: row.subject || 'Message',
+          body: row.body || '',
+          channel: row.channel || 'dashboard',
+          createdAt: row.created_at || nowIso(),
+          syncedAt: nowIso()
+        });
+      });
+      persistMessages(Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    }
   }
 
   async function signUp(fields) {
@@ -977,6 +1160,15 @@
 
         const local = createProfile(fullName, email, { ...fields, password: '' });
         local.id = data.user.id;
+        local.avatarDataUrl = fields.avatarDataUrl || data.user.user_metadata?.avatar_url || '';
+        if (fields.startTrial && fields.planId && fields.planId !== 'free') {
+          const trialStart = nowIso();
+          local.trialPlanId = fields.planId;
+          local.trialStartedAt = trialStart;
+          local.trialEndsAt = addDaysIso(14);
+          local.trialHistory = [{ planId: fields.planId, startedAt: trialStart, endsAt: local.trialEndsAt }];
+          local.subscriptionStatus = 'trial';
+        }
         upsertLocalUser(local);
         write(KEYS.session, { userId: local.id, loggedInAt: nowIso() });
         localStorage.removeItem(KEYS.autoSessionOptOut);
@@ -991,6 +1183,14 @@
       throw new Error('An account with this email already exists.');
     }
     const user = createProfile(fullName, email, { ...fields, password });
+    if (fields.startTrial && fields.planId && fields.planId !== 'free') {
+      const trialStart = nowIso();
+      user.trialPlanId = fields.planId;
+      user.trialStartedAt = trialStart;
+      user.trialEndsAt = addDaysIso(14);
+      user.trialHistory = [{ planId: fields.planId, startedAt: trialStart, endsAt: user.trialEndsAt }];
+      user.subscriptionStatus = 'trial';
+    }
     persistUsers([...users, user]);
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
     localStorage.removeItem(KEYS.autoSessionOptOut);
@@ -1023,7 +1223,13 @@
           ustaLevel: profile?.usta_level || '',
           utrRating: profile?.utr_rating || '',
           preferredHand: profile?.preferred_hand || 'right',
-          planId: existingLocal?.planId || 'free',
+          avatarDataUrl: existingLocal?.avatarDataUrl || profile?.avatar_url || data.user.user_metadata?.avatar_url || '',
+          planId: profile?.subscription_tier || existingLocal?.planId || 'free',
+          trialPlanId: profile?.trial_plan_id || existingLocal?.trialPlanId || null,
+          trialStartedAt: profile?.trial_started_at || existingLocal?.trialStartedAt || null,
+          trialEndsAt: profile?.trial_ends_at || existingLocal?.trialEndsAt || null,
+          trialHistory: Array.isArray(profile?.trial_history) ? profile.trial_history : getTrialHistory(existingLocal),
+          subscriptionStatus: profile?.subscription_status || existingLocal?.subscriptionStatus || 'free',
           createdAt: profile?.created_at || nowIso()
         };
         upsertLocalUser(local);
@@ -1042,18 +1248,30 @@
     return user;
   }
 
-  async function signInWithGoogle() {
+  async function signInWithOAuthProvider(provider) {
     if (!isSupabaseConfigured()) {
-      throw new Error('Google OAuth requires Supabase configuration.');
+      throw new Error(`${String(provider || 'OAuth')} OAuth requires Supabase configuration.`);
     }
     const client = await getSupabaseClient();
     if (!client) throw new Error('Supabase client unavailable.');
     const redirectTo = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, '')}dashboard.html`;
     const { error } = await client.auth.signInWithOAuth({
-      provider: 'google',
+      provider,
       options: { redirectTo }
     });
-    if (error) throw new Error(error.message || 'Google sign-in failed.');
+    if (error) throw new Error(error.message || `${provider} sign-in failed.`);
+  }
+
+  async function signInWithGoogle() {
+    return signInWithOAuthProvider('google');
+  }
+
+  async function signInWithFacebook() {
+    return signInWithOAuthProvider('facebook');
+  }
+
+  async function signInWithApple() {
+    return signInWithOAuthProvider('apple');
   }
 
   function signOut() {
@@ -1066,6 +1284,162 @@
     const user = getCurrentUser();
     if (!user) throw new Error('Please sign in first.');
     return user;
+  }
+
+  function getAssignedCoachIdsForPlayer(userId) {
+    if (!userId) return [];
+    const ids = new Set();
+    getCoachSessions().forEach((session) => {
+      if (session.userId === userId && session.coachId) ids.add(session.coachId);
+    });
+    return Array.from(ids);
+  }
+
+  function getAssignedAthleteIdsForCoach(coachId) {
+    if (!coachId) return [];
+    const ids = new Set();
+    getCoachSessions().forEach((session) => {
+      if (session.coachId === coachId && session.userId) ids.add(session.userId);
+    });
+    getMessages().forEach((message) => {
+      if (message.fromUserId === coachId && message.toUserId) ids.add(message.toUserId);
+      if (message.toUserId === coachId && message.fromUserId) ids.add(message.fromUserId);
+    });
+    return Array.from(ids);
+  }
+
+  function canAccessUserRecord(targetUserId, access = getAccessContext()) {
+    if (!access.user || !targetUserId) return false;
+    if (access.canAccessManagerAnalytics) return true;
+    if (access.user.id === targetUserId) return true;
+    if (access.role === 'coach') {
+      return getAssignedAthleteIdsForCoach(access.user.id).includes(targetUserId);
+    }
+    if (access.role === 'player') {
+      return getAssignedCoachIdsForPlayer(access.user.id).includes(targetUserId);
+    }
+    return false;
+  }
+
+  function getVisibleUsersForCurrentUser(userId) {
+    const access = getAccessContext(userId);
+    if (!access.user) return [];
+    if (access.canAccessManagerAnalytics) return getUsers();
+    if (access.role === 'coach') {
+      const athleteIds = new Set(getAssignedAthleteIdsForCoach(access.user.id));
+      return getUsers().filter((user) => athleteIds.has(user.id));
+    }
+    return getUsers().filter((user) => user.id === access.user.id);
+  }
+
+  function getVisibleMessagesForCurrentUser(userId) {
+    const access = getAccessContext(userId);
+    if (!access.user) return [];
+    if (access.canAccessManagerAnalytics) {
+      return getMessages().slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    const participantIds = new Set([access.user.id]);
+    getAssignedAthleteIdsForCoach(access.user.id).forEach((id) => participantIds.add(id));
+    getAssignedCoachIdsForPlayer(access.user.id).forEach((id) => participantIds.add(id));
+    DEFAULT_COACHES.forEach((coach) => participantIds.add(coach.id));
+
+    return getMessages()
+      .filter((message) => {
+        const fromId = message.fromUserId || message.userId;
+        const toId = message.toUserId || null;
+        return participantIds.has(fromId) || participantIds.has(toId) || message.userId === access.user.id;
+      })
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  function getMessagingTargets(userId) {
+    const access = getAccessContext(userId);
+    if (!access.user) return [];
+    if (access.canAccessManagerAnalytics) {
+      return getUsers()
+        .filter((user) => user.id !== access.user.id)
+        .map((user) => ({ id: user.id, label: `${user.fullName} | ${user.role}`, kind: 'user' }));
+    }
+    if (access.role === 'coach') {
+      return getVisibleUsersForCurrentUser(access.user.id)
+        .map((user) => ({ id: user.id, label: `${user.fullName} | athlete`, kind: 'user' }));
+    }
+
+    const targets = [];
+    if (access.canBookCoach) {
+      DEFAULT_COACHES.forEach((coach) => {
+        targets.push({ id: coach.id, label: `${coach.name} | ${coach.specialty}`, kind: 'coach' });
+      });
+    }
+    const assignedCoachIds = new Set(getAssignedCoachIdsForPlayer(access.user.id));
+    getUsers()
+      .filter((user) => assignedCoachIds.has(user.id) && user.id !== access.user.id)
+      .forEach((coach) => targets.push({ id: coach.id, label: `${coach.fullName} | coach`, kind: 'user' }));
+    if (!targets.length) {
+      targets.push({ id: '', label: 'SmartSwing Support', kind: 'support' });
+    }
+    return targets;
+  }
+
+  function getAccessContext(userId) {
+    const user = userId ? getUsers().find((entry) => entry.id === userId) : getCurrentUser();
+    const plan = getCurrentPlan(user?.id);
+    const usage = canGenerateReport(user?.id);
+    const role = user?.role || 'guest';
+    const isInternalManager = isManagerRole(role) || String(user?.email || '').toLowerCase().endsWith('@smartswing.ai');
+    return {
+      user,
+      role,
+      plan,
+      usage,
+      isTrial: !!plan.isTrial,
+      trialEndsAt: plan.trialEndsAt,
+      canAccessPlayerDashboard: !!user,
+      canAccessCoachDashboard: role === 'coach' || isInternalManager,
+      canAccessManagerAnalytics: isInternalManager,
+      canMessage: !!user && (role === 'coach' || isInternalManager || !!plan.canConnectCoaches),
+      canExport: isInternalManager || role === 'coach' || !!plan.canPrintReport,
+      canBookCoach: !!plan.canConnectCoaches
+    };
+  }
+
+  function getVisibleAssessmentsForCurrentUser(targetUserId) {
+    const access = getAccessContext();
+    if (!access.user) return [];
+    if (targetUserId && !canAccessUserRecord(targetUserId, access)) {
+      return [];
+    }
+    if (access.canAccessManagerAnalytics) {
+      return targetUserId ? getUserAssessments(targetUserId) : getAssessments().slice().sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
+    }
+    if (access.role === 'coach') {
+      const athleteIds = new Set(getAssignedAthleteIdsForCoach(access.user.id));
+      const base = getAssessments()
+        .filter((assessment) => athleteIds.has(assessment.userId))
+        .sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
+      return targetUserId ? base.filter((assessment) => assessment.userId === targetUserId) : base;
+    }
+    return getUserAssessments(access.user.id);
+  }
+
+  function getVisibleCoachSessionsForCurrentUser(targetUserId) {
+    const access = getAccessContext();
+    if (!access.user) return [];
+    if (targetUserId && !canAccessUserRecord(targetUserId, access) && targetUserId !== access.user.id) {
+      return [];
+    }
+    if (access.canAccessManagerAnalytics) {
+      const sessions = getCoachSessions().slice().sort((a, b) => new Date(a.when) - new Date(b.when));
+      return targetUserId ? sessions.filter((session) => session.userId === targetUserId) : sessions;
+    }
+    if (access.role === 'coach') {
+      const sessions = getCoachSessions()
+        .filter((session) => session.coachId === access.user.id)
+        .sort((a, b) => new Date(a.when) - new Date(b.when));
+      return targetUserId ? sessions.filter((session) => session.userId === targetUserId) : sessions;
+    }
+    return getUserCoachSessions(access.user.id);
   }
 
   function compareAgainstBenchmark(avgAngles, benchmarks) {
@@ -1480,6 +1854,30 @@
     }
   }
 
+  async function syncMessageToCloud(message) {
+    const client = await getSupabaseClient();
+    if (!client || !message?.fromUserId) return;
+    const { data, error } = await client.from('inbox_messages').upsert({
+      external_id: message.externalId,
+      user_id: message.userId || message.fromUserId,
+      from_user_id: message.fromUserId,
+      to_user_id: message.toUserId || null,
+      from_name: message.fromName || null,
+      to_name: message.toName || null,
+      subject: message.subject || 'Message',
+      body: message.body || '',
+      channel: message.channel || 'dashboard',
+      created_at: message.createdAt || nowIso()
+    }, { onConflict: 'external_id' }).select('id, external_id').single();
+    if (error) return;
+    const messages = getMessages();
+    const idx = messages.findIndex((item) => item.externalId === message.externalId);
+    if (idx >= 0) {
+      messages[idx] = { ...messages[idx], remoteId: data.id, syncedAt: nowIso() };
+      persistMessages(messages);
+    }
+  }
+
   function saveAssessment(payload) {
     const user = requireUser();
     const previousSameShot = getAssessments().filter((item) => item.userId === user.id && item.shotType === slugShot(payload.shotType));
@@ -1618,10 +2016,13 @@
   }
 
   function getCoachSummary() {
-    const users = getUsers().filter((user) => user.role !== 'coach');
-    const assessments = getAssessments().slice().sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
-    const sessions = getCoachSessions().slice().sort((a, b) => new Date(a.when) - new Date(b.when));
-    const byUser = users.map((user) => {
+    const access = getAccessContext();
+    const visibleUsers = access.canAccessManagerAnalytics
+      ? getUsers().filter((user) => user.role === 'player')
+      : getVisibleUsersForCurrentUser(access.user?.id).filter((user) => user.role === 'player');
+    const assessments = getVisibleAssessmentsForCurrentUser().slice().sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
+    const sessions = getVisibleCoachSessionsForCurrentUser().slice().sort((a, b) => new Date(a.when) - new Date(b.when));
+    const byUser = visibleUsers.map((user) => {
       const userAssessments = assessments.filter((assessment) => assessment.userId === user.id);
       const latest = userAssessments[0] || null;
       const retention = getRetentionSnapshot(user.id);
@@ -1644,7 +2045,7 @@
     }).length;
 
     return {
-      users,
+      users: visibleUsers,
       assessments,
       sessions,
       athletes: byUser,
@@ -1652,8 +2053,84 @@
     };
   }
 
+  function getUserMessages(userId) {
+    const user = userId ? getUsers().find((item) => item.id === userId) : requireUser();
+    if (!user) return [];
+    return getVisibleMessagesForCurrentUser()
+      .filter((message) => message.userId === user.id || message.fromUserId === user.id || message.toUserId === user.id)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  function sendMessage(payload) {
+    const currentUser = requireUser();
+    const access = getAccessContext(currentUser.id);
+    if (!access.canMessage) {
+      throw new Error('Messaging is not enabled on this account.');
+    }
+    const targetUserId = payload.toUserId || null;
+    const isDefaultCoach = DEFAULT_COACHES.some((coach) => coach.id === targetUserId);
+    if (targetUserId && !isDefaultCoach && !canAccessUserRecord(targetUserId, access)) {
+      throw new Error('This recipient is outside your allowed workspace.');
+    }
+    if (isDefaultCoach && access.role === 'player' && !access.canBookCoach) {
+      throw new Error('Coach messaging unlocks on Performance and Tournament plans.');
+    }
+    const users = getUsers();
+    const targetUser = users.find((user) => user.id === targetUserId) || null;
+    const message = {
+      id: uid('message'),
+      externalId: uid('message_ext'),
+      userId: currentUser.id,
+      fromUserId: currentUser.id,
+      toUserId: targetUserId,
+      fromName: currentUser.fullName,
+      toName: targetUser?.fullName || payload.toName || (payload.toCoach ? 'Coach Team' : 'SmartSwing Inbox'),
+      subject: payload.subject || 'New message',
+      body: payload.body || '',
+      createdAt: nowIso(),
+      channel: payload.channel || 'dashboard',
+      syncedAt: null
+    };
+    persistMessages([message, ...getMessages()]);
+    void syncMessageToCloud(message);
+    return message;
+  }
+
+  function getManagerSummary() {
+    const users = getUsers();
+    const assessments = getAssessments();
+    const sessions = getCoachSessions();
+    const plans = users.reduce((acc, user) => {
+      const planId = user.planId || 'free';
+      acc[planId] = (acc[planId] || 0) + 1;
+      return acc;
+    }, {});
+    const revenue = users.reduce((sum, user) => sum + safeNumber(getPlanDefinition(user.planId || 'free').monthlyPrice, 0), 0);
+    const coaches = users.filter((user) => user.role === 'coach');
+    const players = users.filter((user) => user.role === 'player');
+    const avgScore = assessments.length
+      ? Math.round(assessments.reduce((sum, item) => sum + safeNumber(item.overallScore, 0), 0) / assessments.length)
+      : 0;
+    return {
+      users,
+      coaches,
+      players,
+      assessments,
+      sessions,
+      messages: getMessages(),
+      planMix: plans,
+      estimatedMonthlyRevenue: revenue,
+      avgScore,
+      activeSessions: sessions.filter((session) => new Date(session.when).getTime() > Date.now()).length
+    };
+  }
+
   function bookCoachSession(payload) {
     const user = requireUser();
+    const access = getAccessContext(user.id);
+    if (!access.canBookCoach) {
+      throw new Error('Coach booking unlocks on Performance and Tournament plans.');
+    }
     const when = payload.when ? new Date(payload.when) : null;
     if (!when || Number.isNaN(when.getTime())) throw new Error('Choose a valid session time.');
     const session = {
@@ -1791,6 +2268,12 @@
         await syncProgressEventToCloud(event);
       }
     }
+    for (const message of getVisibleMessagesForCurrentUser(user.id).filter((item) => item.fromUserId === user.id)) {
+      if (!message.syncedAt) {
+        // eslint-disable-next-line no-await-in-loop
+        await syncMessageToCloud(message);
+      }
+    }
   }
 
   function seedDemoUser() {
@@ -1829,10 +2312,14 @@
     KEYS,
     signUp,
     signIn,
+    signInWithOAuthProvider,
     signInWithGoogle,
+    signInWithFacebook,
+    signInWithApple,
     signOut,
     getUsers,
     getAssessments,
+    getMessages,
     getGoals,
     getDrillAssignments,
     getProgressEvents,
@@ -1840,7 +2327,9 @@
     getCurrentUser,
     getCurrentSession,
     getCurrentPlan,
+    getTrialEligibility,
     setCurrentPlan,
+    startPlanTrial,
     getMonthlyUsage,
     canGenerateReport,
     consumeMonthlyReportCredit,
@@ -1860,6 +2349,13 @@
     getRetentionSnapshot,
     getRecommendedFocusAreas,
     getCoachSummary,
+    getManagerSummary,
+    getAccessContext,
+    getVisibleUsersForCurrentUser,
+    getVisibleAssessmentsForCurrentUser,
+    getVisibleCoachSessionsForCurrentUser,
+    getVisibleMessagesForCurrentUser,
+    getMessagingTargets,
     compareAgainstBenchmark,
     buildTailoredDrills,
     setPlayerGoal,
@@ -1870,6 +2366,8 @@
     getProgressTimeline,
     bookCoachSession,
     getUserCoachSessions,
+    getUserMessages,
+    sendMessage,
     uploadSessionArtifacts,
     saveContactMessage,
     setSupabaseConfig,

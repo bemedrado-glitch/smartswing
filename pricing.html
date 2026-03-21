@@ -170,7 +170,8 @@
       <nav class="nav">
         <a class="btn" href="./features.html">Features</a>
         <a class="btn" href="./library.html">Drills & Tactics</a>
-        <a class="btn" href="./dashboard.html">Dashboard</a>
+        <a class="btn" href="./dashboard.html">Player Dashboard</a>
+        <a class="btn" href="./checkout.html">Checkout</a>
         <a class="btn btn-primary" href="./analyze.html">Open Analyzer</a>
       </nav>
     </header>
@@ -192,7 +193,7 @@
           <li>No report save/export</li>
           <li>No drill/tactic library videos</li>
         </ul>
-        <button class="btn btn-primary" type="button" data-plan="free">Activate Free</button>
+        <button class="btn btn-primary" type="button" data-plan="free">Choose Free</button>
       </article>
 
       <article class="card">
@@ -205,7 +206,7 @@
           <li>Save and print reports enabled</li>
           <li>Progress tracking and dashboard sync</li>
         </ul>
-        <button class="btn btn-primary" type="button" data-plan="starter">Activate Player</button>
+        <button class="btn btn-primary" type="button" data-plan="starter">Choose Player</button>
       </article>
 
       <article class="card popular">
@@ -220,7 +221,7 @@
           <li>Weekly progress summaries and accountability prompts</li>
           <li>Priority tactical recommendations in reports</li>
         </ul>
-        <button class="btn btn-primary" type="button" data-plan="pro">Activate Performance</button>
+        <button class="btn btn-primary" type="button" data-plan="pro">Choose Performance</button>
       </article>
 
       <article class="card">
@@ -234,7 +235,7 @@
           <li>Priority scheduling and review queue</li>
           <li>Advanced readiness reports before match weekends</li>
         </ul>
-        <button class="btn btn-primary" type="button" data-plan="elite">Activate Tournament Pro</button>
+        <button class="btn btn-primary" type="button" data-plan="elite">Choose Tournament Pro</button>
       </article>
     </section>
 
@@ -242,7 +243,7 @@
       <h2>Guarantees</h2>
       <p class="muted"><strong>14-day full-feature trial:</strong> test all premium capabilities before committing.</p>
       <p class="muted"><strong>Actionability promise:</strong> every report includes clear next-step drills, tactics, and a weekly execution plan.</p>
-      <p class="note">Billing integration placeholder: this build sets plan access in-app for product review and QA. Connect Stripe/Wix billing for production charging.</p>
+      <p class="note">Billing integration placeholder: CTAs now route through cart and checkout so Stripe can be added later without redesigning the purchase path.</p>
     </section>
 
     <section class="faq">
@@ -285,15 +286,8 @@
 
     document.querySelectorAll('[data-plan]').forEach((button) => {
       button.addEventListener('click', () => {
-        const user = store.getCurrentUser();
         const planId = button.getAttribute('data-plan');
-        if (!user) {
-          window.location.href = `./signup.html?plan=${encodeURIComponent(planId)}`;
-          return;
-        }
-        store.setCurrentPlan(planId);
-        renderStatus();
-        alert('Plan activated for this account in the current app environment.');
+        window.location.href = `./cart.html?plan=${encodeURIComponent(planId)}`;
       });
     });
 

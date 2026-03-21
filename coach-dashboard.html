@@ -5,341 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Coach Dashboard</title>
   <link rel="manifest" href="./manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #05080d;
-      --panel: rgba(10, 18, 29, 0.9);
-      --line: rgba(255,255,255,0.1);
-      --text: #ebf1f6;
-      --muted: #91a0b0;
-      --green: #39ff14;
-      --cyan: #00e5ff;
-      --amber: #ffcc4d;
-      --danger: #ff5a7c;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
-        linear-gradient(180deg, #030509 0%, #0a1320 100%);
-      min-height: 100vh;
-    }
-
-    .page {
-      max-width: 1340px;
-      margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 22px;
-    }
-
-    .logo {
-      text-decoration: none;
-      font-size: 30px;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      text-decoration: none;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.03);
-      cursor: pointer;
-      font: inherit;
-    }
-
-    .btn-primary {
-      border: none;
-      color: #04110a;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      padding: 24px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      background: rgba(57, 255, 20, 0.12);
-      color: var(--green);
-    }
-
-    h1 {
-      font-size: 38px;
-      line-height: 1.06;
-      margin: 14px 0 10px;
-    }
-
-    h2 {
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-
-    h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .muted {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .coach-visual {
-      min-height: 360px;
-      border-radius: 24px;
-      background:
-        linear-gradient(180deg, rgba(3, 8, 13, 0.08), rgba(3, 8, 13, 0.82)),
-        url('./assets/avatar/Coach Ace 16_9.png') center/cover;
-      display: flex;
-      align-items: flex-end;
-      padding: 20px;
-      border: 1px solid var(--line);
-    }
-
-    .coach-card {
-      max-width: 440px;
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(8, 16, 24, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .stat {
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 34px;
-      line-height: 1;
-      font-weight: 900;
-      margin-bottom: 4px;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .content {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .item {
-      padding: 16px 18px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-    }
-
-    .risk-low { color: var(--green); font-weight: 800; }
-    .risk-med { color: var(--amber); font-weight: 800; }
-    .risk-high { color: var(--danger); font-weight: 800; }
-
-    .pill {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      margin-bottom: 10px;
-    }
-
-    .cal-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--muted);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    .cal-week {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 4px;
-      font-size: 10px;
-      color: var(--muted);
-      text-transform: uppercase;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 4px;
-    }
-
-    .cal-cell {
-      min-height: 44px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      padding: 4px;
-      background: rgba(255,255,255,0.03);
-      display: grid;
-      align-content: space-between;
-    }
-
-    .cal-cell.empty {
-      opacity: 0.35;
-    }
-
-    .cal-day {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .cal-count {
-      font-size: 10px;
-      color: var(--cyan);
-      font-weight: 800;
-    }
-
-    @media (max-width: 980px) {
-      .hero, .content, .stats { grid-template-columns: 1fr; }
-      h1 { font-size: 34px; }
-    }
+    :root{--bg:#081426;--bg2:#0c1f39;--panel:rgba(10,24,43,.9);--line:rgba(255,255,255,.14);--text:#eaf2fb;--muted:#9db2c9;--blue:#0066ff;--green:#00c853;--orange:#ff6d00;--danger:#ff5a7c}
+    *{box-sizing:border-box;margin:0;padding:0} body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(0,102,255,.24),transparent 30%),radial-gradient(circle at 95% 0%,rgba(0,200,83,.16),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{max-width:1280px;margin:0 auto;padding:24px 20px 64px}.topbar,.hero,.stats,.tabs,.grid,.list{display:grid;gap:16px}.topbar{grid-template-columns:auto 1fr auto;align-items:center;margin-bottom:16px}.hero{grid-template-columns:1.1fr .9fr;margin-bottom:16px}.stats,.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .logo{font-family:"Sora",sans-serif;font-size:30px;font-weight:800;text-decoration:none;background:linear-gradient(135deg,#77adff,#79f5b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    .btn,.tab{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-weight:700;cursor:pointer;text-decoration:none;padding:11px 15px}.btn.primary,.tab.active{border:none;color:#fff;background:linear-gradient(135deg,var(--blue),#4186ff)}
+    .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px}.card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
+    .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#95e7ff}.mini{color:var(--muted)} h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.08;letter-spacing:-.02em} h1{font-size:44px;margin:10px 0 12px} h2{font-size:24px;margin-bottom:10px} h3{font-size:18px;margin-bottom:6px}.muted{color:var(--muted);line-height:1.6}
+    .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--green));font-weight:800}.user{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/avatar/Coach Ace 16_9.png') center/cover;display:flex;align-items:flex-end;padding:18px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
+    .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,255,255,.06)} input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} textarea{min-height:110px;resize:vertical} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
+    .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.hide{display:none!important}
+    @media (max-width:1024px){.hero,.grid,.stats,.tabs{grid-template-columns:1fr 1fr}.topbar{grid-template-columns:1fr}} @media (max-width:720px){.grid,.stats,.tabs{grid-template-columns:1fr}h1{font-size:34px}}
   </style>
-  <!-- Vercel Web Analytics -->
-  <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <header class="topbar">
       <a class="logo" href="./index.html">SmartSwing AI</a>
-      <div class="actions">
-        <a class="btn" href="./dashboard.html">Player Dashboard</a>
-        <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
-        <a class="btn btn-primary" href="./analyze.html">Run New Analysis</a>
-      </div>
-    </div>
+      <nav class="nav">
+        <a class="btn" href="./dashboard.html">Player View</a>
+        <a class="btn" href="./analyze.html">Analyzer</a>
+        <a class="btn" href="./library.html">Library</a>
+        <a class="btn hide" id="managerNavBtn" href="./manager-analytics.html">Manager Analytics</a>
+      </nav>
+      <div class="user"><div class="avatar">C</div><div><div id="coachName" style="font-weight:800">Coach</div><div id="coachMeta" class="muted">Access</div></div></div>
+    </header>
 
     <section class="hero">
-      <div class="panel">
-        <div class="badge">Coach Command Layer</div>
-        <h1>Spot who is stalling, why they are stalling, and what to fix next.</h1>
-        <p class="muted">
-          This dashboard is designed for decision speed: identify risk, assign correction priority, and tie every intervention to measurable change in the next session.
-        </p>
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-label">Athletes tracked</div>
-            <div class="stat-value" id="athleteCount">0</div>
-            <div class="muted">Players with profiles</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Analyses logged</div>
-            <div class="stat-value" id="assessmentCount">0</div>
-            <div class="muted">Total saved sessions</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Upcoming sessions</div>
-            <div class="stat-value" id="sessionCount">0</div>
-            <div class="muted">Booked coaching slots</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Urgent athletes</div>
-            <div class="stat-value" id="urgentCount">0</div>
-            <div class="muted">High-risk mechanics</div>
-          </div>
-        </div>
-      </div>
+      <article class="panel">
+        <div class="eyebrow">Coach Command Layer</div>
+        <h1>Review athletes by tab, not by overload.</h1>
+        <p class="muted">Messaging, schedule, athlete analytics, and exports now live in separate views so coaches can focus faster and manage cleaner accountability loops.</p>
+        <div class="stats" id="coachStats"></div>
+      </article>
+      <article class="hero-art"><div class="card"><div class="mini">Right now</div><h3>Start with the highest-risk athlete.</h3><p class="muted" id="coachHeroCopy">Use the athlete tab to open the top issue, then send one clear coaching priority.</p></div></article>
+    </section>
 
-      <div class="coach-visual">
-        <div class="coach-card">
-          <div class="pill">Coach retention signal</div>
-          <h3>Players stay when they can see progress every week.</h3>
-          <p class="muted">This view is built to make every session feel justified: what changed, what did not, and what gets fixed next.</p>
-        </div>
+    <section class="tabs">
+      <button class="tab active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="athletes">Athletes</button>
+      <button class="tab" data-tab="schedule">Scheduling</button>
+      <button class="tab" data-tab="messages">Messaging</button>
+      <button class="tab" data-tab="analytics">Analytics</button>
+      <button class="tab" data-tab="exports">Exports</button>
+    </section>
+
+    <section class="tab-panel active" id="tab-overview">
+      <div class="grid">
+        <article class="panel"><h2>Priority queue</h2><div class="list" id="priorityQueue"></div></article>
+        <article class="panel"><h2>Upcoming sessions</h2><div class="list" id="coachSessions"></div></article>
       </div>
     </section>
 
-    <section class="content">
-      <div class="panel">
-        <h2>Athlete roster health</h2>
-        <div id="rosterList" class="list"></div>
-      </div>
+    <section class="tab-panel" id="tab-athletes">
+      <article class="panel"><h2>Athlete roster</h2><div class="list" id="athleteRoster"></div></article>
+    </section>
 
-      <div class="panel">
-        <h2>Latest assessment feed</h2>
-        <div id="assessmentList" class="list"></div>
-      </div>
+    <section class="tab-panel" id="tab-schedule">
+      <article class="panel"><h2>Coach calendar</h2><div class="list" id="scheduleList"></div></article>
+    </section>
 
-      <div class="panel">
-        <h2>Accountability queue</h2>
-        <div id="coachCalendar" class="item" style="margin-bottom:12px;"></div>
-        <div id="sessionList" class="list"></div>
+    <section class="tab-panel" id="tab-messages">
+      <div class="grid">
+        <article class="panel"><h2>Message feed</h2><div class="list" id="coachMessageFeed"></div></article>
+        <article class="panel">
+          <h2>Send athlete note</h2>
+          <form id="coachMessageForm" class="list">
+            <div><label for="athleteTarget">Athlete</label><select id="athleteTarget"></select></div>
+            <div><label for="athleteSubject">Subject</label><input id="athleteSubject" type="text" placeholder="One thing to fix first"></div>
+            <div><label for="athleteBody">Message</label><textarea id="athleteBody" placeholder="Explain what matters, why, and what drill the athlete should do next."></textarea></div>
+            <button class="btn primary" type="submit">Send coaching note</button>
+          </form>
+        </article>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-analytics">
+      <div class="grid">
+        <article class="panel"><h2>Readiness overview</h2><div class="list" id="coachAnalytics"></div></article>
+        <article class="panel"><h2>Accountability queue</h2><div class="list" id="accountabilityQueue"></div></article>
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-exports">
+      <div class="grid">
+        <article class="panel"><h2>Export coach workspace</h2><div class="list"><button class="btn" type="button" onclick="exportCoach('json')">Export JSON</button><button class="btn" type="button" onclick="exportCoach('csv')">Export CSV</button><button class="btn" type="button" onclick="printCoachDashboard()">Print dashboard</button></div></article>
+        <article class="panel"><h2>Guardrails</h2><div class="list" id="guardrailList"></div></article>
       </div>
     </section>
   </div>
@@ -348,157 +104,83 @@
   <script src="./pwa.js"></script>
   <script>
     const store = window.SmartSwingStore;
+    const access = store.getAccessContext();
+    if (!access.user || !access.canAccessCoachDashboard) window.location.href = './login.html';
+    if (access.canAccessManagerAnalytics) document.getElementById('managerNavBtn').classList.remove('hide');
 
-    function formatShot(value) {
-      return String(value || 'unknown').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-    }
+    const summary = store.getCoachSummary();
+    const athletes = summary.athletes || [];
+    const sessions = store.getVisibleCoachSessionsForCurrentUser();
+    const messages = store.getVisibleMessagesForCurrentUser();
 
-    function riskClass(delta) {
-      const amount = Math.abs(Number(delta || 0));
-      if (amount >= 18) return 'risk-high';
-      if (amount >= 10) return 'risk-med';
-      return 'risk-low';
-    }
-
-    function riskLabel(delta) {
-      const amount = Math.abs(Number(delta || 0));
-      if (amount >= 18) return 'high risk';
-      if (amount >= 10) return 'watch';
-      return 'stable';
-    }
-
-    function buildQueue(summary) {
-      const now = Date.now();
-      const alerts = [];
-      summary.athletes.forEach((entry) => {
-        const stale = entry.retention.daysSinceLastAssessment != null && entry.retention.daysSinceLastAssessment > 10;
-        const topRisk = Math.abs(entry.topIssue?.delta || 0) >= 18;
-        const lowCompletion = (entry.retention.drillCompletionRate || 0) < 40 && (entry.retention.totalDrills || 0) >= 3;
-        if (stale) alerts.push({ type: 'stale', athlete: entry.user.fullName, detail: `${entry.retention.daysSinceLastAssessment} days since last analysis` });
-        if (topRisk) alerts.push({ type: 'risk', athlete: entry.user.fullName, detail: `${entry.topIssue.metric} delta ${entry.topIssue.delta > 0 ? '+' : ''}${entry.topIssue.delta}deg` });
-        if (lowCompletion) alerts.push({ type: 'adherence', athlete: entry.user.fullName, detail: `Drill completion ${entry.retention.drillCompletionRate}%` });
+    document.querySelectorAll('.tab').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach((el) => el.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(`tab-${button.dataset.tab}`).classList.add('active');
       });
-      summary.sessions.forEach((session) => {
-        if (new Date(session.when).getTime() > now) {
-          alerts.push({
-            type: 'session',
-            athlete: (summary.users.find((u) => u.id === session.userId) || {}).fullName || 'Athlete',
-            detail: `${new Date(session.when).toLocaleString()} | ${session.focus}`
-          });
-        }
-      });
-      return alerts.slice(0, 12);
-    }
+    });
 
-    function renderCoachCalendar(summary) {
-      const mount = document.getElementById('coachCalendar');
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const first = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0).getDate();
-      const offset = first.getDay();
-      const dayCounts = new Map();
+    document.getElementById('coachName').textContent = access.user.fullName || 'Coach';
+    document.getElementById('coachMeta').textContent = `${summary.users?.length || 0} athletes | ${summary.urgentAthletes || 0} urgent`;
+    document.getElementById('coachHeroCopy').textContent = `${summary.urgentAthletes || 0} athletes need immediate attention based on stale tracking or large mechanical gaps.`;
 
-      summary.sessions.forEach((session) => {
-        const date = new Date(session.when);
-        if (date.getFullYear() !== year || date.getMonth() !== month) return;
-        const day = date.getDate();
-        dayCounts.set(day, (dayCounts.get(day) || 0) + 1);
-      });
+    document.getElementById('coachStats').innerHTML = [
+      ['Athletes', summary.users?.length || 0],
+      ['Urgent', summary.urgentAthletes || 0],
+      ['Sessions', sessions.length],
+      ['Assessments', summary.assessments?.length || 0]
+    ].map(([label, value]) => `<div class="card"><div class="mini">${label}</div><h3>${value}</h3></div>`).join('');
 
-      let cells = '';
-      for (let i = 0; i < offset; i += 1) cells += '<div class="cal-cell empty"></div>';
-      for (let day = 1; day <= lastDay; day += 1) {
-        const count = dayCounts.get(day) || 0;
-        cells += `
-          <div class="cal-cell">
-            <div class="cal-day">${day}</div>
-            <div class="cal-count">${count ? `${count} session${count > 1 ? 's' : ''}` : ''}</div>
-          </div>
-        `;
+    document.getElementById('priorityQueue').innerHTML = athletes.slice(0, 6).map((item, index) => `<div class="card"><div class="row"><div><div class="mini">Priority ${index + 1}</div><h3>${item.user.fullName}</h3><p class="muted">${item.topIssue ? `${item.topIssue.metric} | ${item.topIssue.delta > 0 ? '+' : ''}${item.topIssue.delta} deg` : 'Needs new assessment'}</p></div><div class="pill">${item.latest?.overallScore || 0}%</div></div></div>`).join('') || '<div class="card"><p class="muted">No athlete data yet.</p></div>';
+    document.getElementById('coachSessions').innerHTML = sessions.slice(0, 6).map((item) => {
+      const athlete = store.getUsers().find((user) => user.id === item.userId);
+      return `<div class="card"><div class="row"><div><h3>${athlete?.fullName || 'Athlete session'}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`;
+    }).join('') || '<div class="card"><p class="muted">No coach sessions scheduled.</p></div>';
+    document.getElementById('athleteRoster').innerHTML = athletes.map((item) => `<div class="card"><div class="row"><div><h3>${item.user.fullName}</h3><p class="muted">${item.latest ? `${item.latest.shotType} | ${item.latest.overallScore}%` : 'No assessment yet'}</p></div><div class="pill">${item.retention.accountabilityState || 'on-track'}</div></div><p class="muted">${item.goals?.length || 0} goals | ${item.drills?.length || 0} drills | ${item.nextSession ? `Next session ${new Date(item.nextSession.when).toLocaleDateString()}` : 'No upcoming session'}</p></div>`).join('') || '<div class="card"><p class="muted">No athletes found.</p></div>';
+    document.getElementById('scheduleList').innerHTML = sessions.map((item) => {
+      const athlete = store.getUsers().find((user) => user.id === item.userId);
+      return `<div class="card"><div class="row"><div><h3>${athlete?.fullName || 'Athlete session'}</h3><p class="muted">${item.focus}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`;
+    }).join('') || '<div class="card"><p class="muted">Calendar is empty.</p></div>';
+    document.getElementById('coachAnalytics').innerHTML = athletes.slice(0, 5).map((item) => `<div class="card"><div class="row"><h3>${item.user.fullName}</h3><div class="pill">${item.latest?.performanceKpis?.readinessIndex || item.latest?.overallScore || 0}%</div></div><p class="muted">${item.topIssue ? `Main issue: ${item.topIssue.metric}` : 'Awaiting first saved report.'}</p></div>`).join('') || '<div class="card"><p class="muted">Analytics will appear after athlete reports are saved.</p></div>';
+    document.getElementById('accountabilityQueue').innerHTML = athletes.slice(0, 5).map((item) => `<div class="card"><div class="row"><h3>${item.user.fullName}</h3><div class="pill">${item.retention.daysSinceLastAssessment ?? 'n/a'} days</div></div><p class="muted">${item.retention.accountabilityState === 'at-risk' ? 'Needs follow-up now.' : 'Training cadence is healthy.'}</p></div>`).join('') || '<div class="card"><p class="muted">No accountability items yet.</p></div>';
+
+    const targets = athletes.map((item) => `<option value="${item.user.id}">${item.user.fullName}</option>`).join('');
+    document.getElementById('athleteTarget').innerHTML = targets || '<option value="">No athletes available</option>';
+    document.getElementById('coachMessageFeed').innerHTML = messages.slice(0, 10).map((item) => {
+      const counterpart = item.fromUserId === access.user.id ? (item.toName || 'Athlete') : (item.fromName || 'Athlete');
+      return `<div class="card"><div class="row"><div><div class="mini">${counterpart}</div><h3>${item.subject}</h3><p class="muted">${item.body}</p></div><div class="mini">${new Date(item.createdAt).toLocaleString()}</div></div></div>`;
+    }).join('') || '<div class="card"><p class="muted">Coach and athlete messages will appear here.</p></div>';
+    document.getElementById('coachMessageForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      try {
+        store.sendMessage({ toUserId: document.getElementById('athleteTarget').value, subject: document.getElementById('athleteSubject').value || 'Coaching note', body: document.getElementById('athleteBody').value || '' });
+        window.location.reload();
+      } catch (error) {
+        alert(error.message || 'Unable to send coaching note.');
       }
+    });
 
-      const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      mount.innerHTML = `
-        <div class="cal-title">${now.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
-        <div class="cal-week">${labels.map((label) => `<div>${label}</div>`).join('')}</div>
-        <div class="cal-grid">${cells}</div>
-      `;
-    }
+    document.getElementById('guardrailList').innerHTML = [
+      `Coach access can review athlete data, but player dashboards stay scoped to each logged-in player.`,
+      `Plan and trial rules still control report limits, exports, and premium surfaces.`,
+      `Manager analytics is hidden unless the logged-in account is internal or manager-enabled.`
+    ].map((item) => `<div class="card"><p class="muted">${item}</p></div>`).join('');
 
-    function render() {
-      const summary = store.getCoachSummary();
-      const users = summary.users;
-      const assessments = summary.assessments;
-      const sessions = summary.sessions;
-
-      document.getElementById('athleteCount').textContent = users.length;
-      document.getElementById('assessmentCount').textContent = assessments.length;
-      document.getElementById('sessionCount').textContent = sessions.length;
-      document.getElementById('urgentCount').textContent = summary.urgentAthletes;
-
-      const roster = document.getElementById('rosterList');
-      if (!summary.athletes.length) {
-        roster.innerHTML = '<div class="item"><p class="muted">No athletes yet. Create player accounts first.</p></div>';
-      } else {
-        roster.innerHTML = summary.athletes.map((entry) => {
-          const latest = entry.latest;
-          const top = entry.topIssue;
-          const klass = top ? riskClass(top.delta) : 'risk-low';
-          const label = top ? riskLabel(top.delta) : 'stable';
-          return `
-            <div class="item">
-              <div class="pill">${label}</div>
-              <h3>${entry.user.fullName}</h3>
-              <p class="muted">${entry.retention.activeGoals} active goals | drill completion ${entry.retention.drillCompletionRate}%</p>
-              ${latest ? `<p style="margin-top: 8px;">Latest: ${formatShot(latest.shotType)} score ${latest.overallScore} | band ${latest.milestone?.current || 'Foundation'} | readiness ${latest.performanceKpis?.readinessIndex ?? '-'} | mode ${latest.sessionMode || 'stroke-tune-up'}</p>` : '<p style="margin-top: 8px;">No session logged yet.</p>'}
-              ${top ? `<p class="${klass}" style="margin-top: 6px;">Top gap: ${top.metric} (${top.delta > 0 ? '+' : ''}${top.delta}deg)</p>` : ''}
-              ${entry.retention.daysSinceLastAssessment != null ? `<p class="muted" style="margin-top: 6px;">${entry.retention.daysSinceLastAssessment} days since analysis</p>` : ''}
-            </div>
-          `;
-        }).join('');
+    function csvEscape(value){return `"${String(value ?? '').replace(/"/g,'""')}"`;}
+    window.exportCoach = function(format){
+      const payload = { summary, athletes, sessions };
+      if(format === 'json'){
+        const blob = new Blob([JSON.stringify(payload,null,2)], { type: 'application/json' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'smartswing-coach-dashboard.json'; link.click(); return;
       }
-
-      const feed = document.getElementById('assessmentList');
-      if (!assessments.length) {
-        feed.innerHTML = '<div class="item"><p class="muted">No assessments yet.</p></div>';
-      } else {
-        feed.innerHTML = assessments.slice(0, 9).map((assessment) => {
-          const user = users.find((u) => u.id === assessment.userId);
-          const ranked = [...(assessment.metricComparisons || [])].sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
-          const top = ranked[0];
-          return `
-            <div class="item">
-              <h3>${user ? user.fullName : 'Athlete'} - ${formatShot(assessment.shotType)}</h3>
-              <p class="muted">${new Date(assessment.analyzedAt).toLocaleString()}</p>
-              <p style="margin-top: 6px;">Score ${assessment.overallScore} | Grade ${assessment.grade} | Band ${assessment.milestone?.current || 'Foundation'} | Setup ${assessment.setupScore || 100}/100</p>
-              <p style="margin-top: 6px;" class="muted">Goal: ${assessment.sessionGoal || 'General improvement'}</p>
-              ${top ? `<p class="${riskClass(top.delta)}" style="margin-top: 6px;">Primary issue: ${top.metric} (${top.delta > 0 ? '+' : ''}${top.delta}deg)</p>` : ''}
-            </div>
-          `;
-        }).join('');
-      }
-
-      const queue = document.getElementById('sessionList');
-      const alerts = buildQueue(summary);
-      if (!alerts.length) {
-        queue.innerHTML = '<div class="item"><p class="muted">No active alerts. Team is on track.</p></div>';
-      } else {
-        queue.innerHTML = alerts.map((alert) => `
-          <div class="item">
-            <div class="pill">${alert.type}</div>
-            <h3>${alert.athlete}</h3>
-            <p style="margin-top: 6px;">${alert.detail}</p>
-          </div>
-        `).join('');
-      }
-
-      renderCoachCalendar(summary);
-    }
-
-    render();
-    store.syncNow().then(render).catch(() => {});
+      const rows = [['athlete','score','issue'],...athletes.map((item) => [item.user.fullName, item.latest?.overallScore || 0, item.topIssue?.metric || 'none'])];
+      const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'smartswing-coach-dashboard.csv'; link.click();
+    };
+    window.printCoachDashboard = function(){ window.print(); };
   </script>
 </body>
 </html>

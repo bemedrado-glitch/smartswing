@@ -2711,143 +2711,60 @@
     }
 
     function generateReport(session) {
-      console.log('generateReport() called');
       const s = session.summary;
       const bench = getBenchmarkForShot(s.shotType);
-      const tailoredDrillsHtml = generateTailoredDrillsHtml(s.tailoredDrills || []);
-      const tailoredTacticsHtml = generateTacticsHtml(s.tailoredTactics || []);
-
+      const topMetrics = [...(s.metricComparisons || [])].sort((a, b) => a.score - b.score).slice(0, 3);
+      const strengths = [...(s.metricComparisons || [])].sort((a, b) => b.score - a.score).slice(0, 2);
       const html = `
         <div class="report-header">
           <div class="smartswing-score">${s.score}</div>
           <div class="grade-badge">Grade ${s.grade}</div>
-          <div class="percentile">
-            ${formatOrdinal(s.percentile)} percentile within ${s.scoringMeta?.level || session.profile.level} peers | ${session.profile.level} | Age ${session.profile.age} | ${session.profile.gender}
-          </div>
-          <div style="font-size: 14px; color: var(--gray); margin-top: 16px;">
-            Analysis Date: ${new Date(session.timestamp).toLocaleDateString()} | Shot: ${s.shotType}
-          </div>
-          <div style="font-size: 14px; color: var(--gray); margin-top: 8px;">
-            Capture quality: ${s.setupScore || 100}/100 | Goal: ${s.sessionGoal || 'General improvement'} | Mode: ${s.sessionMode || 'stroke-tune-up'}
-          </div>
-          <div style="font-size: 15px; margin-top: 12px; color: var(--electric-cyan); font-weight: 800;">
-            Milestone: ${s.milestone?.current || 'Foundation'} | Momentum: ${s.milestone?.momentum || 'Build repeatability'}
-          </div>
+          <div class="percentile">${formatOrdinal(s.percentile)} percentile within ${s.scoringMeta?.level || session.profile.level} peers | ${session.profile.level} | Age ${session.profile.age} | ${session.profile.gender}</div>
+          <div style="font-size: 14px; color: var(--gray); margin-top: 14px;">Analysis Date: ${new Date(session.timestamp).toLocaleDateString()} | Shot: ${s.shotType} | Capture quality: ${s.setupScore || 100}%</div>
+          <div style="font-size: 16px; margin-top: 12px; color: var(--electric-cyan); font-weight: 800;">Start here: ${topMetrics[0] ? `${formatMetricName(topMetrics[0].metric)} is the biggest gain opportunity in this clip.` : 'This clip is balanced. Keep building repeatability.'}</div>
         </div>
-
         <div class="report-section">
-          <div class="report-section-title">Score Breakdown</div>
+          <div class="report-section-title">Quick Read</div>
           <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-title">Total Score</div>
-              <div class="metric-value-large">${s.score}</div>
-              <div class="metric-label">Out of 100</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">Focus Frames</div>
-              <div class="metric-value-large">${s.focusFramesAnalyzed}</div>
-              <div class="metric-label">High-value motion frames</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">Readiness Index</div>
-              <div class="metric-value-large">${s.performanceKpis?.readinessIndex || 0}</div>
-              <div class="metric-label">Blend of timing, capture, and tracking</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-title">Momentum</div>
-              <div class="metric-value-large">${s.progressContext?.delta != null ? `${s.progressContext.delta > 0 ? '+' : ''}${s.progressContext.delta}` : '0'}</div>
-              <div class="metric-label">${s.progressContext?.personalBest ? 'Personal best pace' : 'Vs recent shot average'}</div>
-            </div>
+            <div class="metric-card"><div class="metric-title">Overall Score</div><div class="metric-value-large">${s.score}%</div><div class="metric-label">Short answer: how strong this motion looks for your current level.</div></div>
+            <div class="metric-card"><div class="metric-title">Best Strength</div><div class="metric-value-large" style="font-size:30px;">${strengths[0] ? formatMetricName(strengths[0].metric) : 'Balance'}</div><div class="metric-label">${strengths[0] ? `${strengths[0].score}% and helping stroke stability.` : 'Use the next report to confirm a stable strength.'}</div></div>
+            <div class="metric-card"><div class="metric-title">Main Priority</div><div class="metric-value-large" style="font-size:30px;">${topMetrics[0] ? formatMetricName(topMetrics[0].metric) : 'Timing'}</div><div class="metric-label">${topMetrics[0] ? `${topMetrics[0].score}% and most responsible for the current cap on performance.` : 'No major red flag detected.'}</div></div>
           </div>
         </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Milestone Track</div>
-          ${generateMilestoneHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Achievement Unlocks</div>
-          ${generateAchievementsHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Performance KPIs</div>
-          ${generatePerformanceKpisHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Angles vs Personalized Benchmark Window</div>
-          ${generateAngleComparisons(s.avgAngles, bench, s.shotType, s.metricComparisons)}
-          <div class="info-box">
-            <strong>How to read this:</strong><br>
-            SmartSwing starts from elite mechanics, then shifts the target window for level, age, and gender so the score stays fair while still pointing toward high-performance movement.
-          </div>
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Movement, Footwork, Positioning, and Height</div>
-          ${generateDerivedMetricsHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Tracker Definitions (Why each metric matters)</div>
-          ${generateTrackerDefinitionsHtml()}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Biomechanics Analysis</div>
-          ${generateBiomechanicsInsights(s.avgAngles, bench, s.shotType)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Coach-ready Summary</div>
-          ${generateCoachReadySummaryHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Fair Score Logic</div>
-          ${generateFairnessExplanationHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Tailored Drill Plan</div>
-          ${tailoredDrillsHtml}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Match Tactics for This Session</div>
-          ${tailoredTacticsHtml}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">7-Day Execution Plan</div>
-          ${generateExecutionPlanHtml(s)}
-        </div>
-
-        <div class="report-section">
-          <div class="report-section-title">Additional Recommendations</div>
-          ${generateRecommendations(s.avgAngles, bench, s.shotType)}
-        </div>
-
+        <div class="report-section"><div class="report-section-title">Biomechanics Analysis</div>${generateBiomechanicsInsights(s.avgAngles, bench, s.shotType, s.metricComparisons)}</div>
+        <div class="report-section"><div class="report-section-title">Angles and What They Mean</div>${generateAngleComparisons(s.avgAngles, bench, s.shotType, s.metricComparisons)}</div>
+        <div class="report-section"><div class="report-section-title">Performance KPIs</div>${generatePerformanceKpisHtml(s)}</div>
+        <div class="report-section"><div class="report-section-title">Movement, Footwork, Positioning, and Height</div>${generateDerivedMetricsHtml(s)}</div>
+        <div class="report-section"><div class="report-section-title">Coach-ready Summary</div>${generateCoachReadySummaryHtml(s)}</div>
+        <div class="report-section"><div class="report-section-title">Tailored Drill Plan</div>${generateTailoredDrillsHtml(s.tailoredDrills || [])}</div>
+        <div class="report-section"><div class="report-section-title">Match Tactics for This Session</div>${generateTacticsHtml(s.tailoredTactics || [])}</div>
         <div class="report-section">
           <div class="report-section-title">Next Steps</div>
-          <div style="font-size: 14px; line-height: 1.8;">
-            <p><strong>To improve your ${s.shotType} score:</strong></p>
-            <ol style="margin-left: 20px; margin-top: 12px;">
-              <li><strong>Focus on top deltas:</strong> Prioritize drills tied to the largest deviation first.</li>
-              <li><strong>Repeat analysis weekly:</strong> Use the same shot and camera setup for cleaner trend data.</li>
-              <li><strong>Save and compare:</strong> Keep each report to track score movement and confidence changes.</li>
-              <li><strong>Book a coach session:</strong> Convert this report into an immediate correction plan.</li>
-            </ol>
-            <p style="margin-top: 16px;">
-              <strong>Progress tracking:</strong> This analysis is saved locally and pushed to dashboards when signed in.
-            </p>
+          <div style="display:grid; gap:10px;">
+            <div class="metric-row"><div class="metric-row-label"><strong>1. Keep the next capture comparable</strong><div style="font-size:12px; color:var(--gray); margin-top:4px;">Same shot, same angle, same distance from camera.</div></div></div>
+            <div class="metric-row"><div class="metric-row-label"><strong>2. Run the first drill before anything else</strong><div style="font-size:12px; color:var(--gray); margin-top:4px;">Fix the highest-impact mechanical gap before adding more volume.</div></div></div>
+            <div class="metric-row"><div class="metric-row-label"><strong>3. Re-test after the next focused session</strong><div style="font-size:12px; color:var(--gray); margin-top:4px;">SmartSwing will show if the same priority moved in the right direction.</div></div></div>
           </div>
         </div>
       `;
-
       document.getElementById('reportContent').innerHTML = html;
+    }
+
+    function buildExpandableInsight(title, score, summary, details, tone = 'cyan') {
+      const borderColor = tone === 'green' ? 'rgba(0, 200, 83, 0.28)' : tone === 'orange' ? 'rgba(255, 109, 0, 0.28)' : 'rgba(0, 229, 255, 0.24)';
+      return `
+        <details style="padding:16px; margin-bottom:12px; background:rgba(10,22,40,0.58); border:1px solid ${borderColor}; border-radius:14px;">
+          <summary style="list-style:none; cursor:pointer; display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+            <div>
+              <div style="font-size:12px; text-transform:uppercase; font-weight:800; letter-spacing:0.06em; color:var(--gray);">Tap to expand</div>
+              <div style="font-size:18px; font-weight:800; margin-top:4px;">${title}</div>
+              <div style="font-size:14px; color:var(--silver); margin-top:8px;">${summary}</div>
+            </div>
+            <div style="min-width:72px; text-align:right; font-size:24px; font-weight:800; color:var(--electric-cyan);">${score}%</div>
+          </summary>
+          <div style="margin-top:14px; font-size:14px; line-height:1.7; color:var(--silver);">${details}</div>
+        </details>
+      `;
     }
 
     function generateTailoredDrillsHtml(drills) {
@@ -2857,26 +2774,13 @@
 
       const hasLibraryAccess = store && currentUser ? store.canAccessLibrary() : false;
 
-      return drills.slice(0, 4).map((drill, index) => `
-        <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 12px;">
-          <div style="font-weight: 800; color: var(--neon-green); margin-bottom: 6px;">${index + 1}. ${drill.title}</div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-            <span style="font-size: 12px; font-weight: 800; color: var(--void-black); background: var(--neon-green); padding: 4px 10px; border-radius: 999px;">${drill.priorityLabel || 'Priority'}</span>
-            <span style="font-size: 12px; font-weight: 700; color: var(--silver); background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 999px;">${drill.duration || drill.recommendedPracticeTime || '10-15 min'}</span>
-          </div>
-          <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Focus: ${drill.focus}</div>
-          <div style="font-size: 14px; margin-bottom: 8px;"><strong>Prescription:</strong> ${drill.prescription}</div>
-          <div style="font-size: 14px;"><strong>Coaching cue:</strong> ${drill.cue}</div>
-          ${drill.targets?.length ? `<div style="font-size: 14px; margin-top: 8px;"><strong>Targets:</strong> ${drill.targets.join(' | ')}</div>` : ''}
-          ${drill.expectedImprovement ? `<div style="font-size: 14px; margin-top: 8px;"><strong>Expected gain:</strong> ${drill.expectedImprovement}</div>` : ''}
-          ${drill.whyThisFits ? `<div style="font-size: 14px; margin-top: 8px;"><strong>Why this fits:</strong> ${drill.whyThisFits}</div>` : ''}
-          ${drill.videoUrl
-            ? hasLibraryAccess
-              ? `<div style="font-size: 13px; margin-top: 8px;"><strong>Video:</strong> <a href="${drill.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${drill.videoTitle || 'Open drill video'}</a>${drill.channel ? ` (${drill.channel})` : ''}</div>`
-              : '<div style="font-size: 13px; margin-top: 8px; color: var(--warning);"><strong>Upgrade note:</strong> Drill video links are unlocked on Performance and Tournament plans.</div>'
-            : ''}
-        </div>
-      `).join('');
+      return drills.slice(0, 3).map((drill, index) => buildExpandableInsight(
+        `${index + 1}. ${drill.title}`,
+        Math.min(100, 72 + (index * 8)),
+        `${drill.prescription || drill.focus || 'Targeted drill prescription'} Expected gain: ${drill.expectedImprovement || 'cleaner repeatability'}.`,
+        `<strong>Targets:</strong> ${drill.targets?.join(' | ') || 'stroke repeatability'}<br><br><strong>Why this fits:</strong> ${drill.whyThisFits || 'It matches the biggest weakness detected in this report.'}<br><br><strong>Coaching cue:</strong> ${drill.cue || 'Keep the cue simple and repeatable.'}<br><br>${drill.videoUrl ? (hasLibraryAccess ? `<strong>Video:</strong> <a href="${drill.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${drill.videoTitle || 'Open drill video'}</a>${drill.channel ? ` (${drill.channel})` : ''}` : '<strong>Upgrade note:</strong> Drill video links are unlocked on Performance and Tournament plans.') : ''}`,
+        'green'
+      )).join('');
     }
 
     function generateTacticsHtml(tactics) {
@@ -2886,21 +2790,13 @@
 
       const hasLibraryAccess = store && currentUser ? store.canAccessLibrary() : false;
 
-      return tactics.map((tactic, index) => `
-        <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.56); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 12px;">
-          <div style="font-weight: 800; color: var(--electric-cyan); margin-bottom: 6px;">${index + 1}. ${tactic.title}</div>
-          <div style="font-size: 13px; color: var(--gray); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Situation: ${tactic.situation || 'general'} | Level: ${tactic.skillLevel || 'all'}</div>
-          <div style="font-size: 14px; margin-bottom: 8px;">${tactic.summary || ''}</div>
-          ${tactic.message ? `<div style="font-size: 14px; margin-bottom: 8px;"><strong>Why now:</strong> ${tactic.message}</div>` : ''}
-          ${tactic.tacticalFocus?.length ? `<div style="font-size: 14px; margin-bottom: 8px;"><strong>Tactical focus:</strong> ${tactic.tacticalFocus.join(' | ')}</div>` : ''}
-          ${tactic.expectedImprovement ? `<div style="font-size: 14px; margin-bottom: 8px;"><strong>Expected impact:</strong> ${Object.values(tactic.expectedImprovement).slice(0, 2).join(' | ')}</div>` : ''}
-          ${tactic.videoUrl
-            ? hasLibraryAccess
-              ? `<div style="font-size: 13px;"><strong>Video:</strong> <a href="${tactic.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${tactic.channel || 'Open tactic video'}</a></div>`
-              : '<div style="font-size: 13px; color: var(--warning);"><strong>Upgrade note:</strong> Full tactics video links are unlocked on Performance and Tournament plans.</div>'
-            : ''}
-        </div>
-      `).join('');
+      return tactics.slice(0, 3).map((tactic, index) => buildExpandableInsight(
+        `${index + 1}. ${tactic.title}`,
+        Math.min(100, 74 + (index * 7)),
+        `${tactic.message || tactic.summary || 'Tactical pattern for the next session.'}`,
+        `<strong>Tactical focus:</strong> ${tactic.tacticalFocus?.join(' | ') || tactic.situation || 'general'}<br><br><strong>Expected impact:</strong> ${tactic.expectedImprovement ? Object.values(tactic.expectedImprovement).slice(0, 2).join(' | ') : 'Cleaner point construction and fewer low-value decisions.'}<br><br>${tactic.videoUrl ? (hasLibraryAccess ? `<strong>Video:</strong> <a href="${tactic.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${tactic.channel || 'Open tactic video'}</a>` : '<strong>Upgrade note:</strong> Full tactics video links are unlocked on Performance and Tournament plans.') : ''}`,
+        'cyan'
+      )).join('');
     }
 
     function generateMilestoneHtml(summary) {
@@ -2952,51 +2848,22 @@
     function generatePerformanceKpisHtml(summary) {
       const kpis = summary.performanceKpis || {};
       const cards = [
-        ['Timing consistency', kpis.timingConsistency, 'How repeatable your strike window stays across the best motion frames.'],
-        ['Footwork score', kpis.footworkScore, 'How well your base, balance, and lower-body activity support the stroke.'],
-        ['Positioning score', kpis.positioningScore, 'How centered and stable you stay through load, strike, and recovery.'],
-        ['Contact height score', kpis.contactHeightScore, 'How well your strike height matches the ideal window for this shot.'],
-        ['Spacing score', kpis.spacingScore, 'How cleanly you create distance from your body into contact.'],
-        ['Tracking reliability', kpis.trackingReliability, 'Blend of landmark quality and confidence so you know how trustworthy the sample is.'],
-        ['Movement speed', kpis.movementSpeed, 'Tempo index from your live movement demand in the clip.'],
-        ['Readiness index', kpis.readinessIndex, 'Overall execution readiness after timing, capture quality, and tracking are blended.']
+        ['Timing consistency', kpis.timingConsistency, 'Your strike window looks repeatable. Higher is better because it means cleaner contact happens more often.', 'Why it matters: timing is the difference between a clean hit and a rushed hit. What to do: repeat the same feed and keep one timing cue active until the miss pattern calms down.'],
+        ['Footwork support', kpis.footworkScore, 'Your lower body is either helping the shot or arriving late. Higher is better because it supports balance and spacing.', 'Why it matters: better feet create better contact before the racket even moves. What to do: use split-step and first-move drills before technical stroke work.'],
+        ['Positioning quality', kpis.positioningScore, 'This shows how centered and stable you stay through load, contact, and recovery.', 'Why it matters: better positioning lets you swing without compensating. What to do: rehearse recovery routes and keep the same starting position when re-testing.']
       ];
-
-      return `
-        <div class="metrics-grid">
-          ${cards.map(([label, value, copy]) => `
-            <div class="metric-card">
-              <div class="metric-title">${label}</div>
-              <div class="metric-value-large" style="font-size:42px;">${safeNumber(value, 0)}</div>
-              <div class="metric-label">${copy}</div>
-            </div>
-          `).join('')}
-        </div>
-      `;
+      return cards.map(([label, value, summaryText, detailText]) => buildExpandableInsight(label, Math.min(100, Math.round(value || 0)), summaryText, detailText, 'cyan')).join('');
     }
 
     function generateDerivedMetricsHtml(summary) {
       const metrics = summary.avgDerivedMetrics || {};
-      const rows = [
-        ['stanceWidth', 'Base width', '% of shoulder width'],
-        ['contactHeight', 'Contact height', 'Normalized body-height index'],
-        ['reach', 'Reach / spacing', '% of body scale'],
-        ['balance', 'Balance offset', 'Lower is cleaner'],
-        ['shoulderTilt', 'Shoulder tilt', 'Degrees from level'],
-        ['hipTilt', 'Hip tilt', 'Degrees from level'],
-        ['alignmentGap', 'Upper-lower alignment gap', 'Lower usually means cleaner transfer'],
-        ['footworkLoad', 'Footwork load', 'Movement demand index']
+      const cards = [
+        ['Movement', summary.performanceKpis?.movementSpeed, `Movement speed index ${Math.round(summary.performanceKpis?.movementSpeed || 0)}%.`, 'How to read it: this reflects how fast the clip demanded movement. Why it matters: if movement load rises but contact falls apart, the footwork pattern is the real bottleneck.'],
+        ['Footwork', summary.performanceKpis?.footworkScore, `Footwork support is ${Math.round(summary.performanceKpis?.footworkScore || 0)}%.`, `Base width: ${metrics.stanceWidth ?? '-'} | Balance offset: ${metrics.balance ?? '-'} | Footwork load: ${metrics.footworkLoad ?? '-'}. Focus on arriving earlier so the base is set before the swing.`],
+        ['Positioning', summary.performanceKpis?.positioningScore, `Positioning quality is ${Math.round(summary.performanceKpis?.positioningScore || 0)}%.`, `Reach / spacing: ${metrics.reach ?? '-'} | Alignment gap: ${metrics.alignmentGap ?? '-'}. Why it matters: this determines whether you can swing freely or have to compensate.`],
+        ['Contact height', summary.performanceKpis?.contactHeightScore, `Contact height score is ${Math.round(summary.performanceKpis?.contactHeightScore || 0)}%.`, `Contact height index: ${metrics.contactHeight ?? '-'} | Shoulder tilt: ${metrics.shoulderTilt ?? '-'} | Hip tilt: ${metrics.hipTilt ?? '-'}. Use it to judge whether you are meeting the ball in the right strike window.`]
       ];
-
-      return rows.map(([key, label, helper]) => `
-        <div class="metric-row">
-          <div class="metric-row-label">
-            <strong>${label}</strong>
-            <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">${helper}</div>
-          </div>
-          <div class="metric-row-value">${metrics[key] != null ? metrics[key] : '-'}</div>
-        </div>
-      `).join('');
+      return cards.map(([label, score, summaryText, detailText]) => buildExpandableInsight(label, Math.min(100, Math.round(score || 0)), summaryText, detailText, 'orange')).join('');
     }
 
     function generateTrackerDefinitionsHtml() {
@@ -3035,22 +2902,9 @@
         ? 'Capture quality dropped below 80/100. Re-record with corrected setup before coach review.'
         : 'Capture quality is reliable enough for coach progression checks.';
 
-      return `
-        <div class="info-box">
-          <strong>Urgency:</strong> ${urgency}<br>
-          <strong>Session mode:</strong> ${summary.sessionMode || 'stroke-tune-up'}<br>
-          <strong>Player goal:</strong> ${summary.sessionGoal || 'General improvement'}<br>
-          <strong>Next coach focus:</strong> ${nextSessionFocus}<br>
-          <strong>Accountability note:</strong> ${accountability}
-        </div>
-        <div style="margin-top: 12px;">
-          ${ranked.length ? ranked.map((item, index) => `
-            <div style="padding: 12px; margin-bottom: 8px; background: rgba(57, 255, 20, 0.06); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 10px;">
-              <strong>Priority ${index + 1}:</strong> ${formatMetricName(item.metric)} (${item.delta > 0 ? '+' : ''}${item.delta} deg vs target)
-            </div>
-          `).join('') : '<div class="info-box">No high-risk deltas detected in this session.</div>'}
-        </div>
-      `;
+      const intro = `<div class="metric-card" style="margin-bottom:12px;"><div class="metric-title">Coach snapshot</div><div class="metric-label">Urgency: ${urgency} | Session mode: ${summary.sessionMode || 'stroke-tune-up'} | Player goal: ${summary.sessionGoal || 'General improvement'} | Next coach focus: ${nextSessionFocus}</div><div class="metric-label" style="margin-top:10px;">${accountability}</div></div>`;
+      const priorities = ranked.length ? ranked.map((item, index) => buildExpandableInsight(`Priority ${index + 1}: ${formatMetricName(item.metric)}`, Math.min(100, Math.round(item.score || 0)), `${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees.`, `Why this matters: ${TRACKER_DEFINITIONS[item.metric] || 'This metric drives stroke quality.'}<br><br><strong>How to interpret:</strong> This priority is large enough to change consistency and ball quality, not just aesthetics.<br><br><strong>What to do next:</strong> Use the first drill recommendation, then re-check the same shot from the same camera angle before the next coach review.`, 'green')).join('') : '<div class="metric-card"><div class="metric-label">No high-risk deltas detected in this session.</div></div>';
+      return `${intro}${priorities}`;
     }
 
     function generateExecutionPlanHtml(summary) {
@@ -3168,7 +3022,7 @@
       }
 
       const angleOrder = ['shoulder', 'elbow', 'hip', 'knee', 'trunk'];
-      const rows = angleOrder
+      const cards = angleOrder
         .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
         .map((metric) => {
           const comparison = metricComparisons.find((item) => item.metric === metric) || null;
@@ -3177,39 +3031,80 @@
           const minRange = comparison?.min ?? bench[metric].min;
           const maxRange = comparison?.max ?? bench[metric].max;
           const diff = comparison ? comparison.delta : current - optimal;
+          const score = Math.min(100, Math.max(40, Math.round(comparison?.score ?? (100 - Math.abs(diff)))));
           const status = comparison?.status || 'workable';
-          const statusColor = status === 'excellent'
-            ? 'var(--neon-green)'
+          const fitLabel = status === 'excellent'
+            ? 'inside the strongest part of the target window'
             : status === 'good'
-              ? 'var(--electric-cyan)'
-              : status === 'workable'
-                ? '#ffd166'
-                : 'var(--warning)';
-          const statusLabel = status === 'needs-work' ? 'Needs work' : status.charAt(0).toUpperCase() + status.slice(1);
+              ? 'close to the target window'
+              : status === 'needs-work'
+                ? 'far enough from target to affect ball quality'
+                : 'playable, but still leaving points on the table';
+          const direction = diff > 0 ? 'above' : diff < 0 ? 'below' : 'on';
 
-          return `
-            <div class="metric-row">
-              <div class="metric-row-label">
-                <strong>${formatMetricName(metric)}</strong>
-                <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">
-                  Personalized range: ${minRange} deg - ${maxRange} deg (target: ${optimal} deg)
-                </div>
-              </div>
-              <div class="metric-row-value" style="text-align: right;">
-                <div style="font-size: 24px; font-weight: 800;">${current} deg</div>
-                <div style="font-size: 14px; color: ${statusColor}; margin-top: 4px;">
-                  ${statusLabel}
-                  ${diff !== 0 ? `<span style="font-size: 12px; margin-left: 8px;">(${diff > 0 ? '+' : ''}${diff} deg)</span>` : ''}
-                </div>
-              </div>
-            </div>
-          `;
+          return buildExpandableInsight(
+            `${formatMetricName(metric)}`,
+            score,
+            `${current} deg. Personalized target window ${minRange} to ${maxRange} deg. This sits ${direction} the center target and is ${fitLabel}.`,
+            `<strong>What it means:</strong> ${TRACKER_DEFINITIONS[metric] || 'This angle affects how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> Your average was <strong>${current} deg</strong>, while your current target is <strong>${optimal} deg</strong>. That is a difference of <strong>${diff > 0 ? '+' : ''}${diff} deg</strong>.<br><br><strong>Why it matters:</strong> The farther this drifts from the target window, the more likely you are to compensate with timing, balance, or contact quality.<br><br><strong>Best next move:</strong> Use the first drill recommendation attached to this report and re-test the same shot from the same camera angle.`,
+            'cyan'
+          );
         });
 
-      return rows.join('') || '<p>Insufficient angle data for comparison.</p>';
+      return cards.join('') || '<p>Insufficient angle data for comparison.</p>';
     }
 
-    function generateBiomechanicsInsights(avgAngles, bench, shotType) {
+    function generateBiomechanicsInsights(avgAngles, bench, shotType, metricComparisons = []) {
+      const ranked = (metricComparisons && metricComparisons.length
+        ? metricComparisons
+        : ['shoulder', 'elbow', 'hip', 'knee', 'trunk']
+          .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
+          .map((metric) => {
+            const delta = Math.round(avgAngles[metric] - bench[metric].optimal);
+            return {
+              metric,
+              delta,
+              score: Math.max(45, 100 - Math.abs(delta)),
+              status: Math.abs(delta) <= 5 ? 'excellent' : Math.abs(delta) <= 10 ? 'good' : 'needs-work'
+            };
+          }))
+        .sort((a, b) => {
+          const severityA = a.status === 'needs-work' ? 3 : a.status === 'workable' ? 2 : a.status === 'good' ? 1 : 0;
+          const severityB = b.status === 'needs-work' ? 3 : b.status === 'workable' ? 2 : b.status === 'good' ? 1 : 0;
+          if (severityA !== severityB) return severityB - severityA;
+          return Math.abs(b.delta || 0) - Math.abs(a.delta || 0);
+        })
+        .slice(0, 3);
+
+      if (!ranked.length) {
+        return buildExpandableInsight(
+          'Biomechanics snapshot',
+          78,
+          'The current clip shows enough structure to coach from, but more frames from the same setup will make the priorities sharper.',
+          'Why this matters: biomechanics feedback becomes more useful when the camera angle, body visibility, and shot repetition stay consistent across sessions.',
+          'green'
+        );
+      }
+
+      return ranked.map((item, index) => {
+        const current = avgAngles[item.metric];
+        const optimal = bench[item.metric]?.optimal;
+        const trendCopy = item.delta > 0
+          ? `${formatMetricName(item.metric)} is running ahead of target, which can make the stroke leak early or lose shape.`
+          : item.delta < 0
+            ? `${formatMetricName(item.metric)} is coming in below target, which can hold back power and spacing.`
+            : `${formatMetricName(item.metric)} is right on target and is supporting the stroke well.`;
+        return buildExpandableInsight(
+          `Priority ${index + 1}: ${formatMetricName(item.metric)}`,
+          Math.min(100, Math.round(item.score || 0)),
+          `${trendCopy} Current average ${current ?? '-'} deg versus target ${optimal ?? '-'} deg.`,
+          `<strong>Why this matters:</strong> ${TRACKER_DEFINITIONS[item.metric] || 'This metric influences how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> In this ${shotType} sample, the deviation was <strong>${item.delta > 0 ? '+' : ''}${item.delta || 0} deg</strong>. That size is large enough to change contact quality, not just the look of the swing.<br><br><strong>What to do:</strong> Fix this before chasing speed or score. Start with the top drill recommendation, then re-test the same shot and compare the next report side by side.`,
+          'green'
+        );
+      }).join('');
+    }
+
+    function generateBiomechanicsInsightsLegacy(avgAngles, bench, shotType) {
       const insights = [];
       
       // Shoulder analysis
@@ -3852,6 +3747,10 @@
       localStorage.setItem('smartswing_last_session', JSON.stringify(session));
 
       if (!store || !currentUser) {
+        return null;
+      }
+
+      if (!store.canSaveReport()) {
         return null;
       }
 

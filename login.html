@@ -157,6 +157,13 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
+    .oauth-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
     .btn:hover { transform: translateY(-1px); }
 
     .links {
@@ -211,7 +218,11 @@
         <button id="loginBtn" class="btn btn-primary" type="submit">Sign In</button>
       </form>
 
-      <button class="btn btn-secondary" type="button" onclick="loginWithGoogle()">Google Sign-In</button>
+      <div class="oauth-grid">
+        <button class="btn btn-secondary" type="button" onclick="loginWithProvider('google')">Google</button>
+        <button class="btn btn-secondary" type="button" onclick="loginWithProvider('facebook')">Meta</button>
+        <button class="btn btn-secondary" type="button" onclick="loginWithProvider('apple')">Apple</button>
+      </div>
 
       <div class="links">
         Don't have an account? <a href="./signup.html">Create one</a>
@@ -258,11 +269,11 @@
       }
     }
 
-    async function loginWithGoogle() {
+    async function loginWithProvider(provider) {
       try {
-        await store.signInWithGoogle();
+        await store.signInWithOAuthProvider(provider);
       } catch (error) {
-        showAlert(error.message || 'Google OAuth is not configured. Use email/password or demo account.');
+        showAlert(error.message || `${provider} OAuth is not configured. Use email/password or demo account.`);
       }
     }
 

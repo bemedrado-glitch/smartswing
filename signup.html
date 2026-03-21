@@ -187,6 +187,39 @@
       font-size: 14px;
     }
 
+    .oauth-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .oauth-btn {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--silver);
+      padding: 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .avatar-preview {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: var(--silver);
+      background-size: cover;
+      background-position: center;
+      margin-bottom: 10px;
+    }
+
     .links a,
     .back-link {
       color: var(--neon-green);
@@ -214,6 +247,12 @@
 
       <div id="alertBox" class="alert"></div>
 
+      <div class="oauth-grid">
+        <button class="oauth-btn" type="button" onclick="loginWithProvider('google')">Google</button>
+        <button class="oauth-btn" type="button" onclick="loginWithProvider('facebook')">Meta</button>
+        <button class="oauth-btn" type="button" onclick="loginWithProvider('apple')">Apple</button>
+      </div>
+
       <div class="role-grid">
         <div class="role-card selected" data-role="player" onclick="selectRole('player')">
           <div class="role-title">Player</div>
@@ -228,6 +267,13 @@
       <form onsubmit="handleSignup(event)">
         <input id="userRole" type="hidden" value="player">
         <input id="planId" type="hidden" value="free">
+        <input id="startTrial" type="hidden" value="0">
+
+        <div class="field">
+          <label for="avatarInput">Profile picture</label>
+          <div class="avatar-preview" id="avatarPreview">P</div>
+          <input id="avatarInput" type="file" accept="image/*">
+        </div>
 
         <div class="two-col">
           <div class="field">
@@ -323,6 +369,14 @@
       });
     }
 
+    async function loginWithProvider(provider) {
+      try {
+        await store.signInWithOAuthProvider(provider);
+      } catch (error) {
+        showAlert(error.message || `${provider} sign-in failed.`);
+      }
+    }
+
     async function handleSignup(event) {
       event.preventDefault();
       const signupBtn = document.getElementById('signupBtn');
@@ -343,12 +397,14 @@
           email: document.getElementById('email').value,
           password,
           planId: document.getElementById('planId').value,
+          startTrial: document.getElementById('startTrial').value === '1',
           ageRange: document.getElementById('ageRange').value,
           gender: document.getElementById('gender').value,
           ustaLevel: document.getElementById('ustaLevel').value,
           utrRating: document.getElementById('utrRating').value,
           preferredHand: document.getElementById('preferredHand').value,
-          userRole: document.getElementById('userRole').value
+          userRole: document.getElementById('userRole').value,
+          avatarDataUrl: document.getElementById('avatarPreview').dataset.image || ''
         });
 
         showAlert('Account created. Redirecting to your dashboard...', 'success');
@@ -365,17 +421,34 @@
     (function initPlanSelection() {
       const params = new URLSearchParams(window.location.search);
       const requested = String(params.get('plan') || '').toLowerCase();
+      const wantsTrial = params.get('trial') === '1';
       const allowed = new Set(['free', 'starter', 'pro', 'elite']);
       if (!allowed.has(requested)) return;
       document.getElementById('planId').value = requested;
+      document.getElementById('startTrial').value = wantsTrial ? '1' : '0';
       const labels = {
         free: 'Free (1 monthly report, no save/export)',
         starter: 'Player ($9.99/mo, 10 monthly reports)',
         pro: 'Performance ($19.99/mo, unlimited + drills/tactics library)',
         elite: 'Tournament Pro ($49.99/mo, unlimited + coach feedback workflow)'
       };
-      document.getElementById('planHint').textContent = `Selected plan: ${labels[requested]}`;
+      document.getElementById('planHint').textContent = wantsTrial && requested !== 'free'
+        ? `Selected plan: ${labels[requested]} | 14-day trial starts after account creation.`
+        : `Selected plan: ${labels[requested]}`;
     })();
+
+    document.getElementById('avatarInput').addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const preview = document.getElementById('avatarPreview');
+        preview.style.backgroundImage = `url(${reader.result})`;
+        preview.textContent = '';
+        preview.dataset.image = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
   </script>
 </body>
 </html>

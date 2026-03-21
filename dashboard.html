@@ -5,489 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Player Dashboard</title>
   <link rel="manifest" href="./manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #05080d;
-      --panel: rgba(10, 18, 29, 0.9);
-      --line: rgba(255, 255, 255, 0.1);
-      --text: #e9eff6;
-      --muted: #91a1b3;
-      --green: #39ff14;
-      --cyan: #00e5ff;
-      --amber: #ffc94d;
-      --danger: #ff5a7c;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(57, 255, 20, 0.08), transparent 24%),
-        radial-gradient(circle at top right, rgba(0, 229, 255, 0.08), transparent 28%),
-        linear-gradient(180deg, #030509 0%, #0a1320 100%);
-      min-height: 100vh;
-    }
-
-    .page {
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 24px 20px 60px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 22px;
-    }
-
-    .logo {
-      text-decoration: none;
-      font-size: 30px;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      text-decoration: none;
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.03);
-      cursor: pointer;
-      font: inherit;
-    }
-
-    .btn-primary {
-      border: none;
-      color: #04110a;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      padding: 24px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      background: rgba(57, 255, 20, 0.12);
-      color: var(--green);
-    }
-
-    h1 {
-      font-size: 40px;
-      line-height: 1.06;
-      margin: 14px 0 8px;
-    }
-
-    h2 {
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-
-    h3 {
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .muted {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .impact {
-      min-height: 360px;
-      border-radius: 24px;
-      background:
-        linear-gradient(180deg, rgba(3, 8, 13, 0.08), rgba(3, 8, 13, 0.82)),
-        url('./assets/avatar/Persona 3 Tennis.png') center/cover;
-      display: flex;
-      align-items: flex-end;
-      padding: 20px;
-      border: 1px solid var(--line);
-    }
-
-    .impact-card {
-      max-width: 420px;
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(10, 16, 24, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 18px;
-    }
-
-    .stat {
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 34px;
-      line-height: 1;
-      font-weight: 900;
-      margin-bottom: 4px;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-    .list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .item {
-      padding: 16px 18px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-
-    .score {
-      font-size: 34px;
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    .pill {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      margin-bottom: 10px;
-    }
-
-    .excellent { color: var(--green); }
-    .good { color: var(--amber); }
-    .needs-work { color: var(--danger); }
-
-    label {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    input, select {
-      width: 100%;
-      margin-top: 6px;
-      padding: 12px 13px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text);
-      font: inherit;
-    }
-
-    select option { color: #111; }
-
-    form {
-      display: grid;
-      gap: 12px;
-    }
-
-    .empty {
-      color: var(--muted);
-    }
-
-    .bar-track {
-      margin-top: 8px;
-      width: 100%;
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--green), var(--cyan));
-    }
-
-    .calendar {
-      margin-top: 10px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .calendar-title {
-      font-size: 14px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-
-    .calendar-week {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
-      margin-bottom: 6px;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      font-weight: 800;
-    }
-
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
-    }
-
-    .calendar-cell {
-      min-height: 58px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 6px;
-      background: rgba(255, 255, 255, 0.03);
-      display: grid;
-      align-content: space-between;
-    }
-
-    .calendar-cell.empty-cell {
-      opacity: 0.35;
-    }
-
-    .calendar-day {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--muted);
-    }
-
-    .calendar-tags {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    .calendar-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .dot-session { background: var(--cyan); }
-    .dot-drill { background: var(--amber); }
-    .dot-goal { background: var(--green); }
-
-    @media (max-width: 980px) {
-      .hero, .content, .stats {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 34px;
-      }
-    }
+    :root{--bg:#081426;--bg2:#0c1f39;--panel:rgba(10,24,43,.9);--line:rgba(255,255,255,.14);--text:#eaf2fb;--muted:#9db2c9;--blue:#0066ff;--green:#00c853;--orange:#ff6d00}
+    *{box-sizing:border-box;margin:0;padding:0} body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(0,102,255,.24),transparent 30%),radial-gradient(circle at 95% 0%,rgba(0,200,83,.16),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{max-width:1280px;margin:0 auto;padding:24px 20px 64px}.topbar,.hero,.stats,.tabs,.grid,.list{display:grid;gap:16px}.topbar{grid-template-columns:auto 1fr auto;align-items:center;margin-bottom:16px}.hero{grid-template-columns:1.1fr .9fr;margin-bottom:16px}.stats,.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .logo{font-family:"Sora",sans-serif;font-size:30px;font-weight:800;text-decoration:none;background:linear-gradient(135deg,#77adff,#79f5b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    .btn,.tab{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-weight:700;cursor:pointer;text-decoration:none;padding:11px 15px}.btn.primary{border:none;background:linear-gradient(135deg,var(--orange),#ff8f00);color:#fff}.tab.active{border:none;background:linear-gradient(135deg,var(--blue),#4186ff);color:#fff}
+    .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px}.card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
+    .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#95e7ff}.mini{color:var(--muted)} h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.08;letter-spacing:-.02em} h1{font-size:44px;margin:10px 0 12px} h2{font-size:24px;margin-bottom:10px} h3{font-size:18px;margin-bottom:6px}.muted{color:var(--muted);line-height:1.6}
+    .stat .value{font-family:"Sora",sans-serif;font-size:32px;color:#86b8ff;line-height:1}.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--green));font-weight:800;background-size:cover;background-position:center}.user{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/avatar/Persona 3 Tennis.png') center/cover;display:flex;align-items:flex-end;padding:18px}.tabs .tab{padding:14px 12px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
+    .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,255,255,.06)} .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px}.fill{height:100%;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--blue))}
+    input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} textarea{min-height:110px;resize:vertical} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
+    .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.chart{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.col{min-height:170px;border-radius:16px;border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;background:rgba(255,255,255,.03)} .col .stick{width:100%;border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,rgba(0,200,83,.9),rgba(0,102,255,.9))}
+    .hide{display:none!important}
+    @media (max-width:1024px){.hero,.grid,.stats,.tabs,.chart{grid-template-columns:1fr 1fr}.topbar{grid-template-columns:1fr}}
+    @media (max-width:720px){.grid,.stats,.tabs,.chart{grid-template-columns:1fr}h1{font-size:34px}}
   </style>
-  <!-- Vercel Web Analytics -->
-  <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
-    <div class="topbar">
+    <header class="topbar">
       <a class="logo" href="./index.html">SmartSwing AI</a>
-      <div class="actions">
-        <a class="btn" href="./library.html">Drills & Tactics</a>
-        <a class="btn" href="./pricing.html">Plans</a>
-        <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
-        <a class="btn" href="./competitor-analysis.html">Competitor Intel</a>
-        <a class="btn btn-primary" href="./analyze.html">New Analysis</a>
-        <button class="btn" type="button" onclick="logout()">Logout</button>
-      </div>
-    </div>
+      <nav class="nav">
+        <a class="btn" href="./analyze.html">Analyzer</a>
+        <a class="btn" href="./library.html">Drills Library</a>
+        <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./checkout.html">Checkout</a>
+        <a class="btn hide" id="coachNavBtn" href="./coach-dashboard.html">Coach Dashboard</a>
+        <a class="btn hide" id="managerNavBtn" href="./manager-analytics.html">Manager Analytics</a>
+      </nav>
+      <div class="user"><div class="avatar" id="avatar">P</div><div><div id="userName" style="font-weight:800">Player</div><div id="userMeta" class="muted">Plan</div></div></div>
+    </header>
 
     <section class="hero">
-      <div class="panel">
-        <div class="badge">Player control room</div>
-        <h1 id="title">Track your edge before match pressure exposes the gap.</h1>
-        <p class="muted" id="subtitle"></p>
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-label">Total sessions</div>
-            <div class="stat-value" id="totalAssessments">0</div>
-            <div class="muted">Saved analyses</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Average score</div>
-            <div class="stat-value" id="avgScore">0</div>
-            <div class="muted">Across all sessions</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Best score</div>
-            <div class="stat-value" id="bestScore">0</div>
-            <div class="muted">Current personal best</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Trend</div>
-            <div class="stat-value" id="improvement">+0</div>
-            <div class="muted">Recent versus baseline</div>
-          </div>
-        </div>
-      </div>
+      <article class="panel">
+        <div class="eyebrow">Player Dashboard</div>
+        <h1>Cleaner tabs. Faster decisions.</h1>
+        <p class="muted">Overview, analytics, schedule, messaging, drill access, and exports are separated so the player only sees what matters right now.</p>
+        <div class="stats" id="stats"></div>
+      </article>
+      <article class="hero-art"><div class="card"><div class="mini">Next session focus</div><h3 id="heroTitle">Use the same camera angle.</h3><p class="muted" id="heroCopy">That keeps score changes trustworthy and gives the coach a clean comparison.</p></div></article>
+    </section>
 
-      <div class="impact">
-        <div class="impact-card">
-          <div class="pill">Momentum signal</div>
-          <h3 id="latestShot">No shot tracked yet</h3>
-          <p class="muted" id="focusCopy">Run and save a session to activate personalized drills and next-session planning.</p>
-          <div style="margin-top: 10px;">
-            <span class="pill">Detection confidence</span>
-            <span id="avgConfidence" style="font-weight:900; margin-left:8px;">0%</span>
-          </div>
-        </div>
+    <section class="tabs">
+      <button class="tab active" data-tab="overview">Overview</button>
+      <button class="tab" data-tab="analytics">Analytics</button>
+      <button class="tab" data-tab="schedule">Scheduling</button>
+      <button class="tab" data-tab="library">Library</button>
+      <button class="tab" data-tab="messages">Messaging</button>
+      <button class="tab" data-tab="exports">Exports</button>
+    </section>
+
+    <section class="tab-panel active" id="tab-overview">
+      <div class="grid">
+        <article class="panel"><h2>Weekly action plan</h2><div class="list" id="weeklyPlan"></div></article>
+        <article class="panel"><h2>Top 3 feedback</h2><div class="list" id="topFeedback"></div></article>
+      </div>
+      <article class="panel"><div class="row"><div><h2>Progress graph</h2><p class="muted">Your last five saved assessments.</p></div><div class="pill" id="trendPill">No trend yet</div></div><div class="chart" id="trendChart"></div></article>
+    </section>
+
+    <section class="tab-panel" id="tab-analytics">
+      <div class="grid">
+        <article class="panel"><h2>Biomechanics priorities</h2><div class="list" id="priorityList"></div></article>
+        <article class="panel"><h2>Readable KPI view</h2><div class="list" id="kpiList"></div></article>
+      </div>
+      <article class="panel"><h2>Activities</h2><div class="list" id="activityList"></div></article>
+    </section>
+
+    <section class="tab-panel" id="tab-schedule">
+      <div class="grid">
+        <article class="panel"><h2>Upcoming sessions</h2><div class="list" id="sessionList"></div></article>
+        <article class="panel">
+          <h2>Book a session</h2>
+          <form id="bookingForm" class="list">
+            <div><label for="coachId">Coach</label><select id="coachId"></select></div>
+            <div><label for="when">Date and time</label><input id="when" type="datetime-local" required></div>
+            <div><label for="focus">Focus</label><input id="focus" type="text" placeholder="Serve timing and spacing"></div>
+            <button class="btn primary" type="submit">Schedule session</button>
+          </form>
+        </article>
       </div>
     </section>
 
-    <section class="content">
-      <div class="panel">
-        <h2>Recent assessments</h2>
-        <div id="assessmentList" class="list"></div>
-      </div>
-
-      <div class="panel">
-        <h2>Retention loop</h2>
-        <div id="retentionList" class="list"></div>
-        <h3 style="margin-top: 18px;">Goals</h3>
-        <div id="goalList" class="list"></div>
-        <form onsubmit="createGoal(event)">
-          <label>Goal title
-            <input id="goalTitle" type="text" placeholder="Example: Raise forehand score to 82" required>
-          </label>
-          <label>Metric
-            <select id="goalMetric">
-              <option value="score">Overall score</option>
-              <option value="confidence">AI confidence</option>
-              <option value="setup">Capture setup score</option>
-              <option value="angle:shoulder">Shoulder angle</option>
-              <option value="angle:elbow">Elbow angle</option>
-              <option value="angle:hip">Hip angle</option>
-              <option value="angle:knee">Knee angle</option>
-              <option value="angle:trunk">Trunk angle</option>
-              <option value="angle:wrist">Wrist angle</option>
-            </select>
-          </label>
-          <label>Comparator
-            <select id="goalComparator">
-              <option value="at-least">At least</option>
-              <option value="at-most">At most</option>
-            </select>
-          </label>
-          <label>Target value
-            <input id="goalTarget" type="number" step="1" min="0" required>
-          </label>
-          <button class="btn btn-primary" type="submit">Create goal</button>
-        </form>
-        <div id="goalMessage" class="muted" style="margin-top: 10px;"></div>
+    <section class="tab-panel" id="tab-library">
+      <div class="grid">
+        <article class="panel"><h2>Recommended drills</h2><div class="list" id="drillList"></div></article>
+        <article class="panel"><h2>Recommended tactics</h2><div class="list" id="tacticList"></div></article>
       </div>
     </section>
 
-    <section class="content" style="margin-top: 18px;">
-      <div class="panel">
-        <h2>Assigned drills and accountability</h2>
-        <div id="focusAreas" class="list"></div>
-        <h3 style="margin-top: 18px;">Tactics for your next match</h3>
-        <div id="tacticList" class="list"></div>
-        <h3 style="margin-top: 18px;">Progress timeline</h3>
-        <div id="timelineList" class="list"></div>
+    <section class="tab-panel" id="tab-messages">
+      <div class="grid">
+        <article class="panel"><h2>Conversation feed</h2><div class="list" id="messageList"></div></article>
+        <article class="panel">
+          <h2>Send message</h2>
+          <form id="messageForm" class="list">
+            <div><label for="messageTarget">Send to</label><select id="messageTarget"></select></div>
+            <div><label for="messageSubject">Subject</label><input id="messageSubject" type="text" placeholder="Next session focus"></div>
+            <div><label for="messageBody">Message</label><textarea id="messageBody" placeholder="Write a note for your coach."></textarea></div>
+            <button class="btn primary" type="submit">Send message</button>
+          </form>
+        </article>
       </div>
+    </section>
 
-      <div class="panel">
-        <h2>Coach actions</h2>
-        <h3 style="margin-top: 18px;">Book a session</h3>
-        <form onsubmit="bookSession(event)">
-          <label>Coach
-            <select id="coachSelect"></select>
-          </label>
-          <label>Session focus
-            <input id="sessionFocus" type="text" placeholder="Example: contact timing and knee drive">
-          </label>
-          <label>Date and time
-            <input id="sessionTime" type="datetime-local" required>
-          </label>
-          <label>Format
-            <select id="sessionFormat">
-              <option>Virtual</option>
-              <option>In-person</option>
-              <option>Hybrid review</option>
-            </select>
-          </label>
-          <button class="btn btn-primary" type="submit">Book session</button>
-        </form>
-        <div id="sessionMessage" class="muted" style="margin-top: 10px;"></div>
-        <h3 style="margin-top: 18px;">Calendarization</h3>
-        <div class="muted" style="font-size:13px;">Cyan = coach sessions | Amber = drill due dates | Green = goal due dates</div>
-        <div id="calendarView" class="calendar"></div>
+    <section class="tab-panel" id="tab-exports">
+      <div class="grid">
+        <article class="panel"><h2>Export my data</h2><div class="list"><button class="btn" id="exportJsonBtn" type="button" onclick="exportDashboard('json')">Export JSON</button><button class="btn" id="exportCsvBtn" type="button" onclick="exportDashboard('csv')">Export CSV</button><button class="btn" id="printDashboardBtn" type="button" onclick="printDashboard()">Print dashboard</button></div></article>
+        <article class="panel"><h2>Privacy and access</h2><div class="list" id="privacyList"></div></article>
       </div>
     </section>
   </div>
@@ -496,383 +125,154 @@
   <script src="./pwa.js"></script>
   <script>
     const store = window.SmartSwingStore;
-    let currentUser = store.getCurrentUser();
+    const access = store.getAccessContext();
+    const user = access.user;
+    if (!user) window.location.href = './login.html';
+    if (access.canAccessCoachDashboard) document.getElementById('coachNavBtn').classList.remove('hide');
+    if (access.canAccessManagerAnalytics) document.getElementById('managerNavBtn').classList.remove('hide');
 
-    if (!currentUser) {
-      const fallback = store.getUsers()[0];
-      if (fallback) {
-        store.write(store.KEYS.session, {
-          userId: fallback.id,
-          loggedInAt: new Date().toISOString(),
-          mode: 'auto-recover'
-        });
-        currentUser = store.getCurrentUser();
-      }
+    const metrics = store.getDashboardMetrics(user.id);
+    const assessments = store.getVisibleAssessmentsForCurrentUser(user.id);
+    const latest = assessments[0] || null;
+    const focusAreas = store.getRecommendedFocusAreas(user.id);
+    const sessions = store.getVisibleCoachSessionsForCurrentUser(user.id);
+    const drills = latest?.tailoredDrills || [];
+    const tactics = latest?.tailoredTactics || [];
+    const messages = store.getVisibleMessagesForCurrentUser(user.id);
+    const messageTargets = store.getMessagingTargets(user.id);
+    const progressEvents = store.getProgressEvents().filter((e) => e.userId === user.id).slice(0, 6);
+
+    document.querySelectorAll('.tab').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach((el) => el.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(`tab-${button.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    const avatar = document.getElementById('avatar');
+    avatar.textContent = (user.fullName || 'Player').charAt(0).toUpperCase();
+    if (user.avatarDataUrl) {
+      avatar.style.backgroundImage = `url(${user.avatarDataUrl})`;
+      avatar.textContent = '';
     }
+    document.getElementById('userName').textContent = user.fullName || 'Player';
+    document.getElementById('userMeta').textContent = `${access.plan.name}${access.isTrial ? ' trial' : ''} | ${access.usage.used}/${Number.isFinite(access.usage.limit) ? access.usage.limit : 'Unlimited'} reports used`;
 
-    if (!currentUser) {
-      window.location.href = './login.html?message=Please%20sign%20in&type=error';
-    }
+    document.getElementById('stats').innerHTML = [
+      ['Average score', `${metrics.avgScore}%`],
+      ['Best score', `${metrics.bestScore}%`],
+      ['Improvement', `${metrics.improvement > 0 ? '+' : ''}${metrics.improvement}`],
+      ['Readiness', `${latest?.performanceKpis?.readinessIndex || 0}%`]
+    ].map(([label, value]) => `<div class="card stat"><div class="mini">${label}</div><div class="value">${value}</div></div>`).join('');
 
-    function logout() {
-      store.signOut();
-      window.location.href = './login.html?message=Signed%20out&type=success';
-    }
+    const firstFocus = focusAreas[0];
+    document.getElementById('heroTitle').textContent = firstFocus ? `${firstFocus.metric.replace(/^\w/, (c) => c.toUpperCase())} is the cleanest next gain.` : 'Your next report should stay comparable.';
+    document.getElementById('heroCopy').textContent = latest?.coachSummary?.nextCoachFocus || 'Keep the same shot and camera setup so SmartSwing can compare movement quality fairly.';
 
-    function formatShot(value) {
-      return String(value || 'unknown').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-    }
+    document.getElementById('weeklyPlan').innerHTML = [
+      { title: 'Repeat the same camera setup', copy: 'This reduces noise and makes your score trend meaningful.', score: latest?.setupScore || 88 },
+      { title: drills[0]?.title || 'Primary drill block', copy: drills[0]?.prescription || 'Run the first recommended drill for 10-15 minutes.', score: latest?.metricComparisons?.[0]?.score || 76 },
+      { title: tactics[0]?.title || 'Primary match pattern', copy: tactics[0]?.summary || 'Rehearse one tactical pattern linked to the report.', score: latest?.performanceKpis?.timingConsistency || 74 }
+    ].map((item, i) => `<div class="card"><div class="row"><div><div class="mini">Step ${i + 1}</div><h3>${item.title}</h3></div><div class="pill">${Math.min(100, Math.round(item.score || 0))}%</div></div><p class="muted">${item.copy}</p></div>`).join('');
 
-    function populateCoachOptions() {
-      const select = document.getElementById('coachSelect');
-      select.innerHTML = store.DEFAULT_COACHES.map((coach) => `
-        <option value="${coach.id}" data-name="${coach.name}" data-specialty="${coach.specialty}">
-          ${coach.name} - ${coach.specialty}
-        </option>
-      `).join('');
-    }
+    document.getElementById('topFeedback').innerHTML = (focusAreas.length ? focusAreas : (latest?.metricComparisons || []).slice(0, 3)).slice(0, 3).map((item) => {
+      const label = (item.metric || 'timing').replace(/^\w/, (c) => c.toUpperCase());
+      const score = Math.min(100, Math.round(item.score || 72));
+      return `<div class="card"><div class="row"><h3>${label}</h3><div class="pill">${score}%</div></div><p class="muted">This is a high-impact priority because it affects consistency, contact quality, and ball control together.</p><div class="bar"><div class="fill" style="width:${score}%"></div></div></div>`;
+    }).join('') || '<div class="card"><p class="muted">Run a report to unlock personalized feedback.</p></div>';
 
-    function renderHeader(metrics) {
-      const plan = store.getCurrentPlan();
-      const usage = store.canGenerateReport();
-      const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
-      document.getElementById('title').textContent = `${currentUser.fullName}, keep your gains from disappearing between sessions.`;
-      document.getElementById('subtitle').textContent =
-        `${currentUser.email} | plan: ${plan.name} | reports this month: ${usageText} | preferred hand: ${currentUser.preferredHand || 'right'}`;
+    document.getElementById('trendPill').textContent = latest ? `${metrics.improvement > 0 ? '+' : ''}${metrics.improvement} vs baseline` : 'No trend yet';
+    document.getElementById('trendChart').innerHTML = assessments.slice(0, 5).reverse().map((item, index) => `<div class="col"><div class="mini">${item.shotType || 'shot'} ${index + 1}</div><div class="stick" style="height:${Math.max(24, item.overallScore || 24)}%"></div><div style="font-weight:800">${item.overallScore || 0}%</div></div>`).join('') || '<div class="card"><p class="muted">Your last five assessments will appear here.</p></div>';
 
-      document.getElementById('totalAssessments').textContent = metrics.totalAssessments;
-      document.getElementById('avgScore').textContent = metrics.avgScore;
-      document.getElementById('bestScore').textContent = metrics.bestScore;
-      document.getElementById('improvement').textContent = `${metrics.improvement >= 0 ? '+' : ''}${metrics.improvement}`;
-      document.getElementById('avgConfidence').textContent = `${metrics.avgConfidence}%`;
-      document.getElementById('latestShot').textContent =
-        metrics.totalAssessments ? `Latest tracked shot: ${formatShot(metrics.latestShot)}` : 'No shot tracked yet';
-      document.getElementById('focusCopy').textContent = metrics.accountabilityState === 'at-risk'
-        ? `You are at risk of regression. Protect your ${metrics.milestone?.currentBand || 'current'} band with one new session before your next coach slot.`
-        : `You are on track. Current band: ${metrics.milestone?.currentBand || 'Foundation'}. ${metrics.milestone?.gapToNext || 0} points to ${metrics.milestone?.nextBand || 'the next band'}.`;
-    }
+    document.getElementById('priorityList').innerHTML = (latest?.metricComparisons || []).slice(0, 3).map((item, index) => `<div class="card"><div class="row"><div><div class="mini">Priority ${index + 1}</div><h3>${item.metric.replace(/^\w/, (c) => c.toUpperCase())}</h3></div><div class="pill">${Math.min(100, Math.round(item.score || 0))}%</div></div><p class="muted">${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees.</p></div>`).join('') || '<div class="card"><p class="muted">Biomechanics priorities will appear after your first report.</p></div>';
 
-    function renderAssessments() {
-      const assessments = store.getUserAssessments();
-      const container = document.getElementById('assessmentList');
+    const kpis = latest?.performanceKpis || {};
+    document.getElementById('kpiList').innerHTML = [
+      ['Timing consistency', kpis.timingConsistency, 'How repeatable the strike window looks.'],
+      ['Footwork support', kpis.footworkScore, 'How well the lower body supports the stroke.'],
+      ['Positioning quality', kpis.positioningScore, 'How stable and centered you stay through contact.']
+    ].map(([label, value, copy]) => `<div class="card"><div class="row"><h3>${label}</h3><div class="pill">${Math.min(100, Math.round(value || 0))}%</div></div><p class="muted">${copy}</p><div class="bar"><div class="fill" style="width:${Math.min(100, Math.round(value || 0))}%"></div></div></div>`).join('');
 
-      if (!assessments.length) {
-        container.innerHTML = `<div class="empty">No saved sessions yet. Start with a free analysis and save the report to unlock this view.</div>`;
-        return;
-      }
+    document.getElementById('activityList').innerHTML = progressEvents.map((item) => `<div class="card"><div class="row"><div><h3>${item.title}</h3><p class="muted">${item.detail}</p></div><div class="mini">${new Date(item.createdAt).toLocaleDateString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">Saved reports, goals, and drill completions will show here.</p></div>';
 
-      container.innerHTML = assessments.slice(0, 8).map((assessment) => `
-        <div class="item">
-          <div class="row">
-            <div>
-              <div class="pill">${formatShot(assessment.shotType)}</div>
-              <h3>${new Date(assessment.analyzedAt).toLocaleString()}</h3>
-              <p class="muted">${assessment.focusFramesAnalyzed || assessment.framesAnalyzed} focus frames | confidence ${assessment.avgConfidence}% | grade ${assessment.grade}</p>
-              <p style="margin-top: 6px;">${assessment.milestone?.current ? `Band ${assessment.milestone.current}` : 'Band building'} | readiness ${assessment.performanceKpis?.readinessIndex ?? '-'}</p>
-              <p style="margin-top: 8px;">
-                ${(assessment.metricComparisons || []).slice(0, 3).map((metric) =>
-                  `<span class="${metric.status}" style="font-weight:800; margin-right:10px;">${metric.metric}: ${metric.delta > 0 ? '+' : ''}${metric.delta}deg</span>`
-                ).join('')}
-              </p>
-            </div>
-            <div class="score">${assessment.overallScore}</div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderRetention(metrics) {
-      const retention = document.getElementById('retentionList');
-      const nextSession = metrics.nextSession ? new Date(metrics.nextSession.when).toLocaleString() : 'No session booked';
-      const drillRate = Number(metrics.drillCompletionRate || 0);
-      const goalTotal = Number(metrics.activeGoals || 0) + Number(metrics.completedGoals || 0);
-      const goalRate = goalTotal ? Math.round((Number(metrics.completedGoals || 0) / goalTotal) * 100) : 0;
-      retention.innerHTML = `
-        <div class="item">
-          <div class="pill">Drill completion</div>
-          <h3>${drillRate}%</h3>
-          <p class="muted">${metrics.completedDrills || 0} of ${metrics.totalDrills || 0} assigned drills completed</p>
-          <div class="bar-track"><div class="bar-fill" style="width:${drillRate}%;"></div></div>
-        </div>
-        <div class="item">
-          <div class="pill">Goal execution</div>
-          <h3>${metrics.completedGoals || 0} completed</h3>
-          <p class="muted">${metrics.activeGoals || 0} active goals still open</p>
-          <div class="bar-track"><div class="bar-fill" style="width:${goalRate}%;"></div></div>
-        </div>
-        <div class="item">
-          <div class="pill">Coach accountability</div>
-          <h3>${metrics.accountabilityState === 'at-risk' ? 'At Risk' : 'On Track'}</h3>
-          <p class="muted">Next session: ${nextSession}</p>
-        </div>
-        <div class="item">
-          <div class="pill">Milestone track</div>
-          <h3>${metrics.milestone?.currentBand || 'Foundation'}</h3>
-          <p class="muted">Latest ${metrics.milestone?.latestScore || 0} | Best ${metrics.milestone?.personalBest || 0} | ${metrics.milestone?.gapToNext || 0} pts to ${metrics.milestone?.nextBand || 'next band'}</p>
-          <p class="muted" style="margin-top:8px;">Latest unlock: ${(metrics.latestAchievements || []).slice(0, 2).map((item) => item.label).join(' | ') || 'Keep building your next unlock'}</p>
-        </div>
-      `;
-    }
-
-    function renderGoals() {
-      const list = document.getElementById('goalList');
-      const goals = store.getUserGoals();
-      if (!goals.length) {
-        list.innerHTML = `<div class="empty">Set a measurable goal to keep your progress loop active.</div>`;
-        return;
-      }
-
-      list.innerHTML = goals.slice(0, 6).map((goal) => {
-        const comparatorLabel = goal.comparator === 'at-most' ? '<=' : '>=';
-        return `
-          <div class="item">
-            <div class="row">
-              <div>
-                <div class="pill">${goal.status}</div>
-                <h3>${goal.title}</h3>
-                <p class="muted">Metric ${goal.metric} | target ${comparatorLabel} ${goal.target}</p>
-                <p style="margin-top: 8px;">Baseline ${goal.baseline} -> Current ${goal.current}</p>
-              </div>
-              <div class="score">${goal.status === 'completed' ? 'Done' : 'Open'}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function createGoal(event) {
+    document.getElementById('coachId').innerHTML = store.DEFAULT_COACHES.map((coach) => `<option value="${coach.id}">${coach.name} | ${coach.specialty}</option>`).join('');
+    document.getElementById('sessionList').innerHTML = sessions.slice(0, 6).map((item) => `<div class="card"><div class="row"><div><h3>${item.coachName}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">No sessions booked yet.</p></div>';
+    document.getElementById('bookingForm').addEventListener('submit', (event) => {
       event.preventDefault();
-      const msg = document.getElementById('goalMessage');
-      const latest = store.getUserAssessments()[0] || {};
-      const metric = document.getElementById('goalMetric').value;
-      let baseline = 0;
-      if (metric === 'score') baseline = Number(latest.overallScore || 0);
-      else if (metric === 'confidence') baseline = Number(latest.avgConfidence || 0);
-      else if (metric === 'setup') baseline = Number(latest.setupScore || 100);
-      else if (metric.startsWith('angle:')) baseline = Number(latest.avgAngles?.[metric.replace('angle:', '')] || 0);
-
+      const coach = store.DEFAULT_COACHES.find((entry) => entry.id === document.getElementById('coachId').value) || store.DEFAULT_COACHES[0];
       try {
-        store.setPlayerGoal({
-          title: document.getElementById('goalTitle').value,
-          metric,
-          baseline,
-          current: baseline,
-          target: Number(document.getElementById('goalTarget').value),
-          comparator: document.getElementById('goalComparator').value
-        });
-        document.getElementById('goalTitle').value = '';
-        document.getElementById('goalTarget').value = '';
-        msg.textContent = 'Goal created and linked to your retention loop.';
-        refreshAll();
+        store.bookCoachSession({ coachId: coach.id, coachName: coach.name, specialty: coach.specialty, when: document.getElementById('when').value, focus: document.getElementById('focus').value || 'Technique review' });
+        window.location.reload();
       } catch (error) {
-        msg.textContent = error.message || 'Could not create goal.';
+        alert(error.message || 'Unable to book session.');
       }
+    });
+    if (!access.canBookCoach) {
+      document.getElementById('bookingForm').insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Coach booking unlocks on Performance and Tournament plans.</p></div>');
+      document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm button').forEach((el) => { el.disabled = true; });
     }
 
-    function renderDrills() {
-      const container = document.getElementById('focusAreas');
-      const drills = store.getUserDrillAssignments();
-      if (!drills.length) {
-        const latest = store.getUserAssessments()[0];
-        if (!latest || !(latest.tailoredDrills || []).length) {
-          container.innerHTML = `<div class="empty">Run and save an analysis to generate assigned drills.</div>`;
-          return;
-        }
-        container.innerHTML = latest.tailoredDrills.slice(0, 3).map((drill) => `
-          <div class="item">
-            <div class="pill">${drill.focus}</div>
-            <h3>${drill.title}</h3>
-            <p class="muted">${drill.prescription}</p>
-            <p style="margin-top: 8px;"><strong>Cue:</strong> ${drill.cue}</p>
-            ${drill.videoUrl ? `<p style="margin-top: 8px;"><a href="${drill.videoUrl}" target="_blank" rel="noopener">Open drill video</a></p>` : ''}
-          </div>
-        `).join('');
-        return;
-      }
+    document.getElementById('drillList').innerHTML = drills.slice(0, 3).map((item, i) => `<div class="card"><div class="mini">Drill ${i + 1}</div><h3>${item.title}</h3><p class="muted">${item.prescription || item.focus || ''}</p><div class="pill">${item.expectedImprovement || 'Focused gain'}</div></div>`).join('') || '<div class="card"><p class="muted">Recommended drills will show here after your next report.</p></div>';
+    document.getElementById('tacticList').innerHTML = tactics.slice(0, 3).map((item, i) => `<div class="card"><div class="mini">Tactic ${i + 1}</div><h3>${item.title}</h3><p class="muted">${item.message || item.summary || ''}</p></div>`).join('') || '<div class="card"><p class="muted">Recommended tactics will show here after your next report.</p></div>';
 
-      container.innerHTML = drills.slice(0, 8).map((drill) => `
-        <div class="item">
-          <div class="pill">${drill.status}</div>
-          <h3>${drill.title}</h3>
-          <p class="muted">${drill.prescription}</p>
-          <p style="margin-top: 8px;"><strong>Cue:</strong> ${drill.cue}</p>
-          ${drill.videoUrl ? `<p style="margin-top: 8px;"><a href="${drill.videoUrl}" target="_blank" rel="noopener">${drill.channel || 'Open drill video'}</a></p>` : ''}
-          <p style="margin-top: 8px;" class="muted">Due: ${drill.dueDate ? new Date(drill.dueDate).toLocaleDateString() : 'No due date'}</p>
-          <div style="margin-top: 10px; display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn" type="button" onclick="updateDrillStatus('${drill.id}', 'in_progress')">In Progress</button>
-            <button class="btn btn-primary" type="button" onclick="updateDrillStatus('${drill.id}', 'completed')">Mark Complete</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function renderTactics() {
-      const container = document.getElementById('tacticList');
-      const latest = store.getUserAssessments()[0];
-      if (!latest) {
-        container.innerHTML = `<div class="empty">Save one assessment to unlock tactics matched to your current gaps.</div>`;
-        return;
-      }
-      const tactics = store.getTacticRecommendations({
-        shotType: latest.shotType,
-        level: currentUser.ustaLevel || 'intermediate',
-        metricComparisons: latest.metricComparisons || [],
-        sessionMode: latest.sessionMode || 'stroke-tune-up'
-      });
-      if (!tactics.length) {
-        container.innerHTML = `<div class="empty">No tactics available yet for this profile.</div>`;
-        return;
-      }
-
-      const hasLibrary = store.canAccessLibrary();
-      container.innerHTML = tactics.map((tactic, index) => `
-        <div class="item">
-          <div class="pill">Priority ${index + 1}</div>
-          <h3>${tactic.title}</h3>
-          <p class="muted">${tactic.summary || ''}</p>
-          <p style="margin-top: 8px;" class="muted">Situation: ${tactic.situation || 'general'} | Level: ${tactic.skillLevel || 'all'}</p>
-          ${tactic.videoUrl
-            ? hasLibrary
-              ? `<p style="margin-top: 8px;"><a href="${tactic.videoUrl}" target="_blank" rel="noopener">${tactic.channel || 'Open tactic video'}</a></p>`
-              : '<p style="margin-top: 8px;" class="muted">Upgrade to Performance plan to unlock tactic video links.</p>'
-            : ''}
-        </div>
-      `).join('');
-    }
-
-    function updateDrillStatus(drillId, status) {
-      try {
-        store.setDrillStatus(drillId, status);
-        refreshAll();
-      } catch (error) {
-        document.getElementById('sessionMessage').textContent = error.message || 'Could not update drill.';
-      }
-    }
-
-    function renderTimeline() {
-      const timeline = document.getElementById('timelineList');
-      const events = store.getProgressTimeline(undefined, 12);
-      if (!events.length) {
-        timeline.innerHTML = `<div class="empty">Your progress timeline appears after goals, drills, and saved analyses.</div>`;
-        return;
-      }
-      timeline.innerHTML = events.map((event) => `
-        <div class="item">
-          <div class="pill">${event.eventType}</div>
-          <h3>${event.title}</h3>
-          <p class="muted">${new Date(event.createdAt).toLocaleString()}</p>
-          <p style="margin-top: 8px;">${event.detail || ''}</p>
-        </div>
-      `).join('');
-    }
-
-    function bookSession(event) {
+    document.getElementById('messageTarget').innerHTML = messageTargets.map((target) => `<option value="${target.id}">${target.label}</option>`).join('');
+    document.getElementById('messageList').innerHTML = messages.slice(0, 8).map((item) => `<div class="card"><div class="row"><div><h3>${item.subject}</h3><p class="muted">${item.body}</p></div><div class="mini">${new Date(item.createdAt).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">Messages with coaches or SmartSwing support will appear here.</p></div>';
+    document.getElementById('messageForm').addEventListener('submit', (event) => {
       event.preventDefault();
-      const coachSelect = document.getElementById('coachSelect');
-      const selected = coachSelect.options[coachSelect.selectedIndex];
-      const message = document.getElementById('sessionMessage');
-
       try {
-        store.bookCoachSession({
-          coachId: selected.value,
-          coachName: selected.dataset.name,
-          specialty: selected.dataset.specialty,
-          when: document.getElementById('sessionTime').value,
-          focus: document.getElementById('sessionFocus').value || 'Technique review',
-          format: document.getElementById('sessionFormat').value
-        });
-        message.textContent = 'Session booked and saved to your dashboard timeline.';
-        document.getElementById('sessionFocus').value = '';
-        document.getElementById('sessionTime').value = '';
-        refreshAll();
+        store.sendMessage({ toUserId: document.getElementById('messageTarget').value, subject: document.getElementById('messageSubject').value || 'New message', body: document.getElementById('messageBody').value || '' });
+        window.location.reload();
       } catch (error) {
-        message.textContent = error.message || 'Failed to book session.';
+        alert(error.message || 'Unable to send message.');
       }
+    });
+    if (!access.canMessage) {
+      document.getElementById('messageForm').insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Messaging unlocks when coach access is enabled on your plan.</p></div>');
+      document.querySelectorAll('#messageForm input, #messageForm select, #messageForm textarea, #messageForm button').forEach((el) => { el.disabled = true; });
     }
 
-    function renderCalendar() {
-      const mount = document.getElementById('calendarView');
-      const sessions = store.getUserCoachSessions();
-      const drills = store.getUserDrillAssignments();
-      const goals = store.getUserGoals();
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const first = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0).getDate();
-      const startOffset = first.getDay();
+    document.getElementById('privacyList').innerHTML = [
+      `Role filter: ${access.role} sees only allowed dashboards and data views.`,
+      `Plan filter: ${access.plan.name} controls reports, exports, coach access, and library access.`,
+      `Usage guardrail: ${access.usage.used}/${Number.isFinite(access.usage.limit) ? access.usage.limit : 'Unlimited'} reports used this month.`,
+      `Trial state: ${access.isTrial ? `active until ${new Date(access.trialEndsAt).toLocaleDateString()}` : 'not in trial'}.`,
+      `Data scope: only this player, assigned coach conversations, and allowed booking/export actions are visible here.`
+    ].map((item) => `<div class="card"><p class="muted">${item}</p></div>`).join('');
 
-      const markers = new Map();
-      sessions.forEach((session) => {
-        const date = new Date(session.when);
-        if (date.getFullYear() !== year || date.getMonth() !== month) return;
-        const day = date.getDate();
-        if (!markers.has(day)) markers.set(day, { session: 0, drill: 0, goal: 0 });
-        markers.get(day).session += 1;
-      });
-      drills.forEach((drill) => {
-        if (!drill.dueDate) return;
-        const date = new Date(drill.dueDate);
-        if (date.getFullYear() !== year || date.getMonth() !== month) return;
-        const day = date.getDate();
-        if (!markers.has(day)) markers.set(day, { session: 0, drill: 0, goal: 0 });
-        markers.get(day).drill += 1;
-      });
-      goals.forEach((goal) => {
-        if (!goal.dueDate) return;
-        const date = new Date(goal.dueDate);
-        if (date.getFullYear() !== year || date.getMonth() !== month) return;
-        const day = date.getDate();
-        if (!markers.has(day)) markers.set(day, { session: 0, drill: 0, goal: 0 });
-        markers.get(day).goal += 1;
-      });
-
-      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      let cells = '';
-      for (let i = 0; i < startOffset; i += 1) {
-        cells += `<div class="calendar-cell empty-cell"></div>`;
+    function csvEscape(value){return `"${String(value ?? '').replace(/"/g,'""')}"`;}
+    window.exportDashboard = function(format){
+      if (!access.canExport) {
+        alert('Export unlocks on Player, Performance, and Tournament plans.');
+        window.location.href = './pricing.html';
+        return;
       }
-      for (let day = 1; day <= lastDay; day += 1) {
-        const info = markers.get(day) || { session: 0, drill: 0, goal: 0 };
-        cells += `
-          <div class="calendar-cell">
-            <div class="calendar-day">${day}</div>
-            <div class="calendar-tags">
-              ${info.session ? '<span class="calendar-dot dot-session" title="Coach session"></span>' : ''}
-              ${info.drill ? '<span class="calendar-dot dot-drill" title="Drill due"></span>' : ''}
-              ${info.goal ? '<span class="calendar-dot dot-goal" title="Goal due"></span>' : ''}
-            </div>
-          </div>
-        `;
+      const payload = { user, metrics, latest, sessions, focusAreas };
+      if(format === 'json'){
+        const blob = new Blob([JSON.stringify(payload,null,2)], { type: 'application/json' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'smartswing-player-dashboard.json'; link.click(); return;
       }
+      const rows = [['type','title','value'],['summary','Average score',metrics.avgScore],['summary','Best score',metrics.bestScore],['summary','Improvement',metrics.improvement],...focusAreas.map((item) => ['focus', item.metric, item.score])];
+      const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'smartswing-player-dashboard.csv'; link.click();
+    };
+    window.printDashboard = function(){
+      if (!access.canExport) {
+        alert('Print/export unlocks on Player, Performance, and Tournament plans.');
+        window.location.href = './pricing.html';
+        return;
+      }
+      window.print();
+    };
 
-      mount.innerHTML = `
-        <div class="calendar-title">${now.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
-        <div class="calendar-week">${weekDays.map((label) => `<div>${label}</div>`).join('')}</div>
-        <div class="calendar-grid">${cells}</div>
-      `;
+    if (!access.canExport) {
+      ['exportJsonBtn', 'exportCsvBtn', 'printDashboardBtn'].forEach((id) => {
+        const button = document.getElementById(id);
+        button.style.opacity = '0.65';
+      });
     }
-
-    function refreshAll() {
-      const metrics = store.getDashboardMetrics();
-      renderHeader(metrics);
-      renderAssessments();
-      renderRetention(metrics);
-      renderGoals();
-      renderDrills();
-      renderTactics();
-      renderTimeline();
-      renderCalendar();
-    }
-
-    function init() {
-      if (!currentUser) return;
-      populateCoachOptions();
-      refreshAll();
-      store.syncNow().then(refreshAll).catch(() => {});
-    }
-
-    init();
   </script>
 </body>
 </html>
