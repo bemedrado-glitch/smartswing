@@ -1,0 +1,4 @@
+tests/
+supabase/.temp/
+*.ps1
+.github/
