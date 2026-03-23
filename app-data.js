@@ -865,6 +865,13 @@
       ustaLevel: fields.ustaLevel || '',
       utrRating: fields.utrRating || '',
       preferredHand: fields.preferredHand || 'right',
+      phone: fields.phone || '',
+      addressLine1: fields.addressLine1 || '',
+      addressLine2: fields.addressLine2 || '',
+      city: fields.city || '',
+      stateRegion: fields.stateRegion || '',
+      postalCode: fields.postalCode || '',
+      country: fields.country || '',
       avatarDataUrl: fields.avatarDataUrl || '',
       planId: plan.id,
       trialPlanId: fields.trialPlanId || null,
@@ -872,8 +879,37 @@
       trialEndsAt: fields.trialEndsAt || null,
       trialHistory: Array.isArray(fields.trialHistory) ? fields.trialHistory : [],
       subscriptionStatus: fields.subscriptionStatus || (plan.id === 'free' ? 'free' : 'active'),
-      createdAt: nowIso()
+      createdAt: nowIso(),
+      updatedAt: nowIso()
     };
+  }
+
+  async function updateProfile(fields = {}) {
+    const currentUser = requireUser();
+    const existing = getUsers().find((user) => user.id === currentUser.id) || currentUser;
+    const nextFullName = String(fields.fullName || existing.fullName || '').trim();
+    if (!nextFullName) throw new Error('Full name is required.');
+    const updated = {
+      ...existing,
+      fullName: nextFullName,
+      ageRange: fields.ageRange ?? existing.ageRange ?? '',
+      gender: fields.gender ?? existing.gender ?? '',
+      ustaLevel: fields.ustaLevel ?? existing.ustaLevel ?? '',
+      utrRating: fields.utrRating ?? existing.utrRating ?? '',
+      preferredHand: fields.preferredHand ?? existing.preferredHand ?? 'right',
+      phone: fields.phone ?? existing.phone ?? '',
+      addressLine1: fields.addressLine1 ?? existing.addressLine1 ?? '',
+      addressLine2: fields.addressLine2 ?? existing.addressLine2 ?? '',
+      city: fields.city ?? existing.city ?? '',
+      stateRegion: fields.stateRegion ?? existing.stateRegion ?? '',
+      postalCode: fields.postalCode ?? existing.postalCode ?? '',
+      country: fields.country ?? existing.country ?? '',
+      avatarDataUrl: fields.avatarDataUrl ?? existing.avatarDataUrl ?? '',
+      updatedAt: nowIso()
+    };
+    upsertLocalUser(updated);
+    await ensureRemoteProfile(updated);
+    return updated;
   }
 
   async function ensureRemoteProfile(user) {
@@ -2312,6 +2348,7 @@
     KEYS,
     signUp,
     signIn,
+    updateProfile,
     signInWithOAuthProvider,
     signInWithGoogle,
     signInWithFacebook,
@@ -2372,6 +2409,7 @@
     saveContactMessage,
     setSupabaseConfig,
     clearSupabaseConfig,
+    syncNow,
     isSupabaseConfigured,
     syncNow,
     read,

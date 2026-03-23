@@ -30,3 +30,7 @@ Thumbs.db
 .vercel
 
 .vercel
+
+# Local headless browser artifacts
+tests/edge-profile-main/
+tests/edge-profile-batch/

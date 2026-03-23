@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Settings</title>
+  <meta name="description" content="Manage your SmartSwing AI profile, player details, coach details, contact information, and profile photo.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#050505;--bg2:#0e1510;--panel:rgba(16,18,17,.94);--line:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#eef3f7;--green:#39ff14;--yellow:#ffd84d;--deep:#0e1012}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(57,255,20,.14),transparent 30%),radial-gradient(circle at 95% 0%,rgba(255,216,77,.12),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+    .topbar,.hero,.grid{display:grid;gap:16px}
+    .topbar{grid-template-columns:auto 1fr auto;align-items:center;margin-bottom:18px}
+    .hero{grid-template-columns:1.05fr .95fr;margin-bottom:18px}
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .logo{font-family:"Sora",sans-serif;font-size:30px;font-weight:800;text-decoration:none;color:var(--green)}
+    .nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+    .btn{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-weight:700;cursor:pointer;text-decoration:none;padding:12px 16px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .btn.primary{border:none;background:linear-gradient(135deg,var(--green),#82ff63);color:var(--deep)}
+    .btn:hover,.panel:hover,.card:hover{transform:translateY(-3px);border-color:rgba(57,255,20,.28);box-shadow:0 18px 46px rgba(0,0,0,.28)}
+    .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
+    .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--yellow)}
+    h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.06;letter-spacing:-.03em}
+    h1{font-size:clamp(38px,6vw,64px);margin:10px 0 12px}
+    h2{font-size:24px;margin-bottom:10px;color:var(--green)}
+    h3{font-size:18px;margin-bottom:6px;color:var(--green)}
+    .muted{color:var(--muted);line-height:1.7}
+    .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.16),rgba(6,14,28,.82)),url('./assets/avatar/Persona 3 Tennis.png') center 18%/cover;display:flex;align-items:flex-end;padding:18px}
+    .avatar-shell{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+    .avatar-preview{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);color:var(--deep);font-family:"Sora",sans-serif;font-size:36px;font-weight:800;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.16)}
+    .stack,.field-grid{display:grid;gap:14px}
+    .field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
+    input,select,textarea{width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(57,255,20,.55);box-shadow:0 0 0 3px rgba(57,255,20,.12)}
+    .helper{font-size:13px;color:var(--muted)}
+    .actions{display:flex;gap:12px;flex-wrap:wrap}
+    .alert{display:none;padding:14px 16px;border-radius:14px;font-size:14px;line-height:1.6}
+    .alert.success{display:block;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.28);color:#dfffd8}
+    .alert.error{display:block;background:rgba(255,91,124,.12);border:1px solid rgba(255,91,124,.28);color:#ffd8e3}
+    @media (max-width:980px){.topbar,.hero,.grid,.field-grid{grid-template-columns:1fr}.nav{justify-content:flex-start}}
+  </style>
+  <script src="./analytics.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <nav class="nav">
+        <a class="btn" href="./dashboard.html">Dashboard</a>
+        <a class="btn" href="./coach-dashboard.html">Coach View</a>
+        <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./library.html">Library</a>
+      </nav>
+      <button class="btn" type="button" id="signOutBtn">Sign out</button>
+    </header>
+
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Profile settings</div>
+        <h1>Edit your identity once. Keep every dashboard in sync.</h1>
+        <p class="muted">Update your name, player details, coach details, profile photo, and contact information in one place. SmartSwing uses these fields to personalize reports, dashboards, exports, and scheduling.</p>
+      </article>
+      <article class="hero-art">
+        <div class="card">
+          <div class="mini">Why this matters</div>
+          <h3>Cleaner coaching, cleaner follow-through.</h3>
+          <p class="muted">The right profile data powers better report context, role-based access, scheduling, and more trustworthy player history.</p>
+        </div>
+      </article>
+    </section>
+
+    <div id="alertBox" class="alert"></div>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Identity</h2>
+        <div class="avatar-shell" style="margin-top:16px">
+          <div class="avatar-preview" id="avatarPreview">P</div>
+          <div class="stack" style="flex:1">
+            <div>
+              <label for="avatarInput">Profile picture</label>
+              <input id="avatarInput" type="file" accept="image/*">
+            </div>
+            <p class="helper">Use a clear headshot so your dashboard, coach view, and exports stay recognizable.</p>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:18px">
+          <div>
+            <label for="fullName">Full name</label>
+            <input id="fullName" type="text" autocomplete="name" required>
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" type="email" autocomplete="email" readonly>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:14px">
+          <div>
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" autocomplete="tel">
+          </div>
+          <div>
+            <label for="userRole">Role</label>
+            <input id="userRole" type="text" readonly>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Player or coach details</h2>
+        <div class="field-grid" style="margin-top:16px">
+          <div>
+            <label for="ageRange">Age range</label>
+            <select id="ageRange">
+              <option value="">Select</option>
+              <option>Under 12</option>
+              <option>12-17</option>
+              <option>18-25</option>
+              <option>26-40</option>
+              <option>41+</option>
+            </select>
+          </div>
+          <div>
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Non-binary</option>
+              <option>Prefer not to say</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:14px">
+          <div>
+            <label for="ustaLevel">USTA / NTRP level</label>
+            <input id="ustaLevel" type="text" placeholder="e.g. 4.0">
+          </div>
+          <div>
+            <label for="utrRating">UTR rating</label>
+            <input id="utrRating" type="text" placeholder="e.g. 6.5">
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <label for="preferredHand">Preferred hand</label>
+          <select id="preferredHand">
+            <option value="right">Right-handed</option>
+            <option value="left">Left-handed</option>
+          </select>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Contact and autofill details</h2>
+      <p class="muted">These fields are formatted to work well with browser autofill and speed up scheduling and checkout later.</p>
+      <div class="field-grid" style="margin-top:16px">
+        <div>
+          <label for="addressLine1">Address line 1</label>
+          <input id="addressLine1" type="text" autocomplete="address-line1">
+        </div>
+        <div>
+          <label for="addressLine2">Address line 2</label>
+          <input id="addressLine2" type="text" autocomplete="address-line2">
+        </div>
+        <div>
+          <label for="city">City</label>
+          <input id="city" type="text" autocomplete="address-level2">
+        </div>
+        <div>
+          <label for="stateRegion">State / region</label>
+          <input id="stateRegion" type="text" autocomplete="address-level1">
+        </div>
+        <div>
+          <label for="postalCode">Postal code</label>
+          <input id="postalCode" type="text" autocomplete="postal-code">
+        </div>
+        <div>
+          <label for="country">Country</label>
+          <input id="country" type="text" autocomplete="country-name">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <div class="actions">
+        <button class="btn primary" type="button" id="saveBtn">Save profile changes</button>
+        <a class="btn" id="dashboardLink" href="./dashboard.html">Back to dashboard</a>
+      </div>
+    </section>
+  </div>
+
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+    const user = store.getCurrentUser();
+
+    if (!user) {
+      window.location.href = './login.html?message=' + encodeURIComponent('Sign in to edit your settings.') + '&type=error';
+    }
+
+    const access = store.getAccessContext(user?.id);
+    const alertBox = document.getElementById('alertBox');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const roleLabel = user.role === 'coach' ? 'Coach' : (user.role === 'manager' ? 'Manager' : 'Player');
+    document.getElementById('dashboardLink').href = user.role === 'coach' ? './coach-dashboard.html' : './dashboard.html';
+    document.getElementById('userRole').value = roleLabel;
+
+    function showAlert(message, type = 'success') {
+      alertBox.textContent = message;
+      alertBox.className = `alert ${type}`;
+    }
+
+    function fillForm(profile) {
+      document.getElementById('fullName').value = profile.fullName || '';
+      document.getElementById('email').value = profile.email || '';
+      document.getElementById('phone').value = profile.phone || '';
+      document.getElementById('ageRange').value = profile.ageRange || '';
+      document.getElementById('gender').value = profile.gender || '';
+      document.getElementById('ustaLevel').value = profile.ustaLevel || '';
+      document.getElementById('utrRating').value = profile.utrRating || '';
+      document.getElementById('preferredHand').value = profile.preferredHand || 'right';
+      document.getElementById('addressLine1').value = profile.addressLine1 || '';
+      document.getElementById('addressLine2').value = profile.addressLine2 || '';
+      document.getElementById('city').value = profile.city || '';
+      document.getElementById('stateRegion').value = profile.stateRegion || '';
+      document.getElementById('postalCode').value = profile.postalCode || '';
+      document.getElementById('country').value = profile.country || '';
+      avatarPreview.textContent = (profile.fullName || 'Player').charAt(0).toUpperCase();
+      avatarPreview.style.backgroundImage = '';
+      if (profile.avatarDataUrl) {
+        avatarPreview.style.backgroundImage = `url(${profile.avatarDataUrl})`;
+        avatarPreview.textContent = '';
+        avatarPreview.dataset.image = profile.avatarDataUrl;
+      }
+    }
+
+    fillForm(user);
+
+    document.getElementById('avatarInput').addEventListener('change', (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        avatarPreview.style.backgroundImage = `url(${reader.result})`;
+        avatarPreview.textContent = '';
+        avatarPreview.dataset.image = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const button = document.getElementById('saveBtn');
+      button.disabled = true;
+      button.textContent = 'Saving...';
+      try {
+        await store.updateProfile({
+          fullName: document.getElementById('fullName').value,
+          phone: document.getElementById('phone').value,
+          ageRange: document.getElementById('ageRange').value,
+          gender: document.getElementById('gender').value,
+          ustaLevel: document.getElementById('ustaLevel').value,
+          utrRating: document.getElementById('utrRating').value,
+          preferredHand: document.getElementById('preferredHand').value,
+          addressLine1: document.getElementById('addressLine1').value,
+          addressLine2: document.getElementById('addressLine2').value,
+          city: document.getElementById('city').value,
+          stateRegion: document.getElementById('stateRegion').value,
+          postalCode: document.getElementById('postalCode').value,
+          country: document.getElementById('country').value,
+          avatarDataUrl: avatarPreview.dataset.image || user.avatarDataUrl || ''
+        });
+        if (store.syncNow) {
+          await store.syncNow().catch(() => {});
+        }
+        showAlert('Profile saved. Your dashboards will use the updated identity immediately.', 'success');
+      } catch (error) {
+        showAlert(error.message || 'Unable to save profile changes.', 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Save profile changes';
+      }
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', () => {
+      store.signOut();
+      window.location.href = './index.html';
+    });
+  </script>
+</body>
+</html>

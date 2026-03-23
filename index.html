@@ -3,12 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI</title>
-  <meta name="description" content="Upload one tennis video. Get AI biomechanics feedback, clear drills, and a pro-style game plan in 60 seconds.">
+  <title>SmartSwing AI | AI Tennis Analysis, Drills, and Coach Dashboards</title>
+  <meta name="description" content="Upload one tennis video and get AI biomechanics analysis, clear drills, tactical guidance, player dashboards, and coach-ready reports in 60 seconds.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://smartswing-ai.vercel.app/">
+  <meta property="og:title" content="SmartSwing AI | AI Tennis Analysis, Drills, and Coach Dashboards">
+  <meta property="og:description" content="SmartSwing AI turns a tennis video into biomechanics insight, clear drills, and a next-step plan for players and coaches.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://smartswing-ai.vercel.app/">
+  <meta property="og:image" content="https://smartswing-ai.vercel.app/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SmartSwing AI | AI Tennis Analysis, Drills, and Coach Dashboards">
+  <meta name="twitter:description" content="Upload one tennis clip and get AI biomechanics feedback, tactical guidance, and a coach-ready plan.">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SmartSwing AI",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Web",
+      "url": "https://smartswing-ai.vercel.app/",
+      "description": "AI tennis analysis platform with biomechanics feedback, tailored drills, tactics, player dashboards, and coach workflows.",
+      "offers": [
+        { "@type": "Offer", "price": "0", "priceCurrency": "USD", "name": "Starter" },
+        { "@type": "Offer", "price": "9.99", "priceCurrency": "USD", "name": "Player" },
+        { "@type": "Offer", "price": "19.99", "priceCurrency": "USD", "name": "Pro" },
+        { "@type": "Offer", "price": "49.99", "priceCurrency": "USD", "name": "Tournament Pro" }
+      ]
+    }
+  </script>
   <style>
     :root {
       --bg: #0a0a0a;
@@ -89,17 +116,16 @@
 
     .nav-links a,
     .ghost-btn,
-    .primary-btn,
     .secondary-btn {
       text-decoration: none;
       border-radius: 999px;
-      padding: 12px 18px;
-      font-size: 14px;
+      padding: 13px 19px;
+      font-size: 15px;
       font-weight: 700;
       transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
     }
 
-    .nav-links a,
+    .nav-links a:not(.primary-btn),
     .ghost-btn,
     .secondary-btn {
       border: 1px solid var(--line);
@@ -112,6 +138,8 @@
       color: var(--dark-text);
       box-shadow: 0 18px 48px rgba(57, 255, 20, 0.24);
     }
+
+    .nav-links .primary-btn { color: var(--dark-text); }
 
     .ghost-btn:hover,
     .primary-btn:hover,
@@ -200,7 +228,7 @@
       margin-top: 18px;
       max-width: 58ch;
       color: var(--muted);
-      font-size: 18px;
+      font-size: 19px;
       line-height: 1.72;
     }
 
@@ -235,7 +263,7 @@
 
     .metric-box span {
       color: var(--muted);
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.5;
     }
 
@@ -339,13 +367,14 @@
       line-height: 1;
       letter-spacing: -0.05em;
       max-width: 12ch;
+      color: var(--volt);
     }
 
     .section-header p {
       max-width: 52ch;
       color: var(--muted);
       line-height: 1.7;
-      font-size: 16px;
+      font-size: 17px;
     }
 
     .steps {
@@ -368,7 +397,7 @@
     }
 
     .panel h3 {
-      font-size: 24px;
+      font-size: 26px;
       margin-bottom: 12px;
       letter-spacing: -0.03em;
       color: var(--volt);
@@ -377,7 +406,7 @@
     .panel p {
       color: var(--muted);
       line-height: 1.7;
-      font-size: 15px;
+      font-size: 16px;
     }
 
     .bento {
@@ -398,11 +427,11 @@
       grid-row: span 2;
       background:
         linear-gradient(180deg, rgba(10, 10, 10, 0.18), rgba(10, 10, 10, 0.82)),
-        url("./assets/uiux/Smart 10.png") center/cover;
+        url("./assets/avatar/AI Breakdown side by side.png") center/cover;
     }
 
     .feature-card {
-      padding: 24px;
+      padding: 0;
     }
 
     .feature-card.light {
@@ -422,10 +451,15 @@
     }
 
     .story-grid,
-    .testimonials,
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .testimonials {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
     }
 
@@ -436,9 +470,10 @@
     }
 
     .story-photo {
-      height: 240px;
+      aspect-ratio: 4 / 3;
+      height: auto;
       background-size: cover;
-      background-position: center;
+      background-position: center 16%;
     }
 
     .story-copy,
@@ -457,6 +492,7 @@
     .pricing-copy p {
       color: var(--muted);
       line-height: 1.7;
+      font-size: 16px;
     }
 
     .story-stat,
@@ -477,6 +513,78 @@
       display: block;
       margin-top: 16px;
       font-size: 15px;
+    }
+
+    .testimonial-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .testimonial-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background-size: cover;
+      background-position: center 16%;
+      flex: none;
+    }
+
+    .expand-card summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .expand-card summary::-webkit-details-marker { display: none; }
+
+    .expand-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .expand-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 46px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 216, 77, 0.12);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .expand-body {
+      padding: 0 24px 24px;
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 15px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .expand-body strong { color: var(--text); }
+
+    .expand-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .expand-list div {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .pricing-card {
@@ -526,7 +634,7 @@
       border-radius: 14px;
       padding: 11px 12px;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.55;
       background: rgba(255, 255, 255, 0.03);
     }
@@ -564,12 +672,13 @@
       letter-spacing: -0.05em;
       margin-bottom: 12px;
       max-width: 11ch;
+      color: var(--volt);
     }
 
     .cta-panel p {
       color: var(--muted);
       line-height: 1.7;
-      font-size: 16px;
+      font-size: 17px;
       max-width: 58ch;
     }
 
@@ -647,6 +756,7 @@
         <a href="./how-it-works.html">How It Works</a>
         <a href="./pricing.html">Pricing</a>
         <a href="./library.html">Drills</a>
+        <a href="./settings.html">Settings</a>
         <a class="primary-btn" href="./analyze.html">Get Free Analysis</a>
       </nav>
     </div>
@@ -754,33 +864,70 @@
       <div class="bento">
         <article class="hero-copy feature-main">
           <div class="eyebrow">Biomechanics engine</div>
-          <h3 style="font-size:34px;max-width:12ch;margin-top:16px;">Your AI coach never sleeps. It sees the pattern before you feel the slump.</h3>
-          <p style="margin-top:14px;">Readable biomechanics. Fair scoring by level. Expandable explanations. Coach-ready summaries. Reports built for action, not confusion.</p>
+          <h3 style="font-size:38px;max-width:11ch;margin-top:16px;">Your AI coach remembers what changed, what improved, and what to fix next.</h3>
+          <p style="margin-top:14px;">The report layer stays readable because it translates movement into coaching language, keeps the next actions visible, and preserves the session context that usually gets lost after practice.</p>
+          <div class="urgency" style="margin-top:18px;">
+            <span>Biomechanics translated into actions</span>
+            <span>Top 3 drills and tactics only</span>
+            <span>Player and coach context carried forward</span>
+          </div>
         </article>
-        <article class="panel feature-card">
-          <div class="micro-label">AI Video Analysis</div>
-          <h3>Angles translated into coaching language</h3>
-          <p>Instead of dumping raw definitions, the report explains what changed, how to read it, and what to fix first.</p>
-          <span class="micro-note">Shoulder, elbow, hip, knee, trunk, timing, movement, and contact behavior.</span>
-        </article>
-        <article class="panel feature-card light">
-          <div class="micro-label" style="background:rgba(0,0,0,0.06);color:#0e1012;border:1px solid rgba(0,0,0,0.08);">Progress Tracking</div>
-          <h3>Digestible dashboards</h3>
-          <p>Tabbed player and coach views keep messaging, scheduling, activities, analytics, and the drill library separated instead of buried in one page.</p>
-          <span class="micro-note">Cleaner UX, clearer next actions, easier export workflows.</span>
-        </article>
-        <article class="panel feature-card">
-          <div class="micro-label">Coach layer</div>
-          <h3>Assign drills and follow through</h3>
-          <p>Coaches can see who is improving, who is stalling, and what should be assigned next without digging through clutter.</p>
-          <span class="micro-note">Scoped messaging, scheduling, and access control included.</span>
-        </article>
-        <article class="panel feature-card">
-          <div class="micro-label">Dual sport path</div>
-          <h3>Tennis first, pickleball ready</h3>
-          <p>Same operating system, separate logic. Keep the product extensible without making the tennis experience feel generic.</p>
-          <span class="micro-note">Platform-agnostic by design.</span>
-        </article>
+        <details class="panel feature-card expand-card" open>
+          <summary>
+            <div class="micro-label">AI Video Analysis</div>
+            <div class="expand-head"><h3>Angles translated into coaching language</h3><span class="expand-chip">Open</span></div>
+            <p>Instead of dumping raw definitions, the report explains what changed, how to read it, and what to fix first.</p>
+          </summary>
+          <div class="expand-body">
+            <div class="expand-list">
+              <div><strong>What it means:</strong> shoulder, elbow, hip, knee, trunk, timing, movement, and contact behavior are converted into plain-English insight.</div>
+              <div><strong>Why it matters:</strong> players and parents follow through faster when the report explains the movement cost, not just the number.</div>
+              <div><strong>What happens next:</strong> the top biomechanical gaps feed the drill and tactic recommendations automatically.</div>
+            </div>
+          </div>
+        </details>
+        <details class="panel feature-card light expand-card">
+          <summary>
+            <div class="micro-label" style="background:rgba(0,0,0,0.06);color:#0e1012;border:1px solid rgba(0,0,0,0.08);">Progress Tracking</div>
+            <div class="expand-head"><h3>Digestible dashboards</h3><span class="expand-chip">Open</span></div>
+            <p>Tabbed player and coach views keep messaging, scheduling, activities, analytics, and the drill library separated instead of buried in one page.</p>
+          </summary>
+          <div class="expand-body" style="color:rgba(14,16,18,.74);">
+            <div class="expand-list">
+              <div><strong>What it means:</strong> progress graphs, next actions, exports, schedule, and communication live in separate lanes.</div>
+              <div><strong>Why it matters:</strong> each role sees the right layer at the right time instead of a crowded all-in-one dashboard.</div>
+              <div><strong>What happens next:</strong> the player gets one clear weekly focus, and the coach gets faster triage.</div>
+            </div>
+          </div>
+        </details>
+        <details class="panel feature-card expand-card">
+          <summary>
+            <div class="micro-label">Coach layer</div>
+            <div class="expand-head"><h3>Assign drills and follow through</h3><span class="expand-chip">Open</span></div>
+            <p>Coaches can see who is improving, who is stalling, and what should be assigned next without digging through clutter.</p>
+          </summary>
+          <div class="expand-body">
+            <div class="expand-list">
+              <div><strong>What it means:</strong> coach notes, assignments, schedule, and role-based messaging stay tied to the athlete record.</div>
+              <div><strong>Why it matters:</strong> the coach does not need to rewrite the whole session just to give a precise next instruction.</div>
+              <div><strong>What happens next:</strong> one note can become the athlete’s next drill block and next session focus.</div>
+            </div>
+          </div>
+        </details>
+        <details class="panel feature-card expand-card">
+          <summary>
+            <div class="micro-label">Dual sport path</div>
+            <div class="expand-head"><h3>Tennis first, pickleball ready</h3><span class="expand-chip">Open</span></div>
+            <p>Same operating system, separate logic. Keep the product extensible without making the tennis experience feel generic.</p>
+          </summary>
+          <div class="expand-body">
+            <div class="expand-list">
+              <div><strong>What it means:</strong> SmartSwing keeps tennis as the lead experience while allowing the platform to branch cleanly.</div>
+              <div><strong>Why it matters:</strong> the app can grow without forcing tennis players into generic language or mixed metric logic.</div>
+              <div><strong>What happens next:</strong> new sports can inherit the workflow without diluting the main tennis product.</div>
+            </div>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -802,7 +949,7 @@
           </div>
         </article>
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 2 Tennis.png');background-position:center 20%;"></div>
+          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 3 Tennis.png');background-position:center 14%;"></div>
           <div class="story-copy">
             <div class="story-stat">Serve confidence from 62% to 81%</div>
             <h3>The adult player who wanted match trust</h3>
@@ -810,7 +957,7 @@
           </div>
         </article>
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Coach Ace.png');background-position:center 14%;"></div>
+          <div class="story-photo" style="background-image:url('./assets/avatar/Coach Ace 16_9.png');background-position:center 16%;"></div>
           <div class="story-copy">
             <div class="story-stat">Coach visibility without dashboard overload</div>
             <h3>The coach who needed faster triage</h3>
@@ -839,37 +986,26 @@
       <div class="testimonials">
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-stat">Adult player</div>
+            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Persona 3 Tennis.png')"></div><div><div class="testimonial-stat">Adult player</div><strong style="margin-top:6px">Marcos, 4.0 league player</strong></div></div>
             <p>"The report finally told me what mattered. Not ten disconnected numbers. Just the three things costing me depth and consistency, and the drills to fix them."</p>
-            <strong>Marcos, 4.0 league player</strong>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-stat">Coach</div>
+            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Coach Ace 16_9.png')"></div><div><div class="testimonial-stat">Coach</div><strong style="margin-top:6px">Coach Elena, performance program</strong></div></div>
             <p>"The expandable coach-ready priorities are the part I would use every week. I can see what changed, why it matters, and what to assign next without rewriting the whole session."</p>
-            <strong>Coach Elena, performance program</strong>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-stat">Junior parent</div>
+            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Persona 1 Tennis.png')"></div><div><div class="testimonial-stat">Junior parent</div><strong style="margin-top:6px">Parent of a U14 player</strong></div></div>
             <p>"It made progress easier to understand. My son stopped asking if the score was bad and started asking what the next drill would improve."</p>
-            <strong>Parent of a U14 player</strong>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-stat">College player</div>
+            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Persona 4 Tennis.png')"></div><div><div class="testimonial-stat">College player</div><strong style="margin-top:6px">Division college athlete</strong></div></div>
             <p>"It feels like a film room and a coach note in one screen. The numbers finally connect to a decision I can make on court."</p>
-            <strong>Division college athlete</strong>
-          </div>
-        </article>
-        <article class="testimonial">
-          <div class="testimonial-copy">
-            <div class="testimonial-stat">Tournament parent</div>
-            <p>"The best part is that it narrowed the chaos. One report. Three priorities. Then the dashboard showed exactly what we had done."</p>
-            <strong>Parent of a junior competitor</strong>
           </div>
         </article>
       </div>
@@ -894,7 +1030,21 @@
               <div>Live report preview</div>
               <div>No save, print, or export</div>
             </div>
-            <a class="secondary-btn" href="./checkout.html?plan=free">Claim free analysis</a>
+            <a class="secondary-btn" href="./checkout.html?plan=free">Unlock Starter</a>
+          </div>
+        </article>
+
+        <article class="pricing-card">
+          <div class="pricing-copy">
+            <h3>Player</h3>
+            <div class="price">$9.99 <small>/ month</small></div>
+            <p>For players who want saved reports and repeatable monthly review without going unlimited yet.</p>
+            <div class="pricing-list">
+              <div>10 analyses every month</div>
+              <div>Save and print reports</div>
+              <div>Cleaner KPI history and dashboard tracking</div>
+            </div>
+            <a class="secondary-btn" href="./checkout.html?plan=starter">Unlock Player</a>
           </div>
         </article>
 
@@ -925,7 +1075,7 @@
               <div>Tournament preparation support</div>
               <div>Priority scheduling and feedback</div>
             </div>
-            <a class="secondary-btn" href="./checkout.html?plan=elite">Go Tournament Pro</a>
+            <a class="secondary-btn" href="./checkout.html?plan=elite">Unlock Tournament Pro</a>
           </div>
         </article>
       </div>

@@ -17,7 +17,7 @@
     .btn:hover,.tab:hover,.panel:hover,.card:hover{transform:translateY(-3px);border-color:rgba(57,255,20,.28);box-shadow:0 18px 46px rgba(0,0,0,.28)}
     .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
     .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--orange)}.mini{color:var(--orange)} h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.08;letter-spacing:-.02em} h1{font-size:44px;margin:10px 0 12px} h2{font-size:24px;margin-bottom:10px;color:var(--green)} h3{font-size:18px;margin-bottom:6px;color:var(--green)}.muted{color:var(--muted);line-height:1.6}
-    .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);font-weight:800}.user{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);font-weight:800;background-size:cover;background-position:center}.user{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
     .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/avatar/Coach Ace 16_9.png') center 18%/cover;display:flex;align-items:flex-end;padding:18px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
     .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,216,77,.12);color:var(--orange)} input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} textarea{min-height:110px;resize:vertical} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
     .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.hide{display:none!important}
@@ -36,9 +36,10 @@
         <a class="btn" href="./dashboard.html">Player View</a>
         <a class="btn" href="./analyze.html">Analyzer</a>
         <a class="btn" href="./library.html">Library</a>
+        <a class="btn" href="./settings.html">Settings</a>
         <a class="btn hide" id="managerNavBtn" href="./manager-analytics.html">Manager Analytics</a>
       </nav>
-      <div class="user"><div class="avatar">C</div><div><div id="coachName" style="font-weight:800">Coach</div><div id="coachMeta" class="muted">Access</div></div></div>
+      <div class="user"><div class="avatar" id="coachAvatar">C</div><div><div id="coachName" style="font-weight:800">Coach</div><div id="coachMeta" class="muted">Access</div></div></div>
     </header>
 
     <section class="hero">
@@ -130,6 +131,12 @@
     document.getElementById('coachName').textContent = access.user.fullName || 'Coach';
     document.getElementById('coachMeta').textContent = `${summary.users?.length || 0} athletes | ${summary.urgentAthletes || 0} urgent`;
     document.getElementById('coachHeroCopy').textContent = `${summary.urgentAthletes || 0} athletes need immediate attention based on stale tracking or large mechanical gaps.`;
+    const coachAvatar = document.getElementById('coachAvatar');
+    coachAvatar.textContent = (access.user.fullName || 'Coach').charAt(0).toUpperCase();
+    if (access.user.avatarDataUrl) {
+      coachAvatar.style.backgroundImage = `url(${access.user.avatarDataUrl})`;
+      coachAvatar.textContent = '';
+    }
 
     document.getElementById('coachStats').innerHTML = [
       ['Athletes', summary.users?.length || 0],

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - SmartSwing AI</title>
+  <title>Create Your SmartSwing AI Account</title>
+  <meta name="description" content="Create a SmartSwing AI player or coach account with Google, Meta, Apple, or email. Add your profile photo and player details to personalize reports and dashboards.">
   <link rel="manifest" href="./manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -11,7 +12,7 @@
       --void-black: #030508;
       --deep-navy: #0d1b2a;
       --neon-green: #39ff14;
-      --electric-cyan: #00e5ff;
+      --electric-cyan: #ffd84d;
       --silver: #e5e5e5;
       --gray: #6c757d;
       --error: #ff4d73;
@@ -44,9 +45,7 @@
       font-size: 34px;
       font-weight: 900;
       text-decoration: none;
-      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--neon-green);
     }
 
     .card {
@@ -65,7 +64,7 @@
     }
 
     .subtext {
-      color: var(--gray);
+      color: #eef3f7;
       line-height: 1.7;
       margin-bottom: 24px;
     }
@@ -175,7 +174,7 @@
       cursor: pointer;
       transition: transform 0.2s ease;
       color: #04110a;
-      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      background: linear-gradient(135deg, var(--neon-green), #82ff63);
     }
 
     .btn:hover { transform: translateY(-1px); }
@@ -278,22 +277,60 @@
         <div class="two-col">
           <div class="field">
             <label for="fullName">Full name</label>
-            <input id="fullName" type="text" required>
+          <input id="fullName" type="text" autocomplete="name" required>
           </div>
           <div class="field">
             <label for="email">Email</label>
-            <input id="email" type="email" required>
+            <input id="email" type="email" autocomplete="email" required>
           </div>
         </div>
 
         <div class="two-col">
           <div class="field">
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" autocomplete="tel" placeholder="(555) 555-5555">
+          </div>
+          <div class="field">
+            <label for="addressLine1">Address line 1</label>
+            <input id="addressLine1" type="text" autocomplete="address-line1" placeholder="Street address">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="addressLine2">Address line 2</label>
+            <input id="addressLine2" type="text" autocomplete="address-line2" placeholder="Apartment, suite, unit">
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input id="city" type="text" autocomplete="address-level2" placeholder="City">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="stateRegion">State / region</label>
+            <input id="stateRegion" type="text" autocomplete="address-level1" placeholder="State or region">
+          </div>
+          <div class="field">
+            <label for="postalCode">Postal code</label>
+            <input id="postalCode" type="text" autocomplete="postal-code" placeholder="ZIP / postal code">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="country">Country</label>
+          <input id="country" type="text" autocomplete="country-name" placeholder="Country">
+        </div>
+
+        <div class="two-col">
+          <div class="field">
             <label for="password">Password</label>
-            <input id="password" type="password" minlength="6" required>
+            <input id="password" type="password" autocomplete="new-password" minlength="6" required>
           </div>
           <div class="field">
             <label for="confirmPassword">Confirm password</label>
-            <input id="confirmPassword" type="password" minlength="6" required>
+            <input id="confirmPassword" type="password" autocomplete="new-password" minlength="6" required>
           </div>
         </div>
 
@@ -404,6 +441,13 @@
           utrRating: document.getElementById('utrRating').value,
           preferredHand: document.getElementById('preferredHand').value,
           userRole: document.getElementById('userRole').value,
+          phone: document.getElementById('phone').value,
+          addressLine1: document.getElementById('addressLine1').value,
+          addressLine2: document.getElementById('addressLine2').value,
+          city: document.getElementById('city').value,
+          stateRegion: document.getElementById('stateRegion').value,
+          postalCode: document.getElementById('postalCode').value,
+          country: document.getElementById('country').value,
           avatarDataUrl: document.getElementById('avatarPreview').dataset.image || ''
         });
 

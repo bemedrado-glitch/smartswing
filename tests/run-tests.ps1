@@ -197,7 +197,17 @@ try {
   } else {
     $edgeProfileDir = Join-Path $PSScriptRoot 'edge-profile-main'
     if (Test-Path $edgeProfileDir) {
-      Remove-Item -Recurse -Force $edgeProfileDir
+      try {
+        Remove-Item -Recurse -Force $edgeProfileDir -ErrorAction Stop
+      } catch {
+        Get-Process msedge -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 1
+        try {
+          Remove-Item -Recurse -Force $edgeProfileDir -ErrorAction Stop
+        } catch {
+          Write-Host "[WARN] Unable to fully clean Edge profile directory before test run: $edgeProfileDir" -ForegroundColor Yellow
+        }
+      }
     }
     New-Item -ItemType Directory -Path $edgeProfileDir | Out-Null
 
