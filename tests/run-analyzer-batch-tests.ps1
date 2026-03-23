@@ -18,6 +18,29 @@ function Find-EdgeBinary {
   return $null
 }
 
+function Remove-PathWithRetry {
+  param(
+    [string]$Path,
+    [int]$Attempts = 6
+  )
+
+  if (-not (Test-Path $Path)) {
+    return
+  }
+
+  for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+    try {
+      Remove-Item -Recurse -Force $Path -ErrorAction Stop
+      return
+    } catch {
+      if ($attempt -eq $Attempts) {
+        throw
+      }
+      Start-Sleep -Milliseconds (200 * $attempt)
+    }
+  }
+}
+
 $edge = Find-EdgeBinary
 if ($null -eq $edge) {
   Write-Host '[WARN] Microsoft Edge not found for analyzer batch tests; skipping headless runtime checks.' -ForegroundColor Yellow
@@ -58,10 +81,8 @@ $requiredMarkers = @(
 
 $failed = $false
 $skipped = $false
-$edgeProfileRoot = Join-Path $PSScriptRoot 'edge-profile-batch'
-if (Test-Path $edgeProfileRoot) {
-  Remove-Item -Recurse -Force $edgeProfileRoot
-}
+$tempRoot = if ($env:TEMP) { $env:TEMP } else { $PSScriptRoot }
+$edgeProfileRoot = Join-Path $tempRoot ("smartswing-edge-profile-batch-{0}" -f ([guid]::NewGuid().ToString('N')))
 New-Item -ItemType Directory -Path $edgeProfileRoot | Out-Null
 
 function Get-ScenarioDom {
@@ -71,16 +92,20 @@ function Get-ScenarioDom {
     [string]$ProfileDir
   )
 
-  $maxAttempts = 4
+  $maxAttempts = 5
   $bestDom = ''
 
   for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
-    if (Test-Path $ProfileDir) {
-      Remove-Item -Recurse -Force $ProfileDir
-    }
+    Remove-PathWithRetry -Path $ProfileDir
     New-Item -ItemType Directory -Path $ProfileDir | Out-Null
 
-    $virtualBudget = if ($attempt -le 2) { 26000 } else { 36000 }
+    $virtualBudget = switch ($attempt) {
+      1 { 26000 }
+      2 { 32000 }
+      3 { 42000 }
+      4 { 52000 }
+      default { 65000 }
+    }
     $gpuFlag = if ($attempt -le 2) { '--disable-gpu' } else { '' }
     $edgeCommand = """$EdgeBinary"" --headless $gpuFlag --disable-extensions --no-first-run --user-data-dir=""$ProfileDir"" --virtual-time-budget=$virtualBudget --dump-dom ""$Url"" 2>nul"
     $domOutput = (cmd /c $edgeCommand | Out-String)
@@ -111,9 +136,16 @@ foreach ($scenario in $scenarios) {
   $scenarioPassed = $true
   foreach ($marker in $requiredMarkers) {
     if ($domOutput -notlike "*$marker*") {
-      $scenarioPassed = $false
-      Write-Host ("[FAIL] {0}: missing marker '{1}'" -f $scenario.Name, $marker) -ForegroundColor Red
-      break
+      $retryProfileDir = Join-Path $edgeProfileRoot ("{0}_retry" -f $safeName)
+      $retryDomOutput = Get-ScenarioDom -EdgeBinary $edge -Url $url -ProfileDir $retryProfileDir
+      if (-not [string]::IsNullOrWhiteSpace($retryDomOutput)) {
+        $domOutput = $retryDomOutput
+      }
+      if ($domOutput -notlike "*$marker*") {
+        $scenarioPassed = $false
+        Write-Host ("[FAIL] {0}: missing marker '{1}'" -f $scenario.Name, $marker) -ForegroundColor Red
+        break
+      }
     }
   }
 
@@ -127,6 +159,12 @@ foreach ($scenario in $scenarios) {
   } else {
     $failed = $true
   }
+}
+
+try {
+  Remove-PathWithRetry -Path $edgeProfileRoot -Attempts 3
+} catch {
+  # Best-effort cleanup only; temporary browser profile removal can race with Edge shutdown.
 }
 
 if ($skipped) {

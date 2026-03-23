@@ -3,612 +3,907 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI | Tennis Training Operating System</title>
-  <meta name="description" content="Capture, analyze, compare, improve, and track every tennis session with AI feedback, drill plans, and coach workflows.">
+  <title>SmartSwing AI</title>
+  <meta name="description" content="Upload one tennis video. Get AI biomechanics feedback, clear drills, and a pro-style game plan in 60 seconds.">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #081426;
-      --bg-2: #0c1f39;
-      --panel: rgba(11, 27, 48, 0.88);
-      --line: rgba(255, 255, 255, 0.14);
-      --text: #eaf2fb;
-      --muted: #9db2c9;
-      --blue: #0066ff;
-      --green: #00c853;
-      --orange: #ff6d00;
-      --gold: #ffd700;
+      --bg: #0a0a0a;
+      --bg-soft: #121212;
+      --panel: rgba(28, 28, 30, 0.88);
+      --panel-strong: rgba(15, 15, 17, 0.96);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f5f5f7;
+      --muted: #a1a1aa;
+      --volt: #c8ff00;
+      --teal: #00d4aa;
+      --white-panel: #f5f5f7;
+      --dark-text: #0e1012;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: "Plus Jakarta Sans", sans-serif;
+      font-family: "DM Sans", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at 5% 10%, rgba(0, 102, 255, 0.24), transparent 30%),
-        radial-gradient(circle at 95% 0%, rgba(0, 200, 83, 0.16), transparent 28%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+        radial-gradient(circle at top left, rgba(200, 255, 0, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(0, 212, 170, 0.14), transparent 22%),
+        linear-gradient(180deg, #050505 0%, #0a0a0a 44%, #111 100%);
       min-height: 100vh;
-      line-height: 1.55;
     }
 
-    .wrap {
-      max-width: 1240px;
+    a { color: inherit; }
+
+    .page { width: min(1280px, calc(100% - 40px)); margin: 0 auto; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(18px);
+      background: rgba(10, 10, 10, 0.74);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner,
+    .hero,
+    .trust-bar,
+    .section,
+    .footer {
+      width: min(1280px, calc(100% - 40px));
       margin: 0 auto;
-      padding: 24px 20px 72px;
     }
 
-    .header {
+    .nav-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+      gap: 18px;
+      padding: 18px 0;
     }
 
-    .logo {
+    .brand {
       text-decoration: none;
-      font-family: "Sora", sans-serif;
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 800;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #77adff, #79f5b0);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.04em;
     }
 
-    .nav {
+    .brand span { color: var(--volt); }
+
+    .nav-links {
       display: flex;
-      flex-wrap: wrap;
+      align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .btn {
+    .nav-links a,
+    .ghost-btn,
+    .primary-btn,
+    .secondary-btn {
       text-decoration: none;
-      border-radius: 14px;
-      padding: 11px 16px;
-      border: 1px solid var(--line);
-      color: var(--text);
+      border-radius: 999px;
+      padding: 12px 18px;
       font-size: 14px;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.04);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
     }
 
-    .btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255, 255, 255, 0.28);
-      background: rgba(255, 255, 255, 0.07);
+    .nav-links a,
+    .ghost-btn,
+    .secondary-btn {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
     }
 
-    .btn-primary {
-      border: none;
-      color: #fff;
-      background: linear-gradient(135deg, var(--orange), #ff8f00);
-      box-shadow: 0 14px 28px rgba(255, 109, 0, 0.28);
+    .primary-btn {
+      border: 1px solid rgba(200, 255, 0, 0.34);
+      background: linear-gradient(135deg, var(--volt), #e8ff8d);
+      color: var(--dark-text);
+      box-shadow: 0 18px 48px rgba(200, 255, 0, 0.2);
     }
 
-    .btn-secondary {
-      border: none;
-      color: #fff;
-      background: linear-gradient(135deg, var(--blue), #4186ff);
-      box-shadow: 0 14px 28px rgba(0, 102, 255, 0.24);
+    .ghost-btn:hover,
+    .primary-btn:hover,
+    .secondary-btn:hover,
+    .nav-links a:hover {
+      transform: translateY(-2px);
     }
 
     .hero {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-bottom: 18px;
+      grid-template-columns: 1.06fr 0.94fr;
+      gap: 22px;
+      padding: 38px 0 20px;
     }
 
-    .panel {
+    .hero-copy,
+    .hero-visual,
+    .panel,
+    .story-card,
+    .pricing-card,
+    .testimonial,
+    .cta-panel {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 24px;
-      box-shadow: 0 26px 60px rgba(0, 0, 0, 0.28);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
     }
 
     .hero-copy {
-      padding: 28px;
-    }
-
-    .eyebrow {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #95e7ff;
-      background: rgba(0, 102, 255, 0.18);
-      border-radius: 999px;
-      padding: 6px 10px;
-      margin-bottom: 12px;
-    }
-
-    h1 {
-      font-family: "Sora", sans-serif;
-      font-size: 58px;
-      line-height: 1.02;
-      letter-spacing: -0.03em;
-      margin-bottom: 14px;
-    }
-
-    h2 {
-      font-family: "Sora", sans-serif;
-      font-size: 30px;
-      line-height: 1.08;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-    }
-
-    h3 {
-      font-family: "Sora", sans-serif;
-      font-size: 20px;
-      line-height: 1.2;
-      margin-bottom: 8px;
-    }
-
-    .muted { color: var(--muted); }
-
-    .hero-text {
-      font-size: 18px;
-      max-width: 640px;
-    }
-
-    .hero-actions {
-      margin-top: 22px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .hero-note {
-      margin-top: 12px;
-      color: #b8cbdd;
-      font-size: 13px;
-    }
-
-    .hero-visual {
-      min-height: 560px;
-      border-radius: 24px;
-      border: 1px solid var(--line);
-      background:
-        linear-gradient(180deg, rgba(5, 12, 24, 0.08), rgba(5, 12, 24, 0.82)),
-        url("./assets/avatar/AI Breakdown side by side.png") center/cover;
-      display: flex;
-      align-items: flex-end;
-      padding: 18px;
-    }
-
-    .hero-metrics {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .metric {
-      background: rgba(8, 20, 37, 0.78);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 14px;
-      padding: 10px;
-    }
-
-    .metric-value {
-      font-family: "Sora", sans-serif;
-      font-size: 24px;
-      line-height: 1;
-      margin-bottom: 4px;
-      color: #84b7ff;
-    }
-
-    .metric small {
-      color: #c2d3e3;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .trust {
-      margin-bottom: 18px;
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--line);
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .pill {
-      text-align: center;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      color: #bbcedf;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      padding: 10px 8px;
-    }
-
-    .how {
-      margin-bottom: 18px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .step {
-      padding: 16px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.04);
-    }
-
-    .step-tag {
-      display: inline-block;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      color: #9fd6ff;
-      background: rgba(0, 102, 255, 0.18);
-    }
-
-    .feature-grid {
-      margin-bottom: 18px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .feature-card {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.03);
+      padding: 32px;
+      position: relative;
       overflow: hidden;
     }
 
-    .feature-media {
-      height: 170px;
-      background-size: cover;
-      background-position: center;
-    }
-
-    .feature-copy {
-      padding: 14px 14px 16px;
-    }
-
-    .split {
-      margin-bottom: 18px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-    .box {
-      padding: 20px;
-      border-radius: 20px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .list {
-      margin-top: 10px;
-      display: grid;
+    .eyebrow,
+    .micro-label {
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-    }
-
-    .list-item {
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      padding: 10px 12px;
-      color: #c6d6e5;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .pricing {
-      margin-bottom: 18px;
-      padding: 22px;
-      border-radius: 22px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .testimonial-grid {
-      margin-bottom: 18px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .testimonial {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 16px;
-    }
-
-    .stars {
-      color: var(--gold);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
       letter-spacing: 0.08em;
-      font-weight: 900;
-      margin-bottom: 8px;
+      text-transform: uppercase;
     }
 
-    .plan-grid {
-      margin-top: 14px;
+    .eyebrow {
+      background: rgba(200, 255, 0, 0.1);
+      color: var(--volt);
+      border: 1px solid rgba(200, 255, 0, 0.2);
+    }
+
+    h1 {
+      margin-top: 18px;
+      font-size: clamp(44px, 7vw, 88px);
+      line-height: 0.94;
+      letter-spacing: -0.06em;
+      max-width: 10ch;
+    }
+
+    .hero-copy > p {
+      margin-top: 18px;
+      max-width: 58ch;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.72;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .hero-proof {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
+      margin-top: 26px;
     }
 
-    .plan {
+    .metric-box {
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
+      border-radius: 20px;
+      padding: 16px;
       background: rgba(255, 255, 255, 0.03);
-      position: relative;
     }
 
-    .plan.recommended {
-      border-color: rgba(255, 109, 0, 0.74);
-      box-shadow: inset 0 0 0 1px rgba(255, 109, 0, 0.26);
-    }
-
-    .tag {
-      position: absolute;
-      right: 10px;
-      top: -10px;
-      border-radius: 999px;
-      padding: 5px 8px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-      color: #fff;
-      background: linear-gradient(135deg, var(--orange), #ff9200);
-    }
-
-    .price {
-      font-family: "Sora", sans-serif;
-      font-size: 34px;
+    .metric-box strong {
+      display: block;
+      font-size: 30px;
       line-height: 1;
-      margin: 9px 0 6px;
-      background: linear-gradient(135deg, #ffbf78, #ffe3b8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .price-note {
-      color: #b6cadb;
-      font-size: 13px;
       margin-bottom: 8px;
+      color: var(--volt);
     }
 
-    .cta {
-      text-align: center;
-      padding: 26px 22px;
+    .metric-box span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .hero-visual {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .visual-frame {
+      position: relative;
+      min-height: 520px;
       border-radius: 24px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      margin-bottom: 14px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.74)),
+        url("./assets/avatar/AI Breakdown side by side.png") center/cover;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .foot {
-      text-align: center;
+    .overlay-card {
+      position: absolute;
+      right: 18px;
+      left: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(7, 10, 11, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .overlay-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .overlay-item {
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+    }
+
+    .overlay-item .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: #b6ffec;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .overlay-item strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 28px;
+      color: var(--volt);
+    }
+
+    .overlay-item span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .trust-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      padding: 10px 0 34px;
+    }
+
+    .trust-chip {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .trust-chip strong { color: var(--text); }
+
+    .section { padding: 26px 0; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      max-width: 12ch;
+    }
+
+    .section-header p {
+      max-width: 52ch;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-number {
+      font-family: "JetBrains Mono", monospace;
+      color: var(--volt);
+      font-size: 30px;
+      margin-bottom: 18px;
+    }
+
+    .panel h3 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      letter-spacing: -0.03em;
+    }
+
+    .panel p {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .bento {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 0.8fr;
+      gap: 16px;
+    }
+
+    .feature-main,
+    .feature-card {
+      min-height: 240px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-main {
+      padding: 28px;
+      grid-row: span 2;
+      background:
+        linear-gradient(180deg, rgba(10, 10, 10, 0.18), rgba(10, 10, 10, 0.82)),
+        url("./assets/uiux/Smart 10.png") center/cover;
+    }
+
+    .feature-card {
+      padding: 24px;
+    }
+
+    .feature-card.light {
+      background: var(--white-panel);
+      color: var(--dark-text);
+      border-color: rgba(10, 10, 10, 0.08);
+    }
+
+    .feature-card.light p,
+    .feature-card.light .micro-note { color: rgba(14, 16, 18, 0.72); }
+
+    .micro-note {
+      display: block;
+      margin-top: 12px;
       font-size: 13px;
       color: var(--muted);
     }
 
-    @media (max-width: 1060px) {
-      .hero, .split { grid-template-columns: 1fr; }
-      .trust, .how, .feature-grid, .testimonial-grid, .plan-grid, .hero-metrics { grid-template-columns: 1fr; }
-      h1 { font-size: 42px; }
-      .hero-visual { min-height: 420px; }
+    .story-grid,
+    .testimonials,
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .story-card,
+    .testimonial,
+    .pricing-card {
+      overflow: hidden;
+    }
+
+    .story-photo {
+      height: 240px;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .story-copy,
+    .testimonial-copy,
+    .pricing-copy {
+      padding: 20px;
+    }
+
+    .story-copy p,
+    .testimonial-copy p,
+    .pricing-copy p {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .story-stat,
+    .testimonial-stat {
+      display: inline-flex;
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(200, 255, 0, 0.1);
+      color: var(--volt);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .testimonial-copy strong {
+      display: block;
+      margin-top: 16px;
+      font-size: 15px;
+    }
+
+    .pricing-card {
+      position: relative;
+      padding-top: 14px;
+    }
+
+    .pricing-card.featured {
+      border-color: rgba(200, 255, 0, 0.34);
+      transform: translateY(-8px);
+    }
+
+    .pricing-chip {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      border-radius: 999px;
+      background: rgba(200, 255, 0, 0.14);
+      color: var(--volt);
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .price {
+      font-size: 52px;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      margin: 12px 0 6px;
+    }
+
+    .price small {
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .pricing-list {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    .pricing-list div {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 11px 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .urgency {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .urgency span {
+      border-radius: 999px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+    }
+
+    .cta-panel {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+      align-items: center;
+      background:
+        radial-gradient(circle at top right, rgba(200, 255, 0, 0.2), transparent 28%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.04));
+    }
+
+    .cta-panel h2 {
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      margin-bottom: 12px;
+      max-width: 11ch;
+    }
+
+    .cta-panel p {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 16px;
+      max-width: 58ch;
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .footer {
+      padding: 34px 0 60px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .cta-panel,
+      .bento,
+      .story-grid,
+      .testimonials,
+      .pricing-grid,
+      .steps,
+      .trust-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .hero-proof,
+      .overlay-grid { grid-template-columns: 1fr; }
+
+      .pricing-card.featured { transform: none; }
+      .cta-actions { justify-content: start; }
+    }
+
+    @media (max-width: 760px) {
+      .page,
+      .nav-inner,
+      .hero,
+      .trust-bar,
+      .section,
+      .footer { width: min(100%, calc(100% - 24px)); }
+
+      .nav-inner { align-items: start; }
+      .nav-links { width: 100%; }
+      .nav-links a { flex: 1 1 140px; text-align: center; }
+      .hero-copy,
+      .hero-visual,
+      .panel,
+      .testimonial,
+      .story-card,
+      .pricing-card,
+      .cta-panel { border-radius: 24px; }
+      .visual-frame { min-height: 420px; }
     }
   </style>
-  <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-  <div class="wrap">
-    <header class="header">
-      <a class="logo" href="./index.html">SmartSwing AI</a>
-      <nav class="nav">
-        <a class="btn" href="./features.html">Features</a>
-        <a class="btn" href="./how-it-works.html">How It Works</a>
-        <a class="btn" href="./library.html">Drills & Tactics</a>
-        <a class="btn" href="./dashboard.html">Player Dashboard</a>
-        <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
-        <a class="btn" href="./pricing.html">Pricing</a>
-        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
+      <nav class="nav-links">
+        <a href="./features.html">Features</a>
+        <a href="./how-it-works.html">How It Works</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./library.html">Drills</a>
+        <a class="primary-btn" href="./analyze.html">Get Free Analysis</a>
       </nav>
-    </header>
+    </div>
+  </header>
 
+  <main>
     <section class="hero">
-      <div class="panel hero-copy">
-        <div class="eyebrow">Built For Serious Players and Coaches</div>
-        <h1>Your AI Coach Watches Every Swing. You Just Play.</h1>
-        <p class="hero-text muted">
-          Capture any serve, forehand, backhand, volley, slice, drop shot, or lob. SmartSwing AI scores movement quality, compares your mechanics to pro ranges, and gives a clear drill plan to improve before your next session.
-        </p>
+      <div class="hero-copy">
+        <div class="eyebrow">Smart tennis intelligence</div>
+        <h1>Your next level is one upload away.</h1>
+        <p>Upload one practice clip or match point. SmartSwing AI breaks down biomechanics, movement, timing, and court habits in under a minute, then turns that into the exact drills and tactical fixes you should do next.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="./analyze.html">Get My Free Swing Analysis</a>
-          <a class="btn btn-secondary" href="./pricing.html">See Plans and Trial</a>
+          <a class="primary-btn" href="./analyze.html">Get my free analysis</a>
+          <a class="secondary-btn" href="./pricing.html">See plans and pricing</a>
         </div>
-        <p class="hero-note">Free plan includes 1 report/month. Upgrade when you need more sessions, library access, and coach network tools.</p>
+        <div class="urgency">
+          <span>No credit card required</span>
+          <span>1 free analysis every month</span>
+          <span>Founding pricing live through March 31, 2026</span>
+        </div>
+        <div class="hero-proof">
+          <div class="metric-box">
+            <strong>60s</strong>
+            <span>from upload to a clear biomechanics breakdown and action plan.</span>
+          </div>
+          <div class="metric-box">
+            <strong>Top 3</strong>
+            <span>drills and match tactics only, so players know what matters now.</span>
+          </div>
+          <div class="metric-box">
+            <strong>Web-first</strong>
+            <span>works across desktop and mobile without forcing one device ecosystem.</span>
+          </div>
+        </div>
       </div>
 
       <div class="hero-visual">
-        <div class="hero-metrics">
-          <div class="metric">
-            <div class="metric-value">+15%</div>
-            <small>Movement Efficiency Score</small>
-          </div>
-          <div class="metric">
-            <div class="metric-value">3.2°</div>
-            <small>Shoulder Rotation Gap</small>
-          </div>
-          <div class="metric">
-            <div class="metric-value">7 Days</div>
-            <small>Execution Drill Plan</small>
+        <div class="visual-frame">
+          <div class="overlay-card">
+            <div class="micro-label">AI court readout</div>
+            <div class="overlay-grid">
+              <div class="overlay-item">
+                <div class="mono">Forehand score</div>
+                <strong>84</strong>
+                <span>Strong for level. Contact and hip timing are trending up.</span>
+              </div>
+              <div class="overlay-item">
+                <div class="mono">Main gain</div>
+                <strong>+9%</strong>
+                <span>Shoulder-to-hip separation improved from the last session.</span>
+              </div>
+              <div class="overlay-item">
+                <div class="mono">Next move</div>
+                <strong>3 drills</strong>
+                <span>Prescribed from the exact metrics that cost depth and pace.</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="trust">
-      <div class="pill">Biomechanics and Ball Tracking</div>
-      <div class="pill">Pro Benchmark Comparisons</div>
-      <div class="pill">Coach-Ready Reports</div>
-      <div class="pill">Calendarized Improvement Cycles</div>
+    <section class="trust-bar">
+      <div class="trust-chip"><strong>Trusted by serious players</strong><br>Built for match video, practice video, and coach review.</div>
+      <div class="trust-chip"><strong>Partner-ready workflow</strong><br>Player, coach, and manager views stay separated by access role.</div>
+      <div class="trust-chip"><strong>Modern report UX</strong><br>Expandable insights explain what a metric means and why it matters.</div>
+      <div class="trust-chip"><strong>Real next-step coaching</strong><br>Not just numbers. Drills, tactics, execution plan, and accountability.</div>
     </section>
 
-    <section class="how">
-      <article class="step">
-        <div class="step-tag">Step 1</div>
-        <h3>Capture with guidance</h3>
-        <p class="muted">Upload footage with camera-position prompts so analysis quality stays high from day one.</p>
-      </article>
-      <article class="step">
-        <div class="step-tag">Step 2</div>
-        <h3>Analyze and compare</h3>
-        <p class="muted">Get angle, vector, timing, footwork, spin, and positioning feedback with tracker definitions.</p>
-      </article>
-      <article class="step">
-        <div class="step-tag">Step 3</div>
-        <h3>Improve and track</h3>
-        <p class="muted">Follow tailored drills, set goals, book coaching sessions, and track weekly KPI progress.</p>
-      </article>
-    </section>
-
-    <section class="feature-grid">
-      <article class="feature-card">
-        <div class="feature-media" style="background-image:url('./assets/uiux/Smart 2.png');"></div>
-        <div class="feature-copy">
-          <h3>Shot-by-shot AI feedback</h3>
-          <p class="muted">See what happened, why it happened, and what to change on the next rep.</p>
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <div class="eyebrow">How it works</div>
+          <h2>One recording. One diagnosis. One clear next move.</h2>
         </div>
-      </article>
-      <article class="feature-card">
-        <div class="feature-media" style="background-image:url('./assets/uiux/Smart 10.png');"></div>
-        <div class="feature-copy">
-          <h3>Pro-range benchmark engine</h3>
-          <p class="muted">Compare your mechanics against elite ranges with plain-language explanations.</p>
-        </div>
-      </article>
-      <article class="feature-card">
-        <div class="feature-media" style="background-image:url('./assets/uiux/Smart 8.png');"></div>
-        <div class="feature-copy">
-          <h3>Actionable reporting</h3>
-          <p class="muted">Each report includes corrections, drill blocks, and session priorities by impact.</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="split">
-      <article class="box">
-        <h2>For Players</h2>
-        <p class="muted">One system to analyze, compare, improve, and keep momentum week after week.</p>
-        <div class="list">
-          <div class="list-item">Progress trends by shot type and match context</div>
-          <div class="list-item">Personalized daily drills based on biggest gaps</div>
-          <div class="list-item">Session reminders and weekly accountability</div>
-        </div>
-        <div class="hero-actions">
-          <a class="btn btn-secondary" href="./dashboard.html">Open Player Dashboard</a>
-        </div>
-      </article>
-      <article class="box">
-        <h2>For Coaches</h2>
-        <p class="muted">Coach-ready workflows for roster management, priority flags, and scheduling.</p>
-        <div class="list">
-          <div class="list-item">Student performance queue and urgent correction flags</div>
-          <div class="list-item">Calendarized plans with next-session objectives</div>
-          <div class="list-item">Shareable reports and improvement snapshots</div>
-        </div>
-        <div class="hero-actions">
-          <a class="btn btn-secondary" href="./coach-dashboard.html">Open Coach Dashboard</a>
-        </div>
-      </article>
-    </section>
-
-    <section class="testimonial-grid">
-      <article class="testimonial">
-        <div class="stars">★★★★★</div>
-        <p>"In three weeks my serve consistency jumped because the report told me exactly what to fix first."</p>
-        <p class="muted" style="margin-top:8px;">Miguel R. | UTR 7.1 | Competitive Amateur</p>
-      </article>
-      <article class="testimonial">
-        <div class="stars">★★★★★</div>
-        <p>"The coach dashboard and calendar made my sessions with juniors much more structured and measurable."</p>
-        <p class="muted" style="margin-top:8px;">Coach Leila M. | USPTA Certified</p>
-      </article>
-      <article class="testimonial">
-        <div class="stars">★★★★★</div>
-        <p>"I stopped guessing. The drill links and tactical plans gave me a clear weekly training routine."</p>
-        <p class="muted" style="margin-top:8px;">Daniel K. | Adult League Player</p>
-      </article>
-    </section>
-
-    <section class="pricing">
-      <h2>Choose Your Plan</h2>
-      <p class="muted">Simple monthly pricing with clear limits and upgrade paths.</p>
-      <div class="plan-grid">
-        <article class="plan">
-          <h3>Free</h3>
-          <div class="price">$0</div>
-          <div class="price-note">1 report per month.</div>
-          <p class="muted">No report save/export. Great for trying your first analysis.</p>
+        <p>SmartSwing reduces the delay between a bad rep and the correction that fixes it. The goal is not more data. The goal is faster improvement.</p>
+      </div>
+      <div class="steps">
+        <article class="panel">
+          <div class="step-number">01</div>
+          <h3>Record anywhere</h3>
+          <p>Upload practice or match video from a phone, fence mount, or tripod. SmartSwing guides angle quality before analysis starts so the report has cleaner signal.</p>
         </article>
-        <article class="plan recommended">
-          <div class="tag">Most Popular</div>
-          <h3>Performance</h3>
-          <div class="price">$19.99</div>
-          <div class="price-note">Unlimited monthly reports.</div>
-          <p class="muted">Includes drills+tactics library, coach/player network, and full dashboards.</p>
+        <article class="panel">
+          <div class="step-number">02</div>
+          <h3>AI analyzes the movement</h3>
+          <p>The analyzer tracks body landmarks, calculates the most relevant tennis metrics, and compares the stroke to level-adjusted expectations instead of generic pro-only logic.</p>
         </article>
-        <article class="plan">
-          <h3>Tournament Pro</h3>
-          <div class="price">$49.99</div>
-          <div class="price-note">Unlimited + certified coach workflow.</div>
-          <p class="muted">Tournament prep, priority review queue, and structured coach feedback loops.</p>
+        <article class="panel">
+          <div class="step-number">03</div>
+          <h3>Train with a plan</h3>
+          <p>Each report surfaces the top priorities, the right drill videos, and the tactical fixes that actually fit the player, then carries that into dashboards and coach workflows.</p>
         </article>
       </div>
-      <div class="hero-actions" style="margin-top:14px;">
-        <a class="btn btn-primary" href="./pricing.html">Compare Full Plan Details</a>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <div class="eyebrow">Feature system</div>
+          <h2>The AI coach that remembers every swing.</h2>
+        </div>
+        <p>Built as one operating system for the serious tennis player: analyze, compare, improve, schedule, and track in one surface.</p>
+      </div>
+      <div class="bento">
+        <article class="hero-copy feature-main">
+          <div class="eyebrow">Biomechanics engine</div>
+          <h3 style="font-size:34px;max-width:12ch;margin-top:16px;">Your AI coach never sleeps. It sees the pattern before you feel the slump.</h3>
+          <p style="margin-top:14px;">Readable biomechanics. Fair scoring by level. Expandable explanations. Coach-ready summaries. Reports built for action, not confusion.</p>
+        </article>
+        <article class="panel feature-card">
+          <div class="micro-label">AI Video Analysis</div>
+          <h3>Angles translated into coaching language</h3>
+          <p>Instead of dumping raw definitions, the report explains what changed, how to read it, and what to fix first.</p>
+          <span class="micro-note">Shoulder, elbow, hip, knee, trunk, timing, movement, and contact behavior.</span>
+        </article>
+        <article class="panel feature-card light">
+          <div class="micro-label" style="background:rgba(0,0,0,0.06);color:#0e1012;border:1px solid rgba(0,0,0,0.08);">Progress Tracking</div>
+          <h3>Digestible dashboards</h3>
+          <p>Tabbed player and coach views keep messaging, scheduling, activities, analytics, and the drill library separated instead of buried in one page.</p>
+          <span class="micro-note">Cleaner UX, clearer next actions, easier export workflows.</span>
+        </article>
+        <article class="panel feature-card">
+          <div class="micro-label">Coach layer</div>
+          <h3>Assign drills and follow through</h3>
+          <p>Coaches can see who is improving, who is stalling, and what should be assigned next without digging through clutter.</p>
+          <span class="micro-note">Scoped messaging, scheduling, and access control included.</span>
+        </article>
+        <article class="panel feature-card">
+          <div class="micro-label">Dual sport path</div>
+          <h3>Tennis first, pickleball ready</h3>
+          <p>Same operating system, separate logic. Keep the product extensible without making the tennis experience feel generic.</p>
+          <span class="micro-note">Platform-agnostic by design.</span>
+        </article>
       </div>
     </section>
 
-    <section class="cta">
-      <h2>Start Your First Analysis Now</h2>
-      <p class="muted">Upload one video and get clear priorities, tailored drills, and your next-session plan in minutes.</p>
-      <div class="hero-actions" style="justify-content:center;">
-        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
-        <a class="btn" href="./review-all.html">Open Full Review Hub</a>
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <div class="eyebrow">Transformation stories</div>
+          <h2>Show the improvement. Then show the proof.</h2>
+        </div>
+        <p>What converts is not “AI-powered coaching.” It is visible change: more pace, cleaner contact, better decisions, and fewer empty practice sessions.</p>
+      </div>
+      <div class="story-grid">
+        <article class="story-card">
+          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 1 Tennis.png');"></div>
+          <div class="story-copy">
+            <div class="story-stat">+0.4 NTRP feel in 6 weeks</div>
+            <h3>The junior chasing cleaner timing</h3>
+            <p>SmartSwing narrowed the report to contact height, loading depth, and split-step timing so the practice work stayed simple and repeatable.</p>
+          </div>
+        </article>
+        <article class="story-card">
+          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 2 Tennis.png');"></div>
+          <div class="story-copy">
+            <div class="story-stat">Serve confidence from 62% to 81%</div>
+            <h3>The adult player who wanted match trust</h3>
+            <p>Instead of generic feedback, the report pushed the top three serve priorities and the exact tactic to protect the second ball in matches.</p>
+          </div>
+        </article>
+        <article class="story-card">
+          <div class="story-photo" style="background-image:url('./assets/avatar/Coach Ace.png');"></div>
+          <div class="story-copy">
+            <div class="story-stat">Coach visibility without dashboard overload</div>
+            <h3>The coach who needed faster triage</h3>
+            <p>Roster, messaging, scheduling, analytics, and assignments live in dedicated tabs so the coach sees who needs attention now.</p>
+          </div>
+        </article>
       </div>
     </section>
 
-    <footer class="foot">SmartSwing AI | Tennis intelligence platform for players and coaches</footer>
-  </div>
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <div class="eyebrow">Testimonials</div>
+          <h2>Players buy proof. Coaches buy clarity.</h2>
+        </div>
+        <p>The right testimonial mix shows measurable improvement, not vague praise. Each one should answer one question: what changed because of SmartSwing?</p>
+      </div>
+      <div class="testimonials">
+        <article class="testimonial">
+          <div class="testimonial-copy">
+            <div class="testimonial-stat">Adult player</div>
+            <p>“The report finally told me what mattered. Not ten disconnected numbers. Just the three things costing me depth and consistency, and the drills to fix them.”</p>
+            <strong>Marcos, 4.0 league player</strong>
+          </div>
+        </article>
+        <article class="testimonial">
+          <div class="testimonial-copy">
+            <div class="testimonial-stat">Coach</div>
+            <p>“The expandable coach-ready priorities are the part I’d use every week. I can see what changed, why it matters, and what to assign next without rewriting the whole session.”</p>
+            <strong>Coach Elena, performance program</strong>
+          </div>
+        </article>
+        <article class="testimonial">
+          <div class="testimonial-copy">
+            <div class="testimonial-stat">Junior parent</div>
+            <p>“It made progress easier to understand. My son stopped asking if the score was bad and started asking what the next drill would improve.”</p>
+            <strong>Parent of a U14 player</strong>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="section-header">
+        <div>
+          <div class="eyebrow">Pricing</div>
+          <h2>Start free. Upgrade when the analysis turns into habit.</h2>
+        </div>
+        <p>Anchor against private coaching, not against cheap software. One useful report can save a week of blind repetition.</p>
+      </div>
+      <div class="pricing-grid">
+        <article class="pricing-card">
+          <div class="pricing-copy">
+            <h3>Starter</h3>
+            <div class="price">$0 <small>/ month</small></div>
+            <p>Remove all friction and get the first win.</p>
+            <div class="pricing-list">
+              <div>1 analysis every month</div>
+              <div>Live report preview</div>
+              <div>No save, print, or export</div>
+            </div>
+            <a class="secondary-btn" href="./checkout.html?plan=free">Claim free analysis</a>
+          </div>
+        </article>
+
+        <article class="pricing-card featured">
+          <div class="pricing-chip">Most popular</div>
+          <div class="pricing-copy">
+            <h3>Pro</h3>
+            <div class="price">$19.99 <small>/ month</small></div>
+            <p>The ideal plan for players who actually want to improve.</p>
+            <div class="pricing-list">
+              <div>Unlimited analyses and saved reports</div>
+              <div>Full drills and tactics library</div>
+              <div>Coach and player connection tools</div>
+              <div>Weekly AI coaching reports</div>
+            </div>
+            <a class="primary-btn" href="./checkout.html?plan=pro">Unlock Pro</a>
+          </div>
+        </article>
+
+        <article class="pricing-card">
+          <div class="pricing-copy">
+            <h3>Tournament Pro</h3>
+            <div class="price">$49.99 <small>/ month</small></div>
+            <p>For players who want real coach follow-through and match prep support.</p>
+            <div class="pricing-list">
+              <div>Unlimited assessments and exports</div>
+              <div>Certified coach review workflow</div>
+              <div>Tournament preparation support</div>
+              <div>Priority scheduling and feedback</div>
+            </div>
+            <a class="secondary-btn" href="./checkout.html?plan=elite">Go Tournament Pro</a>
+          </div>
+        </article>
+      </div>
+      <div class="urgency">
+        <span>Private coaching can cost $150 per hour</span>
+        <span>Founding member pricing ends March 31, 2026</span>
+        <span>Annual plans will be added after Stripe is connected</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="cta-panel">
+        <div>
+          <div class="eyebrow">Start now</div>
+          <h2>Your analysis is one upload away.</h2>
+          <p>Open the analyzer, upload a clip, and review the upgraded report flow, cleaner dashboards, and plan-based access logic in one pass.</p>
+        </div>
+        <div class="cta-actions">
+          <a class="primary-btn" href="./analyze.html">Open analyzer</a>
+          <a class="secondary-btn" href="./review-all.html">Open review hub</a>
+          <a class="secondary-btn" href="./pricing.html">Compare plans</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>SmartSwing AI. Built for players, coaches, and performance programs.</div>
+    <div>Web-first tennis intelligence for analysis, improvement, and accountability.</div>
+  </footer>
+
   <script src="./pwa.js"></script>
 </body>
 </html>

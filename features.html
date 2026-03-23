@@ -5,159 +5,183 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Features</title>
   <link rel="manifest" href="./manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #071425;
-      --bg-2: #0b2038;
-      --panel: rgba(14, 26, 44, 0.88);
-      --line: rgba(255,255,255,0.12);
-      --text: #ebf2fb;
-      --muted: #9ab0c5;
-      --blue: #2a7fff;
-      --green: #00c853;
-      --orange: #ff6d00;
+      --bg:#0a0a0a;
+      --panel:rgba(28,28,30,.88);
+      --line:rgba(255,255,255,.1);
+      --text:#f5f5f7;
+      --muted:#a1a1aa;
+      --volt:#c8ff00;
+      --teal:#00d4aa;
+      --white:#f5f5f7;
+      --dark:#0e1012;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', sans-serif;
-      color: var(--text);
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"DM Sans",sans-serif;
+      color:var(--text);
       background:
-        radial-gradient(circle at top left, rgba(42,127,255,0.16), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,200,83,0.12), transparent 28%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-      min-height: 100vh;
+        radial-gradient(circle at top left, rgba(200,255,0,.1), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,212,170,.12), transparent 22%),
+        linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#111 100%);
+      min-height:100vh;
     }
-    .page { max-width: 1260px; margin: 0 auto; padding: 24px 20px 60px; }
-    .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
-    .logo {
-      text-decoration:none; font-size:32px; font-weight:900;
-      background: linear-gradient(135deg, var(--blue), var(--green));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    .page{width:min(1240px,calc(100% - 40px));margin:0 auto;padding:24px 0 64px}
+    .top,.hero,.grid,.stack,.cta{display:grid;gap:16px}
+    .top{grid-template-columns:auto 1fr;align-items:center;margin-bottom:22px}
+    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em}
+    .brand span{color:var(--volt)}
+    .nav{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .btn,.btn-primary{
+      text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;
+      transition:transform .18s ease;
     }
-    .nav { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn {
-      text-decoration:none; padding:12px 16px; border-radius:14px; border:1px solid var(--line);
-      color:var(--text); font-weight:800; background:rgba(255,255,255,0.03);
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
+    .btn-primary{background:linear-gradient(135deg,var(--volt),#ebff9b);color:var(--dark);border:1px solid rgba(200,255,0,.35)}
+    .btn:hover,.btn-primary:hover{transform:translateY(-2px)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:28px;overflow:hidden}
+    .hero{grid-template-columns:1fr .95fr;margin-bottom:16px}
+    .hero-copy{padding:30px}
+    .eyebrow,.label{
+      display:inline-flex;align-items:center;border:1px solid rgba(200,255,0,.22);
+      background:rgba(200,255,0,.08);color:var(--volt);border-radius:999px;padding:8px 12px;
+      font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase
     }
-    .btn-primary { border:none; color:#fff; background: linear-gradient(135deg, var(--orange), #ff8f00); }
-    .hero { background:var(--panel); border:1px solid var(--line); border-radius:26px; padding:26px; margin-bottom:18px; }
-    .badge {
-      display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(42,127,255,0.16);
-      color:#88b9ff; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:0.04em;
+    h1{font-size:clamp(42px,6vw,76px);line-height:.95;letter-spacing:-.06em;margin:16px 0 14px;max-width:10ch}
+    h2{font-size:clamp(28px,4vw,48px);line-height:1;letter-spacing:-.05em}
+    h3{font-size:24px;letter-spacing:-.03em}
+    p{line-height:1.7}
+    .muted{color:var(--muted)}
+    .hero-visual{
+      min-height:440px;
+      background:
+        linear-gradient(180deg,rgba(10,10,10,.18),rgba(10,10,10,.8)),
+        url('./assets/avatar/AI Breakdown side by side.png') center/cover;
+      position:relative
     }
-    h1 { font-size:46px; line-height:1.04; margin:12px 0 10px; letter-spacing:-0.02em; }
-    h2 { font-size:26px; margin-bottom:10px; }
-    h3 { font-size:18px; margin-bottom:8px; }
-    .muted { color:var(--muted); line-height:1.6; }
-    .grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; margin-bottom:18px; }
-    .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; overflow:hidden; }
-    .visual { height:210px; background-size:cover; background-position:center; }
-    .copy { padding:16px 18px; }
-    .mini { font-size:13px; color:var(--muted); margin-top:8px; }
-    .split { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-    .list { display:grid; gap:10px; }
-    .item { background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
-    @media (max-width: 980px) { .grid, .split { grid-template-columns:1fr; } h1 { font-size:34px; } }
+    .floating{
+      position:absolute;right:18px;left:18px;bottom:18px;padding:18px;border-radius:22px;
+      background:rgba(9,12,13,.84);border:1px solid rgba(255,255,255,.08)
+    }
+    .floating strong{display:block;font-size:30px;color:var(--volt);margin-top:8px}
+    .grid{grid-template-columns:1.15fr .85fr .85fr}
+    .feature-main,.feature-card{padding:24px;min-height:240px}
+    .feature-main{
+      grid-row:span 2;
+      background:
+        linear-gradient(180deg,rgba(10,10,10,.18),rgba(10,10,10,.82)),
+        url('./assets/uiux/Smart 10.png') center/cover;
+    }
+    .feature-card.light{background:var(--white);color:var(--dark);border-color:rgba(0,0,0,.08)}
+    .feature-card.light .muted{color:rgba(14,16,18,.72)}
+    .mini{margin-top:14px;font-size:13px}
+    .stack{grid-template-columns:1fr 1fr;margin-top:16px}
+    .list{display:grid;gap:12px}
+    .item{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.03);color:var(--muted)}
+    .cta{grid-template-columns:1.1fr .9fr;align-items:center;padding:28px;margin-top:16px}
+    .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+    @media (max-width:1024px){
+      .hero,.grid,.stack,.cta{grid-template-columns:1fr}
+      .actions{justify-content:flex-start}
+    }
+    @media (max-width:760px){
+      .page{width:min(100%,calc(100% - 24px))}
+      .top{grid-template-columns:1fr}
+      .nav{justify-content:flex-start}
+    }
   </style>
-  <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
-    <div class="top">
-      <a class="logo" href="./index.html">SmartSwing AI</a>
-      <div class="nav">
+    <header class="top">
+      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
+      <nav class="nav">
         <a class="btn" href="./how-it-works.html">How It Works</a>
         <a class="btn" href="./pricing.html">Pricing</a>
         <a class="btn" href="./review-all.html">Review Hub</a>
-        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
-      </div>
-    </div>
+        <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </nav>
+    </header>
 
     <section class="hero">
-      <div class="badge">Feature Stack</div>
-      <h1>A complete operating system for serious tennis improvement.</h1>
-      <p class="muted">
-        SmartSwing is built as one connected loop: capture quality control, AI analysis, actionable report output, drill execution, goal tracking, coach accountability, and session calendarization.
-      </p>
+      <article class="panel hero-copy">
+        <div class="eyebrow">Feature Stack</div>
+        <h1>The operating system for tennis improvement.</h1>
+        <p class="muted">SmartSwing AI connects video analysis, coach-ready reports, drill recommendations, player progress, scheduling, and role-based dashboards into one flow. The value is not one feature. The value is what happens when every layer reinforces the next one.</p>
+      </article>
+      <article class="panel hero-visual">
+        <div class="floating">
+          <div class="label">Why it converts</div>
+          <strong>Fast diagnosis. Clear action.</strong>
+          <p class="muted">Less dashboard noise. Better proof. Fewer dead-end metrics that players do not understand.</p>
+        </div>
+      </article>
     </section>
 
     <section class="grid">
-      <article class="card">
-        <div class="visual" style="background-image:url('./assets/uiux/Smart 2.png');"></div>
-        <div class="copy">
-          <h3>Pre-capture guidance engine</h3>
-          <p class="muted">Shot-specific and mode-specific setup guidance appears before analysis starts.</p>
-          <p class="mini">Impact: higher data quality, fewer misleading corrections.</p>
+      <article class="panel feature-main">
+        <div class="eyebrow">Core engine</div>
+        <h3 style="margin-top:18px;max-width:11ch;font-size:34px;">AI video analysis built to drive the next rep, not just the report.</h3>
+        <p class="muted" style="margin-top:14px;">Pose tracking, tennis-specific biomechanics, level-adjusted scoring, and top-priority feedback work together so players leave with a real plan.</p>
+      </article>
+      <article class="panel feature-card">
+        <div class="label">Reports</div>
+        <h3 style="margin-top:16px;">Readable biomechanics</h3>
+        <p class="muted" style="margin-top:12px;">Angles are translated into coaching insight, expandable explanations, and clear fixes instead of walls of logic and definitions.</p>
+        <div class="mini muted">Focus: biomechanics, footwork, positioning, timing, and contact behavior.</div>
+      </article>
+      <article class="panel feature-card light">
+        <div class="label" style="background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.08);color:var(--dark)">Dashboards</div>
+        <h3 style="margin-top:16px;">Cleaner player and coach tabs</h3>
+        <p class="muted" style="margin-top:12px;">Messaging, scheduling, drills, analytics, and activities are separated into tabs so each role sees the right layer at the right time.</p>
+        <div class="mini muted">Less clutter. Better follow-through.</div>
+      </article>
+      <article class="panel feature-card">
+        <div class="label">Training</div>
+        <h3 style="margin-top:16px;">Drills and tactics tied to weaknesses</h3>
+        <p class="muted" style="margin-top:12px;">Recommendation logic limits the report to the top three drill plans and top three tactical plays so the player is not overwhelmed.</p>
+      </article>
+      <article class="panel feature-card">
+        <div class="label">Access control</div>
+        <h3 style="margin-top:16px;">Privacy and plan guardrails</h3>
+        <p class="muted" style="margin-top:12px;">Scoped visibility, entitlement checks, role-based messaging, trial enforcement, and plan limits protect the right data and the right flows.</p>
+      </article>
+    </section>
+
+    <section class="stack">
+      <article class="panel" style="padding:24px">
+        <h2>What players feel</h2>
+        <div class="list" style="margin-top:16px">
+          <div class="item"><strong style="color:var(--text)">“I know what to fix first.”</strong><br>Top 3 feedback replaces a confusing metric wall.</div>
+          <div class="item"><strong style="color:var(--text)">“I can actually follow the plan.”</strong><br>Drills, tactics, and dashboard actions stay connected.</div>
+          <div class="item"><strong style="color:var(--text)">“The score feels fair.”</strong><br>Level, age, and gender adjustments prevent demotivating report output.</div>
         </div>
       </article>
-      <article class="card">
-        <div class="visual" style="background-image:url('./assets/avatar/AI Breakdown side by side.png');"></div>
-        <div class="copy">
-          <h3>Biomechanics analysis and scoring</h3>
-          <p class="muted">Shoulder, elbow, hip, knee, trunk, and wrist metrics scored against shot-specific pro ranges.</p>
-          <p class="mini">Impact: objective movement quality baseline per session.</p>
-        </div>
-      </article>
-      <article class="card">
-        <div class="visual" style="background-image:url('./assets/uiux/Smart 3.png');"></div>
-        <div class="copy">
-          <h3>Coach-ready report format</h3>
-          <p class="muted">Tracker definitions, urgency signal, top correction priorities, and next session focus.</p>
-          <p class="mini">Impact: clearer player-coach communication and faster interventions.</p>
-        </div>
-      </article>
-      <article class="card">
-        <div class="visual" style="background-image:url('./assets/uiux/Smart 10.png');"></div>
-        <div class="copy">
-          <h3>Retention loop</h3>
-          <p class="muted">Goals, drill assignments, completion states, and progress timeline from saved sessions.</p>
-          <p class="mini">Impact: reduced churn and visible accountability.</p>
-        </div>
-      </article>
-      <article class="card">
-        <div class="visual" style="background-image:url('./assets/avatar/Coach Ace.png');"></div>
-        <div class="copy">
-          <h3>Player + coach dashboards</h3>
-          <p class="muted">Athlete risk triage, adherence alerts, and session planning in role-specific interfaces.</p>
-          <p class="mini">Impact: coach throughput and faster issue detection.</p>
-        </div>
-      </article>
-      <article class="card">
-        <div class="visual" style="background-image:url('./assets/uiux/Smart 5.png');"></div>
-        <div class="copy">
-          <h3>Cloud-ready sync architecture</h3>
-          <p class="muted">Supabase-backed sync path for assessments, goals, drills, progress events, and bookings.</p>
-          <p class="mini">Impact: multi-device continuity and coach collaboration.</p>
+      <article class="panel" style="padding:24px">
+        <h2>What coaches gain</h2>
+        <div class="list" style="margin-top:16px">
+          <div class="item"><strong style="color:var(--text)">Faster triage.</strong><br>Who needs help, what changed, and what drill to assign next.</div>
+          <div class="item"><strong style="color:var(--text)">Better athlete accountability.</strong><br>One system for messaging, assignments, and schedule flow.</div>
+          <div class="item"><strong style="color:var(--text)">Clearer reporting.</strong><br>Coach-ready summaries say what matters without raw scoring logic clutter.</div>
         </div>
       </article>
     </section>
 
-    <section class="split">
-      <div class="card">
-        <div class="copy">
-          <h2>Differentiators built now</h2>
-          <div class="list">
-            <div class="item"><strong>Actionable AI feedback:</strong> report output tells users exactly what to change first and how.</div>
-            <div class="item"><strong>Calendarized execution:</strong> session booking and monthly planning appear in dashboard flow.</div>
-            <div class="item"><strong>Coach accountability:</strong> alert queue shows stale analysis, high-risk deltas, and low drill adherence.</div>
-          </div>
-        </div>
+    <section class="panel cta">
+      <div>
+        <div class="eyebrow">Next move</div>
+        <h2 style="margin-top:16px;max-width:10ch">Open the analyzer and see the full feature loop live.</h2>
       </div>
-      <div class="card">
-        <div class="copy">
-          <h2>Next milestone capabilities</h2>
-          <div class="list">
-            <div class="item"><strong>Expanded biomechanics depth:</strong> move from current ranges to validated 3D sequence metrics.</div>
-            <div class="item"><strong>Store-native packaging:</strong> iOS/Android release with app-store billing and submission workflows.</div>
-            <div class="item"><strong>Dataset validation:</strong> calibrate against diverse camera angles, lighting, and frame rates.</div>
-          </div>
-          <div style="margin-top:14px;">
-            <a class="btn btn-primary" href="./how-it-works.html">See Full Workflow</a>
-          </div>
-        </div>
+      <div class="actions">
+        <a class="btn-primary" href="./analyze.html">Open analyzer</a>
+        <a class="btn" href="./dashboard.html">Player dashboard</a>
+        <a class="btn" href="./coach-dashboard.html">Coach dashboard</a>
       </div>
     </section>
   </div>

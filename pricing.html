@@ -5,263 +5,274 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Pricing</title>
   <link rel="manifest" href="./manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #071426;
-      --bg2: #0b2039;
-      --panel: rgba(11, 24, 43, 0.9);
-      --line: rgba(255, 255, 255, 0.13);
-      --text: #ecf3fb;
-      --muted: #9eb3c8;
-      --blue: #2a7fff;
-      --green: #00c853;
-      --orange: #ff6d00;
-      --gold: #ffd700;
+    :root{
+      --bg:#0a0a0a;
+      --panel:rgba(28,28,30,.88);
+      --line:rgba(255,255,255,.1);
+      --text:#f5f5f7;
+      --muted:#a1a1aa;
+      --volt:#c8ff00;
+      --teal:#00d4aa;
+      --white:#f5f5f7;
+      --dark:#0e1012;
+      --alert:#ffd76b;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(42,127,255,0.18), transparent 25%),
-        radial-gradient(circle at top right, rgba(0,200,83,0.12), transparent 30%),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
-      min-height: 100vh;
-    }
-
-    .page { max-width: 1280px; margin: 0 auto; padding: 24px 20px 64px; }
-    .top { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
-    .logo {
-      text-decoration:none;
-      font-size:32px;
-      font-weight:900;
-      background: linear-gradient(135deg, var(--blue), var(--green));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    .nav { display:flex; gap:10px; flex-wrap:wrap; }
-    .btn {
-      text-decoration:none;
-      border-radius:12px;
-      border:1px solid var(--line);
-      padding:11px 14px;
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"DM Sans",sans-serif;
       color:var(--text);
-      font-weight:800;
-      background: rgba(255,255,255,0.03);
-      cursor: pointer;
-      font: inherit;
+      background:
+        radial-gradient(circle at top left, rgba(200,255,0,.1), transparent 24%),
+        radial-gradient(circle at top right, rgba(0,212,170,.12), transparent 22%),
+        linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#111 100%);
+      min-height:100vh;
     }
-    .btn-primary {
-      border:none;
-      color:#fff;
-      background: linear-gradient(135deg, var(--orange), #ff8f00);
-      box-shadow: 0 10px 26px rgba(255,109,0,0.28);
+    .page{width:min(1260px,calc(100% - 40px));margin:0 auto;padding:24px 0 64px}
+    .top{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;margin-bottom:22px}
+    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em}
+    .brand span{color:var(--volt)}
+    .nav{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .btn,.btn-primary,.btn-secondary{
+      text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;
+      transition:transform .18s ease;cursor:pointer;font:inherit
     }
-
-    .hero {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 24px;
-      margin-bottom: 16px;
+    .btn,.btn-secondary{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
+    .btn-primary{background:linear-gradient(135deg,var(--volt),#ebff9b);color:var(--dark);border:1px solid rgba(200,255,0,.35)}
+    .btn:hover,.btn-primary:hover,.btn-secondary:hover{transform:translateY(-2px)}
+    .hero,.summary,.pricing-grid,.compare,.faq{display:grid;gap:16px}
+    .hero{grid-template-columns:1.08fr .92fr;margin-bottom:16px}
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:28px;
     }
-    h1 { font-size: 46px; line-height: 1.03; margin-bottom: 10px; letter-spacing: -0.02em; }
-    h2 { font-size: 28px; margin-bottom: 8px; }
-    h3 { font-size: 20px; margin-bottom: 8px; }
-    .muted { color: var(--muted); line-height: 1.7; }
-
-    .status {
-      margin-top: 12px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      background: rgba(255,255,255,0.03);
-      font-size: 13px;
+    .eyebrow,.chip{
+      display:inline-flex;align-items:center;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;
+      letter-spacing:.08em;text-transform:uppercase;background:rgba(200,255,0,.08);color:var(--volt);border:1px solid rgba(200,255,0,.22)
     }
-
-    .grid {
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 16px;
+    h1{font-size:clamp(42px,6vw,76px);line-height:.95;letter-spacing:-.06em;margin:16px 0 14px;max-width:10ch}
+    h2{font-size:clamp(28px,4vw,48px);line-height:1;letter-spacing:-.05em}
+    h3{font-size:24px;letter-spacing:-.03em}
+    p{line-height:1.7}
+    .muted{color:var(--muted)}
+    .hero ul{display:grid;gap:10px;margin-top:18px;list-style:none}
+    .hero li{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.03);color:var(--muted)}
+    .summary{align-content:start}
+    .status{border:1px solid var(--line);border-radius:20px;padding:18px;background:rgba(255,255,255,.03);color:var(--muted)}
+    .status strong{display:block;color:var(--text);margin-bottom:8px}
+    .urgency{display:grid;gap:12px}
+    .urgency-box{border:1px solid rgba(255,215,107,.2);background:rgba(255,215,107,.06);border-radius:20px;padding:18px;color:#ffe7a6}
+    .pricing-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+    .pricing-card{
+      position:relative;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:22px;
+      box-shadow:0 24px 80px rgba(0,0,0,.25)
     }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 18px;
-      position: relative;
-      display: grid;
-      align-content: start;
-      gap: 10px;
+    .pricing-card.featured{border-color:rgba(200,255,0,.34);transform:translateY(-10px)}
+    .tag{
+      position:absolute;top:14px;right:14px;border-radius:999px;padding:8px 10px;font-size:11px;
+      font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(200,255,0,.14);color:var(--volt)
     }
-    .card.popular {
-      border-color: rgba(255,109,0,0.72);
-      box-shadow: inset 0 0 0 1px rgba(255,109,0,0.26);
+    .price{font-size:52px;line-height:1;letter-spacing:-.06em;margin:14px 0 6px}
+    .price small{font-size:15px;color:var(--muted)}
+    .price-note{color:var(--muted);font-size:14px}
+    .list{display:grid;gap:10px;margin:18px 0 22px}
+    .list div{border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:rgba(255,255,255,.03);color:var(--muted)}
+    .anchor{margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);font-size:14px}
+    .compare{grid-template-columns:1fr 1fr;margin-bottom:18px}
+    .compare-table{display:grid;gap:10px}
+    .row{display:grid;grid-template-columns:1.1fr .9fr .9fr .9fr;gap:10px}
+    .cell{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.03);color:var(--muted)}
+    .cell strong{color:var(--text)}
+    .faq{grid-template-columns:1fr 1fr}
+    .qa{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px}
+    @media (max-width:1100px){
+      .hero,.pricing-grid,.compare,.faq{grid-template-columns:1fr}
+      .pricing-card.featured{transform:none}
+      .row{grid-template-columns:1fr}
     }
-    .badge {
-      position: absolute;
-      top: -10px;
-      right: 12px;
-      font-size: 11px;
-      font-weight: 900;
-      padding: 5px 8px;
-      border-radius: 999px;
-      color: #fff;
-      background: linear-gradient(135deg, var(--orange), #ff8f00);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .price {
-      font-size: 46px;
-      line-height: 1;
-      font-weight: 900;
-      background: linear-gradient(135deg, #ffba6f, #ffe2be);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-    }
-    .period { color: var(--muted); font-size: 13px; margin-top: -4px; }
-    ul { margin-left: 18px; color: var(--muted); line-height: 1.7; }
-    li { margin-bottom: 7px; }
-
-    .guarantee {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--panel);
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-    .faq {
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    .qa {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--panel);
-      padding: 14px;
-    }
-    .note {
-      color: #ffd8a4;
-      font-size: 12px;
-      line-height: 1.6;
-      margin-top: 2px;
-    }
-    @media (max-width: 1100px) {
-      .grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 760px) {
-      h1 { font-size: 34px; }
-      .grid, .faq { grid-template-columns: 1fr; }
+    @media (max-width:760px){
+      .page{width:min(100%,calc(100% - 24px))}
+      .top{grid-template-columns:1fr}
+      .nav{justify-content:flex-start}
     }
   </style>
-  <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
     <header class="top">
-      <a class="logo" href="./index.html">SmartSwing AI</a>
+      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
       <nav class="nav">
         <a class="btn" href="./features.html">Features</a>
-        <a class="btn" href="./library.html">Drills & Tactics</a>
-        <a class="btn" href="./dashboard.html">Player Dashboard</a>
-        <a class="btn" href="./checkout.html">Checkout</a>
-        <a class="btn btn-primary" href="./analyze.html">Open Analyzer</a>
+        <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./review-all.html">Review Hub</a>
+        <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
       </nav>
     </header>
 
     <section class="hero">
-      <h1>Clear pricing by training intensity.</h1>
-      <p class="muted">Each generated report counts as one monthly review. Start free, then scale to the plan that matches your workload.</p>
-      <div class="status" id="planStatus">Checking current plan...</div>
-    </section>
-
-    <section class="grid">
-      <article class="card">
-        <h3>Free</h3>
-        <div class="price">$0</div>
-        <div class="period">per month</div>
+      <article class="panel">
+        <div class="eyebrow">Pricing</div>
+        <h1>Choose the plan that matches how serious you are about improving.</h1>
+        <p class="muted">SmartSwing is priced against wasted practice and expensive private coaching, not against generic video apps. Start free, prove the value, then upgrade when you want deeper tracking, saved reports, and coach accountability.</p>
         <ul>
-          <li>1 analysis report per month</li>
-          <li>Live on-court scoring and feedback</li>
-          <li>No report save/export</li>
-          <li>No drill/tactic library videos</li>
+          <li>Free tier removes friction: 1 analysis per month.</li>
+          <li>Player tier unlocks saved reports and repeat usage.</li>
+          <li>Pro is the best value for players who want constant feedback.</li>
+          <li>Tournament Pro adds the coach workflow and preparation layer.</li>
         </ul>
-        <button class="btn btn-primary" type="button" data-plan="free">Choose Free</button>
       </article>
-
-      <article class="card">
-        <h3>Player</h3>
-        <div class="price">$9.99</div>
-        <div class="period">per month</div>
-        <ul>
-          <li>10 analysis reports per month</li>
-          <li>Each report generation uses 1 credit</li>
-          <li>Save and print reports enabled</li>
-          <li>Progress tracking and dashboard sync</li>
-        </ul>
-        <button class="btn btn-primary" type="button" data-plan="starter">Choose Player</button>
-      </article>
-
-      <article class="card popular">
-        <div class="badge">Ideal Plan</div>
-        <h3>Performance</h3>
-        <div class="price">$19.99</div>
-        <div class="period">per month</div>
-        <ul>
-          <li>Unlimited monthly reports</li>
-          <li>Full drills + tactics library and videos</li>
-          <li>Connect with coaches and players</li>
-          <li>Weekly progress summaries and accountability prompts</li>
-          <li>Priority tactical recommendations in reports</li>
-        </ul>
-        <button class="btn btn-primary" type="button" data-plan="pro">Choose Performance</button>
-      </article>
-
-      <article class="card">
-        <h3>Tournament Pro</h3>
-        <div class="price">$49.99</div>
-        <div class="period">per month</div>
-        <ul>
-          <li>Unlimited assessments and exports</li>
-          <li>Certified coach feedback workflow</li>
-          <li>Tournament assessment and preparation plans</li>
-          <li>Priority scheduling and review queue</li>
-          <li>Advanced readiness reports before match weekends</li>
-        </ul>
-        <button class="btn btn-primary" type="button" data-plan="elite">Choose Tournament Pro</button>
+      <article class="summary">
+        <div class="status" id="planStatus">
+          <strong>Checking current plan...</strong>
+          Loading plan and review usage.
+        </div>
+        <div class="urgency">
+          <div class="urgency-box">
+            <strong style="display:block;color:var(--text);margin-bottom:8px">Founding member pricing is live now.</strong>
+            March 31, 2026 is the current public deadline for these monthly launch prices.
+          </div>
+          <div class="urgency-box">
+            <strong style="display:block;color:var(--text);margin-bottom:8px">Anchor the value correctly.</strong>
+            One private lesson can cost $150. SmartSwing Pro costs $19.99 for a full month of analysis.
+          </div>
+        </div>
       </article>
     </section>
 
-    <section class="guarantee">
-      <h2>Guarantees</h2>
-      <p class="muted"><strong>14-day full-feature trial:</strong> test all premium capabilities before committing.</p>
-      <p class="muted"><strong>Actionability promise:</strong> every report includes clear next-step drills, tactics, and a weekly execution plan.</p>
-      <p class="note">Billing integration placeholder: CTAs now route through cart and checkout so Stripe can be added later without redesigning the purchase path.</p>
+    <section class="pricing-grid">
+      <article class="pricing-card">
+        <div class="pricing-copy">
+          <h3>Starter</h3>
+          <div class="price">$0 <small>/ month</small></div>
+          <div class="price-note">For first-time users who want proof before commitment.</div>
+          <div class="list">
+            <div>1 analysis per month</div>
+            <div>Live report view only</div>
+            <div>No save, export, or print</div>
+            <div>Perfect for the first win</div>
+          </div>
+          <a class="btn-secondary" href="./checkout.html?plan=free">Claim Starter</a>
+        </div>
+      </article>
+
+      <article class="pricing-card">
+        <div class="pricing-copy">
+          <h3>Player</h3>
+          <div class="price">$9.99 <small>/ month</small></div>
+          <div class="price-note">For regular players who want steady feedback without unlimited usage.</div>
+          <div class="list">
+            <div>10 reports per month</div>
+            <div>Save and print reports</div>
+            <div>Progress tracking unlocked</div>
+            <div>Better than guessing between lessons</div>
+          </div>
+          <a class="btn-secondary" href="./checkout.html?plan=starter">Choose Player</a>
+          <div class="anchor">What one bucket of blind reps costs: time. What this plan gives back: clarity.</div>
+        </div>
+      </article>
+
+      <article class="pricing-card featured">
+        <div class="tag">Most popular</div>
+        <div class="pricing-copy">
+          <h3>Pro</h3>
+          <div class="price">$19.99 <small>/ month</small></div>
+          <div class="price-note">The ideal plan for players who want analysis to become a real habit.</div>
+          <div class="list">
+            <div>Unlimited monthly reviews</div>
+            <div>Drills and tactics library access</div>
+            <div>Coach and player connection tools</div>
+            <div>Weekly AI coaching reports</div>
+            <div>Priority recommendation depth</div>
+          </div>
+          <a class="btn-primary" href="./checkout.html?plan=pro">Choose Pro</a>
+          <div class="anchor">Best value: what a one-hour lesson costs, you get for a full month.</div>
+        </div>
+      </article>
+
+      <article class="pricing-card">
+        <div class="pricing-copy">
+          <h3>Tournament Pro</h3>
+          <div class="price">$49.99 <small>/ month</small></div>
+          <div class="price-note">For players who want human review and tournament preparation built into the system.</div>
+          <div class="list">
+            <div>Unlimited assessments and exports</div>
+            <div>Coach feedback workflow</div>
+            <div>Tournament assessment and prep</div>
+            <div>Priority scheduling and queue</div>
+            <div>Best fit for serious competitors</div>
+          </div>
+          <a class="btn-secondary" href="./checkout.html?plan=elite">Choose Tournament Pro</a>
+          <div class="anchor">Private coaching anchor: roughly $1.66 per day for the top plan.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="compare">
+      <article class="panel">
+        <div class="chip">Value comparison</div>
+        <h2 style="margin-top:16px">SmartSwing vs. the alternatives</h2>
+        <div class="compare-table" style="margin-top:18px">
+          <div class="row">
+            <div class="cell"><strong>Option</strong></div>
+            <div class="cell"><strong>Speed</strong></div>
+            <div class="cell"><strong>Clarity</strong></div>
+            <div class="cell"><strong>Cost</strong></div>
+          </div>
+          <div class="row">
+            <div class="cell"><strong>SmartSwing Pro</strong><br>AI report + drills + tactics + dashboard</div>
+            <div class="cell">Minutes</div>
+            <div class="cell">High</div>
+            <div class="cell">$19.99/mo</div>
+          </div>
+          <div class="row">
+            <div class="cell"><strong>Private coach only</strong><br>Human feedback, no persistent AI tracking</div>
+            <div class="cell">Days</div>
+            <div class="cell">High</div>
+            <div class="cell">$150/hr+</div>
+          </div>
+          <div class="row">
+            <div class="cell"><strong>YouTube only</strong><br>General tips without player-specific diagnosis</div>
+            <div class="cell">Fast</div>
+            <div class="cell">Low</div>
+            <div class="cell">Free</div>
+          </div>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="chip">Guarantee</div>
+        <h2 style="margin-top:16px">Low risk, clear upgrade path</h2>
+        <p class="muted" style="margin-top:16px">The free tier gives the first useful result. Paid plans then unlock saved reports, richer recommendations, exports, coach messaging, and higher-volume usage. This keeps the funnel honest and the upgrade decision easier.</p>
+        <div class="list" style="margin-top:18px">
+          <div>14-day trial logic remains available where the account is eligible.</div>
+          <div>Plan limits are enforced before save, export, and booking actions.</div>
+          <div>Stripe, Apple Pay, and Google Pay can be connected next through checkout.</div>
+        </div>
+      </article>
     </section>
 
     <section class="faq">
       <article class="qa">
         <h3>What counts as one review?</h3>
-        <p class="muted">Each generated report (shot selection + report output) counts as one monthly review credit.</p>
+        <p class="muted" style="margin-top:10px">Each generated report counts as one review. Opening the analyzer alone does not consume a credit.</p>
       </article>
       <article class="qa">
         <h3>Can I switch plans anytime?</h3>
-        <p class="muted">Yes. Plan changes apply immediately in this app build and update report permissions.</p>
+        <p class="muted" style="margin-top:10px">Yes. This build updates entitlements immediately so you can validate the right UX and guardrail paths.</p>
       </article>
       <article class="qa">
-        <h3>Why can’t Free print or save reports?</h3>
-        <p class="muted">The Free plan is for trial usage. Save/export unlocks on Player and above.</p>
+        <h3>Why can't Starter save reports?</h3>
+        <p class="muted" style="margin-top:10px">Starter is designed to create the first success moment. Save, print, and export unlock on paid plans.</p>
       </article>
       <article class="qa">
-        <h3>Where are drills and tactics unlocked?</h3>
-        <p class="muted">Performance and Tournament Pro unlock video links and tactical playbooks in reports and library.</p>
+        <h3>Where do drills and tactics unlock?</h3>
+        <p class="muted" style="margin-top:10px">Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</p>
       </article>
     </section>
   </div>
@@ -273,23 +284,16 @@
 
     function renderStatus() {
       const user = store.getCurrentUser();
+      const el = document.getElementById('planStatus');
       if (!user) {
-        document.getElementById('planStatus').textContent = 'No active session. Create or sign into an account to activate a plan.';
+        el.innerHTML = '<strong>No active session</strong>Create or sign into an account to activate a plan and sync review usage.';
         return;
       }
       const plan = store.getCurrentPlan();
       const usage = store.canGenerateReport();
       const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
-      document.getElementById('planStatus').textContent =
-        `Logged in as ${user.email}. Active plan: ${plan.name}. Reports this month: ${usageText}.`;
+      el.innerHTML = `<strong>${user.email}</strong>Current plan: ${plan.name}. Reports used this month: ${usageText}.`;
     }
-
-    document.querySelectorAll('[data-plan]').forEach((button) => {
-      button.addEventListener('click', () => {
-        const planId = button.getAttribute('data-plan');
-        window.location.href = `./cart.html?plan=${encodeURIComponent(planId)}`;
-      });
-    });
 
     renderStatus();
   </script>
