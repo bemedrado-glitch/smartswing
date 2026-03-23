@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0a0a0a;--panel:rgba(28,28,30,.9);--line:rgba(255,255,255,.1);--text:#f5f5f7;--muted:#a1a1aa;--volt:#c8ff00;--dark:#0e1012
+      --bg:#0a0a0a;--panel:rgba(28,28,30,.9);--line:rgba(255,255,255,.1);--text:#f5f5f7;--muted:#eef3f7;--volt:#39ff14;--accent:#ffd84d;--dark:#0e1012
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -24,25 +24,26 @@
     .panel,.item{
       background:var(--panel);border:1px solid var(--line);border-radius:24px
     }
-    .panel{padding:24px;margin-bottom:16px}
-    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em;color:var(--text)}
+    .panel{padding:24px;margin-bottom:16px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
     .brand span{color:var(--volt)}
     .eyebrow{
       display:inline-flex;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;letter-spacing:.08em;
-      text-transform:uppercase;background:rgba(200,255,0,.08);color:var(--volt);border:1px solid rgba(200,255,0,.22)
+      text-transform:uppercase;background:rgba(255,216,77,.12);color:var(--accent);border:1px solid rgba(255,216,77,.22)
     }
     h1{font-size:clamp(40px,6vw,68px);line-height:.95;letter-spacing:-.06em;margin:16px 0 14px;max-width:10ch}
     h2{font-size:30px;letter-spacing:-.04em;margin-bottom:12px}
-    h3{font-size:20px;letter-spacing:-.03em}
+    h3{font-size:20px;letter-spacing:-.03em;color:var(--volt)}
     p{line-height:1.7}
     .muted{color:var(--muted)}
     .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-    .item{padding:18px}
+    .item{padding:18px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
     .btn,.btn-primary{
       display:inline-flex;margin-top:12px;text-decoration:none;border-radius:999px;padding:11px 16px;font-weight:700;font-size:14px
     }
     .btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
-    .btn-primary{border:1px solid rgba(200,255,0,.35);background:linear-gradient(135deg,var(--volt),#ebff9b);color:var(--dark)}
+    .btn-primary{border:1px solid rgba(57,255,20,.35);background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark)}
+    .panel:hover,.item:hover{transform:translateY(-4px);border-color:rgba(57,255,20,.3);box-shadow:0 18px 50px rgba(0,0,0,.3)}
     .mono{font-size:13px;color:var(--muted)}
     @media (max-width:960px){.grid{grid-template-columns:1fr}}
     @media (max-width:760px){.page{width:min(100%,calc(100% - 24px))}}

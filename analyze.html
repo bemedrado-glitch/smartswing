@@ -18,11 +18,11 @@
   <style>
     :root {
       --neon-green: #39FF14;
-      --electric-cyan: #00FF88;
+      --electric-cyan: #FFD84D;
       --void-black: #000000;
       --deep-navy: #0D1B2A;
-      --silver: #E8E8E8;
-      --gray: #6C757D;
+      --silver: #F5F5F7;
+      --gray: #EEF3F7;
       --success: #10B981;
       --warning: #F59E0B;
       --error: #FF3E6C;
@@ -59,14 +59,14 @@
     }
     
     .gradient-text {
-      background: linear-gradient(135deg, var(--neon-green) 0%, var(--electric-cyan) 100%);
+      background: linear-gradient(135deg, var(--neon-green) 0%, #82ff63 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
     
     .subtitle {
-      color: var(--gray);
+      color: var(--silver);
       font-size: 16px;
       font-weight: 500;
     }
@@ -151,7 +151,7 @@
     
     .step-label {
       font-size: 12px;
-      color: var(--gray);
+      color: var(--electric-cyan);
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.5px;
@@ -173,6 +173,7 @@
       font-weight: 800;
       text-align: center;
       margin-bottom: 24px;
+      color: var(--neon-green);
     }
     
     /* Selection Cards */
@@ -206,8 +207,8 @@
       box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
     }
     
-    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-    .card-subtitle { font-size: 12px; color: var(--gray); font-weight: 600; }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--neon-green); }
+    .card-subtitle { font-size: 12px; color: var(--silver); font-weight: 600; }
     
     /* Buttons */
     .btn {
@@ -360,7 +361,7 @@
     
     .stat-label {
       font-size: 11px;
-      color: var(--gray);
+      color: var(--electric-cyan);
       text-transform: uppercase;
       margin-bottom: 8px;
       font-weight: 700;
@@ -391,7 +392,7 @@
     
     .angle-name {
       font-size: 10px;
-      color: var(--gray);
+      color: var(--electric-cyan);
       text-transform: uppercase;
       margin-bottom: 6px;
       font-weight: 700;
@@ -471,7 +472,7 @@
     .metric-title {
       font-size: 12px;
       text-transform: uppercase;
-      color: var(--gray);
+      color: var(--electric-cyan);
       margin-bottom: 8px;
       font-weight: 700;
     }
@@ -488,7 +489,7 @@
     
     .metric-label {
       font-size: 12px;
-      color: var(--gray);
+      color: var(--silver);
     }
     
     .metric-row {
@@ -505,7 +506,7 @@
     
     .metric-row-label {
       font-size: 14px;
-      color: var(--gray);
+      color: var(--silver);
     }
     
     .metric-row-value {
@@ -515,13 +516,31 @@
     }
     
     .info-box {
-      background: rgba(0, 229, 255, 0.1);
+      background: rgba(255, 216, 77, 0.1);
       border-left: 3px solid var(--electric-cyan);
       padding: 16px;
       border-radius: 8px;
       margin: 16px 0;
       font-size: 13px;
       line-height: 1.6;
+    }
+
+    .selection-card,
+    .stat-card,
+    .angle-item,
+    .metric-card,
+    .report-section {
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .selection-card:hover,
+    .stat-card:hover,
+    .angle-item:hover,
+    .metric-card:hover,
+    .report-section:hover {
+      transform: translateY(-3px);
+      border-color: rgba(57, 255, 20, 0.32);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
     }
     
     @media print {

@@ -17,8 +17,9 @@
       --panel-strong: rgba(15, 15, 17, 0.96);
       --line: rgba(255, 255, 255, 0.1);
       --text: #f5f5f7;
-      --muted: #a1a1aa;
-      --volt: #c8ff00;
+      --muted: #eef3f7;
+      --volt: #39ff14;
+      --accent: #ffd84d;
       --teal: #00d4aa;
       --white-panel: #f5f5f7;
       --dark-text: #0e1012;
@@ -74,6 +75,7 @@
       font-size: 26px;
       font-weight: 800;
       letter-spacing: -0.04em;
+      color: var(--volt);
     }
 
     .brand span { color: var(--volt); }
@@ -105,10 +107,10 @@
     }
 
     .primary-btn {
-      border: 1px solid rgba(200, 255, 0, 0.34);
-      background: linear-gradient(135deg, var(--volt), #e8ff8d);
+      border: 1px solid rgba(57, 255, 20, 0.34);
+      background: linear-gradient(135deg, var(--volt), #82ff63);
       color: var(--dark-text);
-      box-shadow: 0 18px 48px rgba(200, 255, 0, 0.2);
+      box-shadow: 0 18px 48px rgba(57, 255, 20, 0.24);
     }
 
     .ghost-btn:hover,
@@ -138,6 +140,28 @@
       box-shadow: var(--shadow);
     }
 
+    .panel,
+    .story-card,
+    .pricing-card,
+    .testimonial,
+    .trust-chip,
+    .metric-box,
+    .overlay-item {
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .panel:hover,
+    .story-card:hover,
+    .pricing-card:hover,
+    .testimonial:hover,
+    .trust-chip:hover,
+    .metric-box:hover,
+    .overlay-item:hover {
+      transform: translateY(-4px);
+      border-color: rgba(57, 255, 20, 0.3);
+      box-shadow: 0 20px 56px rgba(0, 0, 0, 0.38);
+    }
+
     .hero-copy {
       padding: 32px;
       position: relative;
@@ -157,10 +181,11 @@
       text-transform: uppercase;
     }
 
-    .eyebrow {
-      background: rgba(200, 255, 0, 0.1);
-      color: var(--volt);
-      border: 1px solid rgba(200, 255, 0, 0.2);
+    .eyebrow,
+    .micro-label {
+      background: rgba(255, 216, 77, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(255, 216, 77, 0.22);
     }
 
     h1 {
@@ -205,7 +230,7 @@
       font-size: 30px;
       line-height: 1;
       margin-bottom: 8px;
-      color: var(--volt);
+      color: var(--accent);
     }
 
     .metric-box span {
@@ -260,7 +285,7 @@
     .overlay-item .mono {
       font-family: "JetBrains Mono", monospace;
       font-size: 11px;
-      color: #b6ffec;
+      color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
@@ -269,7 +294,7 @@
       display: block;
       margin-top: 8px;
       font-size: 28px;
-      color: var(--volt);
+      color: var(--accent);
     }
 
     .overlay-item span {
@@ -346,6 +371,7 @@
       font-size: 24px;
       margin-bottom: 12px;
       letter-spacing: -0.03em;
+      color: var(--volt);
     }
 
     .panel p {
@@ -421,6 +447,11 @@
       padding: 20px;
     }
 
+    .story-copy h3,
+    .pricing-copy h3 {
+      color: var(--volt);
+    }
+
     .story-copy p,
     .testimonial-copy p,
     .pricing-copy p {
@@ -434,8 +465,8 @@
       margin-bottom: 10px;
       padding: 8px 10px;
       border-radius: 999px;
-      background: rgba(200, 255, 0, 0.1);
-      color: var(--volt);
+      background: rgba(255, 216, 77, 0.12);
+      color: var(--accent);
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.06em;
@@ -463,8 +494,8 @@
       top: 16px;
       right: 16px;
       border-radius: 999px;
-      background: rgba(200, 255, 0, 0.14);
-      color: var(--volt);
+      background: rgba(255, 216, 77, 0.12);
+      color: var(--accent);
       padding: 8px 10px;
       font-size: 11px;
       font-weight: 800;
@@ -759,11 +790,11 @@
           <div class="eyebrow">Transformation stories</div>
           <h2>Show the improvement. Then show the proof.</h2>
         </div>
-        <p>What converts is not “AI-powered coaching.” It is visible change: more pace, cleaner contact, better decisions, and fewer empty practice sessions.</p>
+        <p>What converts is visible change: more pace, cleaner contact, better decisions, and fewer empty practice sessions.</p>
       </div>
       <div class="story-grid">
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 1 Tennis.png');"></div>
+          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 1 Tennis.png');background-position:center 18%;"></div>
           <div class="story-copy">
             <div class="story-stat">+0.4 NTRP feel in 6 weeks</div>
             <h3>The junior chasing cleaner timing</h3>
@@ -771,7 +802,7 @@
           </div>
         </article>
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 2 Tennis.png');"></div>
+          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 2 Tennis.png');background-position:center 20%;"></div>
           <div class="story-copy">
             <div class="story-stat">Serve confidence from 62% to 81%</div>
             <h3>The adult player who wanted match trust</h3>
@@ -779,11 +810,19 @@
           </div>
         </article>
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Coach Ace.png');"></div>
+          <div class="story-photo" style="background-image:url('./assets/avatar/Coach Ace.png');background-position:center 14%;"></div>
           <div class="story-copy">
             <div class="story-stat">Coach visibility without dashboard overload</div>
             <h3>The coach who needed faster triage</h3>
             <p>Roster, messaging, scheduling, analytics, and assignments live in dedicated tabs so the coach sees who needs attention now.</p>
+          </div>
+        </article>
+        <article class="story-card">
+          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 4 Tennis.png');background-position:center 15%;"></div>
+          <div class="story-copy">
+            <div class="story-stat">+11 score points in 30 days</div>
+            <h3>The player who needed fewer mixed signals</h3>
+            <p>By turning one report into one weekly focus, SmartSwing made progress feel measurable instead of vague.</p>
           </div>
         </article>
       </div>
@@ -801,22 +840,36 @@
         <article class="testimonial">
           <div class="testimonial-copy">
             <div class="testimonial-stat">Adult player</div>
-            <p>“The report finally told me what mattered. Not ten disconnected numbers. Just the three things costing me depth and consistency, and the drills to fix them.”</p>
+            <p>"The report finally told me what mattered. Not ten disconnected numbers. Just the three things costing me depth and consistency, and the drills to fix them."</p>
             <strong>Marcos, 4.0 league player</strong>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
             <div class="testimonial-stat">Coach</div>
-            <p>“The expandable coach-ready priorities are the part I’d use every week. I can see what changed, why it matters, and what to assign next without rewriting the whole session.”</p>
+            <p>"The expandable coach-ready priorities are the part I would use every week. I can see what changed, why it matters, and what to assign next without rewriting the whole session."</p>
             <strong>Coach Elena, performance program</strong>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
             <div class="testimonial-stat">Junior parent</div>
-            <p>“It made progress easier to understand. My son stopped asking if the score was bad and started asking what the next drill would improve.”</p>
+            <p>"It made progress easier to understand. My son stopped asking if the score was bad and started asking what the next drill would improve."</p>
             <strong>Parent of a U14 player</strong>
+          </div>
+        </article>
+        <article class="testimonial">
+          <div class="testimonial-copy">
+            <div class="testimonial-stat">College player</div>
+            <p>"It feels like a film room and a coach note in one screen. The numbers finally connect to a decision I can make on court."</p>
+            <strong>Division college athlete</strong>
+          </div>
+        </article>
+        <article class="testimonial">
+          <div class="testimonial-copy">
+            <div class="testimonial-stat">Tournament parent</div>
+            <p>"The best part is that it narrowed the chaos. One report. Three priorities. Then the dashboard showed exactly what we had done."</p>
+            <strong>Parent of a junior competitor</strong>
           </div>
         </article>
       </div>
