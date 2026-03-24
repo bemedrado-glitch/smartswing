@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Your SmartSwing AI Account</title>
   <meta name="description" content="Create a SmartSwing AI player or coach account with Google, Meta, Apple, or email. Add your profile photo and player details to personalize reports and dashboards.">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -247,9 +248,9 @@
       <div id="alertBox" class="alert"></div>
 
       <div class="oauth-grid">
-        <button class="oauth-btn" type="button" onclick="loginWithProvider('google')">Google</button>
-        <button class="oauth-btn" type="button" onclick="loginWithProvider('facebook')">Meta</button>
-        <button class="oauth-btn" type="button" onclick="loginWithProvider('apple')">Apple</button>
+        <button class="oauth-btn social-btn" type="button" onclick="loginWithProvider('google')">Google</button>
+        <button class="oauth-btn social-btn" type="button" onclick="loginWithProvider('facebook')">Meta</button>
+        <button class="oauth-btn social-btn" type="button" onclick="loginWithProvider('apple')">Apple</button>
       </div>
 
       <div class="role-grid">
@@ -480,6 +481,15 @@
         ? `Selected plan: ${labels[requested]} | 14-day trial starts after account creation.`
         : `Selected plan: ${labels[requested]}`;
     })();
+
+    if (!store.isSupabaseConfigured()) {
+      document.querySelectorAll('.social-btn').forEach((button) => {
+        button.disabled = true;
+        button.style.opacity = '0.55';
+        button.style.cursor = 'not-allowed';
+      });
+      showAlert('Social sign-up will unlock automatically once the Supabase public configuration is published for this site. Email signup is still available now.', 'error');
+    }
 
     document.getElementById('avatarInput').addEventListener('change', (event) => {
       const file = event.target.files?.[0];

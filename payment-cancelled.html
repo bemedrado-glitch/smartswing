@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI | Checkout Cancelled</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0a0a0a;--panel:rgba(28,28,30,.92);--line:rgba(255,255,255,.1);--text:#f5f5f7;--muted:#eef3f7;--volt:#39ff14;--accent:#ffd84d;--dark:#0e1012}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"DM Sans",sans-serif;color:var(--text);background:radial-gradient(circle at top left, rgba(255,216,77,.06), transparent 24%),linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#101010 100%);min-height:100vh}
+    .page{width:min(920px,calc(100% - 32px));margin:0 auto;padding:28px 0 72px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
+    .brand span{color:var(--volt)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:28px}
+    .eyebrow{display:inline-flex;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,216,77,.12);color:var(--accent);border:1px solid rgba(255,216,77,.22)}
+    h1{font-size:clamp(38px,6vw,62px);line-height:.95;letter-spacing:-.06em;margin:16px 0 14px;max-width:12ch}
+    p{line-height:1.7}
+    .muted{color:var(--muted)}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .btn,.btn-primary{text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;transition:transform .18s ease}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
+    .btn-primary{border:1px solid rgba(57,255,20,.35);background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark)}
+    .btn:hover,.btn-primary:hover{transform:translateY(-2px)}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
+      <a class="btn" href="./pricing.html">Back to pricing</a>
+    </header>
+
+    <section class="panel">
+      <div class="eyebrow">Checkout cancelled</div>
+      <h1>No changes were made to your plan.</h1>
+      <p class="muted">Your current SmartSwing access stays exactly as it was. You can return to checkout anytime when you are ready.</p>
+      <div class="actions">
+        <a class="btn-primary" href="./checkout.html">Return to checkout</a>
+        <a class="btn" href="./pricing.html">Compare plans again</a>
+        <a class="btn" href="./dashboard.html">Open dashboard</a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

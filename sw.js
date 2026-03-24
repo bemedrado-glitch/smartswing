@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartswing-shell-v8';
+const CACHE_NAME = 'smartswing-shell-v9';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,8 @@ const APP_ASSETS = [
   './review-all.html',
   './login.html',
   './signup.html',
+  './payment-success.html',
+  './payment-cancelled.html',
   './manifest.json',
   './pwa.js',
   './app-data.js',

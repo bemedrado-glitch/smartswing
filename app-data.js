@@ -11,7 +11,8 @@
     reportUsage: 'smartswing_report_usage',
     lastSession: 'smartswing_last_session',
     supabaseConfig: 'smartswing_supabase_config',
-    autoSessionOptOut: 'smartswing_auto_session_opt_out'
+    autoSessionOptOut: 'smartswing_auto_session_opt_out',
+    paymentCheckoutState: 'smartswing_payment_checkout_state'
   };
 
   const DEFAULT_COACHES = [
@@ -82,6 +83,47 @@
         'Tournament prep and match-plan reviews',
         'Priority scheduling and accountability queue'
       ]
+    }
+  };
+
+  const PAYMENT_PROVIDER_SETTINGS = {
+    activeProvider: 'wix-pricing-plans',
+    publicOrigin: 'https://www.smartswingai.com',
+    wixPricingPlans: {
+      providerLabel: 'Wix Pricing Plans',
+      bridgePageUrl: '',
+      setupStatus: 'bridge_page_required',
+      notes: 'Recurring billing lives in Wix. The Vercel app hands paid checkouts to a Wix-hosted bridge page that starts the official plan purchase flow.',
+      plans: {
+        free: {
+          mode: 'internal-free',
+          label: 'Free internal activation'
+        },
+        starter: {
+          mode: 'wix-pricing-plan',
+          planId: '732255dd-54cb-46e9-b485-ff72b9306d5d',
+          planName: 'SmartSwing Player Monthly',
+          amount: '9.99',
+          recurring: true,
+          buyable: false
+        },
+        pro: {
+          mode: 'wix-pricing-plan',
+          planId: '68e3e64f-e5a7-4815-b184-95eeb7a0cd78',
+          planName: 'SmartSwing Pro Monthly',
+          amount: '19.99',
+          recurring: true,
+          buyable: false
+        },
+        elite: {
+          mode: 'wix-pricing-plan',
+          planId: 'a63e2873-cc4e-4aec-bf94-01966299d49d',
+          planName: 'SmartSwing Tournament Pro Monthly',
+          amount: '49.99',
+          recurring: true,
+          buyable: false
+        }
+      }
     }
   };
 
@@ -610,6 +652,123 @@
 
   function getPlanDefinition(planId) {
     return PLAN_DEFINITIONS[planId] || PLAN_DEFINITIONS.free;
+  }
+
+  function getPaymentProviderSettings() {
+    const fromWindow = window.SMARTSWING_PAYMENT_CONFIG || {};
+    const bridgePageUrl = String(
+      fromWindow?.wixPricingPlans?.bridgePageUrl ||
+      PAYMENT_PROVIDER_SETTINGS.wixPricingPlans.bridgePageUrl ||
+      ''
+    ).trim();
+    return {
+      ...PAYMENT_PROVIDER_SETTINGS,
+      wixPricingPlans: {
+        ...PAYMENT_PROVIDER_SETTINGS.wixPricingPlans,
+        ...(fromWindow.wixPricingPlans || {}),
+        bridgePageUrl
+      }
+    };
+  }
+
+  function getPublicOrigin() {
+    if (typeof window !== 'undefined' && /^https?:/i.test(window.location.origin || '')) {
+      return window.location.origin;
+    }
+    return getPaymentProviderSettings().publicOrigin;
+  }
+
+  function getWixPlanConfig(planId) {
+    return getPaymentProviderSettings().wixPricingPlans.plans[String(planId || 'free').toLowerCase()] || null;
+  }
+
+  function getPendingExternalCheckout() {
+    return read(KEYS.paymentCheckoutState, null);
+  }
+
+  function clearPendingExternalCheckout() {
+    localStorage.removeItem(KEYS.paymentCheckoutState);
+  }
+
+  function beginExternalCheckout(planId, options = {}) {
+    const checkout = {
+      id: uid('checkout'),
+      planId: String(planId || 'free').toLowerCase(),
+      provider: options.provider || getPaymentProviderSettings().activeProvider,
+      startedAt: nowIso(),
+      returnTo: String(options.returnTo || './dashboard.html'),
+      cancelTo: String(options.cancelTo || './checkout.html'),
+      source: String(options.source || 'checkout')
+    };
+    write(KEYS.paymentCheckoutState, checkout);
+    return checkout;
+  }
+
+  function getExternalCheckoutRoute(planId, options = {}) {
+    const normalizedPlanId = String(planId || 'free').toLowerCase();
+    if (normalizedPlanId === 'free') {
+      return {
+        provider: 'internal',
+        mode: 'internal-free',
+        ready: true,
+        href: `./checkout.html?plan=${encodeURIComponent(normalizedPlanId)}`,
+        reason: ''
+      };
+    }
+
+    const wixPlan = getWixPlanConfig(normalizedPlanId);
+    if (!wixPlan || wixPlan.mode !== 'wix-pricing-plan') {
+      return {
+        provider: getPaymentProviderSettings().activeProvider,
+        mode: 'unsupported',
+        ready: false,
+        href: '',
+        reason: 'No Wix pricing plan mapping exists for this app plan yet.'
+      };
+    }
+
+    const bridgePageUrl = String(getPaymentProviderSettings().wixPricingPlans.bridgePageUrl || '').trim();
+    if (!bridgePageUrl) {
+      return {
+        provider: getPaymentProviderSettings().activeProvider,
+        mode: 'wix-pricing-plan',
+        ready: false,
+        href: '',
+        reason: 'The Wix checkout bridge page still needs to be published and linked here.'
+      };
+    }
+
+    const checkout = beginExternalCheckout(normalizedPlanId, {
+      provider: 'wix-pricing-plans',
+      returnTo: options.returnTo,
+      cancelTo: options.cancelTo,
+      source: options.source
+    });
+    const returnUrl = new URL('./payment-success.html', getPublicOrigin());
+    returnUrl.searchParams.set('provider', 'wix-pricing-plans');
+    returnUrl.searchParams.set('plan', normalizedPlanId);
+    returnUrl.searchParams.set('checkoutId', checkout.id);
+
+    const cancelUrl = new URL('./payment-cancelled.html', getPublicOrigin());
+    cancelUrl.searchParams.set('provider', 'wix-pricing-plans');
+    cancelUrl.searchParams.set('plan', normalizedPlanId);
+    cancelUrl.searchParams.set('checkoutId', checkout.id);
+
+    const bridgeUrl = new URL(bridgePageUrl);
+    bridgeUrl.searchParams.set('appPlanId', normalizedPlanId);
+    bridgeUrl.searchParams.set('wixPlanId', wixPlan.planId);
+    bridgeUrl.searchParams.set('checkoutId', checkout.id);
+    bridgeUrl.searchParams.set('returnUrl', returnUrl.toString());
+    bridgeUrl.searchParams.set('cancelUrl', cancelUrl.toString());
+
+    return {
+      provider: 'wix-pricing-plans',
+      mode: 'wix-pricing-plan',
+      ready: true,
+      href: bridgeUrl.toString(),
+      reason: '',
+      wixPlan
+    };
   }
 
   function isTrialActive(user) {
@@ -2343,6 +2502,7 @@
   window.SmartSwingStore = {
     DEFAULT_COACHES,
     PLAN_DEFINITIONS,
+    PAYMENT_PROVIDER_SETTINGS,
     DRILL_LIBRARY,
     TACTIC_LIBRARY,
     KEYS,
@@ -2364,6 +2524,12 @@
     getCurrentUser,
     getCurrentSession,
     getCurrentPlan,
+    getPaymentProviderSettings,
+    getWixPlanConfig,
+    getExternalCheckoutRoute,
+    getPendingExternalCheckout,
+    clearPendingExternalCheckout,
+    beginExternalCheckout,
     getTrialEligibility,
     setCurrentPlan,
     startPlanTrial,

@@ -15,6 +15,8 @@ $pages = @(
   @{ Path = '/manager-analytics.html'; Expected = 'Manager Analytics' },
   @{ Path = '/cart.html'; Expected = 'Your cart' },
   @{ Path = '/checkout.html'; Expected = 'Checkout' },
+  @{ Path = '/payment-success.html'; Expected = 'Payment status' },
+  @{ Path = '/payment-cancelled.html'; Expected = 'Checkout cancelled' },
   @{ Path = '/analyze.html'; Expected = 'Professional Tennis Biomechanics Analysis' }
 )
 
@@ -189,6 +191,14 @@ try {
   Assert-True -Condition (Test-Path $trainingMigration) -Message 'Supabase training resources migration exists'
   $guardrailMigration = Join-Path $root 'supabase\migrations\20260320_smartswing_access_guardrails.sql'
   Assert-True -Condition (Test-Path $guardrailMigration) -Message 'Supabase access guardrails migration exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'robots.txt')) -Message 'robots.txt exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'sitemap.xml')) -Message 'sitemap.xml exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'deploy\WIX_PRICING_PLANS_BRIDGE_SETUP.md')) -Message 'Wix pricing bridge setup guide exists'
+
+  $vercelConfigSource = Get-Content -Path (Join-Path $root 'vercel.json') -Raw
+  Assert-True -Condition ($vercelConfigSource -like '*competitor-analysis.html*') -Message 'Vercel config handles competitor analysis route explicitly'
+  Assert-True -Condition ($vercelConfigSource -like '*X-Robots-Tag*') -Message 'Vercel config adds noindex headers for internal pages'
+  Assert-True -Condition ($vercelConfigSource -like '*Referrer-Policy*') -Message 'Vercel config adds referrer policy header'
 
   $edge = Find-EdgeBinary
   if ($null -eq $edge) {

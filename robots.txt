@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /analyze.html
+Disallow: /dashboard.html
+Disallow: /coach-dashboard.html
+Disallow: /manager-analytics.html
+Disallow: /cart.html
+Disallow: /checkout.html
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /settings.html
+Disallow: /review-all.html
+Disallow: /review.html
+Disallow: /integration-settings.html
+Disallow: /competitor-analysis.html
+
+Sitemap: https://www.smartswingai.com/sitemap.xml

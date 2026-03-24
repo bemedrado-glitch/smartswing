@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In to SmartSwing AI</title>
   <meta name="description" content="Sign in to SmartSwing AI with email, Google, Meta, or Apple to access saved reports, player dashboards, coach messaging, and training plans.">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -218,9 +219,9 @@
       </form>
 
       <div class="oauth-grid">
-        <button class="btn btn-secondary" type="button" onclick="loginWithProvider('google')">Google</button>
-        <button class="btn btn-secondary" type="button" onclick="loginWithProvider('facebook')">Meta</button>
-        <button class="btn btn-secondary" type="button" onclick="loginWithProvider('apple')">Apple</button>
+        <button class="btn btn-secondary oauth-btn" type="button" onclick="loginWithProvider('google')">Google</button>
+        <button class="btn btn-secondary oauth-btn" type="button" onclick="loginWithProvider('facebook')">Meta</button>
+        <button class="btn btn-secondary oauth-btn" type="button" onclick="loginWithProvider('apple')">Apple</button>
       </div>
 
       <div class="links">
@@ -237,6 +238,15 @@
 
     if (store.getCurrentUser()) {
       window.location.href = './dashboard.html';
+    }
+
+    if (!store.isSupabaseConfigured()) {
+      document.querySelectorAll('.oauth-btn').forEach((button) => {
+        button.disabled = true;
+        button.style.opacity = '0.55';
+        button.style.cursor = 'not-allowed';
+      });
+      showAlert('Social sign-in will unlock automatically once the Supabase public configuration is published for this site. Email/password login still works.', 'error');
     }
 
     function showAlert(message, type = 'error') {

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Checkout</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,7 +69,7 @@
       <article class="panel">
         <div class="eyebrow">Checkout</div>
         <h1>Checkout</h1>
-        <p class="muted">This page is structured as the final conversion step. Stripe, Apple Pay, and Google Pay can be connected here next without redesigning the UX. For now, checkout activates the selected plan or eligible trial in the app so you can validate the full flow.</p>
+        <p class="muted">Paid plans now route through a Wix-hosted subscription checkout flow. The app keeps the cart and plan comparison experience, but recurring billing lives inside Wix Pricing Plans so the payment layer stays official and PCI-safe.</p>
       </article>
       <article class="panel">
         <h2 id="summaryTitle">Order summary</h2>
@@ -78,22 +79,9 @@
 
     <section class="grid">
       <article class="panel">
-        <h2>Billing details</h2>
+        <h2 id="checkoutHeading">Secure checkout</h2>
         <form id="checkoutForm" style="margin-top:18px">
-          <div>
-            <label for="fullName">Full name</label>
-            <input id="fullName" type="text" required>
-          </div>
-          <div>
-            <label for="email">Email</label>
-            <input id="email" type="email" required>
-          </div>
-          <div>
-            <label for="card">Card placeholder</label>
-            <input id="card" type="text" placeholder="4242 4242 4242 4242">
-          </div>
-          <button class="btn-primary" id="submitBtn" type="submit">Activate plan</button>
-          <div class="micro">Next integration step: Stripe Elements plus Apple Pay and Google Pay.</div>
+          <div id="checkoutFlow"></div>
         </form>
       </article>
 
@@ -105,12 +93,12 @@
             SmartSwing Pro gives a month of feedback for less than one private lesson.
           </div>
           <div class="summary-card">
-            <strong>Your analysis is waiting</strong>
-            Once checkout completes, the player can immediately access the analyzer and dashboards.
+            <strong>Recurring billing stays official</strong>
+            Wix Pricing Plans handles the actual subscription purchase instead of a fake client-side form.
           </div>
           <div class="summary-card">
-            <strong>Risk stays low</strong>
-            Eligible accounts can still activate the 14-day trial path before billing logic is connected.
+            <strong>Entitlements stay cleaner</strong>
+            Free access is handled in-app. Paid plans go out to Wix checkout so the website does not grant subscriptions from a local button click alone.
           </div>
         </div>
       </article>
@@ -125,17 +113,52 @@
     const plan = store.PLAN_DEFINITIONS[planId] || store.PLAN_DEFINITIONS.pro;
     const activeUser = store.getCurrentUser();
     const trialEligibility = store.getTrialEligibility(activeUser?.id, planId);
+    const checkoutRoute = store.getExternalCheckoutRoute(planId, {
+      source: 'checkout-page',
+      returnTo: './payment-success.html',
+      cancelTo: './payment-cancelled.html'
+    });
 
     document.getElementById('summaryTitle').textContent = `${plan.name} | $${plan.monthlyPrice}/month`;
     document.getElementById('summaryList').innerHTML = [
       { title: 'Plan', body: plan.name },
       { title: 'Monthly reviews', body: Number.isFinite(plan.monthlyReviews) ? `${plan.monthlyReviews}` : 'Unlimited' },
       { title: 'Trial', body: plan.id === 'free' ? 'No trial required' : (trialEligibility.eligible ? '14-day trial enabled for this account' : (trialEligibility.reason || 'Trial unavailable')) },
+      { title: 'Provider', body: plan.id === 'free' ? 'SmartSwing internal activation' : 'Wix Pricing Plans recurring checkout' },
       { title: 'Included perks', body: plan.perks.join(' | ') }
     ].map((item) => `<div class="summary-card"><strong>${item.title}</strong>${item.body}</div>`).join('');
 
-    document.getElementById('submitBtn').textContent =
-      planId !== 'free' && trialEligibility.eligible ? 'Start 14-day trial' : 'Activate plan';
+    const checkoutFlow = document.getElementById('checkoutFlow');
+    const checkoutHeading = document.getElementById('checkoutHeading');
+
+    if (planId === 'free') {
+      checkoutHeading.textContent = 'Activate free access';
+      checkoutFlow.innerHTML = `
+        <div class="summary-card">
+          <strong>Free access stays inside the app</strong>
+          One free analysis per month activates immediately without leaving SmartSwing.
+        </div>
+        <button class="btn-primary" id="submitBtn" type="submit">Activate free plan</button>
+        <div class="micro">No payment details required for the free tier.</div>
+      `;
+    } else {
+      checkoutHeading.textContent = 'Continue to secure Wix checkout';
+      checkoutFlow.innerHTML = checkoutRoute.ready ? `
+        <div class="summary-card">
+          <strong>Recurring billing is hosted by Wix</strong>
+          You will leave the app briefly to complete the official subscription checkout, then come back to SmartSwing.
+        </div>
+        <button class="btn-primary" id="submitBtn" type="submit">Continue to Wix checkout</button>
+        <div class="micro">Plan: ${plan.name} | Provider: Wix Pricing Plans</div>
+      ` : `
+        <div class="summary-card">
+          <strong>Wix checkout bridge still needs one site-side publish</strong>
+          The recurring billing plans exist in Wix, but the bridge page URL is not configured in the app yet.
+        </div>
+        <button class="btn" id="submitBtn" type="submit">Review setup details</button>
+        <div class="micro">${checkoutRoute.reason}</div>
+      `;
+    }
 
     document.getElementById('checkoutForm').addEventListener('submit', (event) => {
       event.preventDefault();
@@ -144,17 +167,24 @@
         window.location.href = `./signup.html?plan=${encodeURIComponent(planId)}${planId !== 'free' ? '&trial=1' : ''}`;
         return;
       }
-      try {
-        if (planId !== 'free' && store.getTrialEligibility(user.id, planId).eligible) {
-          store.startPlanTrial(planId, user.id);
-        } else {
-          store.setCurrentPlan(planId, user.id);
+
+      if (planId === 'free') {
+        try {
+          store.setCurrentPlan('free', user.id);
+        } catch (error) {
+          alert(error.message || 'Unable to activate the free plan.');
+          return;
         }
-      } catch (error) {
-        alert(error.message || 'Unable to activate this plan.');
+        window.location.href = './dashboard.html';
         return;
       }
-      window.location.href = './dashboard.html';
+
+      if (!checkoutRoute.ready) {
+        window.location.href = './payment-success.html?provider=wix-pricing-plans&status=setup-required&plan=' + encodeURIComponent(planId);
+        return;
+      }
+
+      window.location.href = checkoutRoute.href;
     });
   </script>
 </body>

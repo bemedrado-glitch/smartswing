@@ -1,4 +1,46 @@
 /*
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
-  Content-Security-Policy: frame-ancestors 'self' https://editor.wix.com https://*.wix.com https://*.wixsite.com https://smartswingai.com https://www.smartswingai.com
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(self), fullscreen=(self)
+  X-Frame-Options: SAMEORIGIN
+  Content-Security-Policy: frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com
+
+/analyze.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/dashboard.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/coach-dashboard.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/manager-analytics.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/cart.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/checkout.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/login.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/signup.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/settings.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/review-all.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/review.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/integration-settings.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/sw.js
+  Cache-Control: no-cache
