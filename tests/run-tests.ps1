@@ -193,12 +193,20 @@ try {
   Assert-True -Condition (Test-Path $guardrailMigration) -Message 'Supabase access guardrails migration exists'
   Assert-True -Condition (Test-Path (Join-Path $root 'robots.txt')) -Message 'robots.txt exists'
   Assert-True -Condition (Test-Path (Join-Path $root 'sitemap.xml')) -Message 'sitemap.xml exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'public-app-config.js')) -Message 'public-app-config.js exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'public-app-config.example.js')) -Message 'public-app-config.example.js exists'
   Assert-True -Condition (Test-Path (Join-Path $root 'deploy\WIX_PRICING_PLANS_BRIDGE_SETUP.md')) -Message 'Wix pricing bridge setup guide exists'
 
   $vercelConfigSource = Get-Content -Path (Join-Path $root 'vercel.json') -Raw
   Assert-True -Condition ($vercelConfigSource -like '*competitor-analysis.html*') -Message 'Vercel config handles competitor analysis route explicitly'
   Assert-True -Condition ($vercelConfigSource -like '*X-Robots-Tag*') -Message 'Vercel config adds noindex headers for internal pages'
   Assert-True -Condition ($vercelConfigSource -like '*Referrer-Policy*') -Message 'Vercel config adds referrer policy header'
+
+  $runtimeConfigPages = @('checkout.html', 'login.html', 'signup.html', 'dashboard.html', 'coach-dashboard.html')
+  foreach ($runtimePage in $runtimeConfigPages) {
+    $runtimeSource = Get-Content -Path (Join-Path $root $runtimePage) -Raw
+    Assert-True -Condition ($runtimeSource -like '*<script src="./public-app-config.js"></script>*') -Message "$runtimePage loads public runtime config"
+  }
 
   $edge = Find-EdgeBinary
   if ($null -eq $edge) {

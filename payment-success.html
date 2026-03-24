@@ -55,6 +55,7 @@
     </section>
   </div>
 
+  <script src="./public-app-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
     const store = window.SmartSwingStore;
@@ -76,9 +77,9 @@
     const summaryEl = document.getElementById('summary');
 
     if (status === 'setup-required') {
-      titleEl.textContent = 'Wix checkout still needs one site-side bridge';
-      summaryEl.textContent = 'The paid plan handoff is prepared in the app, but the Wix purchase bridge is not published yet.';
-      pushCard('What is missing', 'A Wix page or Velo bridge must call the official pricing-plan purchase flow and then redirect back here.', 'warn');
+      titleEl.textContent = 'Wix checkout still needs a live Wix bridge';
+      summaryEl.textContent = 'The paid plan handoff is prepared in the app, but the Wix purchase bridge is not published on a reachable Wix-hosted URL yet.';
+      pushCard('What is missing', 'A published Wix page or Velo bridge must call the official pricing-plan purchase flow and then redirect back here from a live Wix URL.', 'warn');
       pushCard('What is safe today', 'Free access, plan guardrails, report limits, and dashboard access still work. Paid activation is intentionally blocked rather than faked.', 'ok');
     } else if (currentUser && requestedPlan && currentPlan && currentPlan.id === requestedPlan.id) {
       titleEl.textContent = `${requestedPlan.name} is active`;

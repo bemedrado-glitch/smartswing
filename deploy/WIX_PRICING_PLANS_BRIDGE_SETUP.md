@@ -8,6 +8,7 @@ Use this only if you want recurring billing to stay in Wix while the main applic
 - SmartSwing recurring plans already exist in Wix Pricing Plans.
 - The Vercel app is prepared to hand off paid checkout.
 - What is still missing is a Wix-hosted bridge page that starts the official purchase flow and then redirects back to the app.
+- Because the main production domain now points to Vercel, this bridge page must live on a reachable Wix URL of its own, such as a secondary Wix domain or a dedicated Wix-hosted subpath that is still served by Wix.
 
 ## Official Wix references
 
@@ -26,10 +27,10 @@ Use this only if you want recurring billing to stay in Wix while the main applic
    - [wix-pricing-plan-bridge-page.js](C:/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/deploy/wix-pricing-plan-bridge-page.js)
    into the page code for the hidden bridge page.
 4. Publish the Wix site.
-5. Set the bridge URL in `app-data.js`:
-   - `PAYMENT_PROVIDER_SETTINGS.wixPricingPlans.bridgePageUrl`
+5. Set the bridge URL in [public-app-config.js](C:/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/public-app-config.js):
+   - `window.SMARTSWING_PAYMENT_CONFIG.wixPricingPlans.bridgePageUrl`
    - Example:
-     `https://your-wix-site-url.com/checkout-bridge`
+     `https://your-wix-secondary-url.com/checkout-bridge`
 
 ## Required query parameters from the app
 
@@ -45,3 +46,4 @@ The SmartSwing app already prepares these:
 - This keeps real recurring purchase logic in Wix.
 - The Vercel app should still treat paid entitlements as locked until purchase status is verified.
 - For production-grade activation, connect a secure callback or sync layer instead of trusting only a client redirect.
+- Do not use a Wix editor preview URL for live billing. Use a real published Wix URL that customers can access without editor permissions.

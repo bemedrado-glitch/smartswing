@@ -105,6 +105,7 @@
     </section>
   </div>
 
+  <script src="./public-app-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
     const store = window.SmartSwingStore;
@@ -152,8 +153,8 @@
         <div class="micro">Plan: ${plan.name} | Provider: Wix Pricing Plans</div>
       ` : `
         <div class="summary-card">
-          <strong>Wix checkout bridge still needs one site-side publish</strong>
-          The recurring billing plans exist in Wix, but the bridge page URL is not configured in the app yet.
+          <strong>Wix checkout bridge still needs a live Wix URL</strong>
+          The recurring billing plans exist in Wix, but the app still needs the published bridge page URL from a reachable Wix-hosted page.
         </div>
         <button class="btn" id="submitBtn" type="submit">Review setup details</button>
         <div class="micro">${checkoutRoute.reason}</div>
