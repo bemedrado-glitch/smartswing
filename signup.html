@@ -431,7 +431,7 @@
       signupBtn.textContent = 'Creating account...';
 
       try {
-        await store.signUp({
+        const result = await store.signUp({
           fullName: document.getElementById('fullName').value,
           email: document.getElementById('email').value,
           password,
@@ -453,9 +453,17 @@
           avatarDataUrl: document.getElementById('avatarPreview').dataset.image || ''
         });
 
+        if (result?.requiresEmailConfirmation) {
+          showAlert('Account created. Check your email and confirm your address before signing in.', 'success');
+          setTimeout(() => {
+            window.location.href = './login.html?type=success&message=' + encodeURIComponent('Email confirmation sent. Confirm your inbox and then sign in.');
+          }, 900);
+          return;
+        }
+
         showAlert('Account created. Redirecting to your dashboard...', 'success');
         setTimeout(() => {
-          window.location.href = './dashboard.html';
+          window.location.href = store.getPostAuthDestinationForUser(result);
         }, 700);
       } catch (error) {
         showAlert(error.message || 'Signup failed.');
@@ -483,13 +491,31 @@
         : `Selected plan: ${labels[requested]}`;
     })();
 
-    if (!store.isSupabaseConfigured()) {
-      document.querySelectorAll('.social-btn').forEach((button) => {
-        button.disabled = true;
-        button.style.opacity = '0.55';
-        button.style.cursor = 'not-allowed';
-      });
-      showAlert('Social sign-up will unlock automatically once the Supabase public configuration is published for this site. Email signup is still available now.', 'error');
+    async function bootstrapAuth() {
+      const currentUser = store.getCurrentUser();
+      if (currentUser) {
+        window.location.href = store.getPostAuthDestinationForUser(currentUser);
+        return;
+      }
+
+      if (store.isSupabaseConfigured()) {
+        try {
+          const restored = await store.restoreSupabaseSession();
+          if (restored) {
+            window.location.href = store.getPostAuthDestinationForUser(restored);
+            return;
+          }
+        } catch (error) {
+          showAlert(error.message || 'Unable to restore an existing session.');
+        }
+      } else {
+        document.querySelectorAll('.social-btn').forEach((button) => {
+          button.disabled = true;
+          button.style.opacity = '0.55';
+          button.style.cursor = 'not-allowed';
+        });
+        showAlert('Social sign-up will unlock automatically once the Supabase public configuration is published for this site. Email signup is still available now.', 'error');
+      }
     }
 
     document.getElementById('avatarInput').addEventListener('change', (event) => {
@@ -504,6 +530,8 @@
       };
       reader.readAsDataURL(file);
     });
+
+    bootstrapAuth();
   </script>
 </body>
 </html>

@@ -237,17 +237,8 @@
   <script>
     const store = window.SmartSwingStore;
 
-    if (store.getCurrentUser()) {
-      window.location.href = './dashboard.html';
-    }
-
-    if (!store.isSupabaseConfigured()) {
-      document.querySelectorAll('.oauth-btn').forEach((button) => {
-        button.disabled = true;
-        button.style.opacity = '0.55';
-        button.style.cursor = 'not-allowed';
-      });
-      showAlert('Social sign-in will unlock automatically once the Supabase public configuration is published for this site. Email/password login still works.', 'error');
+    function getSignedInDestination(user) {
+      return store.getPostAuthDestinationForUser(user || store.getCurrentUser());
     }
 
     function showAlert(message, type = 'error') {
@@ -287,12 +278,41 @@
       }
     }
 
+    async function bootstrapAuth() {
+      const currentUser = store.getCurrentUser();
+      if (currentUser) {
+        window.location.href = getSignedInDestination(currentUser);
+        return;
+      }
+
+      if (store.isSupabaseConfigured()) {
+        try {
+          const restored = await store.restoreSupabaseSession();
+          if (restored) {
+            window.location.href = getSignedInDestination(restored);
+            return;
+          }
+        } catch (error) {
+          showAlert(error.message || 'Unable to restore an existing session.');
+        }
+      } else {
+        document.querySelectorAll('.oauth-btn').forEach((button) => {
+          button.disabled = true;
+          button.style.opacity = '0.55';
+          button.style.cursor = 'not-allowed';
+        });
+        showAlert('Social sign-in will unlock automatically once the Supabase public configuration is published for this site. Email/password login still works.', 'error');
+      }
+    }
+
     const params = new URLSearchParams(window.location.search);
     const message = params.get('message');
     const type = params.get('type');
     if (message) {
       showAlert(decodeURIComponent(message), type || 'success');
     }
+
+    bootstrapAuth();
   </script>
 </body>
 </html>

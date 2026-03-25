@@ -605,7 +605,95 @@
     supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
+    if (!supabaseClient.__smartSwingAuthListenerBound) {
+      supabaseClient.__smartSwingAuthListenerBound = true;
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          localStorage.removeItem(KEYS.session);
+          return;
+        }
+        if (!session?.user) return;
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          Promise.resolve()
+            .then(() => hydrateSupabaseUser(session.user, { pullLatest: event !== 'INITIAL_SESSION' }))
+            .catch(() => {});
+        }
+      });
+    }
     return supabaseClient;
+  }
+
+  function getAppBaseUrl() {
+    return `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, '')}`;
+  }
+
+  function getOAuthCallbackUrl() {
+    return `${getAppBaseUrl()}auth-callback.html`;
+  }
+
+  function getPostAuthDestinationForUser(user) {
+    const access = getAccessContext(user?.id);
+    if (access.canAccessManagerAnalytics) return `${getAppBaseUrl()}manager-analytics.html`;
+    if (access.role === 'coach' && access.canAccessCoachDashboard) return `${getAppBaseUrl()}coach-dashboard.html`;
+    return `${getAppBaseUrl()}dashboard.html`;
+  }
+
+  function buildLocalUserFromSupabase(authUser, profile = null) {
+    const email = String(profile?.email || authUser?.email || '').trim().toLowerCase();
+    const existingLocal = getUsers().find((entry) => entry.id === authUser?.id || (email && entry.email === email));
+    return {
+      id: authUser.id,
+      fullName: profile?.full_name || authUser.user_metadata?.full_name || authUser.user_metadata?.name || existingLocal?.fullName || authUser.email || 'Player',
+      email: email || existingLocal?.email || '',
+      role: profile?.role || authUser.user_metadata?.role || existingLocal?.role || 'player',
+      ageRange: profile?.age_range || existingLocal?.ageRange || '',
+      gender: profile?.gender || existingLocal?.gender || '',
+      ustaLevel: profile?.usta_level || existingLocal?.ustaLevel || '',
+      utrRating: profile?.utr_rating || existingLocal?.utrRating || '',
+      preferredHand: profile?.preferred_hand || existingLocal?.preferredHand || 'right',
+      avatarDataUrl: existingLocal?.avatarDataUrl || profile?.avatar_url || authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
+      planId: profile?.subscription_tier || existingLocal?.planId || 'free',
+      trialPlanId: profile?.trial_plan_id || existingLocal?.trialPlanId || null,
+      trialStartedAt: profile?.trial_started_at || existingLocal?.trialStartedAt || null,
+      trialEndsAt: profile?.trial_ends_at || existingLocal?.trialEndsAt || null,
+      trialHistory: Array.isArray(profile?.trial_history) ? profile.trial_history : getTrialHistory(existingLocal),
+      subscriptionStatus: profile?.subscription_status || existingLocal?.subscriptionStatus || 'free',
+      phone: profile?.phone || existingLocal?.phone || '',
+      addressLine1: profile?.address_line_1 || existingLocal?.addressLine1 || '',
+      addressLine2: profile?.address_line_2 || existingLocal?.addressLine2 || '',
+      city: profile?.city || existingLocal?.city || '',
+      stateRegion: profile?.state_region || existingLocal?.stateRegion || '',
+      postalCode: profile?.postal_code || existingLocal?.postalCode || '',
+      country: profile?.country || existingLocal?.country || '',
+      createdAt: profile?.created_at || existingLocal?.createdAt || nowIso()
+    };
+  }
+
+  async function hydrateSupabaseUser(authUser, options = {}) {
+    if (!authUser?.id) return null;
+    const client = await getSupabaseClient();
+    if (!client) return null;
+    const { data: profile } = await client.from('profiles').select('*').eq('id', authUser.id).maybeSingle();
+    const local = buildLocalUserFromSupabase(authUser, profile);
+    upsertLocalUser(local);
+    write(KEYS.session, { userId: local.id, loggedInAt: nowIso(), provider: 'supabase' });
+    localStorage.removeItem(KEYS.autoSessionOptOut);
+    await ensureRemoteProfile(local);
+    if (options.pullLatest !== false) {
+      await pullRemoteState(local.id);
+    }
+    return local;
+  }
+
+  async function restoreSupabaseSession() {
+    if (!isSupabaseConfigured()) return null;
+    const client = await getSupabaseClient();
+    if (!client) return null;
+    const { data, error } = await client.auth.getSession();
+    if (error) throw new Error(error.message || 'Unable to restore Supabase session.');
+    const authUser = data?.session?.user;
+    if (!authUser) return null;
+    return hydrateSupabaseUser(authUser);
   }
 
   function getUsers() {
@@ -1365,11 +1453,14 @@
           local.subscriptionStatus = 'trial';
         }
         upsertLocalUser(local);
-        write(KEYS.session, { userId: local.id, loggedInAt: nowIso() });
-        localStorage.removeItem(KEYS.autoSessionOptOut);
         await ensureRemoteProfile(local);
+        if (!data.session) {
+          return { ...local, requiresEmailConfirmation: true };
+        }
+        write(KEYS.session, { userId: local.id, loggedInAt: nowIso(), provider: 'supabase' });
+        localStorage.removeItem(KEYS.autoSessionOptOut);
         await pullRemoteState(local.id);
-        return local;
+        return { ...local, requiresEmailConfirmation: false };
       }
     }
 
@@ -1407,28 +1498,9 @@
         if (!data.user) throw new Error('No authenticated user returned.');
 
         const { data: profile } = await client.from('profiles').select('*').eq('id', data.user.id).maybeSingle();
-        const existingLocal = getUsers().find((entry) => entry.id === data.user.id || entry.email === normalizedEmail);
-        const local = {
-          id: data.user.id,
-          fullName: profile?.full_name || data.user.user_metadata?.full_name || data.user.email || 'Player',
-          email: profile?.email || data.user.email || normalizedEmail,
-          role: profile?.role || data.user.user_metadata?.role || 'player',
-          ageRange: profile?.age_range || '',
-          gender: profile?.gender || '',
-          ustaLevel: profile?.usta_level || '',
-          utrRating: profile?.utr_rating || '',
-          preferredHand: profile?.preferred_hand || 'right',
-          avatarDataUrl: existingLocal?.avatarDataUrl || profile?.avatar_url || data.user.user_metadata?.avatar_url || '',
-          planId: profile?.subscription_tier || existingLocal?.planId || 'free',
-          trialPlanId: profile?.trial_plan_id || existingLocal?.trialPlanId || null,
-          trialStartedAt: profile?.trial_started_at || existingLocal?.trialStartedAt || null,
-          trialEndsAt: profile?.trial_ends_at || existingLocal?.trialEndsAt || null,
-          trialHistory: Array.isArray(profile?.trial_history) ? profile.trial_history : getTrialHistory(existingLocal),
-          subscriptionStatus: profile?.subscription_status || existingLocal?.subscriptionStatus || 'free',
-          createdAt: profile?.created_at || nowIso()
-        };
+        const local = buildLocalUserFromSupabase(data.user, profile);
         upsertLocalUser(local);
-        write(KEYS.session, { userId: local.id, loggedInAt: nowIso() });
+        write(KEYS.session, { userId: local.id, loggedInAt: nowIso(), provider: 'supabase' });
         localStorage.removeItem(KEYS.autoSessionOptOut);
         await ensureRemoteProfile(local);
         await pullRemoteState(local.id);
@@ -1449,7 +1521,7 @@
     }
     const client = await getSupabaseClient();
     if (!client) throw new Error('Supabase client unavailable.');
-    const redirectTo = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, '')}dashboard.html`;
+    const redirectTo = getOAuthCallbackUrl();
     const { error } = await client.auth.signInWithOAuth({
       provider,
       options: { redirectTo }
@@ -2487,6 +2559,7 @@
   }
 
   function ensureDefaultSession() {
+    if (isSupabaseConfigured()) return;
     const hasOptedOut = localStorage.getItem(KEYS.autoSessionOptOut) === '1';
     const session = getCurrentSession();
     if (session?.userId && getUsers().some((user) => user.id === session.userId)) return;
@@ -2573,6 +2646,9 @@
     sendMessage,
     uploadSessionArtifacts,
     saveContactMessage,
+    restoreSupabaseSession,
+    getOAuthCallbackUrl,
+    getPostAuthDestinationForUser,
     setSupabaseConfig,
     clearSupabaseConfig,
     syncNow,

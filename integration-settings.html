@@ -38,6 +38,7 @@
     </div>
 
     <p class="muted">Current config is stored in localStorage key `smartswing_supabase_config`.</p>
+    <p class="muted">OAuth callback URL for Supabase allow-list: <code id="callbackUrl"></code></p>
     <pre id="status">Waiting...</pre>
   </div>
 
@@ -51,6 +52,7 @@
       const cfg = store.read('smartswing_supabase_config', null);
       document.getElementById('url').value = cfg?.url || '';
       document.getElementById('anon').value = cfg?.anonKey || '';
+      document.getElementById('callbackUrl').textContent = store.getOAuthCallbackUrl();
       statusEl.textContent = JSON.stringify({
         supabaseConfigured: store.isSupabaseConfigured(),
         currentUser: store.getCurrentUser()?.email || null

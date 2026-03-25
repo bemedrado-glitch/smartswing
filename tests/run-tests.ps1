@@ -15,6 +15,7 @@ $pages = @(
   @{ Path = '/manager-analytics.html'; Expected = 'Manager Analytics' },
   @{ Path = '/cart.html'; Expected = 'Your cart' },
   @{ Path = '/checkout.html'; Expected = 'Checkout' },
+  @{ Path = '/auth-callback.html'; Expected = 'Signing you in' },
   @{ Path = '/payment-success.html'; Expected = 'Payment status' },
   @{ Path = '/payment-cancelled.html'; Expected = 'Checkout cancelled' },
   @{ Path = '/analyze.html'; Expected = 'Professional Tennis Biomechanics Analysis' }
@@ -183,9 +184,12 @@ try {
   Assert-True -Condition ($storeSource -like '*function matchDrillsToWeaknesses(assessment)*') -Message 'Store exposes drill matching helper'
   Assert-True -Condition ($storeSource -like '*function matchTacticsToProfile(assessment)*') -Message 'Store exposes tactic matching helper'
   Assert-True -Condition ($storeSource -like '*function getTrialEligibility(userId, planId)*') -Message 'Store exposes trial eligibility helper'
+  Assert-True -Condition ($storeSource -like '*function restoreSupabaseSession()*') -Message 'Store exposes Supabase session restore helper'
+  Assert-True -Condition ($storeSource -like '*function getOAuthCallbackUrl()*') -Message 'Store exposes OAuth callback URL helper'
   Assert-True -Condition ($storeSource -like '*function getVisibleMessagesForCurrentUser(userId)*') -Message 'Store exposes scoped message visibility helper'
   Assert-True -Condition ($storeSource -like '*function getMessagingTargets(userId)*') -Message 'Store exposes scoped messaging target helper'
   Assert-True -Condition ($storeSource -like '*function canAccessUserRecord(targetUserId, access = getAccessContext())*') -Message 'Store exposes scoped access helper'
+  Assert-True -Condition ($storeSource -like '*auth-callback.html*') -Message 'OAuth flow redirects through auth callback page'
 
   $trainingMigration = Join-Path $root 'supabase\migrations\20260320_smartswing_training_recommendations.sql'
   Assert-True -Condition (Test-Path $trainingMigration) -Message 'Supabase training resources migration exists'

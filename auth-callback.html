@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI - Signing You In</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <style>
+    :root { --bg:#050505; --panel:rgba(18,18,20,.92); --line:rgba(255,255,255,.1); --text:#f5f5f7; --muted:#eef3f7; --green:#39ff14; --yellow:#ffd84d; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family: "DM Sans", Arial, sans-serif;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,.14), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(255,216,77,.12), transparent 24%),
+        linear-gradient(180deg,#050505 0%,#0c1410 100%);
+      padding:24px;
+    }
+    .card {
+      width:min(560px,100%);
+      padding:32px;
+      border-radius:24px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      box-shadow:0 24px 80px rgba(0,0,0,.38);
+    }
+    h1 { font-size:38px; line-height:1; letter-spacing:-.04em; margin-bottom:14px; color:var(--green); }
+    p { color:var(--muted); line-height:1.7; }
+    .status { margin-top:18px; padding:14px 16px; border-radius:16px; background:rgba(255,255,255,.04); border:1px solid var(--line); }
+    .status strong { display:block; margin-bottom:6px; color:var(--yellow); }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:22px; }
+    .btn {
+      text-decoration:none;
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+  <section class="card">
+    <h1>Signing you in</h1>
+    <p>SmartSwing is finalizing your secure sign-in and restoring your player or coach workspace.</p>
+    <div class="status" id="statusBox">
+      <strong>Connecting to Supabase Auth</strong>
+      <span id="statusText">Please wait while we complete the OAuth callback.</span>
+    </div>
+    <div class="actions">
+      <a class="btn" href="./login.html">Back to sign in</a>
+      <a class="btn" href="./index.html">Homepage</a>
+    </div>
+  </section>
+
+  <script src="./public-app-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+    const statusText = document.getElementById('statusText');
+    const statusBox = document.getElementById('statusBox');
+
+    async function completeAuth() {
+      if (!store.isSupabaseConfigured()) {
+        statusBox.querySelector('strong').textContent = 'Supabase public config is missing';
+        statusText.textContent = 'Add the production Supabase URL and anon key before using Google, Apple, or Meta login.';
+        return;
+      }
+
+      try {
+        const user = await store.restoreSupabaseSession();
+        if (!user) {
+          window.location.href = './login.html?type=error&message=' + encodeURIComponent('OAuth session was not completed. Please try again.');
+          return;
+        }
+        statusBox.querySelector('strong').textContent = 'Authentication complete';
+        statusText.textContent = 'Redirecting to your SmartSwing workspace...';
+        const destination = store.getPostAuthDestinationForUser(user);
+        setTimeout(() => { window.location.href = destination; }, 450);
+      } catch (error) {
+        window.location.href = './login.html?type=error&message=' + encodeURIComponent(error.message || 'OAuth sign-in failed.');
+      }
+    }
+
+    completeAuth();
+  </script>
+</body>
+</html>
