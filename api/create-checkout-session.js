@@ -1,0 +1,96 @@
+const {
+  buildCheckoutUrls,
+  getPriceEnvKeyForPlan,
+  getPriceIdForPlan,
+  getStripeClient,
+  json,
+  normalizePlanId,
+  readJsonBody
+} = require('./_lib/stripe-common');
+
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return json(res, 405, { error: 'Method not allowed.' });
+  }
+
+  let body = {};
+  try {
+    body = await readJsonBody(req);
+  } catch (error) {
+    return json(res, 400, { error: 'Invalid JSON body.' });
+  }
+
+  const planId = normalizePlanId(body.planId);
+  if (!planId || planId === 'free') {
+    return json(res, 400, { error: 'A paid SmartSwing plan is required for Stripe checkout.' });
+  }
+
+  const priceId = getPriceIdForPlan(planId);
+  if (!priceId) {
+    return json(res, 500, {
+      error: `Stripe price id for ${planId} is missing. Set ${getPriceEnvKeyForPlan(planId)} in Vercel.`
+    });
+  }
+
+  const smartSwingUserId = String(body.smartSwingUserId || '').trim();
+  const email = String(body.email || '').trim().toLowerCase();
+  const fullName = String(body.fullName || '').trim();
+  const checkoutId = String(body.checkoutId || '').trim();
+  const source = String(body.source || 'checkout-page').trim();
+
+  if (!smartSwingUserId || !email) {
+    return json(res, 400, { error: 'User id and email are required for paid checkout.' });
+  }
+
+  let stripe;
+  try {
+    stripe = getStripeClient();
+  } catch (error) {
+    return json(res, 500, { error: error.message || 'Stripe is not configured.' });
+  }
+
+  const urls = buildCheckoutUrls(planId);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      success_url: urls.successUrl,
+      cancel_url: urls.cancelUrl,
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1
+        }
+      ],
+      client_reference_id: smartSwingUserId,
+      customer_email: email,
+      billing_address_collection: 'auto',
+      phone_number_collection: { enabled: true },
+      allow_promotion_codes: true,
+      metadata: {
+        appPlanId: planId,
+        smartSwingUserId,
+        email,
+        fullName,
+        checkoutId,
+        source
+      },
+      subscription_data: {
+        metadata: {
+          appPlanId: planId,
+          smartSwingUserId,
+          email,
+          source
+        }
+      }
+    });
+
+    return json(res, 200, {
+      sessionId: session.id,
+      url: session.url
+    });
+  } catch (error) {
+    return json(res, 500, { error: error.message || 'Stripe checkout creation failed.' });
+  }
+};

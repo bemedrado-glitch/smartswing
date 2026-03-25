@@ -87,41 +87,41 @@
   };
 
   const PAYMENT_PROVIDER_SETTINGS = {
-    activeProvider: 'wix-pricing-plans',
+    activeProvider: 'stripe',
     publicOrigin: 'https://www.smartswingai.com',
-    wixPricingPlans: {
-      providerLabel: 'Wix Pricing Plans',
-      bridgePageUrl: '',
-      setupStatus: 'bridge_page_required',
-      notes: 'Recurring billing lives in Wix. The Vercel app hands paid checkouts to a Wix-hosted bridge page that starts the official plan purchase flow.',
+    stripe: {
+      providerLabel: 'Stripe Checkout',
+      apiBasePath: '/api',
+      setupStatus: 'server_env_required',
+      notes: 'Paid subscriptions run through Stripe-hosted checkout with server-side verification and webhook sync.',
       plans: {
         free: {
           mode: 'internal-free',
           label: 'Free internal activation'
         },
         starter: {
-          mode: 'wix-pricing-plan',
-          planId: '732255dd-54cb-46e9-b485-ff72b9306d5d',
+          mode: 'stripe-subscription',
+          envPriceKey: 'STRIPE_PRICE_STARTER_MONTHLY',
           planName: 'SmartSwing Player Monthly',
-          amount: '9.99',
+          amount: 9.99,
           recurring: true,
-          buyable: false
+          buyable: true
         },
         pro: {
-          mode: 'wix-pricing-plan',
-          planId: '68e3e64f-e5a7-4815-b184-95eeb7a0cd78',
-          planName: 'SmartSwing Pro Monthly',
-          amount: '19.99',
+          mode: 'stripe-subscription',
+          envPriceKey: 'STRIPE_PRICE_PRO_MONTHLY',
+          planName: 'SmartSwing Performance Monthly',
+          amount: 19.99,
           recurring: true,
-          buyable: false
+          buyable: true
         },
         elite: {
-          mode: 'wix-pricing-plan',
-          planId: 'a63e2873-cc4e-4aec-bf94-01966299d49d',
+          mode: 'stripe-subscription',
+          envPriceKey: 'STRIPE_PRICE_ELITE_MONTHLY',
           planName: 'SmartSwing Tournament Pro Monthly',
-          amount: '49.99',
+          amount: 49.99,
           recurring: true,
-          buyable: false
+          buyable: true
         }
       }
     }
@@ -658,6 +658,8 @@
       trialEndsAt: profile?.trial_ends_at || existingLocal?.trialEndsAt || null,
       trialHistory: Array.isArray(profile?.trial_history) ? profile.trial_history : getTrialHistory(existingLocal),
       subscriptionStatus: profile?.subscription_status || existingLocal?.subscriptionStatus || 'free',
+      stripeCustomerId: profile?.stripe_customer_id || existingLocal?.stripeCustomerId || '',
+      billingPeriodEnd: profile?.billing_period_end || existingLocal?.billingPeriodEnd || null,
       phone: profile?.phone || existingLocal?.phone || '',
       addressLine1: profile?.address_line_1 || existingLocal?.addressLine1 || '',
       addressLine2: profile?.address_line_2 || existingLocal?.addressLine2 || '',
@@ -744,17 +746,16 @@
 
   function getPaymentProviderSettings() {
     const fromWindow = window.SMARTSWING_PAYMENT_CONFIG || {};
-    const bridgePageUrl = String(
-      fromWindow?.wixPricingPlans?.bridgePageUrl ||
-      PAYMENT_PROVIDER_SETTINGS.wixPricingPlans.bridgePageUrl ||
-      ''
-    ).trim();
     return {
       ...PAYMENT_PROVIDER_SETTINGS,
-      wixPricingPlans: {
-        ...PAYMENT_PROVIDER_SETTINGS.wixPricingPlans,
-        ...(fromWindow.wixPricingPlans || {}),
-        bridgePageUrl
+      stripe: {
+        ...PAYMENT_PROVIDER_SETTINGS.stripe,
+        ...(fromWindow.stripe || {}),
+        apiBasePath: String(
+          fromWindow?.stripe?.apiBasePath ||
+          PAYMENT_PROVIDER_SETTINGS.stripe.apiBasePath ||
+          '/api'
+        ).trim() || '/api'
       }
     };
   }
@@ -766,8 +767,8 @@
     return getPaymentProviderSettings().publicOrigin;
   }
 
-  function getWixPlanConfig(planId) {
-    return getPaymentProviderSettings().wixPricingPlans.plans[String(planId || 'free').toLowerCase()] || null;
+  function getStripePlanConfig(planId) {
+    return getPaymentProviderSettings().stripe.plans[String(planId || 'free').toLowerCase()] || null;
   }
 
   function getPendingExternalCheckout() {
@@ -792,6 +793,18 @@
     return checkout;
   }
 
+  function updatePendingExternalCheckout(updates = {}) {
+    const current = getPendingExternalCheckout();
+    if (!current) return null;
+    const next = {
+      ...current,
+      ...updates,
+      updatedAt: nowIso()
+    };
+    write(KEYS.paymentCheckoutState, next);
+    return next;
+  }
+
   function getExternalCheckoutRoute(planId, options = {}) {
     const normalizedPlanId = String(planId || 'free').toLowerCase();
     if (normalizedPlanId === 'free') {
@@ -804,59 +817,146 @@
       };
     }
 
-    const wixPlan = getWixPlanConfig(normalizedPlanId);
-    if (!wixPlan || wixPlan.mode !== 'wix-pricing-plan') {
+    const stripePlan = getStripePlanConfig(normalizedPlanId);
+    if (!stripePlan || stripePlan.mode !== 'stripe-subscription') {
       return {
         provider: getPaymentProviderSettings().activeProvider,
         mode: 'unsupported',
         ready: false,
         href: '',
-        reason: 'No Wix pricing plan mapping exists for this app plan yet.'
+        reason: 'No Stripe price mapping exists for this app plan yet.'
       };
     }
 
-    const bridgePageUrl = String(getPaymentProviderSettings().wixPricingPlans.bridgePageUrl || '').trim();
-    if (!bridgePageUrl) {
+    return {
+      provider: 'stripe',
+      mode: 'stripe-subscription',
+      ready: true,
+      href: '',
+      reason: '',
+      stripePlan,
+      apiPath: `${getPaymentProviderSettings().stripe.apiBasePath.replace(/\/$/, '')}/create-checkout-session`
+    };
+  }
+
+  async function createStripeCheckout(planId, options = {}) {
+    const normalizedPlanId = String(planId || 'free').toLowerCase();
+    if (normalizedPlanId === 'free') {
       return {
-        provider: getPaymentProviderSettings().activeProvider,
-        mode: 'wix-pricing-plan',
-        ready: false,
-        href: '',
-        reason: 'The Wix checkout bridge page still needs to be published and linked here.'
+        provider: 'internal',
+        mode: 'internal-free',
+        redirectUrl: `./checkout.html?plan=${encodeURIComponent(normalizedPlanId)}`
       };
+    }
+
+    const stripePlan = getStripePlanConfig(normalizedPlanId);
+    if (!stripePlan || stripePlan.mode !== 'stripe-subscription') {
+      throw new Error('No Stripe price mapping exists for this SmartSwing plan.');
+    }
+
+    const user = getCurrentUser();
+    if (!user) {
+      throw new Error('You must sign in before starting a paid checkout.');
     }
 
     const checkout = beginExternalCheckout(normalizedPlanId, {
-      provider: 'wix-pricing-plans',
+      provider: 'stripe',
       returnTo: options.returnTo,
       cancelTo: options.cancelTo,
       source: options.source
     });
-    const returnUrl = new URL('./payment-success.html', getPublicOrigin());
-    returnUrl.searchParams.set('provider', 'wix-pricing-plans');
-    returnUrl.searchParams.set('plan', normalizedPlanId);
-    returnUrl.searchParams.set('checkoutId', checkout.id);
 
-    const cancelUrl = new URL('./payment-cancelled.html', getPublicOrigin());
-    cancelUrl.searchParams.set('provider', 'wix-pricing-plans');
-    cancelUrl.searchParams.set('plan', normalizedPlanId);
-    cancelUrl.searchParams.set('checkoutId', checkout.id);
+    const endpoint = `${getPaymentProviderSettings().stripe.apiBasePath.replace(/\/$/, '')}/create-checkout-session`;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planId: normalizedPlanId,
+        smartSwingUserId: user.id,
+        email: user.email,
+        fullName: user.fullName || '',
+        checkoutId: checkout.id,
+        source: options.source || 'checkout-page'
+      })
+    });
 
-    const bridgeUrl = new URL(bridgePageUrl);
-    bridgeUrl.searchParams.set('appPlanId', normalizedPlanId);
-    bridgeUrl.searchParams.set('wixPlanId', wixPlan.planId);
-    bridgeUrl.searchParams.set('checkoutId', checkout.id);
-    bridgeUrl.searchParams.set('returnUrl', returnUrl.toString());
-    bridgeUrl.searchParams.set('cancelUrl', cancelUrl.toString());
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = null;
+    }
+
+    if (!response.ok || !payload?.url || !payload?.sessionId) {
+      throw new Error(payload?.error || 'Unable to create Stripe checkout session right now.');
+    }
+
+    updatePendingExternalCheckout({
+      provider: 'stripe',
+      stripeSessionId: payload.sessionId,
+      stripeCheckoutUrl: payload.url
+    });
 
     return {
-      provider: 'wix-pricing-plans',
-      mode: 'wix-pricing-plan',
-      ready: true,
-      href: bridgeUrl.toString(),
-      reason: '',
-      wixPlan
+      provider: 'stripe',
+      mode: 'stripe-subscription',
+      sessionId: payload.sessionId,
+      url: payload.url
     };
+  }
+
+  async function verifyStripeCheckoutSession(sessionId) {
+    const normalizedSessionId = String(sessionId || '').trim();
+    if (!normalizedSessionId) {
+      throw new Error('Stripe session id is required for verification.');
+    }
+
+    const endpoint = `${getPaymentProviderSettings().stripe.apiBasePath.replace(/\/$/, '')}/checkout-session-status?session_id=${encodeURIComponent(normalizedSessionId)}`;
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: { Accept: 'application/json' }
+    });
+
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = null;
+    }
+
+    if (!response.ok || !payload) {
+      throw new Error(payload?.error || 'Unable to verify Stripe checkout session.');
+    }
+
+    return payload;
+  }
+
+  function applyBillingActivation(userId, billing = {}) {
+    const targetUserId = userId || requireUser().id;
+    const users = getUsers();
+    const idx = users.findIndex((entry) => entry.id === targetUserId);
+    if (idx < 0) throw new Error('User not found for billing update.');
+
+    const requestedPlan = getPlanDefinition(billing.planId || users[idx].planId || 'free');
+    const normalizedStatus = String(billing.subscriptionStatus || billing.status || '').toLowerCase();
+    const finalPlan = ['canceled', 'unpaid', 'incomplete_expired'].includes(normalizedStatus)
+      ? PLAN_DEFINITIONS.free
+      : requestedPlan;
+
+    users[idx] = {
+      ...users[idx],
+      planId: finalPlan.id,
+      subscriptionStatus: normalizedStatus || (finalPlan.id === 'free' ? 'free' : 'active'),
+      stripeCustomerId: billing.stripeCustomerId ?? users[idx].stripeCustomerId ?? '',
+      stripeSubscriptionId: billing.stripeSubscriptionId ?? users[idx].stripeSubscriptionId ?? '',
+      billingPeriodEnd: billing.billingPeriodEnd ?? users[idx].billingPeriodEnd ?? null,
+      trialPlanId: finalPlan.id === 'free' ? null : users[idx].trialPlanId,
+      trialStartedAt: finalPlan.id === 'free' ? null : users[idx].trialStartedAt,
+      trialEndsAt: finalPlan.id === 'free' ? null : users[idx].trialEndsAt,
+      updatedAt: nowIso()
+    };
+    persistUsers(users);
+    return users[idx];
   }
 
   function isTrialActive(user) {
@@ -928,7 +1028,8 @@
       trialStartedAt: null,
       trialEndsAt: null,
       updatedAt: nowIso(),
-      subscriptionStatus: plan.id === 'free' ? 'free' : 'active'
+      subscriptionStatus: plan.id === 'free' ? 'free' : 'active',
+      billingPeriodEnd: null
     };
     persistUsers(users);
     return plan;
@@ -1126,6 +1227,9 @@
       trialEndsAt: fields.trialEndsAt || null,
       trialHistory: Array.isArray(fields.trialHistory) ? fields.trialHistory : [],
       subscriptionStatus: fields.subscriptionStatus || (plan.id === 'free' ? 'free' : 'active'),
+      stripeCustomerId: fields.stripeCustomerId || '',
+      stripeSubscriptionId: fields.stripeSubscriptionId || '',
+      billingPeriodEnd: fields.billingPeriodEnd || null,
       createdAt: nowIso(),
       updatedAt: nowIso()
     };
@@ -1175,6 +1279,8 @@
       avatar_url: user.avatarDataUrl || null,
       subscription_tier: user.planId || 'free',
       subscription_status: user.subscriptionStatus || 'free',
+      stripe_customer_id: user.stripeCustomerId || null,
+      billing_period_end: user.billingPeriodEnd || null,
       trial_plan_id: user.trialPlanId || null,
       trial_started_at: user.trialStartedAt || null,
       trial_ends_at: user.trialEndsAt || null,
@@ -1213,6 +1319,8 @@
           trialEndsAt: profile.trial_ends_at || users[idx].trialEndsAt || null,
           trialHistory: Array.isArray(profile.trial_history) ? profile.trial_history : getTrialHistory(users[idx]),
           subscriptionStatus: profile.subscription_status || users[idx].subscriptionStatus || 'free',
+          stripeCustomerId: profile.stripe_customer_id || users[idx].stripeCustomerId || '',
+          billingPeriodEnd: profile.billing_period_end || users[idx].billingPeriodEnd || null,
           createdAt: profile.created_at || users[idx].createdAt || nowIso()
         };
         persistUsers(users);
@@ -2596,13 +2704,18 @@
     getReportUsage,
     getCurrentUser,
     getCurrentSession,
+    getPlanDefinition,
     getCurrentPlan,
     getPaymentProviderSettings,
-    getWixPlanConfig,
+    getStripePlanConfig,
     getExternalCheckoutRoute,
     getPendingExternalCheckout,
     clearPendingExternalCheckout,
     beginExternalCheckout,
+    updatePendingExternalCheckout,
+    createStripeCheckout,
+    verifyStripeCheckoutSession,
+    applyBillingActivation,
     getTrialEligibility,
     setCurrentPlan,
     startPlanTrial,

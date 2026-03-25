@@ -4,7 +4,8 @@ window.SMARTSWING_SUPABASE_CONFIG = {
 };
 
 window.SMARTSWING_PAYMENT_CONFIG = {
-  wixPricingPlans: {
-    bridgePageUrl: 'https://YOUR_WIX_SECONDARY_URL/checkout-bridge'
+  activeProvider: 'stripe',
+  stripe: {
+    apiBasePath: '/api'
   }
 };

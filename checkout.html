@@ -69,7 +69,7 @@
       <article class="panel">
         <div class="eyebrow">Checkout</div>
         <h1>Checkout</h1>
-        <p class="muted">Paid plans now route through a Wix-hosted subscription checkout flow. The app keeps the cart and plan comparison experience, but recurring billing lives inside Wix Pricing Plans so the payment layer stays official and PCI-safe.</p>
+        <p class="muted">Paid plans now route through Stripe-hosted subscription checkout. The app keeps the cart and plan comparison experience, but card handling, Apple Pay, Google Pay, Link, and recurring billing all stay inside Stripe's secure checkout surface.</p>
       </article>
       <article class="panel">
         <h2 id="summaryTitle">Order summary</h2>
@@ -94,11 +94,11 @@
           </div>
           <div class="summary-card">
             <strong>Recurring billing stays official</strong>
-            Wix Pricing Plans handles the actual subscription purchase instead of a fake client-side form.
+            Stripe Checkout handles the actual subscription purchase instead of a fake client-side form.
           </div>
           <div class="summary-card">
             <strong>Entitlements stay cleaner</strong>
-            Free access is handled in-app. Paid plans go out to Wix checkout so the website does not grant subscriptions from a local button click alone.
+            Free access is handled in-app. Paid plans go out to Stripe checkout so the website does not grant subscriptions from a local button click alone.
           </div>
         </div>
       </article>
@@ -125,7 +125,7 @@
       { title: 'Plan', body: plan.name },
       { title: 'Monthly reviews', body: Number.isFinite(plan.monthlyReviews) ? `${plan.monthlyReviews}` : 'Unlimited' },
       { title: 'Trial', body: plan.id === 'free' ? 'No trial required' : (trialEligibility.eligible ? '14-day trial enabled for this account' : (trialEligibility.reason || 'Trial unavailable')) },
-      { title: 'Provider', body: plan.id === 'free' ? 'SmartSwing internal activation' : 'Wix Pricing Plans recurring checkout' },
+      { title: 'Provider', body: plan.id === 'free' ? 'SmartSwing internal activation' : 'Stripe secure recurring checkout' },
       { title: 'Included perks', body: plan.perks.join(' | ') }
     ].map((item) => `<div class="summary-card"><strong>${item.title}</strong>${item.body}</div>`).join('');
 
@@ -143,25 +143,25 @@
         <div class="micro">No payment details required for the free tier.</div>
       `;
     } else {
-      checkoutHeading.textContent = 'Continue to secure Wix checkout';
+      checkoutHeading.textContent = 'Continue to secure Stripe checkout';
       checkoutFlow.innerHTML = checkoutRoute.ready ? `
         <div class="summary-card">
-          <strong>Recurring billing is hosted by Wix</strong>
-          You will leave the app briefly to complete the official subscription checkout, then come back to SmartSwing.
+          <strong>Recurring billing is hosted by Stripe</strong>
+          You will leave the app briefly to complete the official subscription checkout, then come back to SmartSwing with session verification handled server-side.
         </div>
-        <button class="btn-primary" id="submitBtn" type="submit">Continue to Wix checkout</button>
-        <div class="micro">Plan: ${plan.name} | Provider: Wix Pricing Plans</div>
+        <button class="btn-primary" id="submitBtn" type="submit">Continue to Stripe checkout</button>
+        <div class="micro">Plan: ${plan.name} | Provider: Stripe Checkout | Apple Pay and Google Pay appear when supported by the device/browser.</div>
       ` : `
         <div class="summary-card">
-          <strong>Wix checkout bridge still needs a live Wix URL</strong>
-          The recurring billing plans exist in Wix, but the app still needs the published bridge page URL from a reachable Wix-hosted page.
+          <strong>Stripe checkout is not fully configured yet</strong>
+          The checkout flow is wired in the app, but Stripe keys or price ids are still missing from the server environment.
         </div>
         <button class="btn" id="submitBtn" type="submit">Review setup details</button>
         <div class="micro">${checkoutRoute.reason}</div>
       `;
     }
 
-    document.getElementById('checkoutForm').addEventListener('submit', (event) => {
+    document.getElementById('checkoutForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const user = store.getCurrentUser();
       if (!user) {
@@ -181,11 +181,26 @@
       }
 
       if (!checkoutRoute.ready) {
-        window.location.href = './payment-success.html?provider=wix-pricing-plans&status=setup-required&plan=' + encodeURIComponent(planId);
+        window.location.href = './payment-success.html?provider=stripe&status=setup-required&plan=' + encodeURIComponent(planId);
         return;
       }
 
-      window.location.href = checkoutRoute.href;
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.setAttribute('disabled', 'disabled');
+      submitBtn.textContent = 'Opening Stripe...';
+
+      try {
+        const session = await store.createStripeCheckout(planId, {
+          source: 'checkout-page',
+          returnTo: './payment-success.html',
+          cancelTo: './payment-cancelled.html'
+        });
+        window.location.href = session.url;
+      } catch (error) {
+        submitBtn.removeAttribute('disabled');
+        submitBtn.textContent = 'Continue to Stripe checkout';
+        alert(error.message || 'Unable to start secure checkout right now.');
+      }
     });
   </script>
 </body>

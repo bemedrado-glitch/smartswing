@@ -45,7 +45,7 @@
     <section class="panel">
       <div class="eyebrow">Payment status</div>
       <h1 id="title">Checking your checkout status</h1>
-      <p class="muted" id="summary">Reviewing the latest handoff from the external billing flow.</p>
+      <p class="muted" id="summary">Reviewing the latest handoff from secure billing and verifying it before any paid entitlements unlock.</p>
       <div class="stack" id="details"></div>
       <div class="actions">
         <a class="btn-primary" href="./dashboard.html">Open dashboard</a>
@@ -63,6 +63,7 @@
     const provider = params.get('provider') || 'unknown';
     const status = params.get('status') || 'returned';
     const requestedPlanId = params.get('plan') || '';
+    const sessionId = params.get('session_id') || '';
     const pending = store.getPendingExternalCheckout();
     const currentUser = store.getCurrentUser();
     const currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
@@ -73,33 +74,88 @@
       details.push(`<div class="card"><strong class="${tone || ''}">${title}</strong>${body}</div>`);
     }
 
+    function render() {
+      document.getElementById('details').innerHTML = details.join('');
+    }
+
     const titleEl = document.getElementById('title');
     const summaryEl = document.getElementById('summary');
 
-    if (status === 'setup-required') {
-      titleEl.textContent = 'Wix checkout still needs a live Wix bridge';
-      summaryEl.textContent = 'The paid plan handoff is prepared in the app, but the Wix purchase bridge is not published on a reachable Wix-hosted URL yet.';
-      pushCard('What is missing', 'A published Wix page or Velo bridge must call the official pricing-plan purchase flow and then redirect back here from a live Wix URL.', 'warn');
-      pushCard('What is safe today', 'Free access, plan guardrails, report limits, and dashboard access still work. Paid activation is intentionally blocked rather than faked.', 'ok');
-    } else if (currentUser && requestedPlan && currentPlan && currentPlan.id === requestedPlan.id) {
-      titleEl.textContent = `${requestedPlan.name} is active`;
-      summaryEl.textContent = 'Your account already reflects the requested plan. You can continue into the dashboard immediately.';
-      pushCard('Current plan', `${currentPlan.name}${currentPlan.isTrial ? ' trial' : ''} is active on this account.`, 'ok');
-    } else {
-      titleEl.textContent = 'Checkout returned, but plan activation still needs verification';
-      summaryEl.textContent = 'Because billing is external, the app does not trust a query parameter alone to unlock a paid subscription.';
-      pushCard('Why this matters', 'A secure production flow needs a verified callback or a server-side sync from Wix before paid entitlements are granted.', 'warn');
-      if (requestedPlan) {
-        pushCard('Requested plan', `${requestedPlan.name} was the requested upgrade target.`, '');
+    async function main() {
+      if (status === 'setup-required') {
+        titleEl.textContent = 'Stripe checkout still needs server configuration';
+        summaryEl.textContent = 'The app is wired for Stripe, but one or more Stripe keys or price ids are still missing in the server environment.';
+        pushCard('What is missing', 'Add STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and the Stripe price ids in Vercel before sending customers into paid checkout.', 'warn');
+        pushCard('What is safe today', 'Free access, plan guardrails, report limits, and dashboard access still work. Paid activation is intentionally blocked rather than faked.', 'ok');
+        render();
+        return;
       }
-      if (pending?.planId) {
-        const pendingPlan = store.getPlanDefinition(pending.planId);
-        pushCard('Pending handoff', `${pendingPlan.name} checkout was started from ${pending.source || 'the app'} at ${new Date(pending.startedAt || Date.now()).toLocaleString()}.`, '');
+
+      if (provider !== 'stripe' || !sessionId) {
+        if (currentUser && requestedPlan && currentPlan && currentPlan.id === requestedPlan.id) {
+          titleEl.textContent = `${requestedPlan.name} is active`;
+          summaryEl.textContent = 'Your account already reflects the requested plan. You can continue into the dashboard immediately.';
+          pushCard('Current plan', `${currentPlan.name}${currentPlan.isTrial ? ' trial' : ''} is active on this account.`, 'ok');
+        } else {
+          titleEl.textContent = 'Checkout returned, but verification data is incomplete';
+          summaryEl.textContent = 'The app expected a Stripe session id but did not receive one, so it will not activate paid access from the URL alone.';
+          pushCard('Why this matters', 'Paid access is only unlocked after the Stripe checkout session is verified server-side.', 'warn');
+          if (requestedPlan) {
+            pushCard('Requested plan', `${requestedPlan.name} was the requested upgrade target.`, '');
+          }
+        }
+        pushCard('Billing provider', provider, '');
+        render();
+        return;
+      }
+
+      try {
+        const verification = await store.verifyStripeCheckoutSession(sessionId);
+        if (!verification.verified) {
+          titleEl.textContent = 'Stripe checkout returned, but payment is not complete yet';
+          summaryEl.textContent = 'The checkout session exists, but Stripe has not marked it complete and billable yet.';
+          pushCard('Stripe status', `Session status: ${verification.status || 'unknown'} | Payment status: ${verification.paymentStatus || 'unknown'}.`, 'warn');
+          render();
+          return;
+        }
+
+        if (currentUser && verification.smartSwingUserId && verification.smartSwingUserId === currentUser.id) {
+          const updatedUser = store.applyBillingActivation(currentUser.id, verification);
+          store.clearPendingExternalCheckout();
+          titleEl.textContent = `${store.getPlanDefinition(verification.planId).name} is active`;
+          summaryEl.textContent = 'Stripe payment was verified and the new plan is now active on this account.';
+          pushCard('Plan unlocked', `${store.getPlanDefinition(verification.planId).name} is active with subscription status ${verification.subscriptionStatus || 'active'}.`, 'ok');
+          if (verification.billingPeriodEnd) {
+            pushCard('Current billing period', `Paid access is active through ${new Date(verification.billingPeriodEnd).toLocaleString()}.`, '');
+          }
+          if (verification.profileSynced) {
+            pushCard('Cloud sync', 'Supabase profile status was updated from the verified Stripe session.', 'ok');
+          } else {
+            pushCard('Cloud sync', 'Local access was updated immediately. If Supabase service-role credentials are added later, webhook sync will keep remote billing state aligned too.', 'warn');
+          }
+          pushCard('Account', `${updatedUser.email}`, '');
+        } else {
+          titleEl.textContent = 'Stripe payment verified';
+          summaryEl.textContent = 'The payment is valid, but the current browser session does not match the billing session user, so no local plan change was applied here.';
+          pushCard('Verified plan', `${store.getPlanDefinition(verification.planId).name} was confirmed by Stripe.`, 'ok');
+          pushCard('What to do next', 'Sign into the same SmartSwing account used for checkout and reload this page if the dashboard does not reflect the upgrade yet.', 'warn');
+        }
+
+        pushCard('Billing provider', 'Stripe Checkout', '');
+        render();
+      } catch (error) {
+        titleEl.textContent = 'Stripe verification could not complete';
+        summaryEl.textContent = 'The app could not confirm the checkout result yet. No paid access was granted from the URL alone.';
+        pushCard('Verification error', error.message || 'Unknown Stripe verification error.', 'error');
+        if (pending?.planId) {
+          const pendingPlan = store.getPlanDefinition(pending.planId);
+          pushCard('Pending handoff', `${pendingPlan.name} checkout was started from ${pending.source || 'the app'} at ${new Date(pending.startedAt || Date.now()).toLocaleString()}.`, '');
+        }
+        render();
       }
     }
 
-    pushCard('Billing provider', provider === 'wix-pricing-plans' ? 'Wix Pricing Plans' : provider, '');
-    document.getElementById('details').innerHTML = details.join('');
+    main();
   </script>
 </body>
 </html>

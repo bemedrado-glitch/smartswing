@@ -39,7 +39,7 @@
     <section class="panel">
       <div class="eyebrow">Checkout cancelled</div>
       <h1>No changes were made to your plan.</h1>
-      <p class="muted">Your current SmartSwing access stays exactly as it was. You can return to checkout anytime when you are ready.</p>
+      <p class="muted">Your current SmartSwing access stays exactly as it was. If you canceled Stripe Checkout, no subscription was created and you can return anytime when you are ready.</p>
       <div class="actions">
         <a class="btn-primary" href="./checkout.html">Return to checkout</a>
         <a class="btn" href="./pricing.html">Compare plans again</a>
@@ -47,5 +47,13 @@
       </div>
     </section>
   </div>
+
+  <script src="./public-app-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script>
+    if (window.SmartSwingStore?.clearPendingExternalCheckout) {
+      window.SmartSwingStore.clearPendingExternalCheckout();
+    }
+  </script>
 </body>
 </html>

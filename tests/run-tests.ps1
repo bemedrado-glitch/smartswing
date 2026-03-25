@@ -186,6 +186,9 @@ try {
   Assert-True -Condition ($storeSource -like '*function getTrialEligibility(userId, planId)*') -Message 'Store exposes trial eligibility helper'
   Assert-True -Condition ($storeSource -like '*function restoreSupabaseSession()*') -Message 'Store exposes Supabase session restore helper'
   Assert-True -Condition ($storeSource -like '*function getOAuthCallbackUrl()*') -Message 'Store exposes OAuth callback URL helper'
+  Assert-True -Condition ($storeSource -like '*function createStripeCheckout(planId, options = {})*') -Message 'Store exposes Stripe checkout creation helper'
+  Assert-True -Condition ($storeSource -like '*function verifyStripeCheckoutSession(sessionId)*') -Message 'Store exposes Stripe checkout verification helper'
+  Assert-True -Condition ($storeSource -like '*activeProvider: ''stripe''*') -Message 'Store config defaults payment provider to Stripe'
   Assert-True -Condition ($storeSource -like '*function getVisibleMessagesForCurrentUser(userId)*') -Message 'Store exposes scoped message visibility helper'
   Assert-True -Condition ($storeSource -like '*function getMessagingTargets(userId)*') -Message 'Store exposes scoped messaging target helper'
   Assert-True -Condition ($storeSource -like '*function canAccessUserRecord(targetUserId, access = getAccessContext())*') -Message 'Store exposes scoped access helper'
@@ -200,6 +203,10 @@ try {
   Assert-True -Condition (Test-Path (Join-Path $root 'public-app-config.js')) -Message 'public-app-config.js exists'
   Assert-True -Condition (Test-Path (Join-Path $root 'public-app-config.example.js')) -Message 'public-app-config.example.js exists'
   Assert-True -Condition (Test-Path (Join-Path $root 'deploy\WIX_PRICING_PLANS_BRIDGE_SETUP.md')) -Message 'Wix pricing bridge setup guide exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'deploy\STRIPE_PRODUCTION_SETUP.md')) -Message 'Stripe production setup guide exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'api\create-checkout-session.js')) -Message 'Stripe checkout session API exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'api\checkout-session-status.js')) -Message 'Stripe checkout status API exists'
+  Assert-True -Condition (Test-Path (Join-Path $root 'api\stripe-webhook.js')) -Message 'Stripe webhook API exists'
 
   $vercelConfigSource = Get-Content -Path (Join-Path $root 'vercel.json') -Raw
   Assert-True -Condition ($vercelConfigSource -like '*competitor-analysis.html*') -Message 'Vercel config handles competitor analysis route explicitly'
@@ -211,6 +218,16 @@ try {
     $runtimeSource = Get-Content -Path (Join-Path $root $runtimePage) -Raw
     Assert-True -Condition ($runtimeSource -like '*<script src="./public-app-config.js"></script>*') -Message "$runtimePage loads public runtime config"
   }
+
+  $checkoutSource = Get-Content -Path (Join-Path $root 'checkout.html') -Raw
+  Assert-True -Condition ($checkoutSource -like '*Stripe-hosted subscription checkout*') -Message 'Checkout page references Stripe hosted checkout'
+  Assert-True -Condition ($checkoutSource -like '*Continue to Stripe checkout*') -Message 'Checkout page CTA routes to Stripe'
+
+  $paymentSuccessSource = Get-Content -Path (Join-Path $root 'payment-success.html') -Raw
+  Assert-True -Condition ($paymentSuccessSource -like '*store.verifyStripeCheckoutSession*') -Message 'Payment success page verifies Stripe sessions'
+
+  $pricingSource = Get-Content -Path (Join-Path $root 'pricing.html') -Raw
+  Assert-True -Condition ($pricingSource -like '*Stripe-hosted recurring billing*') -Message 'Pricing page references Stripe recurring billing'
 
   $edge = Find-EdgeBinary
   if ($null -eq $edge) {
