@@ -1,5 +1,5 @@
 (() => {
-  const TARGET_ORIGIN = "https://smartswing-ai.vercel.app";
+  const TARGET_ORIGIN = "https://www.smartswingai.com";
   const ANALYZER_PATH = "/analyze.html";
 
   const exactRoutes = {
@@ -17,8 +17,8 @@
     "/register": "/signup.html",
     "/drills": "/library.html",
     "/library": "/library.html",
-    "/review": "/review-all.html",
-    "/review-all": "/review-all.html",
+    "/review": "/",
+    "/review-all": "/",
     "/quiz-tennis-1": ANALYZER_PATH,
     "/quiz-pickleball-1": ANALYZER_PATH,
     "/free-analysis": ANALYZER_PATH,

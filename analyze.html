@@ -3937,14 +3937,16 @@
 
     console.log('SmartSwing AI MoveNet loaded ✓');
     const params = new URLSearchParams(window.location.search);
-    if (params.get('selftest') === '1') {
+    const selfTestMode = params.get('selftest') === '1';
+    const demoMode = params.get('demo') === '1';
+    if (selfTestMode) {
       requestAnimationFrame(async () => {
         setStatus('Running AI self-test...', 'loading');
         const ok = await initPoseEngine();
         document.body.setAttribute('data-ai-selftest', ok ? 'pass' : 'fail');
       });
     }
-    if (params.get('demo') === '1') {
+    if (demoMode) {
       requestAnimationFrame(() => {
         try {
           runDemoReport();
@@ -3953,7 +3955,7 @@
         }
       });
     }
-    if (params.get('selftest') !== '1') {
+    if (!selfTestMode && !demoMode) {
       requestAnimationFrame(() => {
         initPoseEngine().catch(() => null);
       });

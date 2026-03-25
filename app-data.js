@@ -633,7 +633,6 @@
 
   function getPostAuthDestinationForUser(user) {
     const access = getAccessContext(user?.id);
-    if (access.canAccessManagerAnalytics) return `${getAppBaseUrl()}manager-analytics.html`;
     if (access.role === 'coach' && access.canAccessCoachDashboard) return `${getAppBaseUrl()}coach-dashboard.html`;
     return `${getAppBaseUrl()}dashboard.html`;
   }

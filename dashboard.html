@@ -43,7 +43,6 @@
         <a class="btn" href="./checkout.html">Checkout</a>
         <a class="btn" href="./settings.html">Settings</a>
         <a class="btn hide" id="coachNavBtn" href="./coach-dashboard.html">Coach Dashboard</a>
-        <a class="btn hide" id="managerNavBtn" href="./manager-analytics.html">Manager Analytics</a>
       </nav>
       <div class="user"><div class="avatar" id="avatar">P</div><div><div id="userName" style="font-weight:800">Player</div><div id="userMeta" class="muted">Plan</div></div></div>
     </header>
@@ -137,7 +136,6 @@
     const user = access.user;
     if (!user) window.location.href = './login.html';
     if (access.canAccessCoachDashboard) document.getElementById('coachNavBtn').classList.remove('hide');
-    if (access.canAccessManagerAnalytics) document.getElementById('managerNavBtn').classList.remove('hide');
 
     const metrics = store.getDashboardMetrics(user.id);
     const assessments = store.getVisibleAssessmentsForCurrentUser(user.id);

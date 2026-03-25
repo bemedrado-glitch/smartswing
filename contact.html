@@ -14,28 +14,28 @@
   <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/Coach%20Ace%2016_9.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="manifest" href="./manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #05080d;
-      --panel: rgba(10, 18, 29, 0.9);
+      --panel: rgba(16, 18, 17, 0.92);
       --line: rgba(255,255,255,0.1);
-      --text: #e9eff6;
-      --muted: #90a0b1;
+      --text: #f5f5f7;
+      --muted: #eef3f7;
       --green: #39ff14;
-      --cyan: #00e5ff;
-      --warn: #ffcc4d;
+      --warn: #ffd84d;
+      --dark: #0e1012;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'DM Sans', sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent 28%),
-        linear-gradient(180deg, #030509 0%, #0a1320 100%);
+        radial-gradient(circle at top right, rgba(255,216,77,0.08), transparent 28%),
+        linear-gradient(180deg, #030509 0%, #0e1510 100%);
       min-height: 100vh;
     }
 
@@ -43,17 +43,16 @@
     .top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
     .logo {
       text-decoration:none;
-      font-size:30px;
-      font-weight:900;
-      background:linear-gradient(135deg, var(--green), var(--cyan));
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
+      font-size:28px;
+      font-weight:800;
+      letter-spacing:-.05em;
+      color:var(--green);
     }
     .nav { display:flex; gap:10px; flex-wrap:wrap; }
     .btn {
       text-decoration:none;
       padding:12px 16px;
-      border-radius:14px;
+      border-radius:999px;
       border:1px solid var(--line);
       color:var(--text);
       font-weight:800;
@@ -62,9 +61,17 @@
       font: inherit;
     }
     .btn-primary {
-      border:none;
-      color:#04110a;
-      background:linear-gradient(135deg, var(--green), var(--cyan));
+      border:1px solid rgba(57,255,20,.35);
+      color:var(--dark);
+      background:linear-gradient(135deg, var(--green), #82ff63);
+    }
+    .btn:hover,
+    .btn-primary:hover,
+    .panel:hover,
+    .item:hover {
+      transform: translateY(-3px);
+      border-color: rgba(57,255,20,.28);
+      box-shadow: 0 18px 46px rgba(0,0,0,.28);
     }
 
     .hero {
@@ -79,21 +86,24 @@
       border: 1px solid var(--line);
       border-radius: 26px;
       padding: 26px;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
     }
 
     .badge {
-      display:inline-block;
+      display:inline-flex;
       padding:6px 10px;
       border-radius:999px;
-      background:rgba(57,255,20,0.12);
-      color:var(--green);
+      background:rgba(255,216,77,.12);
+      color:var(--warn);
       font-size:12px;
-      font-weight:900;
+      font-weight:800;
       text-transform:uppercase;
+      letter-spacing:.08em;
+      border:1px solid rgba(255,216,77,.22);
     }
 
-    h1 { font-size: 46px; line-height:1.04; margin:14px 0 10px; }
-    h2 { font-size: 26px; margin-bottom: 12px; }
+    h1 { font-size: 46px; line-height:1.04; margin:14px 0 10px; letter-spacing:-.05em; }
+    h2 { font-size: 26px; margin-bottom: 12px; color:var(--green); }
     h3 { font-size: 18px; margin-bottom: 8px; }
     .muted { color: var(--muted); line-height: 1.6; }
 
@@ -129,6 +139,7 @@
       border:1px solid var(--line);
       border-radius:16px;
       padding:16px 18px;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
     }
 
     .item strong { color: var(--text); }
@@ -193,6 +204,7 @@
         <a class="btn" href="./features.html">Features</a>
         <a class="btn" href="./how-it-works.html">How It Works</a>
         <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./login.html">Sign In</a>
         <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
       </div>
     </div>
@@ -202,7 +214,7 @@
         <div class="badge">Direct contact</div>
         <h1>Ask for onboarding, technical support, or coach deployment.</h1>
         <p class="muted">
-          Use this page to request setup support, training workflows, or partnership calls. Messages are stored locally in this review build so you can verify the full UX end-to-end.
+          Use this page to request setup support, training workflows, or partnership calls. If cloud sync is enabled for your account, messages can also be stored in the shared SmartSwing workspace.
         </p>
       </div>
       <div class="visual">
@@ -260,7 +272,7 @@
           </label>
           <button class="btn btn-primary" type="submit">Submit message</button>
         </form>
-        <div id="contactNotice" class="notice">Messages are stored in localStorage (`smartswing_contact_messages`) in this local review build.</div>
+        <div id="contactNotice" class="notice">Messages are saved securely in this browser first, then synced to the shared SmartSwing workspace when cloud configuration is active.</div>
       </div>
     </section>
   </div>

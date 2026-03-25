@@ -34,11 +34,10 @@
     <header class="topbar">
       <a class="logo" href="./index.html">SmartSwing AI</a>
       <nav class="nav">
-        <a class="btn" href="./dashboard.html">Player View</a>
+        <a class="btn" href="./dashboard.html">Player Dashboard</a>
         <a class="btn" href="./analyze.html">Analyzer</a>
-        <a class="btn" href="./library.html">Library</a>
+        <a class="btn" href="./library.html">Drills Library</a>
         <a class="btn" href="./settings.html">Settings</a>
-        <a class="btn hide" id="managerNavBtn" href="./manager-analytics.html">Manager Analytics</a>
       </nav>
       <div class="user"><div class="avatar" id="coachAvatar">C</div><div><div id="coachName" style="font-weight:800">Coach</div><div id="coachMeta" class="muted">Access</div></div></div>
     </header>
@@ -114,7 +113,6 @@
     const store = window.SmartSwingStore;
     const access = store.getAccessContext();
     if (!access.user || !access.canAccessCoachDashboard) window.location.href = './login.html';
-    if (access.canAccessManagerAnalytics) document.getElementById('managerNavBtn').classList.remove('hide');
 
     const summary = store.getCoachSummary();
     const athletes = summary.athletes || [];
@@ -179,7 +177,7 @@
     document.getElementById('guardrailList').innerHTML = [
       `Coach access can review athlete data, but player dashboards stay scoped to each logged-in player.`,
       `Plan and trial rules still control report limits, exports, and premium surfaces.`,
-      `Manager analytics is hidden unless the logged-in account is internal or manager-enabled.`
+      `Coach messaging, schedules, and athlete notes stay scoped to assigned players only.`
     ].map((item) => `<div class="card"><p class="muted">${item}</p></div>`).join('');
 
     function csvEscape(value){return `"${String(value ?? '').replace(/"/g,'""')}"`;}

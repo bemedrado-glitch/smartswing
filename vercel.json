@@ -5,6 +5,41 @@
       "source": "/competitor-analysis.html",
       "destination": "/",
       "permanent": false
+    },
+    {
+      "source": "/gpt-ui-components.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/index-analyzer.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/index-integrated.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/integration-settings.html",
+      "destination": "/settings.html",
+      "permanent": false
+    },
+    {
+      "source": "/review.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/review-all.html",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/smartswing-ultimate.html",
+      "destination": "/",
+      "permanent": false
     }
   ],
   "routes": [
@@ -44,7 +79,7 @@
       ]
     },
     {
-      "source": "/(analyze|dashboard|coach-dashboard|manager-analytics|cart|checkout|login|signup|settings|review-all|review|integration-settings)\\.html",
+      "source": "/(analyze|dashboard|coach-dashboard|cart|checkout|login|signup|settings)\\.html",
       "headers": [
         {
           "key": "X-Robots-Tag",
