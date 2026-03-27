@@ -1,0 +1,594 @@
+﻿{
+    "generatedAt":  "2026-03-27T15:45:25.9629968-04:00",
+    "root":  "C:\\Users\\bmedrado\\Desktop\\SmartSwing\\_smartswing_repo",
+    "purpose":  "SmartSwing AI source manifest for Claude Code handoff",
+    "includes":  [
+                     "*.html",
+                     "*.js",
+                     "*.css",
+                     "*.json",
+                     "*.sql",
+                     "*.ps1",
+                     "*.yml",
+                     "*.yaml",
+                     "robots.txt",
+                     "_headers",
+                     "sitemap.xml",
+                     ".env.example",
+                     ".gitignore",
+                     ".vercelignore"
+                 ],
+    "excludes":  [
+                     "node_modules",
+                     ".git",
+                     ".vercel",
+                     "dist",
+                     "qa-file",
+                     "qa-shots",
+                     "tests/edge-profile*",
+                     "supabase/.temp",
+                     "claude-handoff",
+                     "binary assets"
+                 ],
+    "fileCount":  93,
+    "files":  [
+                  {
+                      "path":  ".env.example",
+                      "category":  "config",
+                      "bytes":  964,
+                      "lastModified":  "2026-03-25T19:23:02.6375141-04:00"
+                  },
+                  {
+                      "path":  ".github/workflows/ci.yml",
+                      "category":  "workflow",
+                      "bytes":  314,
+                      "lastModified":  "2026-03-20T19:50:14.2642902-04:00"
+                  },
+                  {
+                      "path":  ".github/workflows/deploy-vercel.yml",
+                      "category":  "workflow",
+                      "bytes":  724,
+                      "lastModified":  "2026-03-19T13:27:03.8407158-04:00"
+                  },
+                  {
+                      "path":  ".gitignore",
+                      "category":  "config",
+                      "bytes":  338,
+                      "lastModified":  "2026-03-23T13:24:56.4556847-04:00"
+                  },
+                  {
+                      "path":  ".vercelignore",
+                      "category":  "config",
+                      "bytes":  135,
+                      "lastModified":  "2026-03-25T19:04:24.3499108-04:00"
+                  },
+                  {
+                      "path":  "_headers",
+                      "category":  "config",
+                      "bytes":  1406,
+                      "lastModified":  "2026-03-27T13:44:06.9197101-04:00"
+                  },
+                  {
+                      "path":  "about.html",
+                      "category":  "page",
+                      "bytes":  4841,
+                      "lastModified":  "2026-03-27T13:49:31.9042043-04:00"
+                  },
+                  {
+                      "path":  "accessibility.html",
+                      "category":  "page",
+                      "bytes":  4346,
+                      "lastModified":  "2026-03-25T19:24:43.5324337-04:00"
+                  },
+                  {
+                      "path":  "advanced-biomechanics-engine.js",
+                      "category":  "script",
+                      "bytes":  22333,
+                      "lastModified":  "2026-03-04T18:59:36.0000000-05:00"
+                  },
+                  {
+                      "path":  "analytics.js",
+                      "category":  "script",
+                      "bytes":  1012,
+                      "lastModified":  "2026-03-25T19:23:02.6405137-04:00"
+                  },
+                  {
+                      "path":  "analyze.html",
+                      "category":  "page",
+                      "bytes":  170261,
+                      "lastModified":  "2026-03-25T19:23:33.9102374-04:00"
+                  },
+                  {
+                      "path":  "api/_lib/stripe-common.js",
+                      "category":  "api",
+                      "bytes":  7080,
+                      "lastModified":  "2026-03-24T22:04:31.9987423-04:00"
+                  },
+                  {
+                      "path":  "api/checkout-session-status.js",
+                      "category":  "api",
+                      "bytes":  3909,
+                      "lastModified":  "2026-03-24T22:03:56.0358627-04:00"
+                  },
+                  {
+                      "path":  "api/create-billing-portal-session.js",
+                      "category":  "api",
+                      "bytes":  1633,
+                      "lastModified":  "2026-03-24T22:04:47.8357330-04:00"
+                  },
+                  {
+                      "path":  "api/create-checkout-session.js",
+                      "category":  "api",
+                      "bytes":  2976,
+                      "lastModified":  "2026-03-24T22:11:57.8311455-04:00"
+                  },
+                  {
+                      "path":  "api/runtime-config.js",
+                      "category":  "api",
+                      "bytes":  1544,
+                      "lastModified":  "2026-03-25T19:23:02.6355135-04:00"
+                  },
+                  {
+                      "path":  "api/stripe-webhook.js",
+                      "category":  "api",
+                      "bytes":  6239,
+                      "lastModified":  "2026-03-24T22:04:17.8792115-04:00"
+                  },
+                  {
+                      "path":  "app-data.js",
+                      "category":  "script",
+                      "bytes":  147230,
+                      "lastModified":  "2026-03-26T18:35:58.7462271-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/mediapipe/pose/package.json",
+                      "category":  "runtime-asset",
+                      "bytes":  849,
+                      "lastModified":  "1985-10-26T04:15:00.0000000-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/mediapipe/pose/pose.js",
+                      "category":  "runtime-asset",
+                      "bytes":  47089,
+                      "lastModified":  "1985-10-26T04:15:00.0000000-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/mediapipe/pose/pose_solution_packed_assets_loader.js",
+                      "category":  "runtime-asset",
+                      "bytes":  8002,
+                      "lastModified":  "1985-10-26T04:15:00.0000000-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/mediapipe/pose/pose_solution_simd_wasm_bin.js",
+                      "category":  "runtime-asset",
+                      "bytes":  276478,
+                      "lastModified":  "1985-10-26T04:15:00.0000000-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/mediapipe/pose/pose_solution_wasm_bin.js",
+                      "category":  "runtime-asset",
+                      "bytes":  276473,
+                      "lastModified":  "1985-10-26T04:15:00.0000000-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/pose-detection.min.js",
+                      "category":  "runtime-asset",
+                      "bytes":  321138,
+                      "lastModified":  "2026-03-20T09:45:03.3660631-04:00"
+                  },
+                  {
+                      "path":  "assets/vendor/tf.min.js",
+                      "category":  "runtime-asset",
+                      "bytes":  1464064,
+                      "lastModified":  "2026-03-20T09:45:03.0899982-04:00"
+                  },
+                  {
+                      "path":  "auth-callback.html",
+                      "category":  "page",
+                      "bytes":  3713,
+                      "lastModified":  "2026-03-25T19:23:33.9142365-04:00"
+                  },
+                  {
+                      "path":  "blog.html",
+                      "category":  "page",
+                      "bytes":  10722,
+                      "lastModified":  "2026-03-27T13:43:34.6170366-04:00"
+                  },
+                  {
+                      "path":  "brand-policy.html",
+                      "category":  "page",
+                      "bytes":  3780,
+                      "lastModified":  "2026-03-25T18:28:52.5967217-04:00"
+                  },
+                  {
+                      "path":  "california-privacy.html",
+                      "category":  "page",
+                      "bytes":  3897,
+                      "lastModified":  "2026-03-25T18:28:08.9481601-04:00"
+                  },
+                  {
+                      "path":  "cart.html",
+                      "category":  "page",
+                      "bytes":  6251,
+                      "lastModified":  "2026-03-25T19:23:33.9172366-04:00"
+                  },
+                  {
+                      "path":  "checkout.html",
+                      "category":  "page",
+                      "bytes":  16623,
+                      "lastModified":  "2026-03-25T19:23:33.9192372-04:00"
+                  },
+                  {
+                      "path":  "coach-dashboard.html",
+                      "category":  "page",
+                      "bytes":  17325,
+                      "lastModified":  "2026-03-25T19:23:33.9217885-04:00"
+                  },
+                  {
+                      "path":  "contact.html",
+                      "category":  "page",
+                      "bytes":  13137,
+                      "lastModified":  "2026-03-27T13:49:31.9063421-04:00"
+                  },
+                  {
+                      "path":  "cookie-policy.html",
+                      "category":  "page",
+                      "bytes":  4239,
+                      "lastModified":  "2026-03-25T19:24:43.5344330-04:00"
+                  },
+                  {
+                      "path":  "copyright-policy.html",
+                      "category":  "page",
+                      "bytes":  3807,
+                      "lastModified":  "2026-03-25T18:28:52.6016366-04:00"
+                  },
+                  {
+                      "path":  "dashboard.html",
+                      "category":  "page",
+                      "bytes":  24858,
+                      "lastModified":  "2026-03-25T19:23:33.9258279-04:00"
+                  },
+                  {
+                      "path":  "deploy/build-release.ps1",
+                      "category":  "deploy",
+                      "bytes":  1140,
+                      "lastModified":  "2026-03-19T12:40:45.1631876-04:00"
+                  },
+                  {
+                      "path":  "deploy/export-wix-html.ps1",
+                      "category":  "deploy",
+                      "bytes":  2319,
+                      "lastModified":  "2026-03-24T12:14:49.2931693-04:00"
+                  },
+                  {
+                      "path":  "deploy/install-wix-public-redirect.ps1",
+                      "category":  "deploy",
+                      "bytes":  1364,
+                      "lastModified":  "2026-03-24T13:15:58.9764723-04:00"
+                  },
+                  {
+                      "path":  "deploy/wix-embed-snippet.html",
+                      "category":  "deploy",
+                      "bytes":  355,
+                      "lastModified":  "2026-03-19T12:40:50.2277996-04:00"
+                  },
+                  {
+                      "path":  "deploy/wix-pricing-plan-bridge-page.js",
+                      "category":  "deploy",
+                      "bytes":  1477,
+                      "lastModified":  "2026-03-24T16:06:56.5360246-04:00"
+                  },
+                  {
+                      "path":  "deploy/wix-public-site-redirect.js",
+                      "category":  "deploy",
+                      "bytes":  3760,
+                      "lastModified":  "2026-03-24T21:04:50.4506926-04:00"
+                  },
+                  {
+                      "path":  "features.html",
+                      "category":  "page",
+                      "bytes":  19549,
+                      "lastModified":  "2026-03-27T13:49:31.8981030-04:00"
+                  },
+                  {
+                      "path":  "for-clubs.html",
+                      "category":  "page",
+                      "bytes":  6472,
+                      "lastModified":  "2026-03-27T13:40:33.8021934-04:00"
+                  },
+                  {
+                      "path":  "for-coaches.html",
+                      "category":  "page",
+                      "bytes":  6481,
+                      "lastModified":  "2026-03-27T13:40:33.7992456-04:00"
+                  },
+                  {
+                      "path":  "for-parents.html",
+                      "category":  "page",
+                      "bytes":  5783,
+                      "lastModified":  "2026-03-27T13:42:13.8660541-04:00"
+                  },
+                  {
+                      "path":  "for-players.html",
+                      "category":  "page",
+                      "bytes":  6673,
+                      "lastModified":  "2026-03-27T13:40:33.7930916-04:00"
+                  },
+                  {
+                      "path":  "gpt-integration-secure.js",
+                      "category":  "script",
+                      "bytes":  13967,
+                      "lastModified":  "2026-03-04T18:59:36.0000000-05:00"
+                  },
+                  {
+                      "path":  "growth-forms.js",
+                      "category":  "script",
+                      "bytes":  1673,
+                      "lastModified":  "2026-03-27T13:34:17.0371394-04:00"
+                  },
+                  {
+                      "path":  "growth-pages.css",
+                      "category":  "style",
+                      "bytes":  6063,
+                      "lastModified":  "2026-03-27T13:34:17.0351288-04:00"
+                  },
+                  {
+                      "path":  "how-it-works.html",
+                      "category":  "page",
+                      "bytes":  13706,
+                      "lastModified":  "2026-03-27T13:50:44.2579398-04:00"
+                  },
+                  {
+                      "path":  "improved-pose-detection.js",
+                      "category":  "script",
+                      "bytes":  14487,
+                      "lastModified":  "2026-03-04T18:59:36.0000000-05:00"
+                  },
+                  {
+                      "path":  "index.html",
+                      "category":  "page",
+                      "bytes":  47031,
+                      "lastModified":  "2026-03-27T13:49:50.1990129-04:00"
+                  },
+                  {
+                      "path":  "launch-readiness-report.html",
+                      "category":  "page",
+                      "bytes":  9312,
+                      "lastModified":  "2026-03-25T19:10:33.9653377-04:00"
+                  },
+                  {
+                      "path":  "launch-summary-client.html",
+                      "category":  "page",
+                      "bytes":  11044,
+                      "lastModified":  "2026-03-25T19:12:21.9690215-04:00"
+                  },
+                  {
+                      "path":  "library.html",
+                      "category":  "page",
+                      "bytes":  14048,
+                      "lastModified":  "2026-03-27T13:48:01.8937449-04:00"
+                  },
+                  {
+                      "path":  "login.html",
+                      "category":  "page",
+                      "bytes":  15986,
+                      "lastModified":  "2026-03-26T18:36:17.3491263-04:00"
+                  },
+                  {
+                      "path":  "manifest.json",
+                      "category":  "config",
+                      "bytes":  362,
+                      "lastModified":  "2026-03-19T09:30:34.4375017-04:00"
+                  },
+                  {
+                      "path":  "open-smartswing-production.html",
+                      "category":  "page",
+                      "bytes":  3508,
+                      "lastModified":  "2026-03-25T20:07:47.7594443-04:00"
+                  },
+                  {
+                      "path":  "package.json",
+                      "category":  "config",
+                      "bytes":  898,
+                      "lastModified":  "2026-03-24T20:06:20.6885721-04:00"
+                  },
+                  {
+                      "path":  "package-lock.json",
+                      "category":  "config",
+                      "bytes":  1984,
+                      "lastModified":  "2026-03-24T20:06:20.6885721-04:00"
+                  },
+                  {
+                      "path":  "payment-cancelled.html",
+                      "category":  "page",
+                      "bytes":  3869,
+                      "lastModified":  "2026-03-25T19:23:33.9348271-04:00"
+                  },
+                  {
+                      "path":  "payment-success.html",
+                      "category":  "page",
+                      "bytes":  10304,
+                      "lastModified":  "2026-03-25T19:23:33.9358239-04:00"
+                  },
+                  {
+                      "path":  "pickleball.html",
+                      "category":  "page",
+                      "bytes":  6328,
+                      "lastModified":  "2026-03-27T13:42:13.8720624-04:00"
+                  },
+                  {
+                      "path":  "policy-pages.css",
+                      "category":  "style",
+                      "bytes":  4040,
+                      "lastModified":  "2026-03-25T18:22:48.9000692-04:00"
+                  },
+                  {
+                      "path":  "pricing.html",
+                      "category":  "page",
+                      "bytes":  29797,
+                      "lastModified":  "2026-03-27T13:50:44.2601903-04:00"
+                  },
+                  {
+                      "path":  "privacy-policy.html",
+                      "category":  "page",
+                      "bytes":  7745,
+                      "lastModified":  "2026-03-25T19:24:43.5296669-04:00"
+                  },
+                  {
+                      "path":  "public-app-config.example.js",
+                      "category":  "script",
+                      "bytes":  630,
+                      "lastModified":  "2026-03-25T19:35:20.5509316-04:00"
+                  },
+                  {
+                      "path":  "public-app-config.js",
+                      "category":  "script",
+                      "bytes":  305,
+                      "lastModified":  "2026-03-24T22:09:56.9343996-04:00"
+                  },
+                  {
+                      "path":  "pwa.js",
+                      "category":  "script",
+                      "bytes":  1046,
+                      "lastModified":  "2026-03-19T15:14:54.8559042-04:00"
+                  },
+                  {
+                      "path":  "refer-friends.html",
+                      "category":  "page",
+                      "bytes":  6532,
+                      "lastModified":  "2026-03-27T13:42:13.8750532-04:00"
+                  },
+                  {
+                      "path":  "refund-policy.html",
+                      "category":  "page",
+                      "bytes":  5508,
+                      "lastModified":  "2026-03-27T13:43:34.6134418-04:00"
+                  },
+                  {
+                      "path":  "robots.txt",
+                      "category":  "config",
+                      "bytes":  323,
+                      "lastModified":  "2026-03-27T13:44:06.9176201-04:00"
+                  },
+                  {
+                      "path":  "serve.ps1",
+                      "category":  "script",
+                      "bytes":  2860,
+                      "lastModified":  "2026-03-19T11:22:06.1182273-04:00"
+                  },
+                  {
+                      "path":  "settings.html",
+                      "category":  "page",
+                      "bytes":  18478,
+                      "lastModified":  "2026-03-25T19:23:33.9425281-04:00"
+                  },
+                  {
+                      "path":  "signup.html",
+                      "category":  "page",
+                      "bytes":  26436,
+                      "lastModified":  "2026-03-26T18:36:36.4655319-04:00"
+                  },
+                  {
+                      "path":  "site-experience.js",
+                      "category":  "script",
+                      "bytes":  3087,
+                      "lastModified":  "2026-03-25T19:23:02.6425138-04:00"
+                  },
+                  {
+                      "path":  "sitemap.xml",
+                      "category":  "config",
+                      "bytes":  2810,
+                      "lastModified":  "2026-03-27T13:44:06.9217235-04:00"
+                  },
+                  {
+                      "path":  "smartswing-database.sql",
+                      "category":  "database",
+                      "bytes":  25014,
+                      "lastModified":  "2026-03-19T13:56:20.7140856-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260319_smartswing_content_library.sql",
+                      "category":  "database",
+                      "bytes":  18614,
+                      "lastModified":  "2026-03-19T20:01:03.3174484-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260319_smartswing_core.sql",
+                      "category":  "database",
+                      "bytes":  10849,
+                      "lastModified":  "2026-03-19T12:36:48.7709523-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260319_smartswing_retention_loop.sql",
+                      "category":  "database",
+                      "bytes":  3592,
+                      "lastModified":  "2026-03-19T13:47:52.9603424-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260319_smartswing_sync_extensions.sql",
+                      "category":  "database",
+                      "bytes":  7095,
+                      "lastModified":  "2026-03-19T13:26:30.1339153-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260320_smartswing_access_guardrails.sql",
+                      "category":  "database",
+                      "bytes":  7290,
+                      "lastModified":  "2026-03-20T20:41:46.7622958-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260320_smartswing_training_recommendations.sql",
+                      "category":  "database",
+                      "bytes":  5886,
+                      "lastModified":  "2026-03-20T15:53:16.7688731-04:00"
+                  },
+                  {
+                      "path":  "supabase/migrations/20260324_smartswing_billing_and_profiles.sql",
+                      "category":  "database",
+                      "bytes":  3117,
+                      "lastModified":  "2026-03-24T22:09:06.9751872-04:00"
+                  },
+                  {
+                      "path":  "supabase-schema-update.sql",
+                      "category":  "database",
+                      "bytes":  2915,
+                      "lastModified":  "2026-03-04T18:59:36.0000000-05:00"
+                  },
+                  {
+                      "path":  "sw.js",
+                      "category":  "script",
+                      "bytes":  3956,
+                      "lastModified":  "2026-03-24T21:03:18.8991972-04:00"
+                  },
+                  {
+                      "path":  "tests/run-analyzer-batch-tests.ps1",
+                      "category":  "test",
+                      "bytes":  6062,
+                      "lastModified":  "2026-03-24T21:30:55.2760986-04:00"
+                  },
+                  {
+                      "path":  "tests/run-tests.ps1",
+                      "category":  "test",
+                      "bytes":  20884,
+                      "lastModified":  "2026-03-24T21:31:14.1803369-04:00"
+                  },
+                  {
+                      "path":  "user-agreement.html",
+                      "category":  "page",
+                      "bytes":  5200,
+                      "lastModified":  "2026-03-25T18:27:27.4387353-04:00"
+                  },
+                  {
+                      "path":  "vercel.json",
+                      "category":  "config",
+                      "bytes":  3612,
+                      "lastModified":  "2026-03-27T13:44:06.9212216-04:00"
+                  },
+                  {
+                      "path":  "welcome.html",
+                      "category":  "page",
+                      "bytes":  14465,
+                      "lastModified":  "2026-03-25T19:23:33.9455280-04:00"
+                  }
+              ]
+}

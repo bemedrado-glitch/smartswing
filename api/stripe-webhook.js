@@ -1,12 +1,13 @@
 const {
   fetchSupabaseProfileByStripeCustomerId,
-  getPlanIdForPrice,
+  getPriceMetaForPrice,
   getStripeClient,
   getSubscriptionPriceId,
   json,
   patchSupabaseProfile,
   readRawBody,
-  toIsoFromUnix
+  toIsoFromUnix,
+  upsertSupabaseSubscription
 } = require('./_lib/stripe-common');
 
 function mapSubscriptionStatusToPlanId(subscriptionStatus, requestedPlanId) {
@@ -68,11 +69,25 @@ module.exports = async (req, res) => {
         const session = event.data.object;
         const userId = session.client_reference_id || session.metadata?.smartSwingUserId || '';
         const planId = String(session.metadata?.appPlanId || 'free').toLowerCase();
+        const billingInterval = String(session.metadata?.billingInterval || 'monthly').toLowerCase();
         if (userId) {
           await patchSupabaseProfile(userId, {
             subscription_tier: planId,
             subscription_status: session.payment_status === 'paid' ? 'active' : session.status || 'complete',
-            stripe_customer_id: session.customer || null
+            stripe_customer_id: session.customer || null,
+            billing_interval: billingInterval
+          });
+          await upsertSupabaseSubscription({
+            user_id: userId,
+            provider: 'stripe',
+            plan_id: planId,
+            billing_interval: billingInterval,
+            status: session.payment_status === 'paid' ? 'active' : session.status || 'complete',
+            stripe_customer_id: session.customer || null,
+            checkout_session_id: session.id,
+            metadata: {
+              payment_status: session.payment_status || null
+            }
           });
         }
         break;
@@ -82,15 +97,35 @@ module.exports = async (req, res) => {
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
-        const requestedPlanId = getPlanIdForPrice(getSubscriptionPriceId(subscription));
+        const priceMeta = getPriceMetaForPrice(getSubscriptionPriceId(subscription));
+        const requestedPlanId = priceMeta.planId;
         const effectivePlanId = mapSubscriptionStatusToPlanId(subscription.status, requestedPlanId);
+        const billingInterval = String(subscription.metadata?.billingInterval || priceMeta.billingInterval || 'monthly').toLowerCase();
         const userId = await resolveUserIdForSubscription(subscription);
         if (userId) {
           await patchSupabaseProfile(userId, {
             subscription_tier: effectivePlanId,
             subscription_status: subscription.status || 'active',
             stripe_customer_id: subscription.customer || null,
-            billing_period_end: toIsoFromUnix(subscription.current_period_end)
+            stripe_subscription_id: subscription.id || null,
+            billing_period_end: toIsoFromUnix(subscription.current_period_end),
+            billing_interval: billingInterval,
+            subscription_cancel_at_period_end: Boolean(subscription.cancel_at_period_end || false),
+            subscription_canceled_at: subscription.canceled_at ? toIsoFromUnix(subscription.canceled_at) : null
+          });
+          await upsertSupabaseSubscription({
+            user_id: userId,
+            provider: 'stripe',
+            plan_id: effectivePlanId,
+            billing_interval: billingInterval,
+            status: subscription.status || 'active',
+            stripe_customer_id: subscription.customer || null,
+            stripe_subscription_id: subscription.id || null,
+            current_period_start: toIsoFromUnix(subscription.current_period_start),
+            current_period_end: toIsoFromUnix(subscription.current_period_end),
+            cancel_at_period_end: Boolean(subscription.cancel_at_period_end || false),
+            canceled_at: subscription.canceled_at ? toIsoFromUnix(subscription.canceled_at) : null,
+            metadata: subscription.metadata || {}
           });
         }
         break;
@@ -103,6 +138,16 @@ module.exports = async (req, res) => {
         if (userId) {
           await patchSupabaseProfile(userId, {
             subscription_status: 'past_due'
+          });
+          await upsertSupabaseSubscription({
+            user_id: userId,
+            provider: 'stripe',
+            status: 'past_due',
+            stripe_customer_id: customerId || null,
+            stripe_subscription_id: invoice.subscription || null,
+            metadata: {
+              invoice_id: invoice.id || null
+            }
           });
         }
         break;

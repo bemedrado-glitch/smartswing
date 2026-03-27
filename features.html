@@ -104,8 +104,13 @@
     .testimonial p{color:var(--muted);font-size:16px;line-height:1.7}
     .cta{grid-template-columns:1.1fr .9fr;align-items:center;padding:28px;margin-top:16px}
     .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+    .footer{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:16px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+    .footer-col{display:grid;gap:12px}
+    .footer-col strong{color:var(--text)}
+    .footer-links{display:flex;flex-wrap:wrap;gap:10px}
+    .footer-links a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.03);color:var(--muted);font-weight:700}
     @media (max-width:1024px){
-      .hero,.grid,.stack,.cta,.testimonial-grid{grid-template-columns:1fr}
+      .hero,.grid,.stack,.cta,.testimonial-grid,.footer{grid-template-columns:1fr}
       .actions{justify-content:flex-start}
     }
     @media (max-width:760px){
@@ -115,14 +120,16 @@
     }
   </style>
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
     <header class="top">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
       <nav class="nav">
-        <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./for-coaches.html">For Coaches</a>
+        <a class="btn" href="./for-clubs.html">For Clubs</a>
+        <a class="btn" href="./blog.html">Blog</a>
         <a class="btn" href="./pricing.html">Pricing</a>
         <a class="btn" href="./login.html">Sign In</a>
         <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
@@ -266,10 +273,44 @@
       </div>
       <div class="actions">
         <a class="btn-primary" href="./analyze.html">Open Analyzer</a>
-        <a class="btn" href="./login.html">Sign In</a>
+        <a class="btn" href="./pricing.html">Compare Plans</a>
         <a class="btn" href="./contact.html">Talk to Us</a>
       </div>
     </section>
+
+    <footer class="footer">
+      <div class="footer-col">
+        <strong>SmartSwing AI</strong>
+        <div>Feature overview for players, coaches, parents, and performance programs.</div>
+        <div style="font-size:13px;color:var(--muted)">&copy; 2026 SmartSwing AI</div>
+      </div>
+      <div class="footer-col">
+        <strong>Pathways</strong>
+        <div class="footer-links">
+          <a href="./for-players.html">For Players</a>
+          <a href="./for-coaches.html">For Coaches</a>
+          <a href="./for-clubs.html">For Clubs</a>
+          <a href="./for-parents.html">For Parents</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Resources</strong>
+        <div class="footer-links">
+          <a href="./blog.html">Blog</a>
+          <a href="./library.html">Library</a>
+          <a href="./contact.html">Contact</a>
+          <a href="./refund-policy.html">Refund Policy</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Community</strong>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+    </footer>
   </div>
   <script src="./pwa.js"></script>
 </body>

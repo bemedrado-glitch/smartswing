@@ -48,7 +48,7 @@
       <p class="muted" id="summary">Reviewing the latest handoff from secure billing and verifying it before any paid entitlements unlock.</p>
       <div class="stack" id="details"></div>
       <div class="actions">
-        <a class="btn-primary" href="./dashboard.html">Open dashboard</a>
+        <a class="btn-primary" id="primaryAction" href="./dashboard.html">Open dashboard</a>
         <a class="btn" href="./checkout.html">Return to checkout</a>
         <a class="btn" href="./contact.html">Contact support</a>
       </div>
@@ -56,6 +56,7 @@
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
     const store = window.SmartSwingStore;
@@ -69,6 +70,12 @@
     const currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
     const requestedPlan = requestedPlanId ? store.getPlanDefinition(requestedPlanId) : null;
     const details = [];
+    const primaryAction = document.getElementById('primaryAction');
+
+    function setPrimaryDestination(href, label) {
+      primaryAction.href = href;
+      primaryAction.textContent = label;
+    }
 
     function pushCard(title, body, tone) {
       details.push(`<div class="card"><strong class="${tone || ''}">${title}</strong>${body}</div>`);
@@ -96,6 +103,9 @@
           titleEl.textContent = `${requestedPlan.name} is active`;
           summaryEl.textContent = 'Your account already reflects the requested plan. You can continue into the dashboard immediately.';
           pushCard('Current plan', `${currentPlan.name}${currentPlan.isTrial ? ' trial' : ''} is active on this account.`, 'ok');
+          if (store.isOnboardingRequired?.(currentUser.id)) {
+            setPrimaryDestination(store.getOnboardingRoute(currentUser), 'Complete welcome quiz');
+          }
         } else {
           titleEl.textContent = 'Checkout returned, but verification data is incomplete';
           summaryEl.textContent = 'The app expected a Stripe session id but did not receive one, so it will not activate paid access from the URL alone.';
@@ -134,6 +144,13 @@
             pushCard('Cloud sync', 'Local access was updated immediately. If Supabase service-role credentials are added later, webhook sync will keep remote billing state aligned too.', 'warn');
           }
           pushCard('Account', `${updatedUser.email}`, '');
+          const onboardingRoute = store.getOnboardingRoute?.(updatedUser);
+          if (onboardingRoute) {
+            setPrimaryDestination(onboardingRoute, 'Complete welcome quiz');
+            setTimeout(() => {
+              window.location.href = onboardingRoute;
+            }, 1200);
+          }
         } else {
           titleEl.textContent = 'Stripe payment verified';
           summaryEl.textContent = 'The payment is valid, but the current browser session does not match the billing session user, so no local plan change was applied here.';

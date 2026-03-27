@@ -2,6 +2,61 @@
   "version": 2,
   "redirects": [
     {
+      "source": "/contact-8",
+      "destination": "/contact.html",
+      "permanent": true
+    },
+    {
+      "source": "/quiz-pickleball-1",
+      "destination": "/pickleball.html",
+      "permanent": true
+    },
+    {
+      "source": "/refer-friends",
+      "destination": "/refer-friends.html",
+      "permanent": true
+    },
+    {
+      "source": "/blank",
+      "destination": "/privacy-policy.html",
+      "permanent": true
+    },
+    {
+      "source": "/blank-1",
+      "destination": "/accessibility.html",
+      "permanent": true
+    },
+    {
+      "source": "/blank-2",
+      "destination": "/user-agreement.html",
+      "permanent": true
+    },
+    {
+      "source": "/blank-3",
+      "destination": "/refund-policy.html",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "/blog.html",
+      "permanent": true
+    },
+    {
+      "source": "/blog/:slug*",
+      "destination": "/blog.html",
+      "permanent": true
+    },
+    {
+      "source": "/post/:slug*",
+      "destination": "/blog.html",
+      "permanent": true
+    },
+    {
+      "source": "/pricing-plans/list",
+      "destination": "/pricing.html",
+      "permanent": true
+    },
+    {
       "source": "/competitor-analysis.html",
       "destination": "/",
       "permanent": false
@@ -73,13 +128,17 @@
           "value": "SAMEORIGIN"
         },
         {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com"
+          "value": "frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com; base-uri 'self'; object-src 'none'; form-action 'self' https://checkout.stripe.com https://billing.stripe.com"
         }
       ]
     },
     {
-      "source": "/(analyze|dashboard|coach-dashboard|cart|checkout|login|signup|settings)\\.html",
+      "source": "/(dashboard|coach-dashboard|cart|checkout|settings|auth-callback|payment-success|payment-cancelled|welcome)\\.html",
       "headers": [
         {
           "key": "X-Robots-Tag",

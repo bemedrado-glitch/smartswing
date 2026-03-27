@@ -13,6 +13,66 @@
   <meta property="og:url" content="https://www.smartswingai.com/pricing.html">
   <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SmartSwing AI Pricing">
+  <meta name="twitter:description" content="Compare SmartSwing AI plans and unlock the right level of video analysis, dashboards, drills, and coach workflows.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What counts as one review?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Each generated report counts as one review. Opening the analyzer alone does not consume a credit."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I switch plans anytime?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Monthly plans can be canceled anytime. Yearly plans can also be canceled anytime and remain active through the end of the paid annual term."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why can't Starter save reports?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Starter is designed to create the first success moment. Save, print, and export unlock on paid plans."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where do drills and tactics unlock?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page."
+          }
+        }
+      ]
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "SmartSwing AI",
+      "description": "Web-first tennis analysis with biomechanics feedback, drills, tactics, dashboards, and coach workflows.",
+      "brand": {
+        "@type": "Brand",
+        "name": "SmartSwing AI"
+      },
+      "offers": [
+        { "@type": "Offer", "name": "Starter", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+        { "@type": "Offer", "name": "Player", "price": "9.99", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+        { "@type": "Offer", "name": "Performance", "price": "19.99", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+        { "@type": "Offer", "name": "Tournament Pro", "price": "49.99", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+      ]
+    }
+  </script>
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,6 +138,9 @@
     .status{border:1px solid var(--line);border-radius:20px;padding:18px;background:rgba(255,255,255,.03);color:var(--muted)}
     .status strong{display:block;color:var(--text);margin-bottom:8px}
     .urgency{display:grid;gap:12px}
+    .billing-toggle{display:inline-flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding:8px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+    .billing-toggle button{border:none;border-radius:999px;padding:10px 14px;background:transparent;color:var(--muted);font:inherit;font-weight:800;cursor:pointer}
+    .billing-toggle button.active{background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark)}
     .urgency-box{border:1px solid rgba(255,215,107,.2);background:rgba(255,215,107,.06);border-radius:20px;padding:18px;color:#ffe7a6}
     .pricing-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
     .pricing-card{
@@ -92,6 +155,7 @@
     .price{font-size:52px;line-height:1;letter-spacing:-.06em;margin:14px 0 6px}
     .price small{font-size:15px;color:var(--muted)}
     .price-note{color:var(--muted);font-size:14px}
+    .billing-copy{color:var(--accent);font-size:13px;font-weight:700;margin-top:10px}
     .list{display:grid;gap:10px;margin:18px 0 22px}
     .list div{border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:rgba(255,255,255,.03);color:var(--muted)}
     .anchor{margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);font-size:14px}
@@ -102,8 +166,17 @@
     .cell strong{color:var(--text)}
     .faq{grid-template-columns:1fr 1fr}
     .qa{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px}
+    .footer{display:grid;grid-template-columns:1.05fr 1fr 1fr 1fr;gap:16px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+    .footer-col{display:grid;gap:12px}
+    .footer-col strong{color:var(--text)}
+    .footer-links{display:flex;gap:10px;flex-wrap:wrap}
+    .footer-links a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.03);color:var(--muted);font-weight:700}
+    .range-wrap{display:grid;gap:12px}
+    .range-wrap input[type="range"]{width:100%}
+    .roi-number{font-size:38px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
+    .roi-stat{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.03);color:var(--muted)}
     @media (max-width:1100px){
-      .hero,.pricing-grid,.compare,.faq{grid-template-columns:1fr}
+      .hero,.pricing-grid,.compare,.faq,.footer{grid-template-columns:1fr}
       .pricing-card.featured{transform:none}
       .row{grid-template-columns:1fr}
     }
@@ -114,15 +187,16 @@
     }
   </style>
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
     <header class="top">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
       <nav class="nav">
-        <a class="btn" href="./features.html">Features</a>
-        <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./for-coaches.html">For Coaches</a>
+        <a class="btn" href="./for-clubs.html">For Clubs</a>
+        <a class="btn" href="./blog.html">Blog</a>
         <a class="btn" href="./login.html">Sign In</a>
         <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
       </nav>
@@ -133,6 +207,10 @@
         <div class="eyebrow">Pricing</div>
         <h1>Choose the plan that matches how serious you are about improving.</h1>
         <p class="muted">SmartSwing is priced against wasted practice and expensive private coaching, not against generic video apps. Start free, prove the value, then upgrade when you want deeper tracking, saved reports, and coach accountability.</p>
+        <div class="billing-toggle" aria-label="Billing interval toggle" role="group">
+          <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true">Monthly</button>
+          <button type="button" data-billing-toggle="yearly" aria-pressed="false">Yearly | save 15%</button>
+        </div>
         <ul>
           <li>Free tier removes friction: 1 analysis per month.</li>
           <li>Player tier unlocks saved reports and repeat usage.</li>
@@ -147,8 +225,8 @@
         </div>
         <div class="urgency">
           <div class="urgency-box">
-            <strong style="display:block;color:var(--text);margin-bottom:8px">Founding member pricing is live now.</strong>
-            March 31, 2026 is the current public deadline for these monthly launch prices.
+            <strong id="launchPricingTitle" style="display:block;color:var(--text);margin-bottom:8px">Launch pricing window is active.</strong>
+            <span id="launchPricingText">The current launch pricing message updates automatically as the March 31, 2026 window gets closer or passes.</span>
           </div>
           <div class="urgency-box">
             <strong style="display:block;color:var(--text);margin-bottom:8px">Anchor the value correctly.</strong>
@@ -162,30 +240,31 @@
       <article class="pricing-card">
         <div class="pricing-copy">
           <h3>Starter</h3>
-          <div class="price">$0 <small>/ month</small></div>
-          <div class="price-note">For first-time users who want proof before commitment.</div>
+          <div class="price"><span data-plan-price="free">$0</span> <small data-plan-interval="free">/ month</small></div>
+          <div class="price-note" data-plan-note="free">For first-time users who want proof before commitment.</div>
           <div class="list">
             <div>1 analysis per month</div>
             <div>Live report view only</div>
             <div>No save, export, or print</div>
             <div>Perfect for the first win</div>
           </div>
-          <a class="btn-secondary" href="./checkout.html?plan=free">Claim Starter</a>
+          <a class="btn-secondary" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free">Claim Starter</a>
         </div>
       </article>
 
       <article class="pricing-card">
         <div class="pricing-copy">
           <h3>Player</h3>
-          <div class="price">$9.99 <small>/ month</small></div>
-          <div class="price-note">For regular players who want steady feedback without unlimited usage.</div>
+          <div class="price"><span data-plan-price="starter">$9.99</span> <small data-plan-interval="starter">/ month</small></div>
+          <div class="price-note" data-plan-note="starter">For regular players who want steady feedback without unlimited usage.</div>
           <div class="list">
             <div>10 reports per month</div>
             <div>Save and print reports</div>
             <div>Progress tracking unlocked</div>
             <div>Better than guessing between lessons</div>
           </div>
-          <a class="btn-secondary" href="./checkout.html?plan=starter">Choose Player</a>
+          <a class="btn-secondary" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Choose Player</a>
+          <div class="billing-copy" data-plan-billing-copy="starter">Cancel anytime. Save 15% on yearly billing.</div>
           <div class="anchor">What one bucket of blind reps costs: time. What this plan gives back: clarity.</div>
         </div>
       </article>
@@ -194,8 +273,8 @@
         <div class="tag">Most popular</div>
         <div class="pricing-copy">
           <h3>Performance</h3>
-          <div class="price">$19.99 <small>/ month</small></div>
-          <div class="price-note">The ideal plan for players who want analysis to become a real habit.</div>
+          <div class="price"><span data-plan-price="pro">$19.99</span> <small data-plan-interval="pro">/ month</small></div>
+          <div class="price-note" data-plan-note="pro">The ideal plan for players who want analysis to become a real habit.</div>
           <div class="list">
             <div>Unlimited monthly reviews</div>
             <div>Drills and tactics library access</div>
@@ -203,7 +282,8 @@
             <div>Weekly AI coaching reports</div>
             <div>Priority recommendation depth</div>
           </div>
-          <a class="btn-primary" href="./checkout.html?plan=pro">Choose Performance</a>
+          <a class="btn-primary" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Choose Performance</a>
+          <div class="billing-copy" data-plan-billing-copy="pro">Cancel anytime. Save 15% on yearly billing.</div>
           <div class="anchor">Best value: what a one-hour lesson costs, you get for a full month.</div>
         </div>
       </article>
@@ -211,8 +291,8 @@
       <article class="pricing-card">
         <div class="pricing-copy">
           <h3>Tournament Pro</h3>
-          <div class="price">$49.99 <small>/ month</small></div>
-          <div class="price-note">For players who want human review and tournament preparation built into the system.</div>
+          <div class="price"><span data-plan-price="elite">$49.99</span> <small data-plan-interval="elite">/ month</small></div>
+          <div class="price-note" data-plan-note="elite">For players who want human review and tournament preparation built into the system.</div>
           <div class="list">
             <div>Unlimited assessments and exports</div>
             <div>Coach feedback workflow</div>
@@ -220,8 +300,31 @@
             <div>Priority scheduling and queue</div>
             <div>Best fit for serious competitors</div>
           </div>
-          <a class="btn-secondary" href="./checkout.html?plan=elite">Choose Tournament Pro</a>
+          <a class="btn-secondary" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Choose Tournament Pro</a>
+          <div class="billing-copy" data-plan-billing-copy="elite">Cancel anytime. Save 15% on yearly billing.</div>
           <div class="anchor">Private coaching anchor: roughly $1.66 per day for the top plan.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="compare">
+      <article class="panel">
+        <div class="chip">ROI calculator</div>
+        <h2 style="margin-top:16px">How much do lessons cost you each month?</h2>
+        <p class="muted" style="margin-top:14px">Move the slider to compare typical coaching spend with SmartSwing Performance. The point is not to replace good coaching. The point is to make every lesson more productive and reduce blind reps between sessions.</p>
+        <div class="range-wrap" style="margin-top:18px">
+          <label for="lessonSpendRange" class="muted" style="font-weight:700">Monthly lesson spend</label>
+          <input id="lessonSpendRange" type="range" min="50" max="1200" step="25" value="300">
+          <div class="roi-number" id="lessonSpendValue">$300</div>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="chip">What that means</div>
+        <div class="list" style="margin-top:18px">
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">SmartSwing Performance</strong><span id="smartSwingAnnualValue">$239.88 per year</span></div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">Monthly savings vs. lessons</strong><span id="monthlySavingsValue">$280.01 per month</span></div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">Equivalent lessons covered</strong><span id="lessonEquivalentValue">About 2.0 one-hour private lessons</span></div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">Framing</strong>Use SmartSwing between lessons to keep the feedback loop alive instead of waiting for the next paid hour.</div>
         </div>
       </article>
     </section>
@@ -276,7 +379,7 @@
       </article>
       <article class="qa">
         <h3>Can I switch plans anytime?</h3>
-        <p class="muted" style="margin-top:10px">Yes. This build updates entitlements immediately so you can validate the right UX and guardrail paths.</p>
+        <p class="muted" style="margin-top:10px">Yes. Monthly plans can be canceled anytime. Yearly plans can also be canceled anytime and remain active through the end of the paid annual term.</p>
       </article>
       <article class="qa">
         <h3>Why can't Starter save reports?</h3>
@@ -287,13 +390,101 @@
         <p class="muted" style="margin-top:10px">Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</p>
       </article>
     </section>
+
+    <footer class="footer">
+      <div class="footer-col">
+        <strong>SmartSwing AI</strong>
+        <div>Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover.</div>
+        <div style="font-size:13px;color:var(--muted)">&copy; 2026 SmartSwing AI</div>
+      </div>
+      <div class="footer-col">
+        <strong>Pathways</strong>
+        <div class="footer-links">
+          <a href="./for-players.html">For Players</a>
+          <a href="./for-coaches.html">For Coaches</a>
+          <a href="./for-clubs.html">For Clubs</a>
+          <a href="./for-parents.html">For Parents</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Resources</strong>
+        <div class="footer-links">
+          <a href="./blog.html">Blog</a>
+          <a href="./library.html">Library</a>
+          <a href="./contact.html">Contact</a>
+          <a href="./refund-policy.html">Refund Policy</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Community</strong>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+    </footer>
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
+  <script src="./site-experience.js"></script>
   <script src="./pwa.js"></script>
   <script>
     const store = window.SmartSwingStore;
+    const BILLING_COPY = {
+      monthly: 'Cancel anytime.',
+      yearly: 'Cancel anytime | billed yearly | save 15%'
+    };
+    const PLAN_NOTES = {
+      starter: 'For regular players who want steady feedback without unlimited usage.',
+      pro: 'The ideal plan for players who want analysis to become a real habit.',
+      elite: 'For players who want human review and tournament preparation built into the system.'
+    };
+    const launchDeadline = new Date('2026-03-31T23:59:59-04:00');
+    const intervalFromQuery = new URLSearchParams(window.location.search).get('interval');
+    let activeBillingInterval = store.normalizeBillingInterval(intervalFromQuery || 'monthly');
+
+    function renderLaunchWindow() {
+      const titleEl = document.getElementById('launchPricingTitle');
+      const textEl = document.getElementById('launchPricingText');
+      if (!titleEl || !textEl) return;
+
+      const now = new Date();
+      const diffMs = launchDeadline.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffMs / 86400000);
+
+      if (diffDays > 1) {
+        titleEl.textContent = 'Launch pricing window is active.';
+        textEl.textContent = `${diffDays} days remain until March 31, 2026. Current public pricing may change after that date.`;
+        return;
+      }
+
+      if (diffDays === 1) {
+        titleEl.textContent = 'Launch pricing window is almost over.';
+        textEl.textContent = '1 day remains until March 31, 2026. Current public pricing may change after that date.';
+        return;
+      }
+
+      titleEl.textContent = 'Current launch pricing is still live.';
+      textEl.textContent = 'The original March 31, 2026 window has passed. Keep this section updated if pricing changes again so the message stays trustworthy.';
+    }
+
+    function renderRoiCalculator() {
+      const slider = document.getElementById('lessonSpendRange');
+      if (!slider) return;
+      const lessonSpend = Number(slider.value || 0);
+      const smartSwingMonthly = store.getPlanPrice('pro', 'monthly').amount;
+      const smartSwingAnnual = store.getPlanPrice('pro', 'yearly').amount;
+      const hourlyLessonsCovered = lessonSpend / 150;
+      const monthlySavings = Math.max(lessonSpend - smartSwingMonthly, 0);
+
+      document.getElementById('lessonSpendValue').textContent = `$${lessonSpend.toFixed(0)}`;
+      document.getElementById('smartSwingAnnualValue').textContent = `$${smartSwingAnnual.toFixed(2)} per year | $${smartSwingMonthly.toFixed(2)} per month`;
+      document.getElementById('monthlySavingsValue').textContent = `$${monthlySavings.toFixed(2)} per month`;
+      document.getElementById('lessonEquivalentValue').textContent = `About ${hourlyLessonsCovered.toFixed(1)} one-hour private lessons at $150 each`;
+    }
 
     function renderStatus() {
       const user = store.getCurrentUser();
@@ -305,10 +496,51 @@
       const plan = store.getCurrentPlan();
       const usage = store.canGenerateReport();
       const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
-      el.innerHTML = `<strong>${user.email}</strong>Current plan: ${plan.name}. Reports used this month: ${usageText}.`;
+      const intervalLabel = plan.billingInterval === 'yearly' ? 'yearly billing' : 'monthly billing';
+      el.innerHTML = `<strong>${user.email}</strong>Current plan: ${plan.name} | ${intervalLabel}. Reports used this month: ${usageText}.`;
     }
 
+    function renderBillingInterval(interval) {
+      activeBillingInterval = store.normalizeBillingInterval(interval || 'monthly');
+      document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.billingToggle === activeBillingInterval);
+        button.setAttribute('aria-pressed', button.dataset.billingToggle === activeBillingInterval ? 'true' : 'false');
+      });
+
+      ['starter', 'pro', 'elite'].forEach((planId) => {
+        const price = store.getPlanPrice(planId, activeBillingInterval);
+        const amountEl = document.querySelector(`[data-plan-price="${planId}"]`);
+        const intervalEl = document.querySelector(`[data-plan-interval="${planId}"]`);
+        const noteEl = document.querySelector(`[data-plan-note="${planId}"]`);
+        const buttonEl = document.querySelector(`[data-plan-button="${planId}"]`);
+        const copyEl = document.querySelector(`[data-plan-billing-copy="${planId}"]`);
+        if (amountEl) amountEl.textContent = `$${price.amount.toFixed(2)}`;
+        if (intervalEl) intervalEl.textContent = activeBillingInterval === 'yearly' ? '/ year' : '/ month';
+        if (noteEl) {
+          noteEl.textContent = activeBillingInterval === 'yearly'
+            ? `${store.getPlanDefinition(planId).name} billed yearly at 15% off. Monthly equivalent: $${price.monthlyEquivalent.toFixed(2)}.`
+            : PLAN_NOTES[planId];
+        }
+        if (buttonEl) {
+          buttonEl.href = `./signup.html?plan=${encodeURIComponent(planId)}&interval=${encodeURIComponent(activeBillingInterval)}`;
+          buttonEl.dataset.billingInterval = activeBillingInterval;
+        }
+        if (copyEl) {
+          copyEl.textContent = BILLING_COPY[activeBillingInterval];
+        }
+      });
+    }
+
+    document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
+      button.addEventListener('click', () => renderBillingInterval(button.dataset.billingToggle));
+    });
+
+    document.getElementById('lessonSpendRange')?.addEventListener('input', renderRoiCalculator);
+
     renderStatus();
+    renderBillingInterval(activeBillingInterval);
+    renderLaunchWindow();
+    renderRoiCalculator();
   </script>
 </body>
 </html>

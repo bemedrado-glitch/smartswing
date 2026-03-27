@@ -59,7 +59,7 @@
       <article class="panel">
         <div class="eyebrow">Your cart</div>
         <h1>Your cart</h1>
-        <p class="muted">This review step keeps the selected plan, entitlement notes, and trial state visible before checkout. Paid plans now hand off to Stripe-hosted recurring billing instead of pretending to activate locally.</p>
+        <p class="muted">This review step keeps the selected plan, billing cadence, entitlement notes, and trial state visible before checkout. Paid plans hand off to Stripe-hosted recurring billing only after you confirm the order.</p>
         <div class="actions">
           <a class="btn" href="./pricing.html">Change plan</a>
           <a class="btn-primary" id="checkoutBtn" href="./checkout.html">Continue to checkout</a>
@@ -74,20 +74,28 @@
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
     const store = window.SmartSwingStore;
     const params = new URLSearchParams(window.location.search);
     const planId = params.get('plan') || 'pro';
+    const billingInterval = store.normalizeBillingInterval(params.get('interval') || 'monthly');
     const plan = store.PLAN_DEFINITIONS[planId] || store.PLAN_DEFINITIONS.pro;
     const user = store.getCurrentUser();
     const trialEligibility = store.getTrialEligibility(user?.id, planId);
-    document.getElementById('planTitle').textContent = `${plan.name} | $${plan.monthlyPrice}/month`;
-    document.getElementById('checkoutBtn').href = `./checkout.html?plan=${encodeURIComponent(planId)}`;
+    const planPrice = store.getPlanPrice(planId, billingInterval);
+    store.clearCheckoutIntent?.();
+    document.getElementById('planTitle').textContent = planId === 'free'
+      ? `${plan.name} | $0/month`
+      : `${plan.name} | $${planPrice.amount.toFixed(2)}/${billingInterval === 'yearly' ? 'year' : 'month'}`;
+    document.getElementById('checkoutBtn').href = `./checkout.html?plan=${encodeURIComponent(planId)}&interval=${encodeURIComponent(billingInterval)}`;
     document.getElementById('cartDetails').innerHTML = [
+      `Billing: ${planId === 'free' ? 'Free activation' : (billingInterval === 'yearly' ? `Yearly billing at $${planPrice.amount.toFixed(2)} | monthly equivalent $${planPrice.monthlyEquivalent.toFixed(2)}` : `Monthly billing at $${planPrice.amount.toFixed(2)}`)}`,
       `Monthly reviews: ${Number.isFinite(plan.monthlyReviews) ? plan.monthlyReviews : 'Unlimited'}`,
       `Trial status: ${plan.id === 'free' ? 'No trial required' : (trialEligibility.eligible ? 'Eligible for current account' : (trialEligibility.reason || 'Not available'))}`,
       `Included perks: ${plan.perks.join(' | ')}`,
+      `Account: ${user?.email || 'Sign in required before checkout'}`,
       `Upgrade reason: ${plan.id === 'free' ? 'Start with zero friction.' : (plan.id === 'starter' ? 'More volume plus saved reports.' : (plan.id === 'pro' ? 'Unlimited review flow and full library access.' : 'Highest support layer with coach workflow and tournament prep.'))}`
     ].map((item) => `<div class="item">${item}</div>`).join('');
   </script>

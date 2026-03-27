@@ -49,8 +49,16 @@
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
+    if (window.SmartSwingStore?.getPendingExternalCheckout) {
+      const pending = window.SmartSwingStore.getPendingExternalCheckout();
+      if (pending?.planId) {
+        const interval = pending.billingInterval || 'monthly';
+        document.querySelector('.btn-primary').href = `./checkout.html?plan=${encodeURIComponent(pending.planId)}${pending.planId !== 'free' ? `&interval=${encodeURIComponent(interval)}` : ''}`;
+      }
+    }
     if (window.SmartSwingStore?.clearPendingExternalCheckout) {
       window.SmartSwingStore.clearPendingExternalCheckout();
     }

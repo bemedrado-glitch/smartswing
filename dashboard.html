@@ -128,6 +128,7 @@
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
   <script>
@@ -135,6 +136,9 @@
     const access = store.getAccessContext();
     const user = access.user;
     if (!user) window.location.href = './login.html';
+    if (store.isOnboardingRequired?.(user.id)) {
+      window.location.href = store.getOnboardingRoute(user);
+    }
     if (access.canAccessCoachDashboard) document.getElementById('coachNavBtn').classList.remove('hide');
 
     const metrics = store.getDashboardMetrics(user.id);
@@ -164,7 +168,8 @@
       avatar.textContent = '';
     }
     document.getElementById('userName').textContent = user.fullName || 'Player';
-    document.getElementById('userMeta').textContent = `${access.plan.name}${access.isTrial ? ' trial' : ''} | ${access.usage.used}/${Number.isFinite(access.usage.limit) ? access.usage.limit : 'Unlimited'} reports used`;
+    const billingLabel = access.plan.id === 'free' ? 'free' : (access.plan.billingInterval === 'yearly' ? 'yearly' : 'monthly');
+    document.getElementById('userMeta').textContent = `${access.plan.name}${access.isTrial ? ' trial' : ''} | ${billingLabel} | ${access.usage.used}/${Number.isFinite(access.usage.limit) ? access.usage.limit : 'Unlimited'} reports used`;
 
     document.getElementById('stats').innerHTML = [
       ['Average score', `${metrics.avgScore}%`],

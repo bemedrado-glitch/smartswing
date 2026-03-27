@@ -1,9 +1,18 @@
 const Stripe = require('stripe');
 
 const PLAN_PRICE_ENV = {
-  starter: 'STRIPE_PRICE_STARTER_MONTHLY',
-  pro: 'STRIPE_PRICE_PRO_MONTHLY',
-  elite: 'STRIPE_PRICE_ELITE_MONTHLY'
+  starter: {
+    monthly: 'STRIPE_PRICE_STARTER_MONTHLY',
+    yearly: 'STRIPE_PRICE_STARTER_YEARLY'
+  },
+  pro: {
+    monthly: 'STRIPE_PRICE_PRO_MONTHLY',
+    yearly: 'STRIPE_PRICE_PRO_YEARLY'
+  },
+  elite: {
+    monthly: 'STRIPE_PRICE_ELITE_MONTHLY',
+    yearly: 'STRIPE_PRICE_ELITE_YEARLY'
+  }
 };
 
 const FALLBACK_ORIGIN = 'https://www.smartswingai.com';
@@ -22,18 +31,36 @@ function normalizePlanId(planId) {
   return String(planId || '').trim().toLowerCase();
 }
 
-function getPriceEnvKeyForPlan(planId) {
-  return PLAN_PRICE_ENV[normalizePlanId(planId)] || '';
+function normalizeBillingInterval(interval) {
+  const normalized = String(interval || 'monthly').trim().toLowerCase();
+  if (normalized === 'annual') return 'yearly';
+  return normalized === 'yearly' ? 'yearly' : 'monthly';
 }
 
-function getPriceIdForPlan(planId) {
-  const envKey = getPriceEnvKeyForPlan(planId);
+function getPriceEnvKeyForPlan(planId, billingInterval = 'monthly') {
+  const envMap = PLAN_PRICE_ENV[normalizePlanId(planId)] || {};
+  return envMap[normalizeBillingInterval(billingInterval)] || '';
+}
+
+function getPriceIdForPlan(planId, billingInterval = 'monthly') {
+  const envKey = getPriceEnvKeyForPlan(planId, billingInterval);
   return envKey ? String(process.env[envKey] || '').trim() : '';
 }
 
-function getPlanIdForPrice(priceId) {
+function getPriceMetaForPrice(priceId) {
   const normalizedPriceId = String(priceId || '').trim();
-  return Object.keys(PLAN_PRICE_ENV).find((planId) => getPriceIdForPlan(planId) === normalizedPriceId) || 'free';
+  for (const [planId, intervals] of Object.entries(PLAN_PRICE_ENV)) {
+    for (const interval of Object.keys(intervals || {})) {
+      if (getPriceIdForPlan(planId, interval) === normalizedPriceId) {
+        return { planId, billingInterval: interval };
+      }
+    }
+  }
+  return { planId: 'free', billingInterval: 'monthly' };
+}
+
+function getPlanIdForPrice(priceId) {
+  return getPriceMetaForPrice(priceId).planId;
 }
 
 function getStripeClient() {
@@ -102,6 +129,27 @@ async function fetchSupabaseProfileByStripeCustomerId(customerId) {
   return Array.isArray(rows) && rows[0]?.id ? rows[0].id : null;
 }
 
+async function fetchSupabaseProfileByUserId(userId) {
+  const supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
+  const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!supabaseUrl || !serviceRoleKey || !userId) return null;
+
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=id,email,stripe_customer_id,stripe_subscription_id,subscription_tier,billing_interval&limit=1`,
+    {
+      method: 'GET',
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`
+      }
+    }
+  );
+
+  if (!response.ok) return null;
+  const rows = await response.json();
+  return Array.isArray(rows) && rows[0] ? rows[0] : null;
+}
+
 async function patchSupabaseProfile(userId, patch) {
   const supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
@@ -132,19 +180,53 @@ async function patchSupabaseProfile(userId, patch) {
   return { skipped: false, row: Array.isArray(rows) ? rows[0] : null };
 }
 
+async function upsertSupabaseSubscription(record) {
+  const supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
+  const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!supabaseUrl || !serviceRoleKey || !record?.user_id) {
+    return { skipped: true };
+  }
+
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/customer_subscriptions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        Prefer: 'resolution=merge-duplicates,return=representation'
+      },
+      body: JSON.stringify(record)
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Supabase subscription upsert failed: ${errorText}`);
+  }
+
+  const rows = await response.json();
+  return { skipped: false, row: Array.isArray(rows) ? rows[0] : null };
+}
+
 module.exports = {
   buildCheckoutUrls,
+  fetchSupabaseProfileByUserId,
   fetchSupabaseProfileByStripeCustomerId,
   getPlanIdForPrice,
+  getPriceMetaForPrice,
   getPriceEnvKeyForPlan,
   getPriceIdForPlan,
   getPublicAppUrl,
   getStripeClient,
   getSubscriptionPriceId,
   json,
+  normalizeBillingInterval,
   normalizePlanId,
   patchSupabaseProfile,
   readJsonBody,
   readRawBody,
-  toIsoFromUnix
+  toIsoFromUnix,
+  upsertSupabaseSubscription
 };
