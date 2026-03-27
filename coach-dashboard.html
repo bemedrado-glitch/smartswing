@@ -133,10 +133,17 @@
     document.getElementById('coachMeta').textContent = `${summary.users?.length || 0} athletes | ${summary.urgentAthletes || 0} urgent`;
     document.getElementById('coachHeroCopy').textContent = `${summary.urgentAthletes || 0} athletes need immediate attention based on stale tracking or large mechanical gaps.`;
     const coachAvatar = document.getElementById('coachAvatar');
-    coachAvatar.textContent = (access.user.fullName || 'Coach').charAt(0).toUpperCase();
     if (access.user.avatarDataUrl) {
-      coachAvatar.style.backgroundImage = `url(${access.user.avatarDataUrl})`;
+      coachAvatar.style.cssText = `background:url(${access.user.avatarDataUrl}) center/cover no-repeat;color:transparent;`;
       coachAvatar.textContent = '';
+      const coachHeroArt = document.querySelector('.hero-art');
+      if (coachHeroArt) {
+        coachHeroArt.style.backgroundImage = `linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url(${access.user.avatarDataUrl})`;
+        coachHeroArt.style.backgroundSize = 'cover';
+        coachHeroArt.style.backgroundPosition = 'center top';
+      }
+    } else {
+      coachAvatar.textContent = (access.user.fullName || 'Coach').charAt(0).toUpperCase();
     }
 
     document.getElementById('coachStats').innerHTML = [

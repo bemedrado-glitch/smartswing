@@ -146,6 +146,30 @@
       padding-left: 14px;
       margin-top: 14px;
     }
+    .error-banner {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,80,80,0.4);
+      background: rgba(255,80,80,0.08);
+      color: #ff8080;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .error-banner.visible { display: block; }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: var(--deep);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width: 960px) {
       .hero, .checkout-grid, .secure-grid, .payments, .topbar { grid-template-columns: 1fr; }
       .page { width: min(100%, calc(100% - 24px)); }
@@ -297,21 +321,23 @@
         return;
       }
 
-      checkoutHeading.textContent = `Continue to Stripe checkout | ${billingInterval === 'yearly' ? 'yearly billing' : 'monthly billing'}`;
+      checkoutHeading.textContent = `Continue to Stripe checkout | ${billingInterval === 'yearly' ? 'yearly — save 15%' : 'monthly billing'}`;
       checkoutFlow.innerHTML = checkoutRoute.ready ? `
         <div class="summary-card">
           <strong>Recurring billing is hosted by Stripe</strong>
-          You will leave SmartSwing briefly to finish the official subscription checkout, then return for payment verification and onboarding.
+          You will leave SmartSwing briefly to complete the secure subscription checkout, then return automatically for payment verification.
         </div>
-        <button class="btn-primary" id="submitBtn" type="submit">Continue to Stripe checkout</button>
-        <div class="micro">Final method availability can vary by country, browser, wallet setup, and Stripe configuration.</div>
+        <div class="error-banner" id="checkoutError"></div>
+        <button class="btn-primary" id="submitBtn" type="submit">Continue to Stripe checkout &rarr;</button>
+        <div class="micro">Visa, Mastercard, Apple Pay, Google Pay, and more. Availability varies by country.</div>
       ` : `
         <div class="summary-card">
           <strong>Stripe checkout is not fully configured yet</strong>
           The checkout UI is ready, but one or more Stripe keys or price ids are still missing.
         </div>
-        <button class="btn" id="submitBtn" type="submit">Review setup details</button>
-        <div class="micro">${checkoutRoute.reason}</div>
+        <div class="error-banner visible" id="checkoutError">${checkoutRoute.reason}</div>
+        <button class="btn" id="submitBtn" type="submit" disabled>Setup incomplete</button>
+        <div class="micro">Contact support if this persists.</div>
       `;
     }
 
@@ -375,8 +401,10 @@
       }
 
       const submitBtn = document.getElementById('submitBtn');
+      const errorBanner = document.getElementById('checkoutError');
+      if (errorBanner) { errorBanner.classList.remove('visible'); errorBanner.textContent = ''; }
       submitBtn.setAttribute('disabled', 'disabled');
-      submitBtn.textContent = 'Opening Stripe...';
+      submitBtn.innerHTML = '<span class="spinner"></span>Opening Stripe…';
 
       try {
         const session = await store.createStripeCheckout(planId, {
@@ -388,8 +416,10 @@
         window.location.href = session.url;
       } catch (error) {
         submitBtn.removeAttribute('disabled');
-        submitBtn.textContent = 'Continue to Stripe checkout';
-        alert(error.message || 'Unable to start secure checkout right now.');
+        submitBtn.innerHTML = 'Continue to Stripe checkout &rarr;';
+        const msg = error.message || 'Unable to start secure checkout right now. Please try again.';
+        if (errorBanner) { errorBanner.textContent = msg; errorBanner.classList.add('visible'); }
+        else { console.error('Checkout error:', msg); }
       }
     });
   </script>
