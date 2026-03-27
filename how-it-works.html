@@ -17,6 +17,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How SmartSwing AI Works",
+      "description": "Capture a tennis video, analyze it, review the focused plan, and track progress.",
+      "totalTime": "PT10M",
+      "step": [
+        { "@type": "HowToStep", "name": "Record the session", "text": "Capture a tennis video with enough context for analysis." },
+        { "@type": "HowToStep", "name": "Run the AI analyzer", "text": "Upload the clip so SmartSwing can turn movement data into readable feedback." },
+        { "@type": "HowToStep", "name": "Get a focused plan", "text": "Review the top priorities, drill recommendations, and tactical adjustments." },
+        { "@type": "HowToStep", "name": "Track, message, and schedule", "text": "Use dashboards and follow-up tools to keep the feedback loop active." }
+      ]
+    }
+  </script>
   <style>
     :root{
       --bg:#0a0a0a;
@@ -92,8 +107,13 @@
     .mini-item{border:1px solid var(--line);border-radius:15px;padding:12px;background:rgba(255,255,255,.03);color:var(--muted)}
     .cta{grid-template-columns:1.04fr .96fr;align-items:center;padding:28px;margin-top:18px}
     .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+    .footer{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:16px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
+    .footer-col{display:grid;gap:12px}
+    .footer-col strong{color:var(--text)}
+    .footer-links{display:flex;flex-wrap:wrap;gap:10px}
+    .footer-links a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.03);color:var(--muted);font-weight:700}
     @media (max-width:1024px){
-      .hero,.step,.step.reverse,.cta{grid-template-columns:1fr}
+      .hero,.step,.step.reverse,.cta,.footer{grid-template-columns:1fr}
       .actions{justify-content:flex-start}
     }
     @media (max-width:760px){
@@ -103,14 +123,16 @@
     }
   </style>
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
     <header class="top">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
       <nav class="nav">
-        <a class="btn" href="./features.html">Features</a>
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./for-coaches.html">For Coaches</a>
+        <a class="btn" href="./for-clubs.html">For Clubs</a>
+        <a class="btn" href="./blog.html">Blog</a>
         <a class="btn" href="./pricing.html">Pricing</a>
         <a class="btn" href="./login.html">Sign In</a>
         <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
@@ -197,10 +219,44 @@
       </div>
       <div class="actions">
         <a class="btn-primary" href="./analyze.html">Open Analyzer</a>
-        <a class="btn" href="./login.html">Sign In</a>
+        <a class="btn" href="./pricing.html">Compare Plans</a>
         <a class="btn" href="./contact.html">Talk to Us</a>
       </div>
     </section>
+
+    <footer class="footer">
+      <div class="footer-col">
+        <strong>SmartSwing AI</strong>
+        <div>Workflow overview from capture to analysis, drills, tactics, and follow-through.</div>
+        <div style="font-size:13px;color:var(--muted)">&copy; 2026 SmartSwing AI</div>
+      </div>
+      <div class="footer-col">
+        <strong>Pathways</strong>
+        <div class="footer-links">
+          <a href="./for-players.html">For Players</a>
+          <a href="./for-coaches.html">For Coaches</a>
+          <a href="./for-clubs.html">For Clubs</a>
+          <a href="./for-parents.html">For Parents</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Resources</strong>
+        <div class="footer-links">
+          <a href="./blog.html">Blog</a>
+          <a href="./library.html">Library</a>
+          <a href="./contact.html">Contact</a>
+          <a href="./refund-policy.html">Refund Policy</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Community</strong>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+    </footer>
   </div>
   <script src="./pwa.js"></script>
 </body>

@@ -48,7 +48,6 @@
     @media (max-width:980px){.topbar,.hero,.grid,.field-grid{grid-template-columns:1fr}.nav{justify-content:flex-start}}
   </style>
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
@@ -88,7 +87,7 @@
           <div class="stack" style="flex:1">
             <div>
               <label for="avatarInput">Profile picture</label>
-              <input id="avatarInput" type="file" accept="image/*">
+            <input id="avatarInput" name="avatar" type="file" accept="image/*">
             </div>
             <p class="helper">Use a clear headshot so your dashboard, coach view, and exports stay recognizable.</p>
           </div>
@@ -97,18 +96,18 @@
         <div class="field-grid" style="margin-top:18px">
           <div>
             <label for="fullName">Full name</label>
-            <input id="fullName" type="text" autocomplete="name" required>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" required>
           </div>
           <div>
             <label for="email">Email</label>
-            <input id="email" type="email" autocomplete="email" readonly>
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" readonly>
           </div>
         </div>
 
         <div class="field-grid" style="margin-top:14px">
           <div>
             <label for="phone">Phone</label>
-            <input id="phone" type="tel" autocomplete="tel">
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel">
           </div>
           <div>
             <label for="userRole">Role</label>
@@ -122,7 +121,7 @@
         <div class="field-grid" style="margin-top:16px">
           <div>
             <label for="ageRange">Age range</label>
-            <select id="ageRange">
+            <select id="ageRange" name="ageRange">
               <option value="">Select</option>
               <option>Under 12</option>
               <option>12-17</option>
@@ -133,7 +132,7 @@
           </div>
           <div>
             <label for="gender">Gender</label>
-            <select id="gender">
+            <select id="gender" name="gender">
               <option value="">Select</option>
               <option>Male</option>
               <option>Female</option>
@@ -146,17 +145,17 @@
         <div class="field-grid" style="margin-top:14px">
           <div>
             <label for="ustaLevel">USTA / NTRP level</label>
-            <input id="ustaLevel" type="text" placeholder="e.g. 4.0">
+            <input id="ustaLevel" name="ustaLevel" type="text" placeholder="e.g. 4.0">
           </div>
           <div>
             <label for="utrRating">UTR rating</label>
-            <input id="utrRating" type="text" placeholder="e.g. 6.5">
+            <input id="utrRating" name="utrRating" type="text" placeholder="e.g. 6.5">
           </div>
         </div>
 
         <div style="margin-top:14px">
           <label for="preferredHand">Preferred hand</label>
-          <select id="preferredHand">
+          <select id="preferredHand" name="preferredHand">
             <option value="right">Right-handed</option>
             <option value="left">Left-handed</option>
           </select>
@@ -170,29 +169,51 @@
       <div class="field-grid" style="margin-top:16px">
         <div>
           <label for="addressLine1">Address line 1</label>
-          <input id="addressLine1" type="text" autocomplete="address-line1">
+          <input id="addressLine1" name="addressLine1" type="text" autocomplete="address-line1">
         </div>
         <div>
           <label for="addressLine2">Address line 2</label>
-          <input id="addressLine2" type="text" autocomplete="address-line2">
+          <input id="addressLine2" name="addressLine2" type="text" autocomplete="address-line2">
         </div>
         <div>
           <label for="city">City</label>
-          <input id="city" type="text" autocomplete="address-level2">
+          <input id="city" name="city" type="text" autocomplete="address-level2">
         </div>
         <div>
           <label for="stateRegion">State / region</label>
-          <input id="stateRegion" type="text" autocomplete="address-level1">
+          <input id="stateRegion" name="stateRegion" type="text" autocomplete="address-level1">
         </div>
         <div>
           <label for="postalCode">Postal code</label>
-          <input id="postalCode" type="text" autocomplete="postal-code">
+          <input id="postalCode" name="postalCode" type="text" inputmode="numeric" autocomplete="postal-code">
         </div>
         <div>
           <label for="country">Country</label>
-          <input id="country" type="text" autocomplete="country-name">
+          <input id="country" name="country" type="text" autocomplete="country-name">
         </div>
       </div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Billing and subscription</h2>
+      <p class="muted">Manage your subscription, switch between monthly and yearly billing at checkout, and cancel anytime through Stripe's secure billing portal.</p>
+      <div class="field-grid" style="margin-top:16px">
+        <div class="card">
+          <div class="mini">Current plan</div>
+          <h3 id="billingPlanName">Free</h3>
+          <p class="muted" id="billingPlanMeta">No paid subscription is active.</p>
+        </div>
+        <div class="card">
+          <div class="mini">Billing status</div>
+          <h3 id="billingStatus">Free</h3>
+          <p class="muted" id="billingStatusMeta">Upgrade anytime from pricing.</p>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <a class="btn" id="upgradePlanBtn" href="./pricing.html">View plans</a>
+        <button class="btn" type="button" id="billingPortalBtn">Manage billing</button>
+      </div>
+      <p class="helper" style="margin-top:10px">Monthly plans can be canceled anytime. Yearly plans can also be canceled anytime and stay active until the end of the paid annual term.</p>
     </section>
 
     <section class="panel" style="margin-top:16px">
@@ -204,6 +225,7 @@
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
   <script>
@@ -220,6 +242,20 @@
     const roleLabel = user.role === 'coach' ? 'Coach' : (user.role === 'manager' ? 'Manager' : 'Player');
     document.getElementById('dashboardLink').href = user.role === 'coach' ? './coach-dashboard.html' : './dashboard.html';
     document.getElementById('userRole').value = roleLabel;
+
+    (function renderBilling() {
+      const plan = store.getCurrentPlan(user.id);
+      const planPrice = store.getPlanPrice(plan.id, plan.billingInterval);
+      document.getElementById('billingPlanName').textContent = plan.name;
+      document.getElementById('billingPlanMeta').textContent = plan.id === 'free'
+        ? 'No paid subscription is active.'
+        : `${plan.billingInterval === 'yearly' ? 'Yearly billing' : 'Monthly billing'} | ${plan.billingInterval === 'yearly' ? `$${planPrice.amount.toFixed(2)}/year` : `$${planPrice.amount.toFixed(2)}/month`}`;
+      document.getElementById('billingStatus').textContent = plan.subscriptionStatus || 'free';
+      document.getElementById('billingStatusMeta').textContent = plan.subscriptionCancelAtPeriodEnd
+        ? `Cancellation scheduled${plan.billingPeriodEnd ? ` | access ends ${new Date(plan.billingPeriodEnd).toLocaleDateString()}` : ''}`
+        : (plan.billingPeriodEnd ? `Renews through ${new Date(plan.billingPeriodEnd).toLocaleDateString()}` : 'Upgrade anytime from pricing.');
+      document.getElementById('billingPortalBtn').disabled = !access.canManageBilling || plan.id === 'free';
+    })();
 
     function showAlert(message, type = 'success') {
       alertBox.textContent = message;
@@ -300,6 +336,21 @@
     document.getElementById('signOutBtn').addEventListener('click', () => {
       store.signOut();
       window.location.href = './index.html';
+    });
+
+    document.getElementById('billingPortalBtn').addEventListener('click', async () => {
+      const button = document.getElementById('billingPortalBtn');
+      if (button.disabled) return;
+      button.disabled = true;
+      button.textContent = 'Opening billing...';
+      try {
+        const session = await store.createStripeBillingPortal('./settings.html');
+        window.location.href = session.url;
+      } catch (error) {
+        showAlert(error.message || 'Unable to open the billing portal.', 'error');
+        button.disabled = false;
+        button.textContent = 'Manage billing';
+      }
     });
   </script>
 </body>

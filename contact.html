@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI - Contact</title>
+  <title>SmartSwing AI | Contact Us</title>
   <meta name="description" content="Contact SmartSwing AI for onboarding, coaching partnerships, technical support, and team deployment discussions.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://www.smartswingai.com/contact.html">
@@ -191,20 +191,37 @@
       .hero, .content { grid-template-columns:1fr; }
       h1 { font-size: 36px; }
     }
+
+    .footer {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .footer a {
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-weight: 700;
+    }
   </style>
   <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
     <div class="top">
       <a class="logo" href="./index.html">SmartSwing AI</a>
       <div class="nav">
-        <a class="btn" href="./features.html">Features</a>
-        <a class="btn" href="./how-it-works.html">How It Works</a>
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./for-coaches.html">For Coaches</a>
+        <a class="btn" href="./for-clubs.html">For Clubs</a>
+        <a class="btn" href="./blog.html">Blog</a>
         <a class="btn" href="./pricing.html">Pricing</a>
-        <a class="btn" href="./login.html">Sign In</a>
         <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
       </div>
     </div>
@@ -231,15 +248,15 @@
         <div class="list">
           <div class="item">
             <h3>Primary email</h3>
-            <p class="muted"><strong>support@smartswing.ai</strong><br>Best for technical questions and account setup.</p>
+            <p class="muted"><strong><a href="mailto:support@smartswing.ai">support@smartswing.ai</a></strong><br>Best for technical questions and account setup.</p>
           </div>
           <div class="item">
             <h3>Coach onboarding</h3>
-            <p class="muted"><strong>coaches@smartswing.ai</strong><br>Best for academy rollout, roster workflows, and dashboard setup.</p>
+            <p class="muted"><strong><a href="mailto:coaches@smartswing.ai">coaches@smartswing.ai</a></strong><br>Best for academy rollout, roster workflows, and dashboard setup.</p>
           </div>
           <div class="item">
             <h3>Sales and partnerships</h3>
-            <p class="muted"><strong>growth@smartswing.ai</strong><br>Best for enterprise, clubs, and strategic integrations.</p>
+            <p class="muted"><strong><a href="mailto:growth@smartswing.ai">growth@smartswing.ai</a></strong><br>Best for enterprise, clubs, and strategic integrations.</p>
           </div>
           <div class="item">
             <h3>Review flow</h3>
@@ -262,6 +279,8 @@
               <option value="">Select topic</option>
               <option value="onboarding">Onboarding</option>
               <option value="technical-support">Technical support</option>
+              <option value="privacy-rights">Privacy or LGPD request</option>
+              <option value="accessibility-barrier">Accessibility barrier</option>
               <option value="coach-dashboard">Coach dashboard rollout</option>
               <option value="sales">Sales and pricing</option>
               <option value="partnership">Partnership</option>
@@ -275,9 +294,23 @@
         <div id="contactNotice" class="notice">Messages are saved securely in this browser first, then synced to the shared SmartSwing workspace when cloud configuration is active.</div>
       </div>
     </section>
+
+    <footer class="footer">
+      <a href="./for-players.html">For Players</a>
+      <a href="./for-coaches.html">For Coaches</a>
+      <a href="./for-clubs.html">For Clubs</a>
+      <a href="./blog.html">Blog</a>
+      <a href="./refund-policy.html">Refund Policy</a>
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./accessibility.html">Accessibility</a>
+      <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+    </footer>
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
   <script>

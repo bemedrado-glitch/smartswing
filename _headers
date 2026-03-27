@@ -4,10 +4,8 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(self), fullscreen=(self)
   X-Frame-Options: SAMEORIGIN
-  Content-Security-Policy: frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com
-
-/analyze.html
-  X-Robots-Tag: noindex, nofollow, noarchive
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com; base-uri 'self'; object-src 'none'; form-action 'self' https://checkout.stripe.com https://billing.stripe.com
 
 /dashboard.html
   X-Robots-Tag: noindex, nofollow, noarchive
@@ -24,13 +22,19 @@
 /checkout.html
   X-Robots-Tag: noindex, nofollow, noarchive
 
-/login.html
-  X-Robots-Tag: noindex, nofollow, noarchive
-
-/signup.html
-  X-Robots-Tag: noindex, nofollow, noarchive
-
 /settings.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/auth-callback.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/payment-success.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/payment-cancelled.html
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/welcome.html
   X-Robots-Tag: noindex, nofollow, noarchive
 
 /review-all.html

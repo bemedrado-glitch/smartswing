@@ -116,12 +116,16 @@
 
     .nav-links a,
     .ghost-btn,
-    .secondary-btn {
+    .secondary-btn,
+    .primary-btn {
       text-decoration: none;
       border-radius: 999px;
       padding: 13px 19px;
       font-size: 15px;
       font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
     }
 
@@ -241,9 +245,9 @@
 
     .hero-proof {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
-      margin-top: 26px;
+      margin-top: 22px;
     }
 
     .metric-box {
@@ -335,9 +339,9 @@
 
     .trust-bar {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
-      padding: 10px 0 34px;
+      padding: 4px 0 34px;
     }
 
     .trust-chip {
@@ -375,6 +379,10 @@
       color: var(--muted);
       line-height: 1.7;
       font-size: 17px;
+    }
+
+    .pricing-header h2 {
+      max-width: 16ch;
     }
 
     .steps {
@@ -426,12 +434,82 @@
       padding: 28px;
       grid-row: span 2;
       background:
-        linear-gradient(180deg, rgba(10, 10, 10, 0.18), rgba(10, 10, 10, 0.82)),
-        url("./assets/avatar/AI Breakdown side by side.png") center/cover;
+        linear-gradient(180deg, rgba(6, 10, 12, 0.08), rgba(6, 10, 12, 0.72)),
+        url("./assets/uiux/Smart 5.png") center/cover;
+      display: flex;
+      align-items: end;
     }
 
     .feature-card {
       padding: 0;
+    }
+
+    .feature-main::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(5, 7, 8, 0.88) 0%, rgba(5, 7, 8, 0.68) 42%, rgba(5, 7, 8, 0.22) 100%),
+        radial-gradient(circle at top right, rgba(57, 255, 20, 0.18), transparent 24%);
+      pointer-events: none;
+    }
+
+    .feature-main-content {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 460px);
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 10, 11, 0.76);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 56px rgba(0, 0, 0, 0.34);
+    }
+
+    .feature-main-title {
+      margin-top: 16px;
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+      max-width: 9ch;
+      color: var(--text);
+    }
+
+    .feature-main-copy {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.68;
+      max-width: 36ch;
+    }
+
+    .feature-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .feature-metric {
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .feature-metric strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .feature-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .feature-card.light {
@@ -453,13 +531,20 @@
     .story-grid,
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
+    }
+
+    .story-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pricing-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .testimonials {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
 
@@ -472,8 +557,16 @@
     .story-photo {
       aspect-ratio: 4 / 3;
       height: auto;
-      background-size: cover;
-      background-position: center 16%;
+      overflow: hidden;
+      background: #111;
+    }
+
+    .story-photo img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center 16%;
     }
 
     .story-copy,
@@ -515,6 +608,23 @@
       font-size: 15px;
     }
 
+    .review-stars {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .review-stars .stars {
+      letter-spacing: 0.18em;
+      font-size: 12px;
+    }
+
     .testimonial-top {
       display: flex;
       align-items: center;
@@ -523,21 +633,28 @@
     }
 
     .testimonial-avatar {
-      width: 54px;
-      height: 54px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      background-size: cover;
-      background-position: center 16%;
+      overflow: hidden;
       flex: none;
+    }
+
+    .testimonial-avatar img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center 16%;
     }
 
     .expand-card summary {
       list-style: none;
       cursor: pointer;
-      padding: 24px;
+      padding: 22px;
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
 
     .expand-card summary::-webkit-details-marker { display: none; }
@@ -564,13 +681,25 @@
       text-transform: uppercase;
     }
 
-    .expand-body {
-      padding: 0 24px 24px;
+    .expand-card[open] .expand-chip {
+      background: rgba(57, 255, 20, 0.14);
+      color: var(--volt);
+    }
+
+    .summary-copy {
       color: var(--muted);
-      line-height: 1.72;
+      line-height: 1.65;
       font-size: 15px;
+      max-width: 34ch;
+    }
+
+    .expand-body {
+      padding: 0 22px 22px;
+      color: var(--muted);
+      line-height: 1.66;
+      font-size: 14px;
       display: grid;
-      gap: 12px;
+      gap: 10px;
     }
 
     .expand-body strong { color: var(--text); }
@@ -583,7 +712,7 @@
     .expand-list div {
       border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 11px 13px;
       background: rgba(255, 255, 255, 0.03);
     }
 
@@ -639,6 +768,11 @@
       background: rgba(255, 255, 255, 0.03);
     }
 
+    .pricing-copy > a {
+      margin-top: 4px;
+      min-height: 48px;
+    }
+
     .urgency {
       display: flex;
       flex-wrap: wrap;
@@ -689,14 +823,140 @@
       justify-content: flex-end;
     }
 
+    .cta-actions .primary-btn,
+    .cta-actions .secondary-btn {
+      min-height: 48px;
+      padding-inline: 22px;
+      white-space: nowrap;
+    }
+
+    .lead-panel {
+      align-items: start;
+    }
+
+    .lead-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .lead-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .lead-form label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .lead-form input,
+    .lead-form select {
+      width: 100%;
+      padding: 12px 13px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .lead-form select option { color: #111; }
+
+    .lead-note {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .lead-note.success {
+      border-color: rgba(57, 255, 20, 0.34);
+      color: #b7ffac;
+    }
+
+    .lead-note.warn {
+      border-color: rgba(255, 216, 77, 0.34);
+      color: #ffe8a5;
+    }
+
+    .footer-meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
     .footer {
       padding: 34px 0 60px;
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr 1fr;
+      gap: 18px;
       color: var(--muted);
       font-size: 14px;
+    }
+
+    .footer-col {
+      display: grid;
+      gap: 12px;
+    }
+
+    .footer-col strong {
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .footer-links {
+      display: flex;
       flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .footer-links a {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    .footer-links a:hover {
+      transform: translateY(-2px);
+      border-color: rgba(57, 255, 20, 0.28);
+    }
+
+    .cookie-banner {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: min(420px, calc(100% - 24px));
+      z-index: 70;
+      padding: 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(8, 12, 14, 0.96);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(18px);
+    }
+
+    .cookie-banner[hidden] { display: none; }
+
+    .cookie-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .cookie-copy {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-top: 10px;
     }
 
     @media (max-width: 1080px) {
@@ -707,7 +967,8 @@
       .testimonials,
       .pricing-grid,
       .steps,
-      .trust-bar {
+      .trust-bar,
+      .footer {
         grid-template-columns: 1fr;
       }
 
@@ -717,10 +978,12 @@
       }
 
       .hero-proof,
-      .overlay-grid { grid-template-columns: 1fr; }
+      .overlay-grid,
+      .lead-form-grid { grid-template-columns: 1fr; }
 
       .pricing-card.featured { transform: none; }
       .cta-actions { justify-content: start; }
+      .feature-metrics { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 760px) {
@@ -731,9 +994,23 @@
       .section,
       .footer { width: min(100%, calc(100% - 24px)); }
 
-      .nav-inner { align-items: start; }
-      .nav-links { width: 100%; }
-      .nav-links a { flex: 1 1 140px; text-align: center; }
+      .nav-inner {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .brand { align-self: flex-start; }
+      .nav-links {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .nav-links a {
+        width: 100%;
+        text-align: center;
+      }
+      .nav-links .primary-btn { grid-column: 1 / -1; }
+      .hero { padding-top: 24px; }
       .hero-copy,
       .hero-visual,
       .panel,
@@ -742,20 +1019,21 @@
       .pricing-card,
       .cta-panel { border-radius: 24px; }
       .visual-frame { min-height: 420px; }
+      .cookie-banner { right: 12px; bottom: 12px; }
     }
   </style>
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <header class="nav">
     <div class="nav-inner">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
       <nav class="nav-links">
-        <a href="./features.html">Features</a>
-        <a href="./how-it-works.html">How It Works</a>
+        <a href="./for-players.html">For Players</a>
+        <a href="./for-coaches.html">For Coaches</a>
+        <a href="./for-clubs.html">For Clubs</a>
         <a href="./pricing.html">Pricing</a>
-        <a href="./library.html">Drills</a>
+        <a href="./blog.html">Blog</a>
         <a href="./login.html">Sign In</a>
         <a class="primary-btn" href="./analyze.html">Start Free Analysis</a>
       </nav>
@@ -767,7 +1045,7 @@
       <div class="hero-copy">
         <div class="eyebrow">Smart tennis intelligence</div>
         <h1>Your next level is one upload away.</h1>
-        <p>Upload one practice clip or match point. SmartSwing AI breaks down biomechanics, movement, timing, and court habits in under a minute, then turns that into the exact drills and tactical fixes you should do next.</p>
+        <p>Upload one practice clip and get a fast biomechanics readout, clearer priorities, and the next drills that actually fit your game.</p>
         <div class="hero-actions">
           <a class="primary-btn" href="./analyze.html">Start Free Analysis</a>
           <a class="secondary-btn" href="./pricing.html">See plans and pricing</a>
@@ -775,7 +1053,6 @@
         <div class="urgency">
           <span>No credit card required</span>
           <span>1 free analysis every month</span>
-          <span>Founding pricing live through March 31, 2026</span>
         </div>
         <div class="hero-proof">
           <div class="metric-box">
@@ -785,10 +1062,6 @@
           <div class="metric-box">
             <strong>Top 3</strong>
             <span>drills and match tactics only, so players know what matters now.</span>
-          </div>
-          <div class="metric-box">
-            <strong>Web-first</strong>
-            <span>works across desktop and mobile without forcing one device ecosystem.</span>
           </div>
         </div>
       </div>
@@ -821,9 +1094,8 @@
 
     <section class="trust-bar">
       <div class="trust-chip"><strong>Trusted by serious players</strong><br>Built for match video, practice video, and coach review.</div>
-      <div class="trust-chip"><strong>Partner-ready workflow</strong><br>Player and coach views stay separated by access role.</div>
-      <div class="trust-chip"><strong>Modern report UX</strong><br>Expandable insights explain what a metric means and why it matters.</div>
-      <div class="trust-chip"><strong>Real next-step coaching</strong><br>Not just numbers. Drills, tactics, execution plan, and accountability.</div>
+      <div class="trust-chip"><strong>Readable reports</strong><br>Expandable insights explain what a metric means and what to fix first.</div>
+      <div class="trust-chip"><strong>Real next-step coaching</strong><br>Not just numbers. Drills, tactics, and a usable plan for the next session.</div>
     </section>
 
     <section class="section">
@@ -863,68 +1135,75 @@
       </div>
       <div class="bento">
         <article class="hero-copy feature-main">
-          <div class="eyebrow">Biomechanics engine</div>
-          <h3 style="font-size:38px;max-width:11ch;margin-top:16px;">Your AI coach remembers what changed, what improved, and what to fix next.</h3>
-          <p style="margin-top:14px;">The report layer stays readable because it translates movement into coaching language, keeps the next actions visible, and preserves the session context that usually gets lost after practice.</p>
-          <div class="urgency" style="margin-top:18px;">
-            <span>Biomechanics translated into actions</span>
-            <span>Top 3 drills and tactics only</span>
-            <span>Player and coach context carried forward</span>
+          <div class="feature-main-content">
+            <div class="eyebrow">Biomechanics engine</div>
+            <h3 class="feature-main-title">Your AI coach remembers what changed.</h3>
+            <p class="feature-main-copy">Every report keeps the important part visible: what improved, what slipped, and the next correction to practice.</p>
+            <div class="feature-metrics">
+              <div class="feature-metric">
+                <strong>1</strong>
+                <span>clear report instead of disconnected numbers</span>
+              </div>
+              <div class="feature-metric">
+                <strong>3</strong>
+                <span>priority drills and tactics, not a content dump</span>
+              </div>
+              <div class="feature-metric">
+                <strong>24/7</strong>
+                <span>session memory across reports and dashboards</span>
+              </div>
+            </div>
           </div>
         </article>
-        <details class="panel feature-card expand-card" open>
+        <details class="panel feature-card expand-card">
           <summary>
             <div class="micro-label">AI Video Analysis</div>
-            <div class="expand-head"><h3>Angles translated into coaching language</h3><span class="expand-chip">Open</span></div>
-            <p>Instead of dumping raw definitions, the report explains what changed, how to read it, and what to fix first.</p>
+            <div class="expand-head"><h3>Angles translated into coaching language</h3><span class="expand-chip">Details</span></div>
+            <p class="summary-copy">The report turns raw movement data into a short explanation players can act on immediately.</p>
           </summary>
           <div class="expand-body">
             <div class="expand-list">
-              <div><strong>What it means:</strong> shoulder, elbow, hip, knee, trunk, timing, movement, and contact behavior are converted into plain-English insight.</div>
-              <div><strong>Why it matters:</strong> players and parents follow through faster when the report explains the movement cost, not just the number.</div>
-              <div><strong>What happens next:</strong> the top biomechanical gaps feed the drill and tactic recommendations automatically.</div>
+              <div><strong>What it means:</strong> the biggest angle changes are explained in plain English, not biomechanics jargon.</div>
+              <div><strong>Why it matters:</strong> players follow through faster when they understand the cost of the movement mistake.</div>
             </div>
           </div>
         </details>
         <details class="panel feature-card light expand-card">
           <summary>
             <div class="micro-label" style="background:rgba(0,0,0,0.06);color:#0e1012;border:1px solid rgba(0,0,0,0.08);">Progress Tracking</div>
-            <div class="expand-head"><h3>Digestible dashboards</h3><span class="expand-chip">Open</span></div>
-            <p>Tabbed player and coach views keep messaging, scheduling, activities, analytics, and the drill library separated instead of buried in one page.</p>
+            <div class="expand-head"><h3>Digestible dashboards</h3><span class="expand-chip">Details</span></div>
+            <p class="summary-copy" style="color:rgba(14,16,18,.72);">Player and coach tabs separate analytics, messages, schedule, and training into cleaner views.</p>
           </summary>
           <div class="expand-body" style="color:rgba(14,16,18,.74);">
             <div class="expand-list">
-              <div><strong>What it means:</strong> progress graphs, next actions, exports, schedule, and communication live in separate lanes.</div>
-              <div><strong>Why it matters:</strong> each role sees the right layer at the right time instead of a crowded all-in-one dashboard.</div>
-              <div><strong>What happens next:</strong> the player gets one clear weekly focus, and the coach gets faster triage.</div>
+              <div><strong>What it means:</strong> progress graphs and next actions live in separate lanes instead of one crowded dashboard.</div>
+              <div><strong>Why it matters:</strong> the player sees one weekly focus and the coach gets faster triage.</div>
             </div>
           </div>
         </details>
         <details class="panel feature-card expand-card">
           <summary>
             <div class="micro-label">Coach layer</div>
-            <div class="expand-head"><h3>Assign drills and follow through</h3><span class="expand-chip">Open</span></div>
-            <p>Coaches can see who is improving, who is stalling, and what should be assigned next without digging through clutter.</p>
+            <div class="expand-head"><h3>Assign drills and follow through</h3><span class="expand-chip">Details</span></div>
+            <p class="summary-copy">Coach notes, assignments, and schedule context stay attached to the same athlete record.</p>
           </summary>
           <div class="expand-body">
             <div class="expand-list">
-              <div><strong>What it means:</strong> coach notes, assignments, schedule, and role-based messaging stay tied to the athlete record.</div>
-              <div><strong>Why it matters:</strong> the coach does not need to rewrite the whole session just to give a precise next instruction.</div>
-              <div><strong>What happens next:</strong> one note can become the athlete’s next drill block and next session focus.</div>
+              <div><strong>What it means:</strong> the coach can move from report to message to assignment without rewriting everything.</div>
+              <div><strong>Why it matters:</strong> one precise note can become the athlete's next drill block and session focus.</div>
             </div>
           </div>
         </details>
         <details class="panel feature-card expand-card">
           <summary>
             <div class="micro-label">Dual sport path</div>
-            <div class="expand-head"><h3>Tennis first, pickleball ready</h3><span class="expand-chip">Open</span></div>
-            <p>Same operating system, separate logic. Keep the product extensible without making the tennis experience feel generic.</p>
+            <div class="expand-head"><h3>Tennis first, pickleball ready</h3><span class="expand-chip">Details</span></div>
+            <p class="summary-copy">The platform can expand without making the tennis experience feel generic or watered down.</p>
           </summary>
           <div class="expand-body">
             <div class="expand-list">
-              <div><strong>What it means:</strong> SmartSwing keeps tennis as the lead experience while allowing the platform to branch cleanly.</div>
-              <div><strong>Why it matters:</strong> the app can grow without forcing tennis players into generic language or mixed metric logic.</div>
-              <div><strong>What happens next:</strong> new sports can inherit the workflow without diluting the main tennis product.</div>
+              <div><strong>What it means:</strong> SmartSwing keeps tennis as the lead experience while allowing the workflow to branch cleanly.</div>
+              <div><strong>Why it matters:</strong> new sports can inherit the system without diluting the core product.</div>
             </div>
           </div>
         </details>
@@ -937,11 +1216,12 @@
           <div class="eyebrow">Transformation stories</div>
           <h2>Show the improvement. Then show the proof.</h2>
         </div>
-        <p>What converts is visible change: more pace, cleaner contact, better decisions, and fewer empty practice sessions.</p>
       </div>
       <div class="story-grid">
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 1 Tennis.png');background-position:center 18%;"></div>
+          <div class="story-photo">
+            <img src="./assets/avatar/Persona 3 Tennis.png" alt="Junior tennis player holding a racket on court" loading="lazy" style="object-position:center 12%;">
+          </div>
           <div class="story-copy">
             <div class="story-stat">+0.4 NTRP feel in 6 weeks</div>
             <h3>The junior chasing cleaner timing</h3>
@@ -949,7 +1229,9 @@
           </div>
         </article>
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 3 Tennis.png');background-position:center 14%;"></div>
+          <div class="story-photo">
+            <img src="./assets/avatar/Persona 1 Tennis.png" alt="Adult tennis player smiling with racket after practice" loading="lazy" style="object-position:center 18%;">
+          </div>
           <div class="story-copy">
             <div class="story-stat">Serve confidence from 62% to 81%</div>
             <h3>The adult player who wanted match trust</h3>
@@ -957,19 +1239,13 @@
           </div>
         </article>
         <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Coach Ace 16_9.png');background-position:center 16%;"></div>
+          <div class="story-photo">
+            <img src="./assets/avatar/Persona 2 Tennis.png" alt="Tennis coach on court reviewing player progress" loading="lazy" style="object-position:center 18%;">
+          </div>
           <div class="story-copy">
             <div class="story-stat">Coach visibility without dashboard overload</div>
             <h3>The coach who needed faster triage</h3>
             <p>Roster, messaging, scheduling, analytics, and assignments live in dedicated tabs so the coach sees who needs attention now.</p>
-          </div>
-        </article>
-        <article class="story-card">
-          <div class="story-photo" style="background-image:url('./assets/avatar/Persona 4 Tennis.png');background-position:center 15%;"></div>
-          <div class="story-copy">
-            <div class="story-stat">+11 score points in 30 days</div>
-            <h3>The player who needed fewer mixed signals</h3>
-            <p>By turning one report into one weekly focus, SmartSwing made progress feel measurable instead of vague.</p>
           </div>
         </article>
       </div>
@@ -978,46 +1254,39 @@
     <section class="section">
       <div class="section-header">
         <div>
-          <div class="eyebrow">Testimonials</div>
-          <h2>Players buy proof. Coaches buy clarity.</h2>
+          <div class="eyebrow">Use-Case Snapshots</div>
+          <h2>Different buyers need different kinds of clarity.</h2>
         </div>
-        <p>The right testimonial mix shows measurable improvement, not vague praise. Each one should answer one question: what changed because of SmartSwing?</p>
+        <p>These cards describe the kinds of outcomes the workflow is built to deliver for common user types across players, coaches, and competitors.</p>
       </div>
       <div class="testimonials">
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Persona 3 Tennis.png')"></div><div><div class="testimonial-stat">Adult player</div><strong style="margin-top:6px">Marcos, 4.0 league player</strong></div></div>
-            <p>"The report finally told me what mattered. Not ten disconnected numbers. Just the three things costing me depth and consistency, and the drills to fix them."</p>
+            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 2 Tennis.png" alt="Adult league player perspective portrait" loading="lazy" style="object-position:center 18%;"></div><div><div class="testimonial-stat">Adult player perspective</div><strong style="margin-top:6px">Needs fast, usable priorities</strong></div></div>
+            <p>The product is strongest when it cuts the noise: three meaningful issues, why they matter, and the drill sequence to fix them before the next match.</p>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Coach Ace 16_9.png')"></div><div><div class="testimonial-stat">Coach</div><strong style="margin-top:6px">Coach Elena, performance program</strong></div></div>
-            <p>"The expandable coach-ready priorities are the part I would use every week. I can see what changed, why it matters, and what to assign next without rewriting the whole session."</p>
+            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 1 Tennis.png" alt="Coach perspective portrait" loading="lazy" style="object-position:center 18%;"></div><div><div class="testimonial-stat">Coach perspective</div><strong style="margin-top:6px">Needs faster athlete triage</strong></div></div>
+            <p>Coaches need the report, dashboard, and follow-up flow to connect cleanly so one review can turn into the next assignment without rewriting the session.</p>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Persona 1 Tennis.png')"></div><div><div class="testimonial-stat">Junior parent</div><strong style="margin-top:6px">Parent of a U14 player</strong></div></div>
-            <p>"It made progress easier to understand. My son stopped asking if the score was bad and started asking what the next drill would improve."</p>
-          </div>
-        </article>
-        <article class="testimonial">
-          <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar" style="background-image:url('./assets/avatar/Persona 4 Tennis.png')"></div><div><div class="testimonial-stat">College player</div><strong style="margin-top:6px">Division college athlete</strong></div></div>
-            <p>"It feels like a film room and a coach note in one screen. The numbers finally connect to a decision I can make on court."</p>
+            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 3 Tennis.png" alt="Competitive player perspective portrait" loading="lazy" style="object-position:center 10%;"></div><div><div class="testimonial-stat">Competitive player perspective</div><strong style="margin-top:6px">Needs match-transferable decisions</strong></div></div>
+            <p>The experience should feel like a film room with clear next actions, so mechanics turn into decisions the player can actually use under pressure.</p>
           </div>
         </article>
       </div>
     </section>
 
     <section class="section" id="pricing">
-      <div class="section-header">
+      <div class="section-header pricing-header">
         <div>
           <div class="eyebrow">Pricing</div>
           <h2>Start free. Upgrade when the analysis turns into habit.</h2>
         </div>
-        <p>Anchor against private coaching, not against cheap software. One useful report can save a week of blind repetition.</p>
       </div>
       <div class="pricing-grid">
         <article class="pricing-card">
@@ -1030,7 +1299,7 @@
               <div>Live report preview</div>
               <div>No save, print, or export</div>
             </div>
-            <a class="secondary-btn" href="./checkout.html?plan=free">Unlock Starter</a>
+            <a class="secondary-btn" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free">Unlock Starter</a>
           </div>
         </article>
 
@@ -1044,7 +1313,7 @@
               <div>Save and print reports</div>
               <div>Cleaner KPI history and dashboard tracking</div>
             </div>
-            <a class="secondary-btn" href="./checkout.html?plan=starter">Unlock Player</a>
+            <a class="secondary-btn" data-plan-select="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Unlock Player</a>
           </div>
         </article>
 
@@ -1060,7 +1329,7 @@
               <div>Coach and player connection tools</div>
               <div>Weekly AI coaching reports</div>
             </div>
-            <a class="primary-btn" href="./checkout.html?plan=pro">Unlock Performance</a>
+            <a class="primary-btn" data-plan-select="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Unlock Performance</a>
           </div>
         </article>
 
@@ -1075,14 +1344,47 @@
               <div>Tournament preparation support</div>
               <div>Priority scheduling and feedback</div>
             </div>
-            <a class="secondary-btn" href="./checkout.html?plan=elite">Unlock Tournament Pro</a>
+            <a class="secondary-btn" data-plan-select="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Unlock Tournament Pro</a>
           </div>
         </article>
       </div>
       <div class="urgency">
         <span>Private coaching can cost $150 per hour</span>
-        <span>Founding member pricing ends March 31, 2026</span>
+        <span>Launch pricing is active now and may change after March 31, 2026</span>
         <span>Need academy billing or annual invoices? Contact SmartSwing for a custom rollout.</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="cta-panel lead-panel">
+        <div>
+          <div class="eyebrow">Lead Magnet</div>
+          <h2>Get the free practice-planning checklist.</h2>
+          <p>For visitors who are interested but not ready to buy, this captures the next best step: a simple guide for filming, analyzing, and turning one report into a better practice session.</p>
+        </div>
+        <div>
+          <form class="lead-form" id="homepageLeadForm">
+            <div class="lead-form-grid">
+              <label for="leadName">Name
+                <input id="leadName" type="text" required placeholder="Your name">
+              </label>
+              <label for="leadEmail">Email
+                <input id="leadEmail" type="email" required placeholder="you@example.com">
+              </label>
+            </div>
+            <label for="leadRole">Primary role
+              <select id="leadRole" required>
+                <option value="">Select one</option>
+                <option value="player">Player</option>
+                <option value="coach">Coach</option>
+                <option value="parent">Parent</option>
+                <option value="club">Club or academy</option>
+              </select>
+            </label>
+            <button class="primary-btn" type="submit">Get the checklist</button>
+          </form>
+          <div id="homepageLeadNotice" class="lead-note">Interest is stored in this browser now and can sync to SmartSwing support when cloud contact sync is active for your session.</div>
+        </div>
       </div>
     </section>
 
@@ -1094,19 +1396,97 @@
           <p>Open the analyzer, upload a clip, and review the upgraded report flow, cleaner dashboards, and plan-based access logic in one pass.</p>
         </div>
         <div class="cta-actions">
-          <a class="primary-btn" href="./analyze.html">Open Analyzer</a>
-          <a class="secondary-btn" href="./login.html">Sign In</a>
-          <a class="secondary-btn" href="./pricing.html">Compare plans</a>
+          <a class="primary-btn" href="./analyze.html">Start Free Analysis</a>
+          <a class="secondary-btn" href="./pricing.html">Compare Plans</a>
+          <a class="secondary-btn" href="./contact.html">Talk to Us</a>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <div>SmartSwing AI. Built for players, coaches, and performance programs.</div>
-    <div>Web-first tennis intelligence for analysis, improvement, and accountability.</div>
+    <div class="footer-col">
+      <strong>SmartSwing AI</strong>
+      <div>Built for players, coaches, and performance programs.</div>
+      <div>Web-first tennis intelligence for analysis, improvement, and accountability.</div>
+      <div class="footer-meta">&copy; 2026 SmartSwing AI</div>
+    </div>
+    <div class="footer-col">
+      <strong>Pathways</strong>
+      <div class="footer-links">
+        <a href="./for-players.html">For Players</a>
+        <a href="./for-coaches.html">For Coaches</a>
+        <a href="./for-clubs.html">For Clubs</a>
+        <a href="./for-parents.html">For Parents</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <strong>Resources</strong>
+      <div class="footer-links">
+        <a href="./blog.html">Blog</a>
+        <a href="./library.html">Drills Library</a>
+        <a href="./pickleball.html">Pickleball</a>
+        <a href="./refer-friends.html">Referral Program</a>
+        <a href="./contact.html">Contact Us</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <strong>Trust & Legal</strong>
+      <div class="footer-links">
+        <a href="./refund-policy.html">Refund Policy</a>
+        <a href="./user-agreement.html">User Agreement</a>
+        <a href="./privacy-policy.html">Privacy Policy</a>
+        <a href="./cookie-policy.html">Cookie Policy</a>
+        <a href="./accessibility.html">Accessibility</a>
+        <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+        <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+      </div>
+    </div>
   </footer>
 
+  <aside class="cookie-banner" data-cookie-banner hidden>
+    <div class="eyebrow">Cookie notice</div>
+    <div class="cookie-copy">SmartSwing AI uses essential storage for sign-in and product flow, and may use analytics or consent-based technologies to improve performance and marketing in regions where allowed. Review the <a href="./cookie-policy.html">Cookie Policy</a> and <a href="./privacy-policy.html">Privacy Policy</a>.</div>
+    <div class="cookie-actions">
+      <button class="primary-btn" type="button" data-cookie-action="accept">Accept all</button>
+      <button class="secondary-btn" type="button" data-cookie-action="essential">Essential only</button>
+    </div>
+  </aside>
+
+  <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script src="./growth-forms.js"></script>
+  <script src="./site-experience.js"></script>
   <script src="./pwa.js"></script>
+  <script>
+    const homepageLeadForm = document.getElementById('homepageLeadForm');
+    const homepageLeadNotice = document.getElementById('homepageLeadNotice');
+
+    homepageLeadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const result = await window.SmartSwingGrowth.submitLead({
+        name: document.getElementById('leadName').value,
+        email: document.getElementById('leadEmail').value,
+        topic: 'homepage-lead-magnet',
+        offer: 'Practice planning checklist',
+        message: `Role: ${document.getElementById('leadRole').value}`,
+        source: '/'
+      });
+
+      if (!result.ok) {
+        homepageLeadNotice.className = 'lead-note warn';
+        homepageLeadNotice.textContent = 'Please complete your name, email, and role before requesting the checklist.';
+        return;
+      }
+
+      homepageLeadForm.reset();
+      homepageLeadNotice.className = 'lead-note success';
+      homepageLeadNotice.textContent = result.synced
+        ? 'Checklist interest captured and synced to SmartSwing support.'
+        : `Checklist interest saved locally at ${new Date(result.savedAt).toLocaleString()}.`;
+    });
+  </script>
 </body>
 </html>

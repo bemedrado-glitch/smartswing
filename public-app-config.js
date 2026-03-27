@@ -6,6 +6,7 @@ window.SMARTSWING_SUPABASE_CONFIG = window.SMARTSWING_SUPABASE_CONFIG || {
 window.SMARTSWING_PAYMENT_CONFIG = window.SMARTSWING_PAYMENT_CONFIG || {
   activeProvider: 'stripe',
   stripe: {
-    apiBasePath: '/api'
+    apiBasePath: '/api',
+    portalApiPath: '/api/create-billing-portal-session'
   }
 };

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI Referral Program</title>
+  <meta name="description" content="Join the SmartSwing AI referral program interest list for player, coach, and ambassador invites.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://www.smartswingai.com/refer-friends.html">
+  <meta property="og:title" content="SmartSwing AI Referral Program">
+  <meta property="og:description" content="Refer players, coaches, and families to SmartSwing AI and join the referral-program interest list.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.smartswingai.com/refer-friends.html">
+  <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/Persona%202%20Tennis.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./growth-pages.css">
+  <script src="./analytics.js"></script>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
+      <nav class="nav">
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./for-coaches.html">For Coaches</a>
+        <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./contact.html">Contact</a>
+        <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Referral Program</div>
+        <h1>Share SmartSwing with players and coaches who will actually use it.</h1>
+        <p>The referral program is being rebuilt on the new site. If you want early access as a player, coach, club, or ambassador, leave your details and we will reach out when the live program is ready.</p>
+        <div class="mini-list" style="margin-top:18px">
+          <div>Best fit for coaches, academies, and competitive players with active tennis networks.</div>
+          <div>Referral incentives will prioritize real usage, not low-quality signups.</div>
+          <div>Early interest helps shape the live program structure.</div>
+        </div>
+      </article>
+      <article class="panel section-stack">
+        <div>
+          <h2>Request invite</h2>
+          <form id="referralForm">
+            <label for="referralName">Name
+              <input id="referralName" type="text" required placeholder="Your name">
+            </label>
+            <label for="referralEmail">Email
+              <input id="referralEmail" type="email" required placeholder="you@example.com">
+            </label>
+            <label for="referralRole">Role
+              <select id="referralRole" required>
+                <option value="">Select role</option>
+                <option value="player">Player</option>
+                <option value="coach">Coach</option>
+                <option value="club">Club or academy</option>
+                <option value="partner">Partner or ambassador</option>
+              </select>
+            </label>
+            <label for="referralMessage">How would you use the program?
+              <textarea id="referralMessage" placeholder="Tell us who you would refer and why the program matters."></textarea>
+            </label>
+            <button class="btn-primary" type="submit">Request Referral Access</button>
+          </form>
+          <div id="referralNotice" class="notice">Referral interest is stored in this browser first and can sync to SmartSwing support when cloud contact sync is active for your session.</div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="legal-footer">
+      <div class="footer-column">
+        <strong>SmartSwing AI</strong>
+        <p>Referral-program interest for coaches, ambassadors, players, and clubs.</p>
+      </div>
+      <div class="footer-column">
+        <strong>Explore</strong>
+        <div class="footer-links">
+          <a href="./refer-friends.html">Referral Program</a>
+          <a href="./for-coaches.html">For Coaches</a>
+          <a href="./for-clubs.html">For Clubs</a>
+          <a href="./contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="footer-column">
+        <strong>Community</strong>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+          <a href="./refund-policy.html">Refund Policy</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script src="./growth-forms.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const form = document.getElementById('referralForm');
+    const notice = document.getElementById('referralNotice');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const result = await window.SmartSwingGrowth.submitLead({
+        name: document.getElementById('referralName').value,
+        email: document.getElementById('referralEmail').value,
+        topic: 'referral-program',
+        offer: 'Referral program interest',
+        message: `Role: ${document.getElementById('referralRole').value}\n${document.getElementById('referralMessage').value}`,
+        source: '/refer-friends.html'
+      });
+
+      if (!result.ok) {
+        notice.className = 'notice warn';
+        notice.textContent = 'Please complete your name and email before requesting referral access.';
+        return;
+      }
+
+      form.reset();
+      notice.className = 'notice success';
+      notice.textContent = result.synced
+        ? 'Referral-program interest captured and synced to SmartSwing support.'
+        : `Referral-program interest saved locally at ${new Date(result.savedAt).toLocaleString()}.`;
+    });
+  </script>
+</body>
+</html>

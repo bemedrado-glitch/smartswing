@@ -1,9 +1,11 @@
 const {
   getPlanIdForPrice,
+  getPriceMetaForPrice,
   getStripeClient,
   getSubscriptionPriceId,
   json,
   patchSupabaseProfile,
+  upsertSupabaseSubscription,
   toIsoFromUnix
 } = require('./_lib/stripe-common');
 
@@ -34,10 +36,13 @@ module.exports = async (req, res) => {
       ? session.subscription
       : null;
 
+    const priceMeta = subscription ? getPriceMetaForPrice(getSubscriptionPriceId(subscription)) : { planId: 'free', billingInterval: 'monthly' };
     const planId = String(
       session.metadata?.appPlanId ||
+      priceMeta.planId ||
       (subscription ? getPlanIdForPrice(getSubscriptionPriceId(subscription)) : 'free')
     ).toLowerCase();
+    const billingInterval = String(session.metadata?.billingInterval || priceMeta.billingInterval || 'monthly').toLowerCase();
 
     const userId = session.client_reference_id || session.metadata?.smartSwingUserId || '';
     const subscriptionStatus = subscription?.status || (session.payment_status === 'paid' ? 'active' : session.status || 'open');
@@ -51,7 +56,27 @@ module.exports = async (req, res) => {
           subscription_tier: planId,
           subscription_status: subscriptionStatus,
           stripe_customer_id: session.customer || null,
-          billing_period_end: billingPeriodEnd
+          stripe_subscription_id: subscription?.id || null,
+          billing_period_end: billingPeriodEnd,
+          billing_interval: billingInterval,
+          subscription_cancel_at_period_end: Boolean(subscription?.cancel_at_period_end || false),
+          subscription_canceled_at: subscription?.canceled_at ? toIsoFromUnix(subscription.canceled_at) : null
+        });
+        await upsertSupabaseSubscription({
+          user_id: userId,
+          provider: 'stripe',
+          plan_id: planId,
+          billing_interval: billingInterval,
+          status: subscriptionStatus,
+          stripe_customer_id: session.customer || null,
+          stripe_subscription_id: subscription?.id || null,
+          checkout_session_id: session.id,
+          current_period_end: billingPeriodEnd,
+          cancel_at_period_end: Boolean(subscription?.cancel_at_period_end || false),
+          canceled_at: subscription?.canceled_at ? toIsoFromUnix(subscription.canceled_at) : null,
+          metadata: {
+            payment_status: session.payment_status || null
+          }
         });
         profileSynced = true;
       } catch (error) {
@@ -66,6 +91,7 @@ module.exports = async (req, res) => {
       status: session.status,
       paymentStatus: session.payment_status,
       subscriptionStatus,
+      billingInterval,
       billingPeriodEnd,
       stripeCustomerId: session.customer || '',
       stripeSubscriptionId: subscription?.id || '',

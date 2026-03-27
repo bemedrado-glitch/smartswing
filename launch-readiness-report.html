@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing Launch Readiness Report</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --panel: #11161d;
+      --panel-2: #171e27;
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f4f7fb;
+      --muted: #b8c3d1;
+      --green: #39ff14;
+      --yellow: #ffd84d;
+      --red: #ff6b7a;
+      --blue: #79c7ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(57, 255, 20, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(121, 199, 255, 0.08), transparent 24%),
+        linear-gradient(180deg, #06080c 0%, var(--bg) 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .page {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      background: linear-gradient(180deg, rgba(23, 30, 39, 0.96), rgba(17, 22, 29, 0.96));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .hero {
+      padding: 32px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 216, 77, 0.25);
+      background: rgba(255, 216, 77, 0.1);
+      color: var(--yellow);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(34px, 6vw, 60px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      color: var(--green);
+      letter-spacing: -0.03em;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    li { margin: 0 0 10px; }
+
+    .status-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: var(--panel-2);
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .ok { border-color: rgba(57, 255, 20, 0.25); }
+    .warn { border-color: rgba(255, 216, 77, 0.25); }
+    .risk { border-color: rgba(255, 107, 122, 0.25); }
+
+    .verdict {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 216, 77, 0.25);
+      background: rgba(255, 216, 77, 0.08);
+    }
+
+    .verdict strong {
+      color: var(--yellow);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .footer {
+      margin-top: 18px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover { text-decoration: underline; }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero, .panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Launch Audit</div>
+      <h1>SmartSwing Launch Readiness Report</h1>
+      <p>This is the HTML version of the launch audit, prepared so it can be opened directly in Google Chrome and shared internally.</p>
+      <div class="meta">
+        <div class="chip">Date: 2026-03-25</div>
+        <div class="chip">Repo: _smartswing_repo</div>
+        <div class="chip">Status: Soft launch close, broad launch not yet advised</div>
+      </div>
+      <div class="verdict">
+        <strong>Current verdict</strong>
+        The website is materially stronger after this pass, and the in-repo test suite passes. The remaining blockers are live production setup and legal review, not customer-facing HTML bugs.
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>What Was Audited</h2>
+        <ul>
+          <li>Public pages, legal pages, and navigation connectivity</li>
+          <li>Authentication, signup, checkout, payment success, and welcome flow</li>
+          <li>Supabase and Stripe integration points</li>
+          <li>Internal-file exposure risk in deployment output</li>
+          <li>SEO, crawlability, accessibility, mobile behavior, and trust UX</li>
+        </ul>
+      </article>
+
+      <article class="panel">
+        <h2>What Was Fixed</h2>
+        <ul>
+          <li>Production-safe auth fallback hardening in <code>app-data.js</code></li>
+          <li>Deployment exclusion of internal docs, SQL, scripts, and draft GPT browser files</li>
+          <li>Stronger response headers in <code>_headers</code> and <code>vercel.json</code></li>
+          <li>Accessibility and consent improvements on login, signup, and pricing controls</li>
+          <li>SEO metadata and sitemap improvements for key public pages</li>
+          <li>Homepage social-proof section reframed into transparent user perspectives</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Verification Results</h2>
+        <div class="status-list">
+          <div class="status ok">
+            <strong>Static link audit</strong>
+            No missing local HTML links were found in the current page set.
+          </div>
+          <div class="status ok">
+            <strong>Metadata spot check</strong>
+            Indexable public pages now have strong baseline metadata coverage, including the library page.
+          </div>
+          <div class="status ok">
+            <strong>Automated test suite</strong>
+            <code>tests/run-tests.ps1</code> completed successfully after the fixes.
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Launch Risks Still Open</h2>
+        <div class="status-list">
+          <div class="status warn">
+            <strong>Supabase production auth</strong>
+            Live email auth, Google, Apple, and Facebook OAuth still need real production configuration.
+          </div>
+          <div class="status warn">
+            <strong>Stripe live billing</strong>
+            Live prices, webhook secret, billing portal, and production payment settings still need to be confirmed.
+          </div>
+          <div class="status risk">
+            <strong>Legal review</strong>
+            Policy pages are structured and product-ready, but they are not a substitute for attorney review.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Recommendation</h2>
+      <p>A limited soft launch is reasonable after live Supabase and Stripe setup are completed and one final manual browser pass is done on desktop and mobile.</p>
+      <p>A broader public announcement, paid traffic, or scaled acquisition should wait until:</p>
+      <ul>
+        <li>live checkout is verified in production end to end</li>
+        <li>Supabase subscription persistence is confirmed with real Stripe events</li>
+        <li>Search Console and sitemap submission are completed</li>
+        <li>legal and privacy review is complete</li>
+      </ul>
+    </section>
+
+    <section class="panel" style="margin-top:18px">
+      <h2>Reference Guidance Used</h2>
+      <ul>
+        <li><a href="https://developers.google.com/search/docs/fundamentals/seo-starter-guide" target="_blank" rel="noopener">Google Search Central SEO Starter Guide</a></li>
+        <li><a href="https://www.w3.org/WAI/standards-guidelines/wcag/" target="_blank" rel="noopener">W3C WCAG Overview</a></li>
+        <li><a href="https://developer.chrome.com/docs/lighthouse/accessibility/" target="_blank" rel="noopener">Chrome Lighthouse Accessibility Guidance</a></li>
+        <li><a href="https://docs.stripe.com/payments/payment-methods/overview" target="_blank" rel="noopener">Stripe Payment Methods Overview</a></li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      HTML file path: <code>C:\Users\bmedrado\Desktop\SmartSwing\_smartswing_repo\launch-readiness-report.html</code><br>
+      Markdown version: <code>C:\Users\bmedrado\Desktop\SmartSwing\_smartswing_repo\LAUNCH_READINESS_REPORT.md</code>
+    </div>
+  </main>
+</body>
+</html>

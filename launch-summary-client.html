@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing Early Access Summary</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <style>
+    :root {
+      --bg: #050505;
+      --bg-soft: #0f141a;
+      --panel: rgba(18, 24, 32, 0.92);
+      --line: rgba(255, 255, 255, 0.1);
+      --text: #f5f7fb;
+      --muted: #bcc7d4;
+      --green: #39ff14;
+      --yellow: #ffd84d;
+      --cyan: #7fd8ff;
+      --dark: #081008;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57, 255, 20, 0.1), transparent 24%),
+        radial-gradient(circle at top right, rgba(127, 216, 255, 0.1), transparent 22%),
+        linear-gradient(180deg, #030303 0%, var(--bg) 48%, var(--bg-soft) 100%);
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .hero,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    .hero {
+      overflow: hidden;
+      position: relative;
+      padding: 34px;
+      margin-bottom: 18px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -120px -120px auto;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(57, 255, 20, 0.18), transparent 68%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 216, 77, 0.25);
+      background: rgba(255, 216, 77, 0.1);
+      color: var(--yellow);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    h1 {
+      margin: 16px 0 14px;
+      font-size: clamp(38px, 6vw, 68px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      max-width: 10ch;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+      color: var(--green);
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.72;
+    }
+
+    .hero-copy {
+      max-width: 760px;
+    }
+
+    .cta-row,
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .cta-row { margin-top: 18px; }
+
+    .btn,
+    .btn-secondary {
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-weight: 800;
+      font-size: 14px;
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--green), #8cff6f);
+      color: var(--dark);
+      border-color: rgba(57, 255, 20, 0.28);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    .chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .bullet-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bullet {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .bullet strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .status {
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .status .label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      color: var(--yellow);
+    }
+
+    .status .value {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      color: var(--green);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      border-left: 3px solid rgba(57, 255, 20, 0.35);
+      padding: 4px 0 4px 16px;
+    }
+
+    .step strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      margin-top: 18px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    a { color: var(--cyan); }
+
+    @media (max-width: 860px) {
+      .grid,
+      .status-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Early Access Summary</div>
+        <h1>SmartSwing is close to early user testing.</h1>
+        <p>The core website, account flow, checkout path, onboarding sequence, legal pages, and Stripe/Supabase integration structure are in place. The remaining work is mostly production configuration and final launch discipline, not a rebuild.</p>
+        <div class="chip-row">
+          <div class="chip">Website flow connected</div>
+          <div class="chip">Automated tests passing</div>
+          <div class="chip">Soft launch within reach</div>
+        </div>
+        <div class="cta-row">
+          <a class="btn" href="./launch-readiness-report.html">Open Full Audit</a>
+          <a class="btn-secondary" href="./index.html">Open Website</a>
+        </div>
+      </div>
+      <div class="status-bar">
+        <div class="status">
+          <span class="label">Product</span>
+          <div class="value">Ready</div>
+          <p>Main website experience is connected and presentable.</p>
+        </div>
+        <div class="status">
+          <span class="label">Testing</span>
+          <div class="value">Passed</div>
+          <p>Current automated test suite completed successfully.</p>
+        </div>
+        <div class="status">
+          <span class="label">Launch</span>
+          <div class="value">Near</div>
+          <p>Soft launch is reasonable after live setup is completed.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>What Is Already Strong</h2>
+        <div class="bullet-list">
+          <div class="bullet">
+            <strong>Connected customer journey</strong>
+            Landing page, pricing, signup, login, cart, checkout, payment success, and welcome onboarding are connected.
+          </div>
+          <div class="bullet">
+            <strong>Professional checkout direction</strong>
+            The payment flow uses a Stripe-hosted subscription path instead of a fake client-side checkout.
+          </div>
+          <div class="bullet">
+            <strong>Compliance structure exists</strong>
+            Privacy, terms, accessibility, cookie, California privacy, copyright, brand, about, and contact pages are in place.
+          </div>
+          <div class="bullet">
+            <strong>Launch hygiene improved</strong>
+            Internal artifacts are excluded from deployment, and production-safe auth behavior is hardened.
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>What Still Needs To Be Done</h2>
+        <div class="bullet-list">
+          <div class="bullet">
+            <strong>Supabase live configuration</strong>
+            Real production auth, OAuth providers, and redirect settings still need to be connected.
+          </div>
+          <div class="bullet">
+            <strong>Stripe live configuration</strong>
+            Real live prices, webhook secret, billing portal, and production account settings still need to be confirmed.
+          </div>
+          <div class="bullet">
+            <strong>Legal review</strong>
+            Policy pages should be reviewed by counsel before broader public rollout.
+          </div>
+          <div class="bullet">
+            <strong>Final manual browser QA</strong>
+            One last pass should be done on real desktop and mobile devices before launch.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>Recommended Launch Sequence</h2>
+        <div class="timeline">
+          <div class="step">
+            <strong>Step 1: Finish live setup</strong>
+            Connect production Supabase and Stripe values and verify real account creation and payment events.
+          </div>
+          <div class="step">
+            <strong>Step 2: Run a controlled soft launch</strong>
+            Invite a limited group of players, coaches, or trusted testers and collect feedback before spending on traffic.
+          </div>
+          <div class="step">
+            <strong>Step 3: Tighten based on behavior</strong>
+            Use real friction points from sign-up, plan selection, onboarding, and checkout to refine the experience.
+          </div>
+          <div class="step">
+            <strong>Step 4: Expand once production is proven</strong>
+            Start broader promotion only after live billing, persistence, and support processes are confirmed.
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Practical Recommendation</h2>
+        <p>If the goal is to start getting feedback quickly, do not wait for perfect. Finish live auth and billing setup, do one final device check, and then begin with a limited early-access group.</p>
+        <p>If the goal is a wider public launch or paid acquisition, more caution is warranted. That should wait until the live production environment is fully verified and legal review is complete.</p>
+        <div class="bullet-list" style="margin-top:16px">
+          <div class="bullet">
+            <strong>Good next move</strong>
+            Launch to a small invited audience and learn from real users.
+          </div>
+          <div class="bullet">
+            <strong>Not yet advised</strong>
+            Broad announcement, paid ads, or scaled public acquisition before live setup is fully confirmed.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="footer">
+      File: <strong>launch-summary-client.html</strong><br>
+      Full technical audit: <a href="./launch-readiness-report.html">launch-readiness-report.html</a><br>
+      Website: <a href="./index.html">index.html</a>
+    </div>
+  </main>
+</body>
+</html>

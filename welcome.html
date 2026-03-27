@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to SmartSwing AI</title>
+  <meta name="description" content="Complete your SmartSwing AI onboarding quiz and personalize your first improvement plan.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #071015;
+      --panel: rgba(10, 18, 24, 0.92);
+      --line: rgba(255,255,255,0.12);
+      --text: #f6f7fb;
+      --muted: #d7e2eb;
+      --green: #39ff14;
+      --gold: #ffd84d;
+      --deep: #0d1117;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(255,216,77,0.1), transparent 20%),
+        linear-gradient(180deg, #04070b 0%, #0c1419 50%, #091116 100%);
+      min-height: 100vh;
+    }
+    .page { width: min(1260px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 64px; }
+    .topbar, .hero, .quiz-layout, .options, .goal-grid, .examples { display: grid; gap: 18px; }
+    .topbar { grid-template-columns: auto 1fr auto; align-items: center; margin-bottom: 20px; }
+    .brand { text-decoration: none; color: var(--green); font-family: "Sora", sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.05em; }
+    .meta-box, .panel, .goal-card, .example-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+    }
+    .meta-box, .panel { padding: 24px; }
+    .hero { grid-template-columns: 1.02fr 0.98fr; margin-bottom: 18px; }
+    .quiz-layout { grid-template-columns: 1.04fr 0.96fr; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255,216,77,0.12);
+      border: 1px solid rgba(255,216,77,0.28);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: "Sora", sans-serif;
+      margin: 18px 0 14px;
+      font-size: clamp(38px, 6vw, 66px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      max-width: 12ch;
+    }
+    h2 {
+      font-family: "Sora", sans-serif;
+      margin-bottom: 12px;
+      font-size: 28px;
+      color: var(--green);
+      letter-spacing: -0.04em;
+    }
+    h3 { font-size: 18px; margin-bottom: 8px; }
+    p, li, label { color: var(--muted); line-height: 1.7; }
+    .hero-list { display: grid; gap: 12px; }
+    .hero-list li {
+      list-style: none;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      padding: 14px 16px;
+    }
+    .field-group { display: grid; gap: 12px; margin-bottom: 18px; }
+    .field-label { font-size: 15px; font-weight: 800; color: var(--text); }
+    .options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .option, .goal-card, .example-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      padding: 16px;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .option:hover, .goal-card:hover, .example-card:hover { transform: translateY(-2px); border-color: rgba(57,255,20,0.28); }
+    .option input, .goal-card input { margin-right: 10px; accent-color: var(--green); }
+    .goal-grid, .examples { grid-template-columns: 1fr 1fr; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+    .btn, .btn-primary {
+      border-radius: 999px;
+      padding: 13px 18px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 180ms ease;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+    .btn-primary {
+      border: 1px solid rgba(57,255,20,0.34);
+      background: linear-gradient(135deg, var(--green), #92ff72);
+      color: var(--deep);
+    }
+    .btn:hover, .btn-primary:hover { transform: translateY(-2px); }
+    .success-box {
+      display: none;
+      margin-top: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(57,255,20,0.34);
+      background: rgba(57,255,20,0.1);
+      padding: 16px;
+      color: #dfffd4;
+    }
+    @media (max-width: 960px) {
+      .topbar, .hero, .quiz-layout, .goal-grid, .examples, .options { grid-template-columns: 1fr; }
+      .page { width: min(100%, calc(100% - 24px)); }
+    }
+  </style>
+  <script src="./analytics.js"></script>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="./index.html">SmartSwing AI</a>
+      <div></div>
+      <div class="meta-box">
+        <strong id="planLabel">Welcome plan</strong>
+        <p id="planCopy">We are preparing your first improvement path.</p>
+      </div>
+    </header>
+
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Welcome</div>
+        <h1>One short quiz, then your first real improvement loop starts.</h1>
+        <p>Answer these required questions so SmartSwing AI can tailor the dashboard, drill emphasis, and first-use examples around how you actually play.</p>
+      </article>
+      <article class="panel">
+        <h2>What you can do immediately after this</h2>
+        <ul class="hero-list">
+          <li>Upload a serve or forehand video and get your first clear technical priorities.</li>
+          <li>Start with a favorite shot and use the drill library as a structured weekly routine.</li>
+          <li>Use the dashboard as your personal practice checkpoint instead of guessing what to fix next.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="quiz-layout">
+      <article class="panel">
+        <h2>Required onboarding quiz</h2>
+        <form id="welcomeForm">
+          <div class="field-group">
+            <div class="field-label">Tell us more about you</div>
+            <div class="options">
+              <label class="option"><input type="radio" name="playerIdentity" value="junior competitor" required>Junior competitor building a match-ready routine</label>
+              <label class="option"><input type="radio" name="playerIdentity" value="adult improver">Adult improver trying to practice more efficiently</label>
+              <label class="option"><input type="radio" name="playerIdentity" value="club player">Club player focused on consistency and confidence</label>
+              <label class="option"><input type="radio" name="playerIdentity" value="returning player">Returning player rebuilding technique and timing</label>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">My playing style</div>
+            <div class="options">
+              <label class="option"><input type="radio" name="playingStyle" value="aggressive baseliner" required>Aggressive baseliner</label>
+              <label class="option"><input type="radio" name="playingStyle" value="all-court player">All-court player</label>
+              <label class="option"><input type="radio" name="playingStyle" value="counterpuncher">Counterpuncher</label>
+              <label class="option"><input type="radio" name="playingStyle" value="serve and volley">Serve and volley</label>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">How many times do you practice each week?</div>
+            <div class="options">
+              <label class="option"><input type="radio" name="practiceFrequency" value="1-2 sessions" required>1-2 sessions</label>
+              <label class="option"><input type="radio" name="practiceFrequency" value="3-4 sessions">3-4 sessions</label>
+              <label class="option"><input type="radio" name="practiceFrequency" value="5-6 sessions">5-6 sessions</label>
+              <label class="option"><input type="radio" name="practiceFrequency" value="daily">Daily</label>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Favorite shot</div>
+            <div class="options">
+              <label class="option"><input type="radio" name="favoriteShot" value="forehand" required>Forehand</label>
+              <label class="option"><input type="radio" name="favoriteShot" value="backhand">Backhand</label>
+              <label class="option"><input type="radio" name="favoriteShot" value="serve">Serve</label>
+              <label class="option"><input type="radio" name="favoriteShot" value="volley">Volley</label>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label">Main improvement goals</div>
+            <div class="goal-grid">
+              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="more consistency">More consistency</label>
+              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="more power">More power</label>
+              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="cleaner footwork">Cleaner footwork</label>
+              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="better serve">Better serve</label>
+              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="match strategy">Match strategy</label>
+              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="injury-safe mechanics">Injury-safe mechanics</label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" type="submit">Save and continue</button>
+            <a class="btn" href="./contact.html">Need help first?</a>
+          </div>
+        </form>
+        <div class="success-box" id="successBox">
+          Your onboarding quiz is complete. Choose your next move below and SmartSwing will keep your profile ready.
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Start with one of these use cases</h2>
+        <div class="examples">
+          <div class="example-card">
+            <h3>Serve tune-up</h3>
+            <p>Upload one side-angle serve clip and use the report to isolate toss, leg drive, and racquet path issues quickly.</p>
+          </div>
+          <div class="example-card">
+            <h3>Forehand rebuild</h3>
+            <p>Use your favorite shot as the entry point, then stack drills and dashboard history to see whether the changes are real.</p>
+          </div>
+          <div class="example-card">
+            <h3>Practice with intent</h3>
+            <p>Turn vague practice into one weekly action plan with a technical focus, a drill block, and one tactical pattern.</p>
+          </div>
+          <div class="example-card">
+            <h3>Coach-ready review</h3>
+            <p>Bring one report to a lesson so the session starts from specific movement evidence instead of a blank slate.</p>
+          </div>
+        </div>
+        <div class="actions" style="margin-top:18px">
+          <a class="btn-primary" id="analyzeLink" href="./analyze.html">Open Analyzer</a>
+          <a class="btn" id="dashboardLink" href="./dashboard.html">Open Dashboard</a>
+          <a class="btn" href="./library.html">Browse Library</a>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+    const currentUser = store.getCurrentUser();
+    if (!currentUser) {
+      window.location.replace('./login.html');
+    }
+    const safeUser = currentUser || {};
+    const params = new URLSearchParams(window.location.search);
+    const selectedPlanId = params.get('plan') || safeUser.onboardingPlanId || safeUser.planId || 'free';
+    const plan = store.getPlanDefinition(selectedPlanId);
+    document.getElementById('planLabel').textContent = `${plan.name} onboarding`;
+    document.getElementById('planCopy').textContent = plan.id === 'free'
+      ? 'Your free access is active. Finish the quiz to personalize your first report.'
+      : `${plan.name} is active. Finish the quiz so SmartSwing can tailor the first training path.`;
+
+    if (safeUser.onboardingCompletedAt) {
+      document.getElementById('successBox').style.display = 'block';
+    }
+
+    document.getElementById('welcomeForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const checkedGoals = Array.from(document.querySelectorAll('input[name="improvementGoals"]:checked')).map((input) => input.value);
+      if (!checkedGoals.length) {
+        alert('Select at least one improvement goal.');
+        return;
+      }
+      try {
+        await store.saveOnboardingQuiz({
+          playerIdentity: document.querySelector('input[name="playerIdentity"]:checked')?.value || '',
+          playingStyle: document.querySelector('input[name="playingStyle"]:checked')?.value || '',
+          practiceFrequency: document.querySelector('input[name="practiceFrequency"]:checked')?.value || '',
+          favoriteShot: document.querySelector('input[name="favoriteShot"]:checked')?.value || '',
+          improvementGoals: checkedGoals,
+          onboardingPlanId: selectedPlanId,
+          onboardingSource: 'welcome-quiz'
+        });
+        document.getElementById('successBox').style.display = 'block';
+        document.getElementById('dashboardLink').href = './dashboard.html';
+        document.getElementById('analyzeLink').href = './analyze.html';
+        setTimeout(() => {
+          window.location.href = './dashboard.html';
+        }, 1400);
+      } catch (error) {
+        alert(error.message || 'Unable to save your onboarding quiz right now.');
+      }
+    });
+  </script>
+</body>
+</html>

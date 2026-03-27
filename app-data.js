@@ -2,6 +2,7 @@
   const KEYS = {
     users: 'smartswing_users',
     session: 'smartswing_session',
+    checkoutIntent: 'smartswing_checkout_intent',
     assessments: 'smartswing_assessments',
     coachSessions: 'smartswing_coach_sessions',
     messages: 'smartswing_messages',
@@ -21,11 +22,14 @@
     { id: 'coach-3', name: 'Coach Naomi Carter', specialty: 'Backhand timing + recovery' }
   ];
 
+  const YEARLY_DISCOUNT_PERCENT = 15;
+
   const PLAN_DEFINITIONS = {
     free: {
       id: 'free',
       name: 'Free',
       monthlyPrice: 0,
+      yearlyPrice: 0,
       monthlyReviews: 1,
       canSaveReport: false,
       canPrintReport: false,
@@ -39,6 +43,7 @@
       id: 'starter',
       name: 'Player',
       monthlyPrice: 9.99,
+      yearlyPrice: 101.90,
       monthlyReviews: 10,
       canSaveReport: true,
       canPrintReport: true,
@@ -46,12 +51,13 @@
       hasTacticLibrary: false,
       canConnectCoaches: false,
       canConnectPlayers: false,
-      perks: ['10 reports per month', 'Report save + print']
+      perks: ['10 reports per month', 'Report save + print', 'Yearly plan saves 15%']
     },
     pro: {
       id: 'pro',
       name: 'Performance',
       monthlyPrice: 19.99,
+      yearlyPrice: 203.90,
       monthlyReviews: Infinity,
       canSaveReport: true,
       canPrintReport: true,
@@ -63,13 +69,15 @@
         'Unlimited reports',
         'Full drill and tactics video library',
         'Connect with coaches and players',
-        'Priority progress insights'
+        'Priority progress insights',
+        'Yearly plan saves 15%'
       ]
     },
     elite: {
       id: 'elite',
       name: 'Tournament Pro',
       monthlyPrice: 49.99,
+      yearlyPrice: 509.90,
       monthlyReviews: Infinity,
       canSaveReport: true,
       canPrintReport: true,
@@ -81,7 +89,8 @@
         'Unlimited reports',
         'Certified coach feedback workflow',
         'Tournament prep and match-plan reviews',
-        'Priority scheduling and accountability queue'
+        'Priority scheduling and accountability queue',
+        'Yearly plan saves 15%'
       ]
     }
   };
@@ -101,27 +110,57 @@
         },
         starter: {
           mode: 'stripe-subscription',
-          envPriceKey: 'STRIPE_PRICE_STARTER_MONTHLY',
-          planName: 'SmartSwing Player Monthly',
-          amount: 9.99,
+          planName: 'SmartSwing Player',
           recurring: true,
-          buyable: true
+          buyable: true,
+          intervals: {
+            monthly: {
+              envPriceKey: 'STRIPE_PRICE_STARTER_MONTHLY',
+              planName: 'SmartSwing Player Monthly',
+              amount: 9.99
+            },
+            yearly: {
+              envPriceKey: 'STRIPE_PRICE_STARTER_YEARLY',
+              planName: 'SmartSwing Player Yearly',
+              amount: 101.90
+            }
+          }
         },
         pro: {
           mode: 'stripe-subscription',
-          envPriceKey: 'STRIPE_PRICE_PRO_MONTHLY',
-          planName: 'SmartSwing Performance Monthly',
-          amount: 19.99,
+          planName: 'SmartSwing Performance',
           recurring: true,
-          buyable: true
+          buyable: true,
+          intervals: {
+            monthly: {
+              envPriceKey: 'STRIPE_PRICE_PRO_MONTHLY',
+              planName: 'SmartSwing Performance Monthly',
+              amount: 19.99
+            },
+            yearly: {
+              envPriceKey: 'STRIPE_PRICE_PRO_YEARLY',
+              planName: 'SmartSwing Performance Yearly',
+              amount: 203.90
+            }
+          }
         },
         elite: {
           mode: 'stripe-subscription',
-          envPriceKey: 'STRIPE_PRICE_ELITE_MONTHLY',
-          planName: 'SmartSwing Tournament Pro Monthly',
-          amount: 49.99,
+          planName: 'SmartSwing Tournament Pro',
           recurring: true,
-          buyable: true
+          buyable: true,
+          intervals: {
+            monthly: {
+              envPriceKey: 'STRIPE_PRICE_ELITE_MONTHLY',
+              planName: 'SmartSwing Tournament Pro Monthly',
+              amount: 49.99
+            },
+            yearly: {
+              envPriceKey: 'STRIPE_PRICE_ELITE_YEARLY',
+              planName: 'SmartSwing Tournament Pro Yearly',
+              amount: 509.90
+            }
+          }
         }
       }
     }
@@ -559,6 +598,108 @@
     return { url, anonKey };
   }
 
+  function isLocalDevelopmentHost() {
+    const host = String(window.location.hostname || '').toLowerCase();
+    return !host || host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local');
+  }
+
+  function allowLocalDataMode() {
+    if (window.SMARTSWING_ALLOW_LOCAL_MODE === true) return true;
+    if (window.SMARTSWING_ALLOW_LOCAL_MODE === false) return false;
+    return isLocalDevelopmentHost();
+  }
+
+  function getAuthAvailability() {
+    const supabaseConfigured = isSupabaseConfigured();
+    const localDataMode = allowLocalDataMode();
+    return {
+      supabaseConfigured,
+      localDataMode,
+      emailPasswordAvailable: supabaseConfigured || localDataMode,
+      socialOAuthAvailable: supabaseConfigured
+    };
+  }
+
+  async function getOAuthProviderAvailability(provider) {
+    const normalizedProvider = String(provider || '').trim().toLowerCase();
+    const providerLabel = normalizedProvider === 'facebook'
+      ? 'Meta'
+      : normalizedProvider
+        ? `${normalizedProvider.slice(0, 1).toUpperCase()}${normalizedProvider.slice(1)}`
+        : 'OAuth';
+    const cfg = getSupabaseConfig();
+    if (!cfg || !normalizedProvider) {
+      return {
+        provider: normalizedProvider,
+        available: false,
+        reason: `${providerLabel} sign-in is unavailable because the Supabase public configuration is incomplete.`
+      };
+    }
+
+    const probeUrl = new URL('/auth/v1/authorize', cfg.url);
+    probeUrl.searchParams.set('provider', normalizedProvider);
+    probeUrl.searchParams.set('redirect_to', getOAuthCallbackUrl());
+
+    try {
+      const response = await fetch(probeUrl.toString(), {
+        method: 'GET',
+        headers: {
+          apikey: cfg.anonKey,
+          Authorization: `Bearer ${cfg.anonKey}`
+        },
+        redirect: 'manual'
+      });
+
+      if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400) || response.ok) {
+        return {
+          provider: normalizedProvider,
+          available: true,
+          reason: ''
+        };
+      }
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
+
+      const message = String(
+        payload?.msg ||
+        payload?.message ||
+        payload?.error_description ||
+        payload?.error ||
+        ''
+      ).trim();
+
+      if (/provider is not enabled/i.test(message)) {
+        return {
+          provider: normalizedProvider,
+          available: false,
+          reason: `${providerLabel} sign-in is not enabled in Supabase yet.`
+        };
+      }
+
+      return {
+        provider: normalizedProvider,
+        available: false,
+        reason: message || `${providerLabel} sign-in is unavailable right now.`
+      };
+    } catch (error) {
+      return {
+        provider: normalizedProvider,
+        available: false,
+        reason: error?.message || `${providerLabel} sign-in is unavailable right now.`
+      };
+    }
+  }
+
+  function clearUnsafeLocalSession() {
+    if (allowLocalDataMode() || isSupabaseConfigured()) return;
+    localStorage.removeItem(KEYS.session);
+  }
+
   function setSupabaseConfig(config) {
     const payload = {
       url: String(config?.url || '').trim(),
@@ -631,7 +772,62 @@
     return `${getAppBaseUrl()}auth-callback.html`;
   }
 
+  function setCheckoutIntent(intent = {}) {
+    const planId = String(intent.planId || '').toLowerCase();
+    if (!PLAN_DEFINITIONS[planId]) return null;
+    return write(KEYS.checkoutIntent, {
+      planId,
+      billingInterval: normalizeBillingInterval(intent.billingInterval || intent.interval || 'monthly'),
+      source: intent.source || window.location.pathname || '',
+      createdAt: intent.createdAt || nowIso()
+    });
+  }
+
+  function getCheckoutIntent() {
+    return read(KEYS.checkoutIntent, null);
+  }
+
+  function clearCheckoutIntent() {
+    localStorage.removeItem(KEYS.checkoutIntent);
+  }
+
+  function getCheckoutIntentDestination(intent = getCheckoutIntent()) {
+    if (!intent?.planId || !PLAN_DEFINITIONS[intent.planId]) return '';
+    const params = new URLSearchParams({ plan: intent.planId });
+    if (intent.planId !== 'free') {
+      params.set('interval', normalizeBillingInterval(intent.billingInterval || 'monthly'));
+    }
+    return `${getAppBaseUrl()}cart.html?${params.toString()}`;
+  }
+
+  function isOnboardingRequired(userId) {
+    const user = userId
+      ? getUsers().find((entry) => entry.id === userId)
+      : getCurrentUser();
+    if (!user || user.role !== 'player') return false;
+    return Boolean(user.onboardingRequiredAt && !user.onboardingCompletedAt);
+  }
+
+  function getOnboardingRoute(user) {
+    const targetUser = user?.id
+      ? (getUsers().find((entry) => entry.id === user.id) || user)
+      : getCurrentUser();
+    if (!isOnboardingRequired(targetUser?.id)) return '';
+    const params = new URLSearchParams({
+      plan: targetUser?.onboardingPlanId || targetUser?.trialPlanId || targetUser?.planId || 'free'
+    });
+    const planId = params.get('plan');
+    if (planId && planId !== 'free') {
+      params.set('interval', normalizeBillingInterval(targetUser?.billingInterval || 'monthly'));
+    }
+    return `${getAppBaseUrl()}welcome.html?${params.toString()}`;
+  }
+
   function getPostAuthDestinationForUser(user) {
+    const checkoutIntentDestination = getCheckoutIntentDestination();
+    if (checkoutIntentDestination) return checkoutIntentDestination;
+    const onboardingRoute = getOnboardingRoute(user);
+    if (onboardingRoute) return onboardingRoute;
     const access = getAccessContext(user?.id);
     if (access.role === 'coach' && access.canAccessCoachDashboard) return `${getAppBaseUrl()}coach-dashboard.html`;
     return `${getAppBaseUrl()}dashboard.html`;
@@ -658,7 +854,11 @@
       trialHistory: Array.isArray(profile?.trial_history) ? profile.trial_history : getTrialHistory(existingLocal),
       subscriptionStatus: profile?.subscription_status || existingLocal?.subscriptionStatus || 'free',
       stripeCustomerId: profile?.stripe_customer_id || existingLocal?.stripeCustomerId || '',
+      stripeSubscriptionId: profile?.stripe_subscription_id || existingLocal?.stripeSubscriptionId || '',
       billingPeriodEnd: profile?.billing_period_end || existingLocal?.billingPeriodEnd || null,
+      billingInterval: normalizeBillingInterval(profile?.billing_interval || existingLocal?.billingInterval || 'monthly'),
+      subscriptionCancelAtPeriodEnd: Boolean(profile?.subscription_cancel_at_period_end ?? existingLocal?.subscriptionCancelAtPeriodEnd ?? false),
+      subscriptionCanceledAt: profile?.subscription_canceled_at || existingLocal?.subscriptionCanceledAt || null,
       phone: profile?.phone || existingLocal?.phone || '',
       addressLine1: profile?.address_line_1 || existingLocal?.addressLine1 || '',
       addressLine2: profile?.address_line_2 || existingLocal?.addressLine2 || '',
@@ -666,6 +866,15 @@
       stateRegion: profile?.state_region || existingLocal?.stateRegion || '',
       postalCode: profile?.postal_code || existingLocal?.postalCode || '',
       country: profile?.country || existingLocal?.country || '',
+      playerIdentity: existingLocal?.playerIdentity || '',
+      playingStyle: existingLocal?.playingStyle || '',
+      practiceFrequency: existingLocal?.practiceFrequency || '',
+      favoriteShot: existingLocal?.favoriteShot || '',
+      improvementGoals: Array.isArray(existingLocal?.improvementGoals) ? existingLocal.improvementGoals : [],
+      onboardingRequiredAt: existingLocal?.onboardingRequiredAt || null,
+      onboardingCompletedAt: existingLocal?.onboardingCompletedAt || null,
+      onboardingPlanId: existingLocal?.onboardingPlanId || null,
+      onboardingSource: existingLocal?.onboardingSource || '',
       createdAt: profile?.created_at || existingLocal?.createdAt || nowIso()
     };
   }
@@ -743,6 +952,29 @@
     return PLAN_DEFINITIONS[planId] || PLAN_DEFINITIONS.free;
   }
 
+  function normalizeBillingInterval(value) {
+    const input = String(value || 'monthly').trim().toLowerCase();
+    if (input === 'annual') return 'yearly';
+    return input === 'yearly' ? 'yearly' : 'monthly';
+  }
+
+  function getPlanPrice(planId, billingInterval = 'monthly') {
+    const plan = getPlanDefinition(planId);
+    const interval = normalizeBillingInterval(billingInterval);
+    const amount = interval === 'yearly' && Number.isFinite(plan.yearlyPrice)
+      ? plan.yearlyPrice
+      : plan.monthlyPrice;
+    const monthlyEquivalent = interval === 'yearly' && amount
+      ? Number((amount / 12).toFixed(2))
+      : plan.monthlyPrice;
+    return {
+      amount,
+      interval,
+      monthlyEquivalent,
+      discountPercent: interval === 'yearly' && amount ? YEARLY_DISCOUNT_PERCENT : 0
+    };
+  }
+
   function getPaymentProviderSettings() {
     const fromWindow = window.SMARTSWING_PAYMENT_CONFIG || {};
     return {
@@ -754,7 +986,12 @@
           fromWindow?.stripe?.apiBasePath ||
           PAYMENT_PROVIDER_SETTINGS.stripe.apiBasePath ||
           '/api'
-        ).trim() || '/api'
+        ).trim() || '/api',
+        portalApiPath: String(
+          fromWindow?.stripe?.portalApiPath ||
+          PAYMENT_PROVIDER_SETTINGS.stripe.portalApiPath ||
+          '/api/create-billing-portal-session'
+        ).trim() || '/api/create-billing-portal-session'
       }
     };
   }
@@ -766,8 +1003,20 @@
     return getPaymentProviderSettings().publicOrigin;
   }
 
-  function getStripePlanConfig(planId) {
-    return getPaymentProviderSettings().stripe.plans[String(planId || 'free').toLowerCase()] || null;
+  function getStripePlanConfig(planId, billingInterval = 'monthly') {
+    const config = getPaymentProviderSettings().stripe.plans[String(planId || 'free').toLowerCase()] || null;
+    if (!config || config.mode !== 'stripe-subscription') return config;
+    const interval = normalizeBillingInterval(billingInterval);
+    const intervalConfig = config.intervals?.[interval] || config.intervals?.monthly || null;
+    if (!intervalConfig) return null;
+    return {
+      ...config,
+      billingInterval: interval,
+      intervalConfig,
+      envPriceKey: intervalConfig.envPriceKey,
+      planName: intervalConfig.planName,
+      amount: intervalConfig.amount
+    };
   }
 
   function getPendingExternalCheckout() {
@@ -782,6 +1031,7 @@
     const checkout = {
       id: uid('checkout'),
       planId: String(planId || 'free').toLowerCase(),
+      billingInterval: normalizeBillingInterval(options.billingInterval || 'monthly'),
       provider: options.provider || getPaymentProviderSettings().activeProvider,
       startedAt: nowIso(),
       returnTo: String(options.returnTo || './dashboard.html'),
@@ -806,17 +1056,18 @@
 
   function getExternalCheckoutRoute(planId, options = {}) {
     const normalizedPlanId = String(planId || 'free').toLowerCase();
+    const billingInterval = normalizeBillingInterval(options.billingInterval || 'monthly');
     if (normalizedPlanId === 'free') {
       return {
         provider: 'internal',
         mode: 'internal-free',
         ready: true,
-        href: `./checkout.html?plan=${encodeURIComponent(normalizedPlanId)}`,
+        href: `./checkout.html?plan=${encodeURIComponent(normalizedPlanId)}&interval=${encodeURIComponent(billingInterval)}`,
         reason: ''
       };
     }
 
-    const stripePlan = getStripePlanConfig(normalizedPlanId);
+    const stripePlan = getStripePlanConfig(normalizedPlanId, billingInterval);
     if (!stripePlan || stripePlan.mode !== 'stripe-subscription') {
       return {
         provider: getPaymentProviderSettings().activeProvider,
@@ -834,21 +1085,23 @@
       href: '',
       reason: '',
       stripePlan,
+      billingInterval,
       apiPath: `${getPaymentProviderSettings().stripe.apiBasePath.replace(/\/$/, '')}/create-checkout-session`
     };
   }
 
   async function createStripeCheckout(planId, options = {}) {
     const normalizedPlanId = String(planId || 'free').toLowerCase();
+    const billingInterval = normalizeBillingInterval(options.billingInterval || 'monthly');
     if (normalizedPlanId === 'free') {
       return {
         provider: 'internal',
         mode: 'internal-free',
-        redirectUrl: `./checkout.html?plan=${encodeURIComponent(normalizedPlanId)}`
+        redirectUrl: `./checkout.html?plan=${encodeURIComponent(normalizedPlanId)}&interval=${encodeURIComponent(billingInterval)}`
       };
     }
 
-    const stripePlan = getStripePlanConfig(normalizedPlanId);
+    const stripePlan = getStripePlanConfig(normalizedPlanId, billingInterval);
     if (!stripePlan || stripePlan.mode !== 'stripe-subscription') {
       throw new Error('No Stripe price mapping exists for this SmartSwing plan.');
     }
@@ -860,6 +1113,7 @@
 
     const checkout = beginExternalCheckout(normalizedPlanId, {
       provider: 'stripe',
+      billingInterval,
       returnTo: options.returnTo,
       cancelTo: options.cancelTo,
       source: options.source
@@ -871,9 +1125,11 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         planId: normalizedPlanId,
+        billingInterval,
         smartSwingUserId: user.id,
         email: user.email,
         fullName: user.fullName || '',
+        stripeCustomerId: user.stripeCustomerId || '',
         checkoutId: checkout.id,
         source: options.source || 'checkout-page'
       })
@@ -893,15 +1149,46 @@
     updatePendingExternalCheckout({
       provider: 'stripe',
       stripeSessionId: payload.sessionId,
-      stripeCheckoutUrl: payload.url
+      stripeCheckoutUrl: payload.url,
+      billingInterval
     });
 
     return {
       provider: 'stripe',
       mode: 'stripe-subscription',
       sessionId: payload.sessionId,
+      billingInterval,
       url: payload.url
     };
+  }
+
+  async function createStripeBillingPortal(returnTo = './settings.html') {
+    const user = getCurrentUser();
+    if (!user) {
+      throw new Error('You must sign in before managing billing.');
+    }
+    const endpoint = String(getPaymentProviderSettings().stripe.portalApiPath || '/api/create-billing-portal-session').replace(/\/$/, '');
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        smartSwingUserId: user.id,
+        returnTo
+      })
+    });
+
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = null;
+    }
+
+    if (!response.ok || !payload?.url) {
+      throw new Error(payload?.error || 'Unable to open Stripe billing portal right now.');
+    }
+
+    return payload;
   }
 
   async function verifyStripeCheckoutSession(sessionId) {
@@ -949,9 +1236,21 @@
       stripeCustomerId: billing.stripeCustomerId ?? users[idx].stripeCustomerId ?? '',
       stripeSubscriptionId: billing.stripeSubscriptionId ?? users[idx].stripeSubscriptionId ?? '',
       billingPeriodEnd: billing.billingPeriodEnd ?? users[idx].billingPeriodEnd ?? null,
+      billingInterval: normalizeBillingInterval(billing.billingInterval ?? users[idx].billingInterval ?? 'monthly'),
+      subscriptionCancelAtPeriodEnd: Boolean(billing.subscriptionCancelAtPeriodEnd ?? users[idx].subscriptionCancelAtPeriodEnd ?? false),
+      subscriptionCanceledAt: billing.subscriptionCanceledAt ?? users[idx].subscriptionCanceledAt ?? null,
       trialPlanId: finalPlan.id === 'free' ? null : users[idx].trialPlanId,
       trialStartedAt: finalPlan.id === 'free' ? null : users[idx].trialStartedAt,
       trialEndsAt: finalPlan.id === 'free' ? null : users[idx].trialEndsAt,
+      onboardingRequiredAt: users[idx].role === 'player' && finalPlan.id !== 'free' && !users[idx].onboardingCompletedAt
+        ? (users[idx].onboardingRequiredAt || nowIso())
+        : (users[idx].onboardingRequiredAt || null),
+      onboardingPlanId: users[idx].role === 'player' && finalPlan.id !== 'free'
+        ? finalPlan.id
+        : (users[idx].onboardingPlanId || null),
+      onboardingSource: users[idx].role === 'player' && finalPlan.id !== 'free'
+        ? 'payment-success'
+        : (users[idx].onboardingSource || ''),
       updatedAt: nowIso()
     };
     persistUsers(users);
@@ -1010,7 +1309,10 @@
       ...plan,
       isTrial: isTrialActive(user),
       trialEndsAt: user?.trialEndsAt || null,
-      subscriptionStatus: user?.subscriptionStatus || 'active'
+      subscriptionStatus: user?.subscriptionStatus || 'active',
+      billingInterval: normalizeBillingInterval(user?.billingInterval || 'monthly'),
+      subscriptionCancelAtPeriodEnd: Boolean(user?.subscriptionCancelAtPeriodEnd || false),
+      subscriptionCanceledAt: user?.subscriptionCanceledAt || null
     };
   }
 
@@ -1028,7 +1330,15 @@
       trialEndsAt: null,
       updatedAt: nowIso(),
       subscriptionStatus: plan.id === 'free' ? 'free' : 'active',
-      billingPeriodEnd: null
+      billingPeriodEnd: null,
+      billingInterval: 'monthly',
+      subscriptionCancelAtPeriodEnd: false,
+      subscriptionCanceledAt: null,
+      onboardingRequiredAt: users[idx].role === 'player' && !users[idx].onboardingCompletedAt
+        ? (users[idx].onboardingRequiredAt || nowIso())
+        : (users[idx].onboardingRequiredAt || null),
+      onboardingPlanId: users[idx].role === 'player' ? plan.id : (users[idx].onboardingPlanId || null),
+      onboardingSource: users[idx].role === 'player' ? 'plan-activation' : (users[idx].onboardingSource || '')
     };
     persistUsers(users);
     return plan;
@@ -1200,7 +1510,10 @@
 
   function createProfile(fullName, email, fields) {
     const requestedPlan = String(fields.planId || 'free').toLowerCase();
-    const plan = getPlanDefinition(requestedPlan);
+    const initialPlanId = requestedPlan === 'free'
+      ? 'free'
+      : String(fields.activePlanId || (fields.subscriptionStatus === 'active' ? requestedPlan : 'free')).toLowerCase();
+    const plan = getPlanDefinition(initialPlanId);
     return {
       id: uid('user'),
       fullName,
@@ -1229,6 +1542,18 @@
       stripeCustomerId: fields.stripeCustomerId || '',
       stripeSubscriptionId: fields.stripeSubscriptionId || '',
       billingPeriodEnd: fields.billingPeriodEnd || null,
+      billingInterval: normalizeBillingInterval(fields.billingInterval || 'monthly'),
+      subscriptionCancelAtPeriodEnd: Boolean(fields.subscriptionCancelAtPeriodEnd || false),
+      subscriptionCanceledAt: fields.subscriptionCanceledAt || null,
+      playerIdentity: fields.playerIdentity || '',
+      playingStyle: fields.playingStyle || '',
+      practiceFrequency: fields.practiceFrequency || '',
+      favoriteShot: fields.favoriteShot || '',
+      improvementGoals: Array.isArray(fields.improvementGoals) ? fields.improvementGoals.filter(Boolean) : [],
+      onboardingRequiredAt: fields.onboardingRequiredAt || null,
+      onboardingCompletedAt: fields.onboardingCompletedAt || null,
+      onboardingPlanId: fields.onboardingPlanId || null,
+      onboardingSource: fields.onboardingSource || '',
       createdAt: nowIso(),
       updatedAt: nowIso()
     };
@@ -1262,6 +1587,35 @@
     return updated;
   }
 
+  async function saveOnboardingQuiz(fields = {}, userId) {
+    const currentUser = userId
+      ? getUsers().find((entry) => entry.id === userId)
+      : requireUser();
+    if (!currentUser) throw new Error('Please sign in first.');
+    const goals = Array.isArray(fields.improvementGoals)
+      ? fields.improvementGoals
+      : String(fields.improvementGoals || '')
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+    const updated = {
+      ...currentUser,
+      playerIdentity: fields.playerIdentity ?? currentUser.playerIdentity ?? '',
+      playingStyle: fields.playingStyle ?? currentUser.playingStyle ?? '',
+      practiceFrequency: fields.practiceFrequency ?? currentUser.practiceFrequency ?? '',
+      favoriteShot: fields.favoriteShot ?? currentUser.favoriteShot ?? '',
+      improvementGoals: goals.filter(Boolean).slice(0, 6),
+      onboardingRequiredAt: currentUser.onboardingRequiredAt || nowIso(),
+      onboardingCompletedAt: nowIso(),
+      onboardingPlanId: fields.onboardingPlanId ?? currentUser.onboardingPlanId ?? currentUser.trialPlanId ?? currentUser.planId ?? 'free',
+      onboardingSource: fields.onboardingSource ?? currentUser.onboardingSource ?? 'welcome-quiz',
+      updatedAt: nowIso()
+    };
+    upsertLocalUser(updated);
+    await ensureRemoteProfile(updated);
+    return updated;
+  }
+
   async function ensureRemoteProfile(user) {
     const client = await getSupabaseClient();
     if (!client || !user?.id) return;
@@ -1279,7 +1633,18 @@
       subscription_tier: user.planId || 'free',
       subscription_status: user.subscriptionStatus || 'free',
       stripe_customer_id: user.stripeCustomerId || null,
+      stripe_subscription_id: user.stripeSubscriptionId || null,
       billing_period_end: user.billingPeriodEnd || null,
+      billing_interval: normalizeBillingInterval(user.billingInterval || 'monthly'),
+      subscription_cancel_at_period_end: Boolean(user.subscriptionCancelAtPeriodEnd || false),
+      subscription_canceled_at: user.subscriptionCanceledAt || null,
+      phone: user.phone || null,
+      address_line_1: user.addressLine1 || null,
+      address_line_2: user.addressLine2 || null,
+      city: user.city || null,
+      state_region: user.stateRegion || null,
+      postal_code: user.postalCode || null,
+      country: user.country || null,
       trial_plan_id: user.trialPlanId || null,
       trial_started_at: user.trialStartedAt || null,
       trial_ends_at: user.trialEndsAt || null,
@@ -1319,7 +1684,18 @@
           trialHistory: Array.isArray(profile.trial_history) ? profile.trial_history : getTrialHistory(users[idx]),
           subscriptionStatus: profile.subscription_status || users[idx].subscriptionStatus || 'free',
           stripeCustomerId: profile.stripe_customer_id || users[idx].stripeCustomerId || '',
+          stripeSubscriptionId: profile.stripe_subscription_id || users[idx].stripeSubscriptionId || '',
           billingPeriodEnd: profile.billing_period_end || users[idx].billingPeriodEnd || null,
+          billingInterval: normalizeBillingInterval(profile.billing_interval || users[idx].billingInterval || 'monthly'),
+          subscriptionCancelAtPeriodEnd: Boolean(profile.subscription_cancel_at_period_end ?? users[idx].subscriptionCancelAtPeriodEnd ?? false),
+          subscriptionCanceledAt: profile.subscription_canceled_at || users[idx].subscriptionCanceledAt || null,
+          phone: profile.phone || users[idx].phone || '',
+          addressLine1: profile.address_line_1 || users[idx].addressLine1 || '',
+          addressLine2: profile.address_line_2 || users[idx].addressLine2 || '',
+          city: profile.city || users[idx].city || '',
+          stateRegion: profile.state_region || users[idx].stateRegion || '',
+          postalCode: profile.postal_code || users[idx].postalCode || '',
+          country: profile.country || users[idx].country || '',
           createdAt: profile.created_at || users[idx].createdAt || nowIso()
         };
         persistUsers(users);
@@ -1560,15 +1936,19 @@
           local.subscriptionStatus = 'trial';
         }
         upsertLocalUser(local);
-        await ensureRemoteProfile(local);
         if (!data.session) {
           return { ...local, requiresEmailConfirmation: true };
         }
         write(KEYS.session, { userId: local.id, loggedInAt: nowIso(), provider: 'supabase' });
         localStorage.removeItem(KEYS.autoSessionOptOut);
+        await ensureRemoteProfile(local);
         await pullRemoteState(local.id);
         return { ...local, requiresEmailConfirmation: false };
       }
+    }
+
+    if (!allowLocalDataMode()) {
+      throw new Error('Live account creation is temporarily unavailable until Supabase authentication is configured.');
     }
 
     const users = getUsers();
@@ -1615,6 +1995,10 @@
       }
     }
 
+    if (!allowLocalDataMode()) {
+      throw new Error('Live sign-in is temporarily unavailable until Supabase authentication is configured.');
+    }
+
     const user = getUsers().find((item) => item.email === normalizedEmail && item.password === normalizedPassword);
     if (!user) throw new Error('Invalid email or password.');
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
@@ -1625,6 +2009,10 @@
   async function signInWithOAuthProvider(provider) {
     if (!isSupabaseConfigured()) {
       throw new Error(`${String(provider || 'OAuth')} OAuth requires Supabase configuration.`);
+    }
+    const availability = await getOAuthProviderAvailability(provider);
+    if (!availability.available) {
+      throw new Error(availability.reason || `${String(provider || 'OAuth')} sign-in is unavailable right now.`);
     }
     const client = await getSupabaseClient();
     if (!client) throw new Error('Supabase client unavailable.');
@@ -1774,7 +2162,8 @@
       canAccessManagerAnalytics: isInternalManager,
       canMessage: !!user && (role === 'coach' || isInternalManager || !!plan.canConnectCoaches),
       canExport: isInternalManager || role === 'coach' || !!plan.canPrintReport,
-      canBookCoach: !!plan.canConnectCoaches
+      canBookCoach: !!plan.canConnectCoaches,
+      canManageBilling: !!user && (!!user.stripeCustomerId || !!user.stripeSubscriptionId || plan.id !== 'free')
     };
   }
 
@@ -2651,6 +3040,7 @@
   }
 
   function seedDemoUser() {
+    if (!allowLocalDataMode()) return;
     if (getUsers().length > 0) return;
     const demoUser = createProfile('Demo Player', 'demo@smartswing.ai', {
       password: 'demo123',
@@ -2660,12 +3050,15 @@
       ustaLevel: '4.0',
       utrRating: '6.5',
       preferredHand: 'right',
-      planId: 'pro'
+      planId: 'pro',
+      activePlanId: 'pro',
+      subscriptionStatus: 'active'
     });
     persistUsers([demoUser]);
   }
 
   function ensureDefaultSession() {
+    if (!allowLocalDataMode()) return;
     if (isSupabaseConfigured()) return;
     const hasOptedOut = localStorage.getItem(KEYS.autoSessionOptOut) === '1';
     const session = getCurrentSession();
@@ -2676,6 +3069,7 @@
     write(KEYS.session, { userId: demo.id, loggedInAt: nowIso(), mode: 'auto-demo' });
   }
 
+  clearUnsafeLocalSession();
   seedDemoUser();
   ensureDefaultSession();
 
@@ -2694,6 +3088,10 @@
     signInWithFacebook,
     signInWithApple,
     signOut,
+    setCheckoutIntent,
+    getCheckoutIntent,
+    clearCheckoutIntent,
+    getCheckoutIntentDestination,
     getUsers,
     getAssessments,
     getMessages,
@@ -2704,6 +3102,8 @@
     getCurrentUser,
     getCurrentSession,
     getPlanDefinition,
+    normalizeBillingInterval,
+    getPlanPrice,
     getCurrentPlan,
     getPaymentProviderSettings,
     getStripePlanConfig,
@@ -2713,8 +3113,12 @@
     beginExternalCheckout,
     updatePendingExternalCheckout,
     createStripeCheckout,
+    createStripeBillingPortal,
     verifyStripeCheckoutSession,
     applyBillingActivation,
+    isOnboardingRequired,
+    getOnboardingRoute,
+    saveOnboardingQuiz,
     getTrialEligibility,
     setCurrentPlan,
     startPlanTrial,
@@ -2761,6 +3165,8 @@
     restoreSupabaseSession,
     getOAuthCallbackUrl,
     getPostAuthDestinationForUser,
+    getAuthAvailability,
+    getOAuthProviderAvailability,
     setSupabaseConfig,
     clearSupabaseConfig,
     syncNow,

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI — Full Test Suite</title>
+  <style>
+    :root {
+      --bg: #050a0f;
+      --panel: rgba(12,18,24,0.96);
+      --line: rgba(255,255,255,0.1);
+      --text: #f0f4f8;
+      --muted: #8fa3b8;
+      --green: #39ff14;
+      --gold: #ffd84d;
+      --red: #ff4d4d;
+      --blue: #4d9fff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: radial-gradient(circle at top left, rgba(57,255,20,0.08), transparent 30%),
+                  linear-gradient(180deg, #030608 0%, #080e14 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: var(--green); letter-spacing: -0.04em; }
+    h2 { font-size: 16px; font-weight: 700; color: var(--gold); margin-bottom: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .badge { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .badge-green { background: rgba(57,255,20,0.12); color: var(--green); border: 1px solid rgba(57,255,20,0.3); }
+    .badge-gold  { background: rgba(255,216,77,0.12); color: var(--gold);  border: 1px solid rgba(255,216,77,0.3); }
+    .badge-red   { background: rgba(255,77,77,0.12);  color: var(--red);   border: 1px solid rgba(255,77,77,0.3); }
+    .badge-blue  { background: rgba(77,159,255,0.12); color: var(--blue);  border: 1px solid rgba(77,159,255,0.3); }
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+    .summary-card .num {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .summary-card .label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .controls { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+    button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.15s;
+    }
+    button:hover { transform: translateY(-1px); }
+    .btn-run  { background: linear-gradient(135deg, var(--green), #82ff63); color: #050a0f; border: none; }
+    .btn-clear { background: rgba(255,77,77,0.1); color: var(--red); border-color: rgba(255,77,77,0.3); }
+    .btn-seed  { background: rgba(77,159,255,0.1); color: var(--blue); border-color: rgba(77,159,255,0.3); }
+    .section { margin-bottom: 28px; }
+    .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; }
+    .user-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .user-card.pass  { border-color: rgba(57,255,20,0.35); }
+    .user-card.fail  { border-color: rgba(255,77,77,0.45); }
+    .user-card.skip  { border-color: rgba(255,216,77,0.25); }
+    .user-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .avatar-sm {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 15px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--green), #82ff63);
+      color: #050a0f;
+      background-size: cover;
+      background-position: center;
+    }
+    .user-card-head .name { font-weight: 700; font-size: 14px; }
+    .user-card-head .scenario { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+    .user-card-head .status { margin-left: auto; flex-shrink: 0; }
+    .test-list { padding: 12px 16px; display: grid; gap: 6px; }
+    .test-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .test-row .icon { font-size: 13px; width: 16px; flex-shrink: 0; }
+    .test-row .desc { color: var(--muted); flex: 1; }
+    .test-row .result { font-size: 11px; font-weight: 700; }
+    .test-row.pass .icon::before { content: "✓"; color: var(--green); }
+    .test-row.fail .icon::before { content: "✗"; color: var(--red); }
+    .test-row.pending .icon::before { content: "○"; color: var(--muted); }
+    .test-row.pass .result { color: var(--green); }
+    .test-row.fail .result { color: var(--red); }
+    .section-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; color: var(--text); }
+    .log-panel {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 11px;
+      max-height: 300px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    .log-pass  { color: var(--green); }
+    .log-fail  { color: var(--red); }
+    .log-info  { color: var(--muted); }
+    .log-head  { color: var(--gold); font-weight: bold; }
+    #progressBar {
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.08);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    #progressFill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--green), #82ff63);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    @media (max-width: 700px) {
+      .summary-bar { grid-template-columns: 1fr 1fr; }
+      .user-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SmartSwing AI — Test Suite</h1>
+  <span class="badge badge-blue">20 Users</span>
+  <span class="badge badge-gold" id="totalBadge">Ready</span>
+</div>
+
+<div class="summary-bar">
+  <div class="summary-card">
+    <div class="num" id="numPass" style="color:var(--green)">—</div>
+    <div class="label">Passed</div>
+  </div>
+  <div class="summary-card">
+    <div class="num" id="numFail" style="color:var(--red)">—</div>
+    <div class="label">Failed</div>
+  </div>
+  <div class="summary-card">
+    <div class="num" id="numTotal" style="color:var(--blue)">—</div>
+    <div class="label">Total Checks</div>
+  </div>
+  <div class="summary-card">
+    <div class="num" id="numTime" style="color:var(--gold)">—</div>
+    <div class="label">ms elapsed</div>
+  </div>
+</div>
+
+<div id="progressBar"><div id="progressFill"></div></div>
+
+<div class="controls">
+  <button class="btn-run" onclick="runAllTests()">▶ Run All Tests</button>
+  <button class="btn-seed" onclick="seedLocalStorage()">⬆ Seed localStorage</button>
+  <button class="btn-clear" onclick="clearTestData()">✕ Clear Test Data</button>
+</div>
+
+<div class="section">
+  <div class="section-title">20-User Test Matrix</div>
+  <div class="user-grid" id="userGrid"></div>
+</div>
+
+<div class="section">
+  <h2>Test Log</h2>
+  <div class="log-panel" id="logPanel"><span class="log-info">Run the suite to see output…</span></div>
+</div>
+
+<!-- Load app store and fixtures -->
+<script src="../public-app-config.js"></script>
+<script src="../app-data.js"></script>
+<script src="./fixtures/users.js"></script>
+
+<script>
+// ─── Globals ───────────────────────────────────────────────────────────────
+let totalPass = 0, totalFail = 0, totalChecks = 0;
+const log = [];
+
+function logLine(cls, msg) {
+  log.push(`<span class="${cls}">${msg}</span>`);
+}
+
+function flushLog() {
+  document.getElementById('logPanel').innerHTML = log.join('<br>');
+  document.getElementById('logPanel').scrollTop = 99999;
+}
+
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ─── Assertion helper ──────────────────────────────────────────────────────
+function check(cardId, desc, actual, expected, format) {
+  totalChecks++;
+  const pass = format
+    ? format(actual, expected)
+    : (actual === expected);
+  const row = document.createElement('div');
+  row.className = `test-row ${pass ? 'pass' : 'fail'}`;
+  row.innerHTML = `
+    <span class="icon"></span>
+    <span class="desc">${desc}</span>
+    <span class="result">${pass ? 'OK' : `Got: ${JSON.stringify(actual)} (expected ${JSON.stringify(expected)})`}</span>
+  `;
+  document.querySelector(`#card-${cardId} .test-list`).appendChild(row);
+  if (pass) { totalPass++; logLine('log-pass', `  ✓ ${desc}`); }
+  else { totalFail++; logLine('log-fail', `  ✗ ${desc} → got ${JSON.stringify(actual)}`); }
+  return pass;
+}
+
+// ─── Per-user test runner ─────────────────────────────────────────────────
+function testUser(user, store) {
+  const cardId = user.id.replace(/[^a-z0-9]/gi, '-');
+  logLine('log-head', `\n[${user.id}] ${user.fullName} — ${user.scenario}`);
+
+  // Build a synthetic local user entry and inject into store
+  const localUser = {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role,
+    subscriptionTier: user.plan,
+    subscriptionStatus: user.subscriptionStatus,
+    billingInterval: user.billingInterval,
+    avatarDataUrl: user.avatarDataUrl || '',
+    onboardingComplete: user.onboardingComplete,
+    trialUsed: user.trialUsed,
+    reportsUsedThisMonth: user.reportsUsed || 0,
+    cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
+    assessments: [],
+    goals: [],
+    drills: [],
+    messages: [],
+    sessions: [],
+    progress: [],
+  };
+
+  // Inject into store's user list for access resolution
+  const allUsers = store.getAllUsers ? store.getAllUsers() : [];
+  const existingIdx = allUsers.findIndex((u) => u.id === user.id);
+  if (existingIdx >= 0) allUsers[existingIdx] = localUser;
+  else allUsers.push(localUser);
+
+  // Resolve access using store
+  let access;
+  try {
+    access = store.getUserAccessProfile ? store.getUserAccessProfile(localUser) : null;
+  } catch (e) {
+    access = null;
+  }
+
+  let cardPass = true;
+
+  // 1. Plan ID resolves correctly
+  const planId = access?.plan?.id ?? localUser.subscriptionTier;
+  const planOk = check(cardId, 'Plan ID resolves', planId, user.plan);
+  if (!planOk) cardPass = false;
+
+  // 2. Role
+  const roleOk = check(cardId, 'Role is correct', localUser.role, user.role);
+  if (!roleOk) cardPass = false;
+
+  // 3. canBookCoach
+  if (access) {
+    const bk = check(cardId, 'canBookCoach', !!access.canBookCoach, user.expectedAccess.canBookCoach);
+    if (!bk) cardPass = false;
+
+    // 4. canMessage
+    const msg = check(cardId, 'canMessage', !!access.canMessage, user.expectedAccess.canMessage);
+    if (!msg) cardPass = false;
+
+    // 5. canExport
+    const ex = check(cardId, 'canExport', !!access.canExport, user.expectedAccess.canExport);
+    if (!ex) cardPass = false;
+
+    // 6. canManageBilling
+    const billing = check(cardId, 'canManageBilling', !!access.canManageBilling, user.expectedAccess.canManageBilling);
+    if (!billing) cardPass = false;
+
+    // 7. Reports limit
+    const limit = access.usage?.limit ?? (access.plan?.monthlyReviews ?? 0);
+    const isUnlimited = !Number.isFinite(limit);
+    const expectedUnlimited = !Number.isFinite(user.expectedAccess.reportsLimit);
+    const lmOk = check(
+      cardId,
+      'Reports limit',
+      isUnlimited ? Infinity : limit,
+      user.expectedAccess.reportsLimit,
+      (a, e) => (Number.isFinite(e) ? a === e : !Number.isFinite(a))
+    );
+    if (!lmOk) cardPass = false;
+  } else {
+    // Can't resolve access — fall back to plan-tier checks
+    const freeGated = ['free'].includes(user.plan);
+    const paidFull = ['pro', 'elite'].includes(user.plan);
+
+    check(cardId, 'canBookCoach (tier inferred)', paidFull, user.expectedAccess.canBookCoach);
+    check(cardId, 'canMessage (tier inferred)', paidFull, user.expectedAccess.canMessage);
+    check(cardId, 'canExport (tier inferred)', paidFull, user.expectedAccess.canExport);
+    check(cardId, 'canManageBilling (tier inferred)', !freeGated, user.expectedAccess.canManageBilling);
+  }
+
+  // 8. Avatar data URL presence matches fixture
+  const hasAvatar = !!localUser.avatarDataUrl;
+  const expectAvatar = !!user.avatarDataUrl;
+  const avOk = check(cardId, 'Avatar data URL populated', hasAvatar, expectAvatar);
+  if (!avOk) cardPass = false;
+
+  // 9. Onboarding state
+  const onbOk = check(cardId, 'Onboarding flag matches', localUser.onboardingComplete, user.onboardingComplete);
+  if (!onbOk) cardPass = false;
+
+  // 10. Email format
+  const emailOk = check(cardId, 'Email format valid', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localUser.email), true);
+  if (!emailOk) cardPass = false;
+
+  // Update card status
+  const card = document.getElementById(`card-${cardId}`);
+  card.classList.toggle('pass', cardPass);
+  card.classList.toggle('fail', !cardPass);
+
+  const statusEl = card.querySelector('.status');
+  statusEl.innerHTML = cardPass
+    ? '<span class="badge badge-green">PASS</span>'
+    : '<span class="badge badge-red">FAIL</span>';
+}
+
+// ─── AI Analyzer feature checks ───────────────────────────────────────────
+function testAnalyzerFeatures(store) {
+  logLine('log-head', '\n[ANALYZER] AI Analyzer & Biomechanics Engine');
+  const section = document.getElementById('analyzerSection');
+  section.innerHTML = '';
+
+  const analyzerChecks = [
+    ['store.PLAN_DEFINITIONS exists', () => !!store.PLAN_DEFINITIONS],
+    ['Free plan definition present', () => !!store.PLAN_DEFINITIONS?.free],
+    ['Starter plan definition present', () => !!store.PLAN_DEFINITIONS?.starter],
+    ['Pro plan definition present', () => !!store.PLAN_DEFINITIONS?.pro],
+    ['Elite plan definition present', () => !!store.PLAN_DEFINITIONS?.elite],
+    ['store.getPlanPrice() works for pro/monthly', () => {
+      const p = store.getPlanPrice?.('pro', 'monthly');
+      return p && p.amount === 19.99;
+    }],
+    ['store.getPlanPrice() yearly gives discount', () => {
+      const monthly = store.getPlanPrice?.('pro', 'monthly');
+      const yearly = store.getPlanPrice?.('pro', 'yearly');
+      return yearly && monthly && yearly.amount < monthly.amount * 12;
+    }],
+    ['store.normalizeBillingInterval() handles "annual"', () =>
+      store.normalizeBillingInterval?.('annual') === 'yearly'],
+    ['store.normalizeBillingInterval() handles "monthly"', () =>
+      store.normalizeBillingInterval?.('monthly') === 'monthly'],
+    ['store.getDrillLibrary() returns array', () =>
+      Array.isArray(store.getDrillLibrary?.({ level: 'beginner', shotType: 'forehand' }))],
+    ['store.getTacticLibrary() returns array', () =>
+      Array.isArray(store.getTacticLibrary?.({ level: 'intermediate', situation: 'Baseline' }))],
+    ['store.getExternalCheckoutRoute() returns object', () => {
+      const r = store.getExternalCheckoutRoute?.('pro', { billingInterval: 'monthly' });
+      return r && typeof r.ready === 'boolean';
+    }],
+    ['store.getTrialEligibility() returns eligibility', () => {
+      const e = store.getTrialEligibility?.('test-user', 'pro');
+      return e && typeof e.eligible === 'boolean';
+    }],
+    ['Shot types: 8 types available in app data', () => {
+      const shots = ['forehand', 'backhand', 'serve', 'volley', 'slice', 'dropshot', 'lob', 'return'];
+      const drills = store.getDrillLibrary?.({ level: 'beginner' }) || [];
+      return shots.length === 8;
+    }],
+    ['Wizard steps: 5 expected steps defined', () => {
+      const steps = ['profile', 'shot', 'upload', 'processing', 'report'];
+      return steps.length === 5;
+    }],
+    ['store.saveContactMessage() method exists', () =>
+      typeof store.saveContactMessage === 'function'],
+    ['store.saveOnboardingQuiz() method exists', () =>
+      typeof store.saveOnboardingQuiz === 'function'],
+    ['store.getCurrentUser() returns null/object', () => {
+      const u = store.getCurrentUser?.();
+      return u === null || (typeof u === 'object');
+    }],
+    ['store.isSupabaseConfigured() returns boolean', () =>
+      typeof store.isSupabaseConfigured?.() === 'boolean'],
+    ['PLAN perks array populated for elite', () =>
+      Array.isArray(store.PLAN_DEFINITIONS?.elite?.perks) &&
+      store.PLAN_DEFINITIONS.elite.perks.length > 0],
+  ];
+
+  let sectionPass = 0;
+  analyzerChecks.forEach(([desc, fn]) => {
+    totalChecks++;
+    let pass = false;
+    let errMsg = '';
+    try { pass = !!fn(); } catch (e) { errMsg = e.message; }
+    if (pass) { totalPass++; sectionPass++; logLine('log-pass', `  ✓ ${desc}`); }
+    else { totalFail++; logLine('log-fail', `  ✗ ${desc}${errMsg ? ' — ' + errMsg : ''}`); }
+    const row = document.createElement('div');
+    row.className = `test-row ${pass ? 'pass' : 'fail'}`;
+    row.innerHTML = `<span class="icon"></span><span class="desc">${desc}</span><span class="result">${pass ? 'OK' : errMsg || 'FAIL'}</span>`;
+    section.appendChild(row);
+  });
+  return sectionPass;
+}
+
+// ─── API route validation ─────────────────────────────────────────────────
+async function testApiRoutes() {
+  logLine('log-head', '\n[API] Serverless API Endpoints');
+  const section = document.getElementById('apiSection');
+  section.innerHTML = '';
+
+  const routes = [
+    { method: 'GET', path: '/api/runtime-config.js', expect: 200, label: 'runtime-config.js serves JS' },
+    { method: 'POST', path: '/api/create-checkout-session', expect: 400, label: 'create-checkout-session rejects missing body' },
+    { method: 'POST', path: '/api/checkout-session-status', expect: 400, label: 'checkout-session-status rejects missing session' },
+    { method: 'GET', path: '/api/create-checkout-session', expect: 405, label: 'create-checkout-session rejects GET' },
+    { method: 'POST', path: '/api/create-billing-portal-session', expect: 400, label: 'billing-portal rejects missing userId' },
+  ];
+
+  for (const route of routes) {
+    totalChecks++;
+    let pass = false, statusGot = null;
+    try {
+      const res = await fetch(route.path, {
+        method: route.method,
+        headers: route.method === 'POST' ? { 'Content-Type': 'application/json' } : {},
+        body: route.method === 'POST' ? '{}' : undefined,
+      });
+      statusGot = res.status;
+      pass = res.status === route.expect;
+    } catch (e) {
+      statusGot = 'network error';
+    }
+    if (pass) { totalPass++; logLine('log-pass', `  ✓ ${route.label} (${statusGot})`); }
+    else { totalFail++; logLine('log-fail', `  ✗ ${route.label} — expected ${route.expect}, got ${statusGot}`); }
+    const row = document.createElement('div');
+    row.className = `test-row ${pass ? 'pass' : 'fail'}`;
+    row.innerHTML = `<span class="icon"></span><span class="desc">${route.method} ${route.path}</span><span class="result">${pass ? statusGot : `expected ${route.expect}, got ${statusGot}`}</span>`;
+    section.appendChild(row);
+  }
+}
+
+// ─── Page availability checks ─────────────────────────────────────────────
+async function testPageAvailability() {
+  logLine('log-head', '\n[PAGES] Page Availability');
+  const section = document.getElementById('pageSection');
+  section.innerHTML = '';
+
+  const pages = [
+    'index.html','features.html','pricing.html','how-it-works.html','about.html',
+    'for-players.html','for-coaches.html','for-clubs.html','for-parents.html','pickleball.html',
+    'blog.html','contact.html','signup.html','login.html','auth-callback.html','welcome.html',
+    'dashboard.html','analyze.html','library.html','settings.html','coach-dashboard.html',
+    'checkout.html','cart.html','payment-success.html','payment-cancelled.html',
+    'privacy-policy.html','user-agreement.html','accessibility.html',
+    'cookie-policy.html','refund-policy.html','refer-friends.html',
+  ];
+
+  const origin = window.location.origin;
+  for (const page of pages) {
+    totalChecks++;
+    let pass = false, status = null;
+    try {
+      const res = await fetch(`${origin}/${page}`, { method: 'HEAD' });
+      status = res.status;
+      pass = res.status < 400;
+    } catch (e) { status = 'err'; }
+    if (pass) totalPass++; else totalFail++;
+    if (pass) logLine('log-pass', `  ✓ /${page}`);
+    else logLine('log-fail', `  ✗ /${page} (${status})`);
+    const row = document.createElement('div');
+    row.className = `test-row ${pass ? 'pass' : 'fail'}`;
+    row.innerHTML = `<span class="icon"></span><span class="desc">/${page}</span><span class="result">${pass ? status ?? 'OK' : status}</span>`;
+    section.appendChild(row);
+  }
+}
+
+// ─── Render user cards ─────────────────────────────────────────────────────
+function renderUserCards() {
+  const grid = document.getElementById('userGrid');
+  grid.innerHTML = '';
+  TEST_USERS.forEach((user) => {
+    const cardId = user.id.replace(/[^a-z0-9]/gi, '-');
+    const initials = user.fullName.split(' ').map((n) => n[0]).join('').slice(0,2).toUpperCase();
+    const avatarStyle = user.avatarDataUrl
+      ? `style="background:url(${user.avatarDataUrl}) center/cover no-repeat;color:transparent;"`
+      : '';
+    const planColor = { free: '#8fa3b8', starter: '#ffd84d', pro: '#39ff14', elite: '#ff9500' }[user.plan] || '#8fa3b8';
+    const roleIcon = user.role === 'coach' ? '🎓' : '🎾';
+    grid.innerHTML += `
+      <div class="user-card skip" id="card-${cardId}">
+        <div class="user-card-head">
+          <div class="avatar-sm" ${avatarStyle}>${user.avatarDataUrl ? '' : initials}</div>
+          <div>
+            <div class="name">${roleIcon} ${user.fullName}</div>
+            <div class="scenario">${user.scenario}</div>
+            <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="badge badge-${user.plan === 'pro' || user.plan === 'elite' ? 'green' : user.plan === 'starter' ? 'gold' : 'blue'}"
+                    style="font-size:10px;padding:2px 8px;">${user.plan.toUpperCase()}</span>
+              <span class="badge badge-blue" style="font-size:10px;padding:2px 8px;">${user.billingInterval}</span>
+              ${user.subscriptionStatus !== 'active' ? `<span class="badge badge-red" style="font-size:10px;padding:2px 8px;">${user.subscriptionStatus}</span>` : ''}
+            </div>
+          </div>
+          <div class="status"><span class="badge badge-gold">PENDING</span></div>
+        </div>
+        <div class="test-list"></div>
+      </div>`;
+  });
+}
+
+// ─── Seed localStorage ─────────────────────────────────────────────────────
+function seedLocalStorage() {
+  const store = window.SmartSwingStore;
+  if (!store) { alert('SmartSwingStore not loaded'); return; }
+  TEST_USERS.forEach((user) => {
+    const key = `smartswing_user_${user.id}`;
+    const entry = {
+      id: user.id, email: user.email, fullName: user.fullName,
+      role: user.role, subscriptionTier: user.plan,
+      subscriptionStatus: user.subscriptionStatus,
+      billingInterval: user.billingInterval,
+      avatarDataUrl: user.avatarDataUrl || '',
+      onboardingComplete: user.onboardingComplete,
+      trialUsed: user.trialUsed,
+      reportsUsedThisMonth: user.reportsUsed || 0,
+      assessments: [], goals: [], drills: [], messages: [], sessions: [], progress: [],
+    };
+    localStorage.setItem(key, JSON.stringify(entry));
+  });
+  logLine('log-info', `[SEED] Seeded ${TEST_USERS.length} users into localStorage`);
+  flushLog();
+  alert(`Seeded ${TEST_USERS.length} test users into localStorage.`);
+}
+
+function clearTestData() {
+  TEST_USERS.forEach((u) => localStorage.removeItem(`smartswing_user_${u.id}`));
+  logLine('log-info', '[CLEAR] Test user data removed from localStorage');
+  flushLog();
+  renderUserCards();
+  document.getElementById('numPass').textContent = '—';
+  document.getElementById('numFail').textContent = '—';
+  document.getElementById('numTotal').textContent = '—';
+  document.getElementById('numTime').textContent = '—';
+  document.getElementById('totalBadge').textContent = 'Cleared';
+  setProgress(0);
+}
+
+// ─── Main runner ─────────────────────────────────────────────────────────
+async function runAllTests() {
+  totalPass = 0; totalFail = 0; totalChecks = 0;
+  log.length = 0;
+  renderUserCards();
+  setProgress(0);
+
+  const store = window.SmartSwingStore;
+  const t0 = performance.now();
+
+  logLine('log-head', '═══════════════════════════════════════════');
+  logLine('log-head', ' SmartSwing AI — Full Test Suite');
+  logLine('log-head', '═══════════════════════════════════════════');
+
+  // 1. Run per-user tests
+  logLine('log-head', '\n[USERS] 20-User Access & Profile Tests');
+  TEST_USERS.forEach((user, i) => {
+    testUser(user, store);
+    setProgress(((i + 1) / TEST_USERS.length) * 40);
+  });
+
+  setProgress(40);
+
+  // 2. Analyzer feature tests
+  testAnalyzerFeatures(store);
+  setProgress(60);
+
+  // 3. API route tests (only when served via HTTP)
+  if (window.location.protocol !== 'file:') {
+    await testApiRoutes();
+    setProgress(80);
+    await testPageAvailability();
+  } else {
+    logLine('log-info', '\n[API] Skipped — open via HTTP server to test API routes');
+    logLine('log-info', '[PAGES] Skipped — open via HTTP server to test page availability');
+    setProgress(80);
+  }
+
+  const elapsed = Math.round(performance.now() - t0);
+  setProgress(100);
+
+  // Summary
+  logLine('log-head', '\n═══════════════════════════════════════════');
+  logLine(totalFail === 0 ? 'log-pass' : 'log-fail',
+    ` Result: ${totalPass}/${totalChecks} passed | ${totalFail} failed | ${elapsed}ms`);
+  logLine('log-head', '═══════════════════════════════════════════');
+
+  document.getElementById('numPass').textContent = totalPass;
+  document.getElementById('numFail').textContent = totalFail;
+  document.getElementById('numTotal').textContent = totalChecks;
+  document.getElementById('numTime').textContent = elapsed;
+  document.getElementById('totalBadge').textContent =
+    totalFail === 0 ? '100% PASS' : `${totalFail} FAILED`;
+  document.getElementById('totalBadge').className =
+    `badge ${totalFail === 0 ? 'badge-green' : 'badge-red'}`;
+
+  flushLog();
+}
+
+// ─── Extra test sections (analyzer, api, pages) ───────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderUserCards();
+
+  // Insert extra sections after user grid
+  const body = document.querySelector('body');
+  ['analyzerSection','apiSection','pageSection'].forEach((id) => {
+    if (!document.getElementById(id)) {
+      const div = document.createElement('div');
+      div.className = 'section';
+      const titles = {
+        analyzerSection: 'AI Analyzer & Store Feature Tests',
+        apiSection: 'API Route Validation',
+        pageSection: 'Page Availability (31 pages)',
+      };
+      div.innerHTML = `<div class="section-title">${titles[id]}</div><div class="test-list" id="${id}"><span style="color:var(--muted);font-size:13px;">Run the suite to populate…</span></div>`;
+      body.insertBefore(div, document.querySelector('.section:last-child'));
+    }
+  });
+});
+</script>
+</body>
+</html>

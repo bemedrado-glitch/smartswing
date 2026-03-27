@@ -91,8 +91,14 @@
       border: 1px solid rgba(57, 255, 20, 0.3);
     }
 
+    .alert-info {
+      color: #fff5cc;
+      background: rgba(255, 216, 77, 0.12);
+      border: 1px solid rgba(255, 216, 77, 0.28);
+    }
+
     .demo-box {
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       padding: 16px;
       border-radius: 16px;
       background: rgba(255, 255, 255, 0.04);
@@ -105,6 +111,30 @@
       color: var(--neon-green);
       display: block;
       margin-bottom: 6px;
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .mode-switch a {
+      text-decoration: none;
+      padding: 11px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--silver);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .mode-switch a.active {
+      border-color: rgba(57, 255, 20, 0.35);
+      background: rgba(57, 255, 20, 0.14);
+      color: var(--neon-green);
     }
 
     label {
@@ -166,6 +196,13 @@
 
     .btn:hover { transform: translateY(-1px); }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
     .links {
       margin-top: 22px;
       text-align: center;
@@ -189,7 +226,6 @@
   </style>
   <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="shell">
@@ -198,46 +234,129 @@
       <h1>Sign In</h1>
       <p class="subtext">Access saved swing reports, KPI tracking, coach sessions, and your latest biomechanics recommendations.</p>
 
-      <div id="alertBox" class="alert"></div>
-
-      <div class="demo-box">
-        <strong>Demo account</strong>
-        Email: `demo@smartswing.ai`<br>
-        Password: `demo123`
+      <div class="mode-switch">
+        <a class="active" href="./login.html">Sign in</a>
+        <a data-preserve-intent href="./signup.html">Create account</a>
       </div>
 
-      <form onsubmit="handleLogin(event)">
+      <div id="alertBox" class="alert" role="status" aria-live="polite"></div>
+
+      <div class="demo-box">
+        <strong>Faster access options</strong>
+        Use Google, Meta, or Apple when available, or sign in with email and password. If you are new to SmartSwing, create your account first and browser autofill can help complete your profile faster.
+      </div>
+
+      <div id="authStatus" class="alert" role="status" aria-live="polite"></div>
+
+      <form autocomplete="on" onsubmit="handleLogin(event)">
         <div class="field">
           <label for="email">Email</label>
-          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+          <input id="email" name="email" type="email" inputmode="email" spellcheck="false" autocomplete="email username" placeholder="you@example.com" required>
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
         </div>
         <button id="loginBtn" class="btn btn-primary" type="submit">Sign In</button>
       </form>
 
       <div class="oauth-grid">
-        <button class="btn btn-secondary oauth-btn" type="button" onclick="loginWithProvider('google')">Google</button>
-        <button class="btn btn-secondary oauth-btn" type="button" onclick="loginWithProvider('facebook')">Meta</button>
-        <button class="btn btn-secondary oauth-btn" type="button" onclick="loginWithProvider('apple')">Apple</button>
+        <button class="btn btn-secondary oauth-btn" data-oauth-provider="google" type="button" onclick="loginWithProvider('google')">Google</button>
+        <button class="btn btn-secondary oauth-btn" data-oauth-provider="facebook" type="button" onclick="loginWithProvider('facebook')">Meta</button>
+        <button class="btn btn-secondary oauth-btn" data-oauth-provider="apple" type="button" onclick="loginWithProvider('apple')">Apple</button>
       </div>
 
+      <a class="btn btn-secondary" data-preserve-intent href="./signup.html">Create account</a>
+
       <div class="links">
-        Don't have an account? <a href="./signup.html">Create one</a>
+        Don't have an account? <a data-preserve-intent href="./signup.html">Create one</a>
+      </div>
+      <div class="links" style="margin-top:10px">
+        By continuing, you agree to the <a href="./user-agreement.html">User Agreement</a> and <a href="./privacy-policy.html">Privacy Policy</a>.
       </div>
     </div>
     <a class="back-link" href="./index.html">Back to homepage</a>
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
+  <script src="./site-experience.js"></script>
   <script src="./pwa.js"></script>
   <script>
     const store = window.SmartSwingStore;
+    const ALLOWED_PLANS = new Set(['free', 'starter', 'pro', 'elite']);
+
+    async function initOAuthButtons() {
+      const authConfig = window.SMARTSWING_AUTH_CONFIG || {};
+      const results = await Promise.all(Array.from(document.querySelectorAll('[data-oauth-provider]')).map(async (button) => {
+        const provider = button.dataset.oauthProvider;
+        const envEnabled = provider === 'google'
+          ? authConfig.googleEnabled
+          : provider === 'apple'
+            ? authConfig.appleEnabled
+            : authConfig.facebookEnabled;
+        if (!envEnabled) {
+          button.disabled = true;
+          button.title = `${provider} sign-in is not enabled yet.`;
+          button.style.opacity = '0.55';
+          button.style.cursor = 'not-allowed';
+          return { provider, enabled: false, reason: `${provider} sign-in is not enabled yet.` };
+        }
+        if (!store.isSupabaseConfigured || !store.isSupabaseConfigured() || !store.getOAuthProviderAvailability) {
+          return { provider, enabled: true, reason: '' };
+        }
+        const availability = await store.getOAuthProviderAvailability(provider);
+        if (availability.available) {
+          button.disabled = false;
+          button.title = '';
+          button.style.opacity = '';
+          button.style.cursor = '';
+          return { provider, enabled: true, reason: '' };
+        }
+        button.disabled = true;
+        button.title = availability.reason || `${provider} sign-in is unavailable right now.`;
+        button.style.opacity = '0.55';
+        button.style.cursor = 'not-allowed';
+        return { provider, enabled: false, reason: button.title };
+      }));
+      return results;
+    }
+
+    function getDesiredCheckoutIntent() {
+      const params = new URLSearchParams(window.location.search);
+      const requestedPlan = String(params.get('plan') || '').toLowerCase();
+      if (ALLOWED_PLANS.has(requestedPlan)) {
+        return {
+          planId: requestedPlan,
+          billingInterval: params.get('interval') || 'monthly'
+        };
+      }
+      return store.getCheckoutIntent ? store.getCheckoutIntent() : null;
+    }
+
+    function syncIntentLinks() {
+      const intent = getDesiredCheckoutIntent();
+      if (!intent?.planId) return;
+      document.querySelectorAll('[data-preserve-intent]').forEach((link) => {
+        const url = new URL(link.getAttribute('href'), window.location.href);
+        url.searchParams.set('plan', intent.planId);
+        if (intent.planId !== 'free') {
+          url.searchParams.set('interval', intent.billingInterval || 'monthly');
+        }
+        link.setAttribute('href', `${url.pathname.split('/').pop()}${url.search}`);
+      });
+    }
 
     function getSignedInDestination(user) {
+      const intent = getDesiredCheckoutIntent();
+      if (intent?.planId) {
+        if (store.setCheckoutIntent) {
+          store.setCheckoutIntent(intent);
+        }
+        const destination = store.getCheckoutIntentDestination ? store.getCheckoutIntentDestination(intent) : '';
+        if (destination) return destination;
+      }
       return store.getPostAuthDestinationForUser(user || store.getCurrentUser());
     }
 
@@ -248,11 +367,30 @@
       alertBox.style.display = 'block';
     }
 
+    function showAuthStatus(message, type = 'info') {
+      const authStatus = document.getElementById('authStatus');
+      authStatus.textContent = message;
+      authStatus.className = `alert alert-${type}`;
+      authStatus.style.display = 'block';
+    }
+
+    function setLoginAvailability(enabled, message = '') {
+      const loginBtn = document.getElementById('loginBtn');
+      loginBtn.disabled = !enabled;
+      loginBtn.dataset.locked = enabled ? '0' : '1';
+      loginBtn.title = enabled ? '' : message;
+    }
+
     async function handleLogin(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const loginBtn = document.getElementById('loginBtn');
+
+      if (loginBtn.dataset.locked === '1') {
+        showAlert(loginBtn.title || 'Sign-in is currently unavailable on this deployment.');
+        return;
+      }
 
       loginBtn.disabled = true;
       loginBtn.textContent = 'Signing in...';
@@ -261,7 +399,7 @@
         await store.signIn(email, password);
         showAlert('Login successful. Redirecting...', 'success');
         setTimeout(() => {
-          window.location.href = './dashboard.html';
+          window.location.href = getSignedInDestination();
         }, 600);
       } catch (error) {
         showAlert(error.message || 'Login failed.');
@@ -274,7 +412,7 @@
       try {
         await store.signInWithOAuthProvider(provider);
       } catch (error) {
-        showAlert(error.message || `${provider} OAuth is not configured. Use email/password or demo account.`);
+        showAlert(error.message || `${provider} OAuth is not configured. Use email/password or create an account first.`);
       }
     }
 
@@ -285,7 +423,9 @@
         return;
       }
 
+      let oauthStatuses = [];
       if (store.isSupabaseConfigured()) {
+        oauthStatuses = await initOAuthButtons();
         try {
           const restored = await store.restoreSupabaseSession();
           if (restored) {
@@ -295,23 +435,48 @@
         } catch (error) {
           showAlert(error.message || 'Unable to restore an existing session.');
         }
+        const enabledProviders = oauthStatuses.filter((entry) => entry.enabled);
+        if (!enabledProviders.length) {
+          showAuthStatus('Social sign-in is unavailable because the Supabase OAuth providers are not enabled yet. Email/password login still works.', 'info');
+        }
       } else {
+        const authAvailability = store.getAuthAvailability ? store.getAuthAvailability() : {
+          supabaseConfigured: false,
+          localDataMode: false,
+          emailPasswordAvailable: false
+        };
         document.querySelectorAll('.oauth-btn').forEach((button) => {
           button.disabled = true;
           button.style.opacity = '0.55';
           button.style.cursor = 'not-allowed';
         });
-        showAlert('Social sign-in will unlock automatically once the Supabase public configuration is published for this site. Email/password login still works.', 'error');
+        if (authAvailability.emailPasswordAvailable) {
+          setLoginAvailability(true);
+          showAuthStatus('Social sign-in is disabled in this preview because the Supabase public configuration is missing. Email/password login still works locally.', 'info');
+        } else {
+          const message = 'Live sign-in is unavailable on this deployment until the Supabase public URL and anon key are published.';
+          setLoginAvailability(false, message);
+          showAuthStatus(`${message} Social sign-in is also disabled.`, 'error');
+        }
       }
     }
 
     const params = new URLSearchParams(window.location.search);
     const message = params.get('message');
     const type = params.get('type');
+    const requestedPlan = String(params.get('plan') || '').toLowerCase();
+    if (ALLOWED_PLANS.has(requestedPlan)) {
+      store.setCheckoutIntent({
+        planId: requestedPlan,
+        billingInterval: params.get('interval') || 'monthly',
+        source: 'login-page'
+      });
+    }
     if (message) {
       showAlert(decodeURIComponent(message), type || 'success');
     }
 
+    syncIntentLinks();
     bootstrapAuth();
   </script>
 </body>

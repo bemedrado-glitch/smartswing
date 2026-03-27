@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI Pickleball Early Access</title>
+  <meta name="description" content="Join the SmartSwing AI pickleball early-access list for web-first pickleball swing analysis, drills, and personalized improvement plans.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://www.smartswingai.com/pickleball.html">
+  <meta property="og:title" content="SmartSwing AI Pickleball Early Access">
+  <meta property="og:description" content="Join the pickleball early-access list for SmartSwing AI's web-first analysis and improvement workflow.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.smartswingai.com/pickleball.html">
+  <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./growth-pages.css">
+  <script src="./analytics.js"></script>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
+      <nav class="nav">
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./blog.html">Blog</a>
+        <a class="btn" href="./contact.html">Contact</a>
+        <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <article class="panel">
+        <div class="eyebrow">Pickleball Early Access</div>
+        <h1>Join the next sport path before it goes public.</h1>
+        <p>SmartSwing AI is tennis-first today, but the dual-sport workflow already points toward pickleball. If you want early access, tell us who you are and what kind of pickleball use case you care about most.</p>
+        <div class="mini-list" style="margin-top:18px">
+          <div>Web-first access instead of another app download.</div>
+          <div>Technique feedback tied to drills and practice priorities.</div>
+          <div>Early-access input helps shape the rollout.</div>
+        </div>
+      </article>
+      <article class="panel section-stack">
+        <div>
+          <h2>Join the waitlist</h2>
+          <form id="pickleballWaitlist">
+            <label for="pickleballName">Name
+              <input id="pickleballName" type="text" required placeholder="Your name">
+            </label>
+            <label for="pickleballEmail">Email
+              <input id="pickleballEmail" type="email" required placeholder="you@example.com">
+            </label>
+            <label for="pickleballInterest">Main interest
+              <select id="pickleballInterest" required>
+                <option value="">Select one</option>
+                <option value="personal-improvement">Personal improvement</option>
+                <option value="coach-workflow">Coach workflow</option>
+                <option value="club-rollout">Club or program rollout</option>
+                <option value="junior-family">Junior family support</option>
+              </select>
+            </label>
+            <button class="btn-primary" type="submit">Join Early Access</button>
+          </form>
+          <div id="pickleballNotice" class="notice">Your interest is stored in this browser now and can sync to SmartSwing support when cloud contact sync is available for your session.</div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="legal-footer">
+      <div class="footer-column">
+        <strong>SmartSwing AI</strong>
+        <p>Pickleball early-access interest for the next SmartSwing product path.</p>
+      </div>
+      <div class="footer-column">
+        <strong>Explore</strong>
+        <div class="footer-links">
+          <a href="./pickleball.html">Pickleball</a>
+          <a href="./for-players.html">For Players</a>
+          <a href="./contact.html">Contact</a>
+          <a href="./blog.html">Blog</a>
+        </div>
+      </div>
+      <div class="footer-column">
+        <strong>Community</strong>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+          <a href="./refund-policy.html">Refund Policy</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script src="./growth-forms.js"></script>
+  <script src="./pwa.js"></script>
+  <script>
+    const form = document.getElementById('pickleballWaitlist');
+    const notice = document.getElementById('pickleballNotice');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const result = await window.SmartSwingGrowth.submitLead({
+        name: document.getElementById('pickleballName').value,
+        email: document.getElementById('pickleballEmail').value,
+        topic: 'pickleball-early-access',
+        offer: 'Pickleball early access',
+        message: `Interest: ${document.getElementById('pickleballInterest').value}`,
+        source: '/pickleball.html'
+      });
+
+      if (!result.ok) {
+        notice.className = 'notice warn';
+        notice.textContent = 'Please complete your name and email before joining the waitlist.';
+        return;
+      }
+
+      form.reset();
+      notice.className = 'notice success';
+      notice.textContent = result.synced
+        ? 'Pickleball interest captured and synced to SmartSwing support.'
+        : `Pickleball interest saved locally at ${new Date(result.savedAt).toLocaleString()}.`;
+    });
+  </script>
+</body>
+</html>

@@ -12,37 +12,53 @@ Use this setup for SmartSwing recurring billing now that the public site and app
   - webhook signing secret from the Stripe endpoint below
 - `STRIPE_PRICE_STARTER_MONTHLY`
   - Stripe `price_...` id for the Player `$9.99/month` plan
+- `STRIPE_PRICE_STARTER_YEARLY`
+  - Stripe `price_...` id for the Player `$101.90/year` plan
 - `STRIPE_PRICE_PRO_MONTHLY`
   - Stripe `price_...` id for the Performance `$19.99/month` plan
+- `STRIPE_PRICE_PRO_YEARLY`
+  - Stripe `price_...` id for the Performance `$203.90/year` plan
 - `STRIPE_PRICE_ELITE_MONTHLY`
   - Stripe `price_...` id for the Tournament Pro `$49.99/month` plan
+- `STRIPE_PRICE_ELITE_YEARLY`
+  - Stripe `price_...` id for the Tournament Pro `$509.90/year` plan
 
 ## Optional but recommended Vercel environment variables
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-These let Stripe checkout verification and webhooks update `profiles.subscription_tier`, `profiles.subscription_status`, `profiles.stripe_customer_id`, and `profiles.billing_period_end` automatically.
+These let Stripe checkout verification and webhooks update `profiles.subscription_tier`, `profiles.subscription_status`, `profiles.stripe_customer_id`, `profiles.stripe_subscription_id`, `profiles.billing_interval`, `profiles.subscription_cancel_at_period_end`, and `profiles.billing_period_end` automatically.
 
 ## Stripe product and price mapping
 
-Create these recurring monthly prices in Stripe:
+Create these recurring prices in Stripe:
 
 - Player
   - `$9.99/month`
   - env: `STRIPE_PRICE_STARTER_MONTHLY`
+  - `$101.90/year`
+  - env: `STRIPE_PRICE_STARTER_YEARLY`
 - Performance
   - `$19.99/month`
   - env: `STRIPE_PRICE_PRO_MONTHLY`
+  - `$203.90/year`
+  - env: `STRIPE_PRICE_PRO_YEARLY`
 - Tournament Pro
   - `$49.99/month`
   - env: `STRIPE_PRICE_ELITE_MONTHLY`
+  - `$509.90/year`
+  - env: `STRIPE_PRICE_ELITE_YEARLY`
 
 ## Webhook endpoint
 
 Create a Stripe webhook endpoint pointing to:
 
 - `https://www.smartswingai.com/api/stripe-webhook`
+
+For self-service plan cancellation and payment-method updates, SmartSwing also uses Stripe Billing Portal through:
+
+- `https://www.smartswingai.com/api/create-billing-portal-session`
 
 Subscribe to at least these events:
 
@@ -67,6 +83,7 @@ Copy the generated signing secret into:
 6. The app verifies the session through `/api/checkout-session-status`.
 7. If Supabase service-role credentials are present, cloud billing state is updated immediately.
 8. Webhooks keep the subscription status synced after renewals, failures, cancellations, and tier changes.
+9. Customers can open the Stripe billing portal from `settings.html` to cancel anytime or update payment details.
 
 ## Test mode checklist
 

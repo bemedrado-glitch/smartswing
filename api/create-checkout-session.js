@@ -4,6 +4,7 @@ const {
   getPriceIdForPlan,
   getStripeClient,
   json,
+  normalizeBillingInterval,
   normalizePlanId,
   readJsonBody
 } = require('./_lib/stripe-common');
@@ -22,14 +23,15 @@ module.exports = async (req, res) => {
   }
 
   const planId = normalizePlanId(body.planId);
+  const billingInterval = normalizeBillingInterval(body.billingInterval);
   if (!planId || planId === 'free') {
     return json(res, 400, { error: 'A paid SmartSwing plan is required for Stripe checkout.' });
   }
 
-  const priceId = getPriceIdForPlan(planId);
+  const priceId = getPriceIdForPlan(planId, billingInterval);
   if (!priceId) {
     return json(res, 500, {
-      error: `Stripe price id for ${planId} is missing. Set ${getPriceEnvKeyForPlan(planId)} in Vercel.`
+      error: `Stripe price id for ${planId} (${billingInterval}) is missing. Set ${getPriceEnvKeyForPlan(planId, billingInterval)} in Vercel.`
     });
   }
 
@@ -38,6 +40,7 @@ module.exports = async (req, res) => {
   const fullName = String(body.fullName || '').trim();
   const checkoutId = String(body.checkoutId || '').trim();
   const source = String(body.source || 'checkout-page').trim();
+  const stripeCustomerId = String(body.stripeCustomerId || '').trim();
 
   if (!smartSwingUserId || !email) {
     return json(res, 400, { error: 'User id and email are required for paid checkout.' });
@@ -53,7 +56,7 @@ module.exports = async (req, res) => {
   const urls = buildCheckoutUrls(planId);
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionPayload = {
       mode: 'subscription',
       success_url: urls.successUrl,
       cancel_url: urls.cancelUrl,
@@ -70,6 +73,7 @@ module.exports = async (req, res) => {
       allow_promotion_codes: true,
       metadata: {
         appPlanId: planId,
+        billingInterval,
         smartSwingUserId,
         email,
         fullName,
@@ -79,12 +83,20 @@ module.exports = async (req, res) => {
       subscription_data: {
         metadata: {
           appPlanId: planId,
+          billingInterval,
           smartSwingUserId,
           email,
           source
         }
       }
-    });
+    };
+
+    if (stripeCustomerId) {
+      sessionPayload.customer = stripeCustomerId;
+      delete sessionPayload.customer_email;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionPayload);
 
     return json(res, 200, {
       sessionId: session.id,

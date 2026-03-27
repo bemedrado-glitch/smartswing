@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI - Drills and Tactics Library</title>
+  <title>SmartSwing AI Library | Tennis Drills and Tactical Playbooks</title>
+  <meta name="description" content="Browse SmartSwing AI tennis drills and tactical playbooks by level, shot type, and match situation.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://www.smartswingai.com/library.html">
+  <meta property="og:title" content="SmartSwing AI Library">
+  <meta property="og:description" content="Find tennis drills and tactical playbooks matched to player level, shot type, and on-court context.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.smartswingai.com/library.html">
+  <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SmartSwing AI Library">
+  <meta name="twitter:description" content="Tennis drills and tactical playbooks filtered by level, shot type, and match context.">
   <link rel="manifest" href="./manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
@@ -117,30 +128,52 @@
       padding: 10px;
       font-size: 13px;
     }
+    .footer {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr 1fr;
+      gap: 16px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .footer-col { display: grid; gap: 12px; }
+    .footer-col strong { color: var(--text); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 10px; }
+    .footer-links a {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-weight: 700;
+    }
     @media (max-width: 980px) {
-      .grid, .filters { grid-template-columns: 1fr; }
+      .grid, .filters, .footer { grid-template-columns: 1fr; }
       h1 { font-size: 32px; }
     }
   </style>
   <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <div class="page">
     <header class="top">
       <a class="logo" href="./index.html">SmartSwing AI</a>
-      <div class="nav">
-        <a class="btn" href="./dashboard.html">Player Dashboard</a>
-        <a class="btn" href="./coach-dashboard.html">Coach Dashboard</a>
-        <a class="btn" href="./analyze.html">Analyzer</a>
-        <a class="btn btn-primary" href="./pricing.html">Upgrade Plan</a>
-      </div>
+      <nav class="nav">
+        <a class="btn" href="./for-players.html">For Players</a>
+        <a class="btn" href="./for-coaches.html">For Coaches</a>
+        <a class="btn" href="./for-clubs.html">For Clubs</a>
+        <a class="btn" href="./pricing.html">Pricing</a>
+        <a class="btn" href="./blog.html">Blog</a>
+        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+      </nav>
     </header>
 
     <section class="hero">
       <h1>Drills and Tactics Library</h1>
       <p class="muted" id="planSummary"></p>
+      <p class="muted">Browse the drill and tactic catalog publicly, then upgrade when you want protected external video links, saved reports, and the full player workflow.</p>
       <div class="filters">
         <select id="levelFilter">
           <option value="">All levels</option>
@@ -182,9 +215,44 @@
         <div id="tacticList" class="list"></div>
       </article>
     </section>
+
+    <footer class="footer">
+      <div class="footer-col">
+        <strong>SmartSwing AI</strong>
+        <div>Drills and tactical playbooks mapped to the same analysis workflow used across the product.</div>
+        <div style="font-size:13px;color:var(--muted)">&copy; 2026 SmartSwing AI</div>
+      </div>
+      <div class="footer-col">
+        <strong>Pathways</strong>
+        <div class="footer-links">
+          <a href="./for-players.html">For Players</a>
+          <a href="./for-coaches.html">For Coaches</a>
+          <a href="./for-clubs.html">For Clubs</a>
+          <a href="./for-parents.html">For Parents</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Resources</strong>
+        <div class="footer-links">
+          <a href="./blog.html">Blog</a>
+          <a href="./pricing.html">Pricing</a>
+          <a href="./contact.html">Contact</a>
+          <a href="./refund-policy.html">Refund Policy</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Community</strong>
+        <div class="footer-links">
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+    </footer>
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
   <script>
@@ -197,7 +265,7 @@
       const usage = user ? store.canGenerateReport(user.id) : { used: 0, limit: 1 };
       const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
       document.getElementById('planSummary').textContent =
-        `Active plan: ${plan.name}. Monthly reports used: ${usageText}. ${hasLibrary ? 'Library links are unlocked.' : 'Upgrade to Performance or Tournament plan to unlock library links and tactical video access.'}`;
+        `Active plan: ${plan.name}. Monthly reports used: ${usageText}. ${hasLibrary ? 'External library links are unlocked.' : 'You can browse titles now. Upgrade to Performance or Tournament Pro to unlock protected drill and tactical video links.'}`;
     }
 
     function renderLibrary() {
