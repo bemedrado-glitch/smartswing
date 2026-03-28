@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/bmedrado/Desktop/SmartSwing//**)",
+      "Read(//c/Users/bmedrado/Desktop//**)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ls -1 \"/c/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/.claude/worktrees/flamboyant-moore\"/*.html)",
+      "Bash(grep -E \"\\\\.sql$\")",
+      "Bash(find /c/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/.claude/worktrees/flamboyant-moore -type d -name *test* -o -type d -name *spec*)",
+      "Bash(find /c/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/.claude/worktrees/flamboyant-moore -name *.test.js -o -name *.spec.js)",
+      "Bash(ls -la /c/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/.claude/worktrees/flamboyant-moore/*.js)",
+      "Bash(find /c/Users/bmedrado/Desktop/SmartSwing/_smartswing_repo/.claude/worktrees/flamboyant-moore/tests -type f -name *.js -o -name *.test.js -o -name *.spec.js)",
+      "mcp__3b06dba4-35e2-4b9b-aa51-fb6370b8ffbc__create_product",
+      "mcp__3b06dba4-35e2-4b9b-aa51-fb6370b8ffbc__create_price",
+      "Bash(npx vercel:*)",
+      "Bash(printf 'price_1TFk1uF46UFnxYd9QmScWS4r')",
+      "Bash(printf 'price_1TFk1vF46UFnxYd96r5HIlDO')",
+      "Bash(printf 'price_1TFk1xF46UFnxYd96tSoK1Y7')",
+      "Bash(printf 'price_1TFk1yF46UFnxYd9L5tEY6C2')",
+      "Bash(printf 'price_1TFk20F46UFnxYd9Dy1QVH1u')",
+      "Bash(printf 'price_1TFk22F46UFnxYd92k3NIXIU')",
+      "mcp__31c1c9ee-d90d-4e35-b349-81d97c3ef46e__apply_migration",
+      "mcp__31c1c9ee-d90d-4e35-b349-81d97c3ef46e__execute_sql",
+      "mcp__1aeb083b-42dc-41f9-ae86-9a053ec22c1c__deploy_to_vercel"
+    ]
+  }
+}

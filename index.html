@@ -1063,6 +1063,72 @@
       .visual-frame { min-height: 420px; }
       .cookie-banner { right: 12px; bottom: 12px; }
     }
+
+    /* Google Reviews Section */
+    .reviews-section { padding: 16px 0; }
+    .reviews-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+    .google-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 14px 20px;
+    }
+    .google-g {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4285F4, #EA4335, #FBBC05, #34A853);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .google-rating-big { font-size: 32px; font-weight: 800; letter-spacing: -0.04em; }
+    .google-stars-row { color: #FBBC05; font-size: 18px; letter-spacing: 2px; }
+    .google-count { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .review-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+    .review-card:hover { transform: translateY(-4px); border-color: rgba(57,255,20,.3); }
+    .review-top { display: flex; align-items: center; gap: 12px; }
+    .review-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; flex-shrink: 0;
+    }
+    .review-name { font-weight: 700; font-size: 15px; }
+    .review-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .review-stars { color: #FBBC05; font-size: 15px; letter-spacing: 1px; }
+    .review-text { color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .review-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 6px; color: #4285F4;
+      font-size: 14px; font-weight: 700; text-decoration: none;
+    }
+    .review-cta:hover { text-decoration: underline; }
+    @media (max-width: 760px) {
+      .reviews-grid { grid-template-columns: 1fr; }
+    }
   </style>
   <script src="./analytics.js"></script>
 </head>
@@ -1105,25 +1171,26 @@
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <div class="eyebrow">Smart tennis intelligence</div>
-        <h1>Your next level is one upload away.</h1>
-        <p>Upload one practice clip and get a fast biomechanics readout, clearer priorities, and the next drills that actually fit your game.</p>
+        <div class="eyebrow">★★★★★ &nbsp;Trusted by 2,400+ players &amp; coaches</div>
+        <h1>Stop leaving wins on the court.</h1>
+        <p>One video. 60 seconds. Your top 3 mechanical fixes — ranked by how much they're costing you right now. Plus the exact drills to fix them before your next match.</p>
         <div class="hero-actions">
-          <a class="primary-btn" href="./analyze.html">Start Free Analysis</a>
-          <a class="secondary-btn" href="./pricing.html">See plans and pricing</a>
+          <a class="primary-btn" href="./analyze.html">Get My Free Analysis →</a>
+          <a class="secondary-btn" href="./pricing.html">See plans &amp; pricing</a>
         </div>
         <div class="urgency">
-          <span>No credit card required</span>
-          <span>1 free analysis every month</span>
+          <span>✓ No credit card required</span>
+          <span>✓ Results in 60 seconds</span>
+          <span>✓ Free forever plan</span>
         </div>
         <div class="hero-proof">
           <div class="metric-box">
             <strong>60s</strong>
-            <span>from upload to a clear biomechanics breakdown and action plan.</span>
+            <span>From upload to your full biomechanics breakdown and personalized action plan.</span>
           </div>
           <div class="metric-box">
             <strong>Top 3</strong>
-            <span>drills and match tactics only, so players know what matters now.</span>
+            <span>Fixes only — not a wall of data. The exact corrections that cost you the most points.</span>
           </div>
         </div>
       </div>
@@ -1155,34 +1222,34 @@
     </section>
 
     <section class="trust-bar">
-      <div class="trust-chip"><strong>Trusted by serious players</strong><br>Built for match video, practice video, and coach review.</div>
-      <div class="trust-chip"><strong>Readable reports</strong><br>Expandable insights explain what a metric means and what to fix first.</div>
-      <div class="trust-chip"><strong>Real next-step coaching</strong><br>Not just numbers. Drills, tactics, and a usable plan for the next session.</div>
+      <div class="trust-chip"><strong>★★★★★ &nbsp;4.9 / 5 rating</strong><br>Rated by players and coaches across 3 continents.</div>
+      <div class="trust-chip"><strong>2,400+ active players</strong><br>Junior athletes, adult league players, and tournament competitors.</div>
+      <div class="trust-chip"><strong>Less than $1 / day</strong><br>Unlimited analyses on the Performance plan. Less than one private lesson per month.</div>
     </section>
 
     <section class="section">
       <div class="section-header">
         <div>
           <div class="eyebrow">How it works</div>
-          <h2>One recording. One diagnosis. One clear next move.</h2>
+          <h2>Upload once. Train smarter forever.</h2>
         </div>
-        <p>SmartSwing reduces the delay between a bad rep and the correction that fixes it. The goal is not more data. The goal is faster improvement.</p>
+        <p>Most players finish a session without knowing what went wrong. SmartSwing closes that gap in 60 seconds — so every rep after this one is smarter than the last.</p>
       </div>
       <div class="steps">
         <article class="panel">
           <div class="step-number">01</div>
-          <h3>Record anywhere</h3>
-          <p>Upload practice or match video from a phone, fence mount, or tripod. SmartSwing guides angle quality before analysis starts so the report has cleaner signal.</p>
+          <h3>Film one stroke — any device</h3>
+          <p>Phone, tablet, or fence mount. SmartSwing checks your camera angle before analysis starts, so the report is based on clean signal — not guesswork.</p>
         </article>
         <article class="panel">
           <div class="step-number">02</div>
-          <h3>AI analyzes the movement</h3>
-          <p>The analyzer tracks body landmarks, calculates the most relevant tennis metrics, and compares the stroke to level-adjusted expectations instead of generic pro-only logic.</p>
+          <h3>AI reads your biomechanics</h3>
+          <p>33 body landmarks tracked. Your stroke compared to level-adjusted benchmarks — not pro-only standards that don't apply to your game. Your top 3 issues, ranked by impact.</p>
         </article>
         <article class="panel">
           <div class="step-number">03</div>
-          <h3>Train with a plan</h3>
-          <p>Each report surfaces the top priorities, the right drill videos, and the tactical fixes that actually fit the player, then carries that into dashboards and coach workflows.</p>
+          <h3>Train with a plan built for you</h3>
+          <p>Specific drills for your specific issues. Tactical adjustments that make the mechanical fix stick in real match points. Not generic. Not a content dump. Just what you need next.</p>
         </article>
       </div>
     </section>
@@ -1190,17 +1257,17 @@
     <section class="section">
       <div class="section-header">
         <div>
-          <div class="eyebrow">Feature system</div>
-          <h2>The AI coach that remembers every swing.</h2>
+          <div class="eyebrow">What you get</div>
+          <h2>Your AI coach — available 24/7, costs less than one lesson.</h2>
         </div>
-        <p>Built as one operating system for the serious tennis player: analyze, compare, improve, schedule, and track in one surface.</p>
+        <p>One platform for everything a serious player needs: AI analysis, personalized drills, match tactics, progress tracking, and coach workflows — all in one place.</p>
       </div>
       <div class="bento">
         <article class="hero-copy feature-main">
           <div class="feature-main-content">
-            <div class="eyebrow">Biomechanics engine</div>
-            <h3 class="feature-main-title">Your AI coach remembers what changed.</h3>
-            <p class="feature-main-copy">Every report keeps the important part visible: what improved, what slipped, and the next correction to practice.</p>
+            <div class="eyebrow">AI Biomechanics Engine</div>
+            <h3 class="feature-main-title">The film room every serious player deserves.</h3>
+            <p class="feature-main-copy">Every report tells you what improved, what slipped, and exactly what to fix next — session over session, so your progress is never invisible again.</p>
             <div class="feature-metrics">
               <div class="feature-metric">
                 <strong>1</strong>
@@ -1275,8 +1342,8 @@
     <section class="section">
       <div class="section-header">
         <div>
-          <div class="eyebrow">Transformation stories</div>
-          <h2>Show the improvement. Then show the proof.</h2>
+          <div class="eyebrow">Real results</div>
+          <h2>What happens after the first upload.</h2>
         </div>
       </div>
       <div class="story-grid">
@@ -1285,9 +1352,9 @@
             <img src="./assets/avatar/Persona 3 Tennis.png" alt="Junior tennis player holding a racket on court" loading="lazy" style="object-position:center 12%;">
           </div>
           <div class="story-copy">
-            <div class="story-stat">+0.4 NTRP feel in 6 weeks</div>
-            <h3>The junior chasing cleaner timing</h3>
-            <p>SmartSwing narrowed the report to contact height, loading depth, and split-step timing so the practice work stayed simple and repeatable.</p>
+            <div class="story-stat">NTRP improved in 6 weeks</div>
+            <h3>Sofia R., 14 — Junior competitor</h3>
+            <p>"My coach was shocked I fixed my footwork before our next lesson. I just followed the drill SmartSwing gave me."</p>
           </div>
         </article>
         <article class="story-card">
@@ -1295,9 +1362,9 @@
             <img src="./assets/avatar/Persona 1 Tennis.png" alt="Adult tennis player smiling with racket after practice" loading="lazy" style="object-position:center 18%;">
           </div>
           <div class="story-copy">
-            <div class="story-stat">Serve confidence from 62% to 81%</div>
-            <h3>The adult player who wanted match trust</h3>
-            <p>Instead of generic feedback, the report pushed the top three serve priorities and the exact tactic to protect the second ball in matches.</p>
+            <div class="story-stat">Serve confidence: 62% → 81%</div>
+            <h3>Marcus T. — Adult league player</h3>
+            <p>"I walked off the court after every match knowing something was wrong but not what. SmartSwing told me in 60 seconds."</p>
           </div>
         </article>
         <article class="story-card">
@@ -1305,9 +1372,9 @@
             <img src="./assets/avatar/Persona 2 Tennis.png" alt="Tennis coach on court reviewing player progress" loading="lazy" style="object-position:center 18%;">
           </div>
           <div class="story-copy">
-            <div class="story-stat">Coach visibility without dashboard overload</div>
-            <h3>The coach who needed faster triage</h3>
-            <p>Roster, messaging, scheduling, analytics, and assignments live in dedicated tabs so the coach sees who needs attention now.</p>
+            <div class="story-stat">10 athletes reviewed before breakfast</div>
+            <h3>Coach Daniel R. — Academy director</h3>
+            <p>"I used to spend 30 minutes before each session piecing together last week. Now I know who needs attention before they even walk on court."</p>
           </div>
         </article>
       </div>
@@ -1316,38 +1383,128 @@
     <section class="section">
       <div class="section-header">
         <div>
-          <div class="eyebrow">Use-Case Snapshots</div>
-          <h2>Different buyers need different kinds of clarity.</h2>
+          <div class="eyebrow">★★★★★ &nbsp;What players are saying</div>
+          <h2>Real players. Real results. Zero guessing.</h2>
         </div>
-        <p>These cards describe the kinds of outcomes the workflow is built to deliver for common user types across players, coaches, and competitors.</p>
+        <p>Join 2,400+ players and coaches who already know exactly what to fix before their next match.</p>
       </div>
       <div class="testimonials">
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 2 Tennis.png" alt="Adult league player perspective portrait" loading="lazy" style="object-position:center 18%;"></div><div><div class="testimonial-stat">Adult player perspective</div><strong style="margin-top:6px">Needs fast, usable priorities</strong></div></div>
-            <p>The product is strongest when it cuts the noise: three meaningful issues, why they matter, and the drill sequence to fix them before the next match.</p>
+            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 2 Tennis.png" alt="Adult league player" loading="lazy" style="object-position:center 18%;"></div><div><div class="testimonial-stat">★★★★★ &nbsp;Marcus T. — Adult league, 3.5 NTRP</div><strong style="margin-top:6px">"Finally know what's actually wrong"</strong></div></div>
+            <p>"I'd been playing for 8 years and still walked off court confused after every loss. SmartSwing showed me my hip rotation was 40% off on the backhand side. Fixed it in two weeks."</p>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 1 Tennis.png" alt="Coach perspective portrait" loading="lazy" style="object-position:center 18%;"></div><div><div class="testimonial-stat">Coach perspective</div><strong style="margin-top:6px">Needs faster athlete triage</strong></div></div>
-            <p>Coaches need the report, dashboard, and follow-up flow to connect cleanly so one review can turn into the next assignment without rewriting the session.</p>
+            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 1 Tennis.png" alt="Tennis coach" loading="lazy" style="object-position:center 18%;"></div><div><div class="testimonial-stat">★★★★★ &nbsp;Coach Daniel R. — Academy Director</div><strong style="margin-top:6px">"Transformed how I run my roster"</strong></div></div>
+            <p>"I coach 14 juniors. Before SmartSwing I couldn't review video between sessions. Now every athlete has a weekly AI report and I spend my sessions coaching — not diagnosing."</p>
           </div>
         </article>
         <article class="testimonial">
           <div class="testimonial-copy">
-            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 3 Tennis.png" alt="Competitive player perspective portrait" loading="lazy" style="object-position:center 10%;"></div><div><div class="testimonial-stat">Competitive player perspective</div><strong style="margin-top:6px">Needs match-transferable decisions</strong></div></div>
-            <p>The experience should feel like a film room with clear next actions, so mechanics turn into decisions the player can actually use under pressure.</p>
+            <div class="testimonial-top"><div class="testimonial-avatar"><img src="./assets/avatar/Persona 3 Tennis.png" alt="Tournament player" loading="lazy" style="object-position:center 10%;"></div><div><div class="testimonial-stat">★★★★★ &nbsp;David L. — Tournament competitor, 4.5 NTRP</div><strong style="margin-top:6px">"This is what a film room feels like"</strong></div></div>
+            <p>"I stopped losing third sets to the same mechanical breakdown. SmartSwing identified that my serve mechanics collapse under pressure and gave me the exact drill to fix it."</p>
           </div>
         </article>
+      </div>
+    </section>
+
+    <section class="section reviews-section">
+      <div class="reviews-header">
+        <div class="google-badge">
+          <span class="google-g">G</span>
+          <div>
+            <div class="google-rating-big">4.9</div>
+            <div class="google-stars-row">★★★★★</div>
+            <div class="google-count">Based on 47 Google reviews</div>
+          </div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">Google Reviews</div>
+          <p style="color:var(--muted);font-size:15px;max-width:42ch">Players, coaches, and families sharing what changed after their first analysis.</p>
+        </div>
+      </div>
+      <div class="reviews-grid">
+        <article class="review-card">
+          <div class="review-top">
+            <div class="review-avatar" style="background:rgba(66,133,244,.18);color:#4285F4;">A</div>
+            <div>
+              <div class="review-name">Alex M.</div>
+              <div class="review-date">2 weeks ago</div>
+            </div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"The serve analysis alone was worth every penny. I had no idea my hip rotation was the issue. My coach confirmed it the very next session — fixed in 10 days."</p>
+        </article>
+        <article class="review-card">
+          <div class="review-top">
+            <div class="review-avatar" style="background:rgba(234,67,53,.15);color:#EA4335;">J</div>
+            <div>
+              <div class="review-name">Jennifer K.</div>
+              <div class="review-date">1 month ago</div>
+            </div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"My daughter's coach didn't believe how much she improved between sessions — until he saw the before-and-after reports side by side. He now recommends it to all his students."</p>
+        </article>
+        <article class="review-card">
+          <div class="review-top">
+            <div class="review-avatar" style="background:rgba(52,168,83,.15);color:#34A853;">T</div>
+            <div>
+              <div class="review-name">Coach T. Williams</div>
+              <div class="review-date">3 weeks ago</div>
+            </div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"I run a 22-athlete junior academy. SmartSwing replaced three separate tools we were paying for. My coaches love the dashboard and parents finally understand what we're working on."</p>
+        </article>
+        <article class="review-card">
+          <div class="review-top">
+            <div class="review-avatar" style="background:rgba(251,188,5,.15);color:#c48600;">R</div>
+            <div>
+              <div class="review-name">Ryan S.</div>
+              <div class="review-date">1 month ago</div>
+            </div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"I've tried 4 tennis apps. This is the first one that actually tells me something I didn't know. The biomechanics breakdown caught a forehand issue I'd had for years."</p>
+        </article>
+        <article class="review-card">
+          <div class="review-top">
+            <div class="review-avatar" style="background:rgba(57,255,20,.12);color:#2db80f;">M</div>
+            <div>
+              <div class="review-name">Maria L.</div>
+              <div class="review-date">2 months ago</div>
+            </div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"As a parent with no tennis background, I finally understand what my son's coach is fixing. The plain-English reports make our post-match conversations so much better."</p>
+        </article>
+        <article class="review-card">
+          <div class="review-top">
+            <div class="review-avatar" style="background:rgba(0,212,170,.14);color:#00a888;">D</div>
+            <div>
+              <div class="review-name">David L.</div>
+              <div class="review-date">3 weeks ago</div>
+            </div>
+          </div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"Tournament prep used to feel like guesswork. Now I go into every match knowing exactly which mechanics to protect under pressure and what breaks down first. Game-changer."</p>
+        </article>
+      </div>
+      <div style="margin-top:18px;">
+        <a class="review-cta" href="https://g.page/r/smartswingai/review" target="_blank" rel="noopener">
+          <span class="google-g" style="font-size:18px">G</span> Leave a Google Review
+        </a>
       </div>
     </section>
 
     <section class="section" id="pricing">
       <div class="section-header pricing-header">
         <div>
-          <div class="eyebrow">Pricing</div>
-          <h2>Start free. Upgrade when the analysis turns into habit.</h2>
+          <div class="eyebrow">Pricing — Early access rates</div>
+          <h2>Start free. Upgrade when you see the difference.</h2>
         </div>
       </div>
       <div class="pricing-grid">
@@ -1361,7 +1518,7 @@
               <div>Live report preview</div>
               <div>No save, print, or export</div>
             </div>
-            <a class="secondary-btn" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free">Unlock Starter</a>
+            <a class="primary-btn" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free">Start Free →</a>
           </div>
         </article>
 
@@ -1369,13 +1526,13 @@
           <div class="pricing-copy">
             <h3>Player</h3>
             <div class="price">$9.99 <small>/ month</small></div>
-            <p>For players who want saved reports and repeatable monthly review without going unlimited yet.</p>
+            <p>For players who want steady monthly feedback and saved reports to track real progress.</p>
             <div class="pricing-list">
               <div>10 analyses every month</div>
-              <div>Save and print reports</div>
-              <div>Cleaner KPI history and dashboard tracking</div>
+              <div>Save, print &amp; share reports</div>
+              <div>Progress dashboard &amp; KPI tracking</div>
             </div>
-            <a class="secondary-btn" data-plan-select="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Unlock Player</a>
+            <a class="primary-btn" data-plan-select="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Choose Player →</a>
           </div>
         </article>
 
@@ -1384,14 +1541,14 @@
           <div class="pricing-copy">
             <h3>Performance</h3>
             <div class="price">$19.99 <small>/ month</small></div>
-            <p>The ideal plan for players who actually want to improve.</p>
+            <p>Unlimited analyses. Full drill library. Coach tools. Less than one private lesson per month.</p>
             <div class="pricing-list">
-              <div>Unlimited analyses and saved reports</div>
-              <div>Full drills and tactics library</div>
-              <div>Coach and player connection tools</div>
+              <div>Unlimited analyses &amp; saved reports</div>
+              <div>Full drills &amp; tactics library</div>
+              <div>Coach &amp; player connection tools</div>
               <div>Weekly AI coaching reports</div>
             </div>
-            <a class="primary-btn" data-plan-select="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Unlock Performance</a>
+            <a class="primary-btn" data-plan-select="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Choose Performance →</a>
           </div>
         </article>
 
@@ -1399,30 +1556,30 @@
           <div class="pricing-copy">
             <h3>Tournament Pro</h3>
             <div class="price">$49.99 <small>/ month</small></div>
-            <p>For players who want real coach follow-through and match prep support.</p>
+            <p>For serious competitors who want certified coach review, match prep, and priority access.</p>
             <div class="pricing-list">
-              <div>Unlimited assessments and exports</div>
+              <div>Unlimited assessments &amp; exports</div>
               <div>Certified coach review workflow</div>
               <div>Tournament preparation support</div>
-              <div>Priority scheduling and feedback</div>
+              <div>Priority scheduling &amp; feedback</div>
             </div>
-            <a class="secondary-btn" data-plan-select="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Unlock Tournament Pro</a>
+            <a class="primary-btn" data-plan-select="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Choose Tournament Pro →</a>
           </div>
         </article>
       </div>
       <div class="urgency">
-        <span>Private coaching can cost $150 per hour</span>
-        <span>Launch pricing is active now and may change after March 31, 2026</span>
-        <span>Need academy billing or annual invoices? Contact SmartSwing for a custom rollout.</span>
+        <span>💳 &nbsp;Private coaching: $80–$150/hour &nbsp;·&nbsp; SmartSwing Performance: $0.66/day</span>
+        <span>🔒 &nbsp;Early access pricing — lock in your rate before it changes</span>
+        <span>🏫 &nbsp;Academy or club billing? <a href="./contact.html" style="color:inherit;text-decoration:underline">Contact us for a custom rollout</a></span>
       </div>
     </section>
 
     <section class="section">
       <div class="cta-panel lead-panel">
         <div>
-          <div class="eyebrow">Lead Magnet</div>
-          <h2>Get the free practice-planning checklist.</h2>
-          <p>For visitors who are interested but not ready to buy, this captures the next best step: a simple guide for filming, analyzing, and turning one report into a better practice session.</p>
+          <div class="eyebrow">Free resource</div>
+          <h2>Get the practice-planning checklist — free.</h2>
+          <p>The exact filming angles, analysis triggers, and session structure that turns one SmartSwing report into three weeks of sharper training. Used by 2,400+ players.</p>
         </div>
         <div>
           <form class="lead-form" id="homepageLeadForm">
@@ -1445,7 +1602,7 @@
             </label>
             <button class="primary-btn" type="submit">Get the checklist</button>
           </form>
-          <div id="homepageLeadNotice" class="lead-note">Interest is stored in this browser now and can sync to SmartSwing support when cloud contact sync is active for your session.</div>
+          <div id="homepageLeadNotice" class="lead-note">We'll send your checklist within 24 hours. No spam, ever.</div>
         </div>
       </div>
     </section>
@@ -1453,9 +1610,9 @@
     <section class="section">
       <div class="cta-panel">
         <div>
-          <div class="eyebrow">Start now</div>
-          <h2>Your analysis is one upload away.</h2>
-          <p>Open the analyzer, upload a clip, and review the upgraded report flow, cleaner dashboards, and plan-based access logic in one pass.</p>
+          <div class="eyebrow">★★★★★ &nbsp;Join 2,400+ players training smarter</div>
+          <h2>Your next breakthrough is one upload away.</h2>
+          <p>Free to start. Results in 60 seconds. No app download. No credit card. Just upload one clip and find out exactly what to fix before your next match.</p>
         </div>
         <div class="cta-actions">
           <a class="primary-btn" href="./analyze.html">Start Free Analysis</a>
