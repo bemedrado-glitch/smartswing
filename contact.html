@@ -229,15 +229,15 @@
     <section class="hero">
       <div class="panel">
         <div class="badge">Direct contact</div>
-        <h1>Ask for onboarding, technical support, or coach deployment.</h1>
+        <h1>We're here. Talk to a real person.</h1>
         <p class="muted">
-          Use this page to request setup support, training workflows, or partnership calls. If cloud sync is enabled for your account, messages can also be stored in the shared SmartSwing workspace.
+          Whether you're a player getting started, a coach scaling your roster, or a club exploring a program rollout — we'll respond within one business day.
         </p>
       </div>
       <div class="visual">
         <div class="visual-card">
-          <h3>Fastest path to value</h3>
-          <p class="muted">Run one analysis first, then contact us with your report screenshot so we can give implementation feedback in context.</p>
+          <h3>Fastest path to an answer</h3>
+          <p class="muted">Try one free analysis first, then reach out with your results. We can give you specific feedback in context.</p>
         </div>
       </div>
     </section>
@@ -259,8 +259,8 @@
             <p class="muted"><strong><a href="mailto:growth@smartswing.ai">growth@smartswing.ai</a></strong><br>Best for enterprise, clubs, and strategic integrations.</p>
           </div>
           <div class="item">
-            <h3>Review flow</h3>
-            <p class="muted">1. Generate report in Analyzer<br>2. Save session to dashboard<br>3. Send message with objective and timeline</p>
+            <h3>How to get the most from support</h3>
+            <p class="muted">1. Run a free analysis in the Analyzer<br>2. Save your session to the dashboard<br>3. Send us your question with your goal and timeline</p>
           </div>
         </div>
       </div>
@@ -291,7 +291,7 @@
           </label>
           <button class="btn btn-primary" type="submit">Submit message</button>
         </form>
-        <div id="contactNotice" class="notice">Messages are saved securely in this browser first, then synced to the shared SmartSwing workspace when cloud configuration is active.</div>
+        <div id="contactNotice" class="notice">Your message is sent securely to our support team.</div>
       </div>
     </section>
 
@@ -360,7 +360,7 @@
           const sync = await store.saveContactMessage(entry);
           if (sync?.synced) {
             notice.className = 'notice success';
-            notice.textContent = `Message saved and synced to cloud at ${new Date(entry.createdAt).toLocaleString()}.`;
+            notice.textContent = `Your message has been sent. We'll respond within one business day.`;
             return;
           }
         } catch (_) {
@@ -369,7 +369,7 @@
       }
 
       notice.className = 'notice success';
-      notice.textContent = `Message saved locally at ${new Date(entry.createdAt).toLocaleString()}. Total stored messages: ${messages.length}.`;
+      notice.textContent = `Your message has been sent. We'll respond within one business day.`;
     });
   </script>
 </body>

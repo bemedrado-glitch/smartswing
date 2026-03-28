@@ -205,8 +205,8 @@
     <section class="hero">
       <article class="panel">
         <div class="eyebrow">Pricing</div>
-        <h1>Choose the plan that matches how serious you are about improving.</h1>
-        <p class="muted">SmartSwing is priced against wasted practice and expensive private coaching, not against generic video apps. Start free, prove the value, then upgrade when you want deeper tracking, saved reports, and coach accountability.</p>
+        <h1>Your next match is already in progress. Are you ready?</h1>
+        <p class="muted">Less than the cost of one private lesson. Results that stack every single week.</p>
         <div class="billing-toggle" aria-label="Billing interval toggle" role="group">
           <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true">Monthly</button>
           <button type="button" data-billing-toggle="yearly" aria-pressed="false">Yearly | save 15%</button>
@@ -225,12 +225,12 @@
         </div>
         <div class="urgency">
           <div class="urgency-box">
-            <strong id="launchPricingTitle" style="display:block;color:var(--text);margin-bottom:8px">Launch pricing window is active.</strong>
-            <span id="launchPricingText">The current launch pricing message updates automatically as the March 31, 2026 window gets closer or passes.</span>
+            <strong id="launchPricingTitle" style="display:block;color:var(--text);margin-bottom:8px">Early access pricing — lock in your rate before it changes</strong>
+            <span id="launchPricingText">Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime</span>
           </div>
           <div class="urgency-box">
-            <strong style="display:block;color:var(--text);margin-bottom:8px">Anchor the value correctly.</strong>
-            One private lesson can cost $150. SmartSwing Pro costs $19.99 for a full month of analysis.
+            <strong style="display:block;color:var(--text);margin-bottom:8px">Private lessons: $80–$150/hour.</strong>
+            SmartSwing Performance: $0.66/day. One month of analysis for less than one hour of coaching.
           </div>
         </div>
       </article>
@@ -249,6 +249,7 @@
             <div>Perfect for the first win</div>
           </div>
           <a class="btn-primary" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free">Claim Starter</a>
+          <div class="anchor">Your first insight is already waiting. No card required.</div>
         </div>
       </article>
 
@@ -265,7 +266,7 @@
           </div>
           <a class="btn-primary" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Choose Player</a>
           <div class="billing-copy" data-plan-billing-copy="starter">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor">What one bucket of blind reps costs: time. What this plan gives back: clarity.</div>
+          <div class="anchor">Less than skipping one lesson. More useful than all of them.</div>
         </div>
       </article>
 
@@ -284,7 +285,7 @@
           </div>
           <a class="btn-primary" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Choose Performance</a>
           <div class="billing-copy" data-plan-billing-copy="pro">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor">Best value: what a one-hour lesson costs, you get for a full month.</div>
+          <div class="anchor">This is what consistent improvement feels like.</div>
         </div>
       </article>
 
@@ -302,7 +303,7 @@
           </div>
           <a class="btn-primary" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Choose Tournament Pro</a>
           <div class="billing-copy" data-plan-billing-copy="elite">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor">Private coaching anchor: roughly $1.66 per day for the top plan.</div>
+          <div class="anchor">The edge serious competitors already have.</div>
         </div>
       </article>
     </section>
@@ -332,7 +333,7 @@
     <section class="compare">
       <article class="panel">
         <div class="chip">Value comparison</div>
-        <h2 style="margin-top:16px">SmartSwing vs. the alternatives</h2>
+        <h2 style="margin-top:16px">Why players switch from lessons-only to SmartSwing</h2>
         <div class="compare-table" style="margin-top:18px">
           <div class="row">
             <div class="cell"><strong>Option</strong></div>
@@ -379,11 +380,11 @@
       </article>
       <article class="qa">
         <h3>Can I switch plans anytime?</h3>
-        <p class="muted" style="margin-top:10px">Yes. Monthly plans can be canceled anytime. Yearly plans can also be canceled anytime and remain active through the end of the paid annual term.</p>
+        <p class="muted" style="margin-top:10px">Absolutely. Switch up or down whenever you want — no penalties, no friction. Monthly plans cancel anytime. Yearly plans stay active through the end of the paid term.</p>
       </article>
       <article class="qa">
-        <h3>Why can't Starter save reports?</h3>
-        <p class="muted" style="margin-top:10px">Starter is designed to create the first success moment. Save, print, and export unlock on paid plans.</p>
+        <h3>What if I choose Starter — am I limited?</h3>
+        <p class="muted" style="margin-top:10px">Starter gives you one full analysis per month — enough to prove the concept. When you're ready to train consistently, upgrading takes 30 seconds.</p>
       </article>
       <article class="qa">
         <h3>Where do drills and tactics unlock?</h3>
@@ -456,19 +457,19 @@
       const diffDays = Math.ceil(diffMs / 86400000);
 
       if (diffDays > 1) {
-        titleEl.textContent = 'Launch pricing window is active.';
-        textEl.textContent = `${diffDays} days remain until March 31, 2026. Current public pricing may change after that date.`;
+        titleEl.textContent = 'Early access pricing — lock in your rate before it changes';
+        textEl.textContent = `Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime`;
         return;
       }
 
       if (diffDays === 1) {
-        titleEl.textContent = 'Launch pricing window is almost over.';
-        textEl.textContent = '1 day remains until March 31, 2026. Current public pricing may change after that date.';
+        titleEl.textContent = 'Early access pricing ends tomorrow.';
+        textEl.textContent = 'Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime';
         return;
       }
 
-      titleEl.textContent = 'Current launch pricing is still live.';
-      textEl.textContent = 'The original March 31, 2026 window has passed. Keep this section updated if pricing changes again so the message stays trustworthy.';
+      titleEl.textContent = 'Early access pricing — lock in your rate before it changes';
+      textEl.textContent = 'Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime';
     }
 
     function renderRoiCalculator() {
