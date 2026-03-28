@@ -22,6 +22,18 @@
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "SmartSwing AI",
+      "url": "https://www.smartswingai.com/",
+      "logo": "https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png",
+      "description": "AI tennis analysis platform providing biomechanics feedback, drills, tactics, player dashboards, and coach workflows.",
+      "foundingDate": "2024",
+      "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://www.smartswingai.com/contact.html" }
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "SmartSwing AI",
       "applicationCategory": "SportsApplication",
@@ -513,13 +525,13 @@
     }
 
     .feature-card.light {
-      background: var(--white-panel);
-      color: var(--dark-text);
-      border-color: rgba(10, 10, 10, 0.08);
+      background: var(--panel);
+      color: var(--text);
+      border-color: var(--line);
     }
 
     .feature-card.light p,
-    .feature-card.light .micro-note { color: rgba(14, 16, 18, 0.72); }
+    .feature-card.light .micro-note { color: var(--muted); }
 
     .micro-note {
       display: block;
@@ -986,6 +998,23 @@
       .feature-metrics { grid-template-columns: 1fr; }
     }
 
+    /* Hamburger button */
+    .ham-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 13px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 20px;
+      line-height: 1;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+    }
+
     @media (max-width: 760px) {
       .page,
       .nav-inner,
@@ -995,21 +1024,34 @@
       .footer { width: min(100%, calc(100% - 24px)); }
 
       .nav-inner {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 12px;
+        flex-wrap: nowrap;
+        position: relative;
       }
-      .brand { align-self: flex-start; }
+      .ham-btn { display: inline-flex; }
+
       .nav-links {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        background: rgba(10,10,10,.97);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 16px;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 100;
+        backdrop-filter: blur(18px);
       }
+      .nav-links.open { display: flex; }
       .nav-links a {
         width: 100%;
         text-align: center;
+        padding: 14px 18px;
       }
-      .nav-links .primary-btn { grid-column: 1 / -1; }
+      .nav-links .primary-btn { margin-top: 4px; }
+
       .hero { padding-top: 24px; }
       .hero-copy,
       .hero-visual,
@@ -1028,7 +1070,8 @@
   <header class="nav">
     <div class="nav-inner">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav-links">
+      <button class="ham-btn" id="hamBtn" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">&#9776;</button>
+      <nav class="nav-links" id="mainNav">
         <a href="./for-players.html">For Players</a>
         <a href="./for-coaches.html">For Coaches</a>
         <a href="./for-clubs.html">For Clubs</a>
@@ -1039,6 +1082,25 @@
       </nav>
     </div>
   </header>
+  <script>
+    (function(){
+      var btn = document.getElementById('hamBtn');
+      var nav = document.getElementById('mainNav');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', function(){
+        var open = nav.classList.toggle('open');
+        btn.setAttribute('aria-expanded', open);
+        btn.textContent = open ? '\u2715' : '\u2630';
+      });
+      document.addEventListener('click', function(e){
+        if (!nav.contains(e.target) && e.target !== btn) {
+          nav.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.textContent = '\u2630';
+        }
+      });
+    })();
+  </script>
 
   <main>
     <section class="hero">
@@ -1170,11 +1232,11 @@
         </details>
         <details class="panel feature-card light expand-card">
           <summary>
-            <div class="micro-label" style="background:rgba(0,0,0,0.06);color:#0e1012;border:1px solid rgba(0,0,0,0.08);">Progress Tracking</div>
+            <div class="micro-label">Progress Tracking</div>
             <div class="expand-head"><h3>Digestible dashboards</h3><span class="expand-chip">Details</span></div>
-            <p class="summary-copy" style="color:rgba(14,16,18,.72);">Player and coach tabs separate analytics, messages, schedule, and training into cleaner views.</p>
+            <p class="summary-copy">Player and coach tabs separate analytics, messages, schedule, and training into cleaner views.</p>
           </summary>
-          <div class="expand-body" style="color:rgba(14,16,18,.74);">
+          <div class="expand-body">
             <div class="expand-list">
               <div><strong>What it means:</strong> progress graphs and next actions live in separate lanes instead of one crowded dashboard.</div>
               <div><strong>Why it matters:</strong> the player sees one weekly focus and the coach gets faster triage.</div>

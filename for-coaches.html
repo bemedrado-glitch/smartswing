@@ -13,7 +13,49 @@
   <meta property="og:url" content="https://www.smartswingai.com/for-coaches.html">
   <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/Coach%20Ace%2016_9.png">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SmartSwing AI for Coaches">
+  <meta name="twitter:description" content="Faster player triage, clearer report handoff, drill assignment workflows, and better accountability between sessions.">
   <link rel="manifest" href="./manifest.json">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "SmartSwing AI",
+    "url": "https://www.smartswingai.com/",
+    "logo": "https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png",
+    "description": "AI tennis analysis platform providing biomechanics feedback, drills, tactics, player dashboards, and coach workflows.",
+    "foundingDate": "2024",
+    "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://www.smartswingai.com/contact.html" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does SmartSwing AI help tennis coaches?",
+        "acceptedAnswer": { "@type": "Answer", "text": "SmartSwing AI gives coaches a dedicated dashboard to review AI-generated player reports, assign drills, add coaching notes, and track progress over time — reducing the time spent rewriting the same feedback." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can coaches see all their players in one place?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The coach dashboard shows all linked players, their recent analyses, assigned drills, and progress notes in one unified view." }
+      },
+      {
+        "@type": "Question",
+        "name": "Do players need to share their video with the coach?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Coaches can access reports from players who have linked their account. Video stays private unless the player explicitly shares it." }
+      },
+      {
+        "@type": "Question",
+        "name": "What plans include coach features?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Coach workflows including drill assignment, player notes, and the coach dashboard are available on the Performance and Tournament Pro plans." }
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -24,7 +66,8 @@
   <main class="page">
     <header class="topbar">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav">
+      <button class="ham-btn" id="hamBtn" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">&#9776;</button>
+      <nav class="nav" id="mainNav">
         <a class="btn" href="./for-players.html">For Players</a>
         <a class="btn" href="./for-clubs.html">For Clubs</a>
         <a class="btn" href="./pricing.html">Pricing</a>
@@ -32,6 +75,7 @@
         <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
       </nav>
     </header>
+    <script>(function(){var b=document.getElementById('hamBtn'),n=document.getElementById('mainNav');if(!b||!n)return;b.addEventListener('click',function(){var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o);b.textContent=o?'\u2715':'\u2630';});document.addEventListener('click',function(e){if(!n.contains(e.target)&&e.target!==b){n.classList.remove('open');b.setAttribute('aria-expanded','false');b.textContent='\u2630';}});})();</script>
 
     <section class="hero">
       <article class="panel">
