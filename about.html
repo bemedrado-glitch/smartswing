@@ -7,6 +7,37 @@
   <meta name="description" content="Learn what SmartSwing AI does, who it serves, and how it combines AI, biomechanics, and coaching workflows for tennis improvement.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://www.smartswingai.com/about.html">
+  <meta property="og:title" content="About SmartSwing AI | AI Tennis Analysis for Players, Coaches & Clubs">
+  <meta property="og:description" content="Learn how SmartSwing AI turns one tennis video into biomechanics feedback, drills, and a clearer next step for players, coaches, and performance programs.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.smartswingai.com/about.html">
+  <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About SmartSwing AI | AI Tennis Analysis for Players, Coaches & Clubs">
+  <meta name="twitter:description" content="SmartSwing AI helps players, parents, coaches, and programs turn one tennis video into a clearer next step — without guessing.">
+  <link rel="manifest" href="./manifest.json">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "SmartSwing AI",
+    "url": "https://www.smartswingai.com/",
+    "logo": "https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png",
+    "description": "AI tennis analysis platform providing biomechanics feedback, drills, tactics, player dashboards, and coach workflows.",
+    "foundingDate": "2024",
+    "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://www.smartswingai.com/contact.html" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "About SmartSwing AI",
+    "url": "https://www.smartswingai.com/about.html",
+    "description": "SmartSwing AI helps players, parents, coaches, and performance programs turn one tennis video into a clearer next step.",
+    "publisher": { "@type": "Organization", "name": "SmartSwing AI", "url": "https://www.smartswingai.com/" }
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -17,7 +48,8 @@
   <main class="page">
     <header class="topbar">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav">
+      <button class="ham-btn" id="hamBtn" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainNav">&#9776;</button>
+      <nav class="nav" id="mainNav">
         <a class="btn" href="./for-players.html">For Players</a>
         <a class="btn" href="./for-coaches.html">For Coaches</a>
         <a class="btn" href="./for-clubs.html">For Clubs</a>
@@ -26,6 +58,7 @@
         <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
       </nav>
     </header>
+    <script>(function(){var b=document.getElementById('hamBtn'),n=document.getElementById('mainNav');if(!b||!n)return;b.addEventListener('click',function(){var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o);b.textContent=o?'\u2715':'\u2630';});document.addEventListener('click',function(e){if(!n.contains(e.target)&&e.target!==b){n.classList.remove('open');b.setAttribute('aria-expanded','false');b.textContent='\u2630';}});})();</script>
 
     <section class="hero">
       <article class="panel">

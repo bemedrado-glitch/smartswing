@@ -45,9 +45,25 @@ a { color: inherit; }
 }
 
 .topbar {
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   margin-bottom: 22px;
+}
+
+.ham-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 13px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand {
@@ -75,6 +91,10 @@ a { color: inherit; }
   padding: 12px 18px;
   font-size: 14px;
   font-weight: 800;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
@@ -350,10 +370,33 @@ textarea {
   }
 
   .topbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: auto 1fr auto;
+    position: relative;
   }
 
+  .ham-btn { display: inline-flex; }
+
   .nav {
-    justify-content: flex-start;
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(7, 16, 21, 0.97);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 16px;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+    backdrop-filter: blur(18px);
+  }
+  .nav.open { display: flex; }
+  .nav .btn,
+  .nav .btn-primary,
+  .nav .btn-secondary {
+    width: 100%;
+    text-align: center;
+    padding: 14px 18px;
   }
 }

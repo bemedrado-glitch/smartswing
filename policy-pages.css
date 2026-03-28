@@ -68,6 +68,10 @@ a { color: inherit; }
   padding: 12px 18px;
   font-size: 14px;
   font-weight: 800;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
