@@ -192,30 +192,30 @@
   <div class="page">
     <header class="top">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav">
-        <a class="btn" href="./for-players.html">For Players</a>
-        <a class="btn" href="./for-coaches.html">For Coaches</a>
-        <a class="btn" href="./for-clubs.html">For Clubs</a>
-        <a class="btn" href="./blog.html">Blog</a>
-        <a class="btn" href="./login.html">Sign In</a>
-        <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
+      <nav class="nav" id="mainNav">
+        <a class="btn" href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
+        <a class="btn" href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
+        <a class="btn" href="./for-clubs.html" data-i18n="nav.forClubs">For Clubs</a>
+        <a class="btn" href="./blog.html" data-i18n="nav.blog">Blog</a>
+        <a class="btn" href="./login.html" data-i18n="nav.signIn">Sign In</a>
+        <a class="btn-primary" href="./analyze.html" data-i18n="nav.startFree">Start Free Analysis</a>
       </nav>
     </header>
 
     <section class="hero">
       <article class="panel">
-        <div class="eyebrow">Pricing</div>
-        <h1>Your next match is already in progress. Are you ready?</h1>
-        <p class="muted">Less than the cost of one private lesson. Results that stack every single week.</p>
+        <div class="eyebrow" data-i18n="pricingPage.eyebrow">Pricing</div>
+        <h1 data-i18n="pricingPage.heading">Your next match is already in progress. Are you ready?</h1>
+        <p class="muted" data-i18n="pricingPage.body">Less than the cost of one private lesson. Results that stack every single week.</p>
         <div class="billing-toggle" aria-label="Billing interval toggle" role="group">
-          <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true">Monthly</button>
-          <button type="button" data-billing-toggle="yearly" aria-pressed="false">Yearly | save 15%</button>
+          <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true" data-i18n="pricingPage.toggleMonthly">Monthly</button>
+          <button type="button" data-billing-toggle="yearly" aria-pressed="false" data-i18n="pricingPage.toggleYearly">Yearly | save 15%</button>
         </div>
         <ul>
-          <li>Free tier removes friction: 1 analysis per month.</li>
-          <li>Player tier unlocks saved reports and repeat usage.</li>
-          <li>Pro is the best value for players who want constant feedback.</li>
-          <li>Tournament Pro adds the coach workflow and preparation layer.</li>
+          <li data-i18n="pricingPage.li1">Free tier removes friction: 1 analysis per month.</li>
+          <li data-i18n="pricingPage.li2">Player tier unlocks saved reports and repeat usage.</li>
+          <li data-i18n="pricingPage.li3">Pro is the best value for players who want constant feedback.</li>
+          <li data-i18n="pricingPage.li4">Tournament Pro adds the coach workflow and preparation layer.</li>
         </ul>
       </article>
       <article class="summary">
@@ -229,8 +229,8 @@
             <span id="launchPricingText">Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime</span>
           </div>
           <div class="urgency-box">
-            <strong style="display:block;color:var(--text);margin-bottom:8px">Private lessons: $80–$150/hour.</strong>
-            SmartSwing Performance: $0.66/day. One month of analysis for less than one hour of coaching.
+            <strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.urgency2Title">Private lessons: $80–$150/hour.</strong>
+            <span data-i18n="pricingPage.urgency2Text">SmartSwing Performance: $0.66/day. One month of analysis for less than one hour of coaching.</span>
           </div>
         </div>
       </article>
@@ -239,107 +239,107 @@
     <section class="pricing-grid">
       <article class="pricing-card">
         <div class="pricing-copy">
-          <h3>Starter</h3>
+          <h3 data-i18n="pricing.starter.name">Starter</h3>
           <div class="price"><span data-plan-price="free">$0</span> <small data-plan-interval="free">/ month</small></div>
           <div class="price-note" data-plan-note="free">For first-time users who want proof before commitment.</div>
           <div class="list">
-            <div>1 analysis per month</div>
-            <div>Live report view only</div>
-            <div>No save, export, or print</div>
-            <div>Perfect for the first win</div>
+            <div data-i18n="pricingPage.starterF1">1 analysis per month</div>
+            <div data-i18n="pricingPage.starterF2">Live report view only</div>
+            <div data-i18n="pricingPage.starterF3">No save, export, or print</div>
+            <div data-i18n="pricingPage.starterF4">Perfect for the first win</div>
           </div>
-          <a class="btn-primary" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free">Claim Starter</a>
-          <div class="anchor">Your first insight is already waiting. No card required.</div>
+          <a class="btn-primary" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free" data-i18n="pricingPage.starterCta">Claim Starter</a>
+          <div class="anchor" data-i18n="pricingPage.starterAnchor">Your first insight is already waiting. No card required.</div>
         </div>
       </article>
 
       <article class="pricing-card">
         <div class="pricing-copy">
-          <h3>Player</h3>
+          <h3 data-i18n="pricing.player.name">Player</h3>
           <div class="price"><span data-plan-price="starter">$9.99</span> <small data-plan-interval="starter">/ month</small></div>
           <div class="price-note" data-plan-note="starter">For regular players who want steady feedback without unlimited usage.</div>
           <div class="list">
-            <div>10 reports per month</div>
-            <div>Save and print reports</div>
-            <div>Progress tracking unlocked</div>
-            <div>Better than guessing between lessons</div>
+            <div data-i18n="pricingPage.playerF1">10 reports per month</div>
+            <div data-i18n="pricingPage.playerF2">Save and print reports</div>
+            <div data-i18n="pricingPage.playerF3">Progress tracking unlocked</div>
+            <div data-i18n="pricingPage.playerF4">Better than guessing between lessons</div>
           </div>
-          <a class="btn-primary" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Choose Player</a>
+          <a class="btn-primary" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly" data-i18n="pricingPage.playerCta">Choose Player</a>
           <div class="billing-copy" data-plan-billing-copy="starter">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor">Less than skipping one lesson. More useful than all of them.</div>
+          <div class="anchor" data-i18n="pricingPage.playerAnchor">Less than skipping one lesson. More useful than all of them.</div>
         </div>
       </article>
 
       <article class="pricing-card featured">
-        <div class="tag">Most popular</div>
+        <div class="tag" data-i18n="pricingPage.performanceMostPopular">Most popular</div>
         <div class="pricing-copy">
-          <h3>Performance</h3>
+          <h3 data-i18n="pricing.performance.name">Performance</h3>
           <div class="price"><span data-plan-price="pro">$19.99</span> <small data-plan-interval="pro">/ month</small></div>
           <div class="price-note" data-plan-note="pro">The ideal plan for players who want analysis to become a real habit.</div>
           <div class="list">
-            <div>Unlimited monthly reviews</div>
-            <div>Drills and tactics library access</div>
-            <div>Coach and player connection tools</div>
-            <div>Weekly AI coaching reports</div>
-            <div>Priority recommendation depth</div>
+            <div data-i18n="pricingPage.performanceF1">Unlimited monthly reviews</div>
+            <div data-i18n="pricingPage.performanceF2">Drills and tactics library access</div>
+            <div data-i18n="pricingPage.performanceF3">Coach and player connection tools</div>
+            <div data-i18n="pricingPage.performanceF4">Weekly AI coaching reports</div>
+            <div data-i18n="pricingPage.performanceF5">Priority recommendation depth</div>
           </div>
-          <a class="btn-primary" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Choose Performance</a>
+          <a class="btn-primary" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly" data-i18n="pricingPage.performanceCta">Choose Performance</a>
           <div class="billing-copy" data-plan-billing-copy="pro">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor">This is what consistent improvement feels like.</div>
+          <div class="anchor" data-i18n="pricingPage.performanceAnchor">This is what consistent improvement feels like.</div>
         </div>
       </article>
 
       <article class="pricing-card">
         <div class="pricing-copy">
-          <h3>Tournament Pro</h3>
+          <h3 data-i18n="pricing.tournament.name">Tournament Pro</h3>
           <div class="price"><span data-plan-price="elite">$49.99</span> <small data-plan-interval="elite">/ month</small></div>
           <div class="price-note" data-plan-note="elite">For players who want human review and tournament preparation built into the system.</div>
           <div class="list">
-            <div>Unlimited assessments and exports</div>
-            <div>Coach feedback workflow</div>
-            <div>Tournament assessment and prep</div>
-            <div>Priority scheduling and queue</div>
-            <div>Best fit for serious competitors</div>
+            <div data-i18n="pricingPage.tournamentF1">Unlimited assessments and exports</div>
+            <div data-i18n="pricingPage.tournamentF2">Coach feedback workflow</div>
+            <div data-i18n="pricingPage.tournamentF3">Tournament assessment and prep</div>
+            <div data-i18n="pricingPage.tournamentF4">Priority scheduling and queue</div>
+            <div data-i18n="pricingPage.tournamentF5">Best fit for serious competitors</div>
           </div>
-          <a class="btn-primary" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Choose Tournament Pro</a>
+          <a class="btn-primary" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly" data-i18n="pricingPage.tournamentCta">Choose Tournament Pro</a>
           <div class="billing-copy" data-plan-billing-copy="elite">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor">The edge serious competitors already have.</div>
+          <div class="anchor" data-i18n="pricingPage.tournamentAnchor">The edge serious competitors already have.</div>
         </div>
       </article>
     </section>
 
     <section class="compare">
       <article class="panel">
-        <div class="chip">ROI calculator</div>
-        <h2 style="margin-top:16px">How much do lessons cost you each month?</h2>
-        <p class="muted" style="margin-top:14px">Move the slider to compare typical coaching spend with SmartSwing Performance. The point is not to replace good coaching. The point is to make every lesson more productive and reduce blind reps between sessions.</p>
+        <div class="chip" data-i18n="pricingPage.roiChip">ROI calculator</div>
+        <h2 style="margin-top:16px" data-i18n="pricingPage.roiHeading">How much do lessons cost you each month?</h2>
+        <p class="muted" style="margin-top:14px" data-i18n="pricingPage.roiBody">Move the slider to compare typical coaching spend with SmartSwing Performance. The point is not to replace good coaching. The point is to make every lesson more productive and reduce blind reps between sessions.</p>
         <div class="range-wrap" style="margin-top:18px">
-          <label for="lessonSpendRange" class="muted" style="font-weight:700">Monthly lesson spend</label>
+          <label for="lessonSpendRange" class="muted" style="font-weight:700" data-i18n="pricingPage.roiLabel">Monthly lesson spend</label>
           <input id="lessonSpendRange" type="range" min="50" max="1200" step="25" value="300">
           <div class="roi-number" id="lessonSpendValue">$300</div>
         </div>
       </article>
       <article class="panel">
-        <div class="chip">What that means</div>
+        <div class="chip" data-i18n="pricingPage.whatThatMeans">What that means</div>
         <div class="list" style="margin-top:18px">
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">SmartSwing Performance</strong><span id="smartSwingAnnualValue">$239.88 per year</span></div>
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">Monthly savings vs. lessons</strong><span id="monthlySavingsValue">$280.01 per month</span></div>
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">Equivalent lessons covered</strong><span id="lessonEquivalentValue">About 2.0 one-hour private lessons</span></div>
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px">Framing</strong>Use SmartSwing between lessons to keep the feedback loop alive instead of waiting for the next paid hour.</div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiSmartSwing">SmartSwing Performance</strong><span id="smartSwingAnnualValue">$239.88 per year</span></div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiMonthlySavings">Monthly savings vs. lessons</strong><span id="monthlySavingsValue">$280.01 per month</span></div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiLessonEquiv">Equivalent lessons covered</strong><span id="lessonEquivalentValue">About 2.0 one-hour private lessons</span></div>
+          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiFraming">Framing</strong><span data-i18n="pricingPage.roiFramingText">Use SmartSwing between lessons to keep the feedback loop alive instead of waiting for the next paid hour.</span></div>
         </div>
       </article>
     </section>
 
     <section class="compare">
       <article class="panel">
-        <div class="chip">Value comparison</div>
-        <h2 style="margin-top:16px">Why players switch from lessons-only to SmartSwing</h2>
+        <div class="chip" data-i18n="pricingPage.compareChip">Value comparison</div>
+        <h2 style="margin-top:16px" data-i18n="pricingPage.compareHeading">Why players switch from lessons-only to SmartSwing</h2>
         <div class="compare-table" style="margin-top:18px">
           <div class="row">
-            <div class="cell"><strong>Option</strong></div>
-            <div class="cell"><strong>Speed</strong></div>
-            <div class="cell"><strong>Clarity</strong></div>
-            <div class="cell"><strong>Cost</strong></div>
+            <div class="cell"><strong data-i18n="pricingPage.compareOption">Option</strong></div>
+            <div class="cell"><strong data-i18n="pricingPage.compareSpeed">Speed</strong></div>
+            <div class="cell"><strong data-i18n="pricingPage.compareClarity">Clarity</strong></div>
+            <div class="cell"><strong data-i18n="pricingPage.compareCost">Cost</strong></div>
           </div>
           <div class="row">
             <div class="cell"><strong>SmartSwing Performance</strong><br>AI report + drills + tactics + dashboard</div>
@@ -362,9 +362,9 @@
         </div>
       </article>
       <article class="panel">
-        <div class="chip">Guarantee</div>
-        <h2 style="margin-top:16px">Low risk, clear upgrade path</h2>
-        <p class="muted" style="margin-top:16px">The free tier gives the first useful result. Paid plans then unlock saved reports, richer recommendations, exports, coach messaging, and higher-volume usage. This keeps the funnel honest and the upgrade decision easier.</p>
+        <div class="chip" data-i18n="pricingPage.guaranteeChip">Guarantee</div>
+        <h2 style="margin-top:16px" data-i18n="pricingPage.guaranteeHeading">Low risk, clear upgrade path</h2>
+        <p class="muted" style="margin-top:16px" data-i18n="pricingPage.guaranteeBody">The free tier gives the first useful result. Paid plans then unlock saved reports, richer recommendations, exports, coach messaging, and higher-volume usage. This keeps the funnel honest and the upgrade decision easier.</p>
         <div class="list" style="margin-top:18px">
           <div>14-day trial logic remains available where the account is eligible.</div>
           <div>Plan limits are enforced before save, export, and booking actions.</div>
@@ -375,49 +375,49 @@
 
     <section class="faq">
       <article class="qa">
-        <h3>What counts as one review?</h3>
-        <p class="muted" style="margin-top:10px">Each generated report counts as one review. Opening the analyzer alone does not consume a credit.</p>
+        <h3 data-i18n="pricingPage.faq1Q">What counts as one review?</h3>
+        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq1A">Each generated report counts as one review. Opening the analyzer alone does not consume a credit.</p>
       </article>
       <article class="qa">
-        <h3>Can I switch plans anytime?</h3>
-        <p class="muted" style="margin-top:10px">Absolutely. Switch up or down whenever you want — no penalties, no friction. Monthly plans cancel anytime. Yearly plans stay active through the end of the paid term.</p>
+        <h3 data-i18n="pricingPage.faq2Q">Can I switch plans anytime?</h3>
+        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq2A">Absolutely. Switch up or down whenever you want — no penalties, no friction. Monthly plans cancel anytime. Yearly plans stay active through the end of the paid term.</p>
       </article>
       <article class="qa">
-        <h3>What if I choose Starter — am I limited?</h3>
-        <p class="muted" style="margin-top:10px">Starter gives you one full analysis per month — enough to prove the concept. When you're ready to train consistently, upgrading takes 30 seconds.</p>
+        <h3 data-i18n="pricingPage.faq3Q">What if I choose Starter — am I limited?</h3>
+        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq3A">Starter gives you one full analysis per month — enough to prove the concept. When you're ready to train consistently, upgrading takes 30 seconds.</p>
       </article>
       <article class="qa">
-        <h3>Where do drills and tactics unlock?</h3>
-        <p class="muted" style="margin-top:10px">Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</p>
+        <h3 data-i18n="pricingPage.faq4Q">Where do drills and tactics unlock?</h3>
+        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq4A">Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</p>
       </article>
     </section>
 
     <footer class="footer">
       <div class="footer-col">
         <strong>SmartSwing AI</strong>
-        <div>Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover.</div>
-        <div style="font-size:13px;color:var(--muted)">&copy; 2026 SmartSwing AI</div>
+        <div data-i18n="pricingPage.footerTagline">Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover.</div>
+        <div style="font-size:13px;color:var(--muted)" data-i18n="footer.copyright">&copy; 2026 SmartSwing AI</div>
       </div>
       <div class="footer-col">
-        <strong>Pathways</strong>
+        <strong data-i18n="footer.col.pathways">Pathways</strong>
         <div class="footer-links">
-          <a href="./for-players.html">For Players</a>
-          <a href="./for-coaches.html">For Coaches</a>
-          <a href="./for-clubs.html">For Clubs</a>
-          <a href="./for-parents.html">For Parents</a>
+          <a href="./for-players.html" data-i18n="footer.links.forPlayers">For Players</a>
+          <a href="./for-coaches.html" data-i18n="footer.links.forCoaches">For Coaches</a>
+          <a href="./for-clubs.html" data-i18n="footer.links.forClubs">For Clubs</a>
+          <a href="./for-parents.html" data-i18n="footer.links.forParents">For Parents</a>
         </div>
       </div>
       <div class="footer-col">
-        <strong>Resources</strong>
+        <strong data-i18n="footer.col.resources">Resources</strong>
         <div class="footer-links">
-          <a href="./blog.html">Blog</a>
-          <a href="./library.html">Library</a>
-          <a href="./contact.html">Contact</a>
-          <a href="./refund-policy.html">Refund Policy</a>
+          <a href="./blog.html" data-i18n="footer.links.blog">Blog</a>
+          <a href="./library.html" data-i18n="footer.links.drillsLibrary">Library</a>
+          <a href="./contact.html" data-i18n="footer.links.contact">Contact</a>
+          <a href="./refund-policy.html" data-i18n="footer.links.refundPolicy">Refund Policy</a>
         </div>
       </div>
       <div class="footer-col">
-        <strong>Community</strong>
+        <strong data-i18n="footer.col.community">Community</strong>
         <div class="footer-links">
           <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
           <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
@@ -432,6 +432,7 @@
   <script src="./app-data.js"></script>
   <script src="./site-experience.js"></script>
   <script src="./pwa.js"></script>
+  <script src="./i18n.js"></script>
   <script>
     const store = window.SmartSwingStore;
     const BILLING_COPY = {

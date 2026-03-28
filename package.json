@@ -9,7 +9,15 @@
     "test": "powershell -ExecutionPolicy Bypass -File ./tests/run-tests.ps1",
     "build:release": "powershell -ExecutionPolicy Bypass -File ./deploy/build-release.ps1",
     "supabase:link": "npx --yes supabase link --project-ref fzblloksyyfqsecxfzaq",
-    "supabase:push": "npx --yes supabase db push"
+    "supabase:push": "npx --yes supabase db push",
+    "cap:install": "npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "cap:run:ios": "npx cap run ios",
+    "cap:run:android": "npx cap run android"
   },
   "keywords": [
     "tennis",
