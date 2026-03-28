@@ -227,22 +227,81 @@
       font-size: 14px;
     }
 
-    .oauth-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .oauth-stack {
+      display: flex;
+      flex-direction: column;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 4px;
     }
 
     .oauth-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 20px;
       border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
       color: var(--silver);
-      padding: 14px;
       font: inherit;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
+      transition: background 0.18s ease, transform 0.15s ease;
+    }
+
+    .oauth-btn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.11);
+      transform: translateY(-1px);
+    }
+
+    .oauth-btn.google-btn {
+      background: #fff;
+      color: #3c4043;
+      border-color: #dadce0;
+    }
+
+    .oauth-btn.google-btn:hover:not(:disabled) { background: #f8fafe; }
+
+    .oauth-btn.apple-btn {
+      background: #000;
+      color: #fff;
+      border-color: #333;
+    }
+
+    .oauth-btn.apple-btn:hover:not(:disabled) { background: #1a1a1a; }
+
+    .oauth-btn.meta-btn {
+      background: #1877f2;
+      color: #fff;
+      border-color: #1877f2;
+    }
+
+    .oauth-btn.meta-btn:hover:not(:disabled) { background: #166fe5; }
+
+    .oauth-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .oauth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+    }
+
+    .oauth-divider::before,
+    .oauth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.12);
     }
 
     .avatar-preview {
@@ -291,11 +350,22 @@
 
       <div id="alertBox" class="alert" role="status" aria-live="polite"></div>
 
-      <div class="oauth-grid">
-        <button class="oauth-btn social-btn" data-oauth-provider="google" type="button" onclick="loginWithProvider('google')">Google</button>
-        <button class="oauth-btn social-btn" data-oauth-provider="facebook" type="button" onclick="loginWithProvider('facebook')">Meta</button>
-        <button class="oauth-btn social-btn" data-oauth-provider="apple" type="button" onclick="loginWithProvider('apple')">Apple</button>
+      <div class="oauth-stack">
+        <button class="oauth-btn google-btn social-btn" data-oauth-provider="google" type="button" onclick="loginWithProvider('google')">
+          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.14z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/></svg>
+          Continue with Google
+        </button>
+        <button class="oauth-btn apple-btn social-btn" data-oauth-provider="apple" type="button" onclick="loginWithProvider('apple')">
+          <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 66.6 0 122.2 44.1 164 44.1 40 0 103.3-46.5 179.2-46.5 28.9 0 130.6 2.6 198 99.2z"/><path d="M534.5 70.4C511.5 96.9 460.5 116 421.1 116c-5.1 0-10.2-.5-15.3-1.4 0-49.4 30.1-101.4 61.5-133.1 34.5-36.8 93.1-64.5 141.9-66.7 4.8 46.1-13.7 91.4-74.7 155.6z"/></svg>
+          Continue with Apple
+        </button>
+        <button class="oauth-btn meta-btn social-btn" data-oauth-provider="facebook" type="button" onclick="loginWithProvider('facebook')">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Continue with Meta
+        </button>
       </div>
+
+      <div class="oauth-divider">or sign up with email</div>
 
       <div id="authStatus" class="alert" role="status" aria-live="polite"></div>
 
