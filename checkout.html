@@ -295,7 +295,7 @@
         { title: 'Plan', body: plan.name },
         { title: 'Billing cadence', body: plan.id === 'free' ? 'Free activation' : (billingInterval === 'yearly' ? `Yearly billing | save 15% | monthly equivalent $${price.monthlyEquivalent.toFixed(2)}` : 'Monthly billing | cancel anytime') },
         { title: 'Monthly reviews', body: Number.isFinite(plan.monthlyReviews) ? `${plan.monthlyReviews}` : 'Unlimited' },
-        { title: 'Trial status', body: plan.id === 'free' ? 'No trial required' : (trialEligibility.eligible ? 'Eligible if enabled for this account' : (trialEligibility.reason || 'Unavailable')) },
+        { title: plan.id === 'free' ? 'Free analyses' : 'Trial', body: plan.id === 'free' ? '2 lifetime analyses included — no credit card needed' : 'No free trial — cancel anytime after subscribing' },
         { title: 'Provider', body: plan.id === 'free' ? 'SmartSwing internal activation' : 'Stripe secure recurring checkout' },
         { title: 'Included perks', body: plan.perks.join(' | ') }
       ].map((item) => `<div class="summary-card"><strong>${item.title}</strong>${item.body}</div>`).join('');
@@ -313,7 +313,7 @@
         checkoutFlow.innerHTML = `
           <div class="summary-card">
             <strong>Free access activates inside SmartSwing</strong>
-            One free analysis per month becomes available immediately after activation.
+            You get 2 free analyses. After that, choose a paid plan to keep analysing your game.
           </div>
           <button class="btn-primary" id="submitBtn" type="submit">Activate free plan</button>
           <div class="micro">No payment details are required for the free plan.</div>
@@ -326,6 +326,11 @@
         <div class="summary-card">
           <strong>Recurring billing is hosted by Stripe</strong>
           You will leave SmartSwing briefly to complete the secure subscription checkout, then return automatically for payment verification.
+        </div>
+        <div style="display:grid;gap:6px;">
+          <label for="couponCode" style="font-size:13px;font-weight:700;color:var(--muted);">Coupon code <span style="font-weight:400;opacity:.7;">(optional)</span></label>
+          <input id="couponCode" type="text" placeholder="e.g. SWINGAI" style="width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;text-transform:uppercase;" autocomplete="off" spellcheck="false">
+          <div id="couponMsg" style="font-size:13px;min-height:18px;"></div>
         </div>
         <div class="error-banner" id="checkoutError"></div>
         <button class="btn-primary" id="submitBtn" type="submit">Continue to Stripe checkout &rarr;</button>
@@ -407,11 +412,14 @@
       submitBtn.innerHTML = '<span class="spinner"></span>Opening Stripe…';
 
       try {
+        const couponInput = document.getElementById('couponCode');
+        const couponCode = couponInput ? couponInput.value.trim().toUpperCase() : '';
         const session = await store.createStripeCheckout(planId, {
           billingInterval,
           source: 'checkout-page',
           returnTo: './payment-success.html',
-          cancelTo: './payment-cancelled.html'
+          cancelTo: './payment-cancelled.html',
+          couponCode
         });
         window.location.href = session.url;
       } catch (error) {

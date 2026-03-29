@@ -102,29 +102,34 @@
       <div class="mkt-tab-panel is-active" id="tab-dashboard">
 
         <div class="mkt-kpi-grid">
-          <div class="mkt-kpi-card">
+          <div class="mkt-kpi-card" title="Click to view details" onclick="switchTab('contacts', document.querySelector('[data-tab=contacts]'))">
             <div class="mkt-kpi-card__icon">👥</div>
             <div class="mkt-kpi-card__label">Total Contacts</div>
             <div class="mkt-kpi-card__value" id="kpiContacts">—</div>
             <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 12 this week</div>
           </div>
-          <div class="mkt-kpi-card">
+          <div class="mkt-kpi-card" title="Click to view details" onclick="switchTab('campaigns', document.querySelector('[data-tab=campaigns]'))">
             <div class="mkt-kpi-card__icon">📢</div>
             <div class="mkt-kpi-card__label">Active Campaigns</div>
             <div class="mkt-kpi-card__value" id="kpiCampaigns">—</div>
             <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 2 launched</div>
           </div>
-          <div class="mkt-kpi-card">
+          <div class="mkt-kpi-card" title="Click to view details" onclick="switchTab('calendar', document.querySelector('[data-tab=calendar]'))">
             <div class="mkt-kpi-card__icon">📅</div>
             <div class="mkt-kpi-card__label">Content This Week</div>
             <div class="mkt-kpi-card__value" id="kpiContent">—</div>
             <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 3 scheduled</div>
           </div>
-          <div class="mkt-kpi-card mkt-kpi-card--volt">
+          <div class="mkt-kpi-card mkt-kpi-card--volt" title="Click to view details" onclick="switchTab('agents', document.querySelector('[data-tab=agents]'))">
             <div class="mkt-kpi-card__icon">🤖</div>
             <div class="mkt-kpi-card__label">AI Tasks Run</div>
             <div class="mkt-kpi-card__value" id="kpiTasks">—</div>
             <div class="mkt-kpi-card__delta">Total agent runs</div>
+          </div>
+          <div class="mkt-kpi-card" style="cursor:pointer;" title="Click to export leads" onclick="exportContacts('leads')">
+            <div class="mkt-kpi-card__label">Leads Captured</div>
+            <div class="mkt-kpi-card__value" id="kpiLeads">—</div>
+            <div class="mkt-kpi-card__sub">All time</div>
           </div>
         </div>
 
@@ -219,7 +224,11 @@
             <option value="churned">Churned</option>
           </select>
           <div class="mkt-filters__spacer"></div>
-          <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openModal('addContactModal')">+ Add Contact</button>
+          <div style="display:flex;gap:8px;">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="exportContacts('csv')">⬇ Export CSV</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="exportContacts('leads')">⬇ Export Leads</button>
+            <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openModal('addContactModal')">+ Add Contact</button>
+          </div>
         </div>
 
         <div class="mkt-panel">
@@ -407,6 +416,62 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orchestration Panel -->
+        <div class="mkt-panel" style="margin-top:24px;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">🔗 Multi-Agent Orchestration</div>
+            <span class="mkt-badge" style="background:#f0fdf4;color:#166534;font-size:11px;">Auto-chain agents</span>
+          </div>
+          <div class="mkt-panel__body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Launch a full agent pipeline. The Marketing Director coordinates all agents automatically based on the workflow type.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+              <div>
+                <label class="mkt-label">Workflow Type</label>
+                <select class="mkt-input" id="orchType">
+                  <option value="social_post">📱 Social Post (Copy → Visual → Design → Director)</option>
+                  <option value="reel">🎬 Reel / TikTok (Script → Production → Visual → Director)</option>
+                  <option value="youtube_video">▶️ YouTube Video (Title/Script → Brief → Thumbnail → Director)</option>
+                  <option value="blog_post">📝 Blog Post (Draft → Images → Format → Director)</option>
+                  <option value="email_response">📧 Email Reply (Draft → Visual → Director)</option>
+                  <option value="campaign_strategy">📣 Campaign Strategy (Director → all agents → full calendar)</option>
+                </select>
+              </div>
+              <div>
+                <label class="mkt-label">Platform / Target</label>
+                <select class="mkt-input" id="orchPlatform">
+                  <option value="instagram">Instagram</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="blog">Blog</option>
+                  <option value="email">Email</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <label class="mkt-label">Title / Topic</label>
+              <input type="text" class="mkt-input" id="orchTitle" placeholder="e.g. 'Backhand mechanics breakdown for 3.5 players'">
+            </div>
+            <div style="margin-bottom:16px;">
+              <label class="mkt-label">Additional context (optional)</label>
+              <textarea class="mkt-input" id="orchContext" rows="2" placeholder="Target persona, campaign name, tone, any specific requirements…"></textarea>
+            </div>
+
+            <!-- Pipeline visualization -->
+            <div class="mkt-pipeline" id="orchPipeline" style="display:none;margin-bottom:16px;">
+              <div id="orchPipelineSteps"></div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="mkt-btn mkt-btn--volt" id="orchRunBtn" onclick="runOrchestration()">
+                🚀 Launch Pipeline
+              </button>
+              <span id="orchStatus" style="font-size:13px;color:var(--muted);"></span>
             </div>
           </div>
         </div>
@@ -1068,6 +1133,13 @@ function updateKPIs() {
   }).length;
   document.getElementById('kpiContent').textContent = thisWeekContent;
   document.getElementById('kpiTasks').textContent = MarketingStore.taskHistory.length;
+  // Load lead count from Supabase
+  const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    fetch(`${cfg.url}/rest/v1/lead_captures?select=count`, {
+      headers: { 'apikey': cfg.anonKey, 'Authorization': `Bearer ${cfg.anonKey}`, 'Prefer': 'count=exact', 'Range-Unit': 'items', 'Range': '0-0' }
+    }).then(r => { const count = r.headers.get('content-range')?.split('/')[1]; if(count) document.getElementById('kpiLeads').textContent = count; }).catch(()=>{});
+  }
 }
 
 /* ── NEXT BEST ACTIONS ── */
@@ -1093,13 +1165,21 @@ async function loadNextActions() {
 function renderNextActions(recommendations) {
   const list = document.getElementById('nbaList');
   list.innerHTML = recommendations.map(r => `
-    <li class="mkt-nba-item" onclick="runNBAAction(${JSON.stringify(r).replace(/"/g, '&quot;')})">
+    <li class="mkt-nba-item mkt-action-item" style="cursor:pointer;" onclick="expandAction(this)">
       <div class="mkt-nba-item__priority mkt-nba-item__priority--${r.priority}">${r.priority}</div>
       <div style="flex:1;">
         <div class="mkt-nba-item__text">${r.action}</div>
         <div class="mkt-nba-item__meta">
           <span class="mkt-badge mkt-badge--${r.urgency}">${r.urgency}</span>
           <span class="mkt-nba-item__deadline">📅 ${r.deadline}</span>
+        </div>
+        <div class="mkt-action-detail" style="display:none;margin-top:10px;padding:10px;background:#f5f5f7;border-radius:8px;font-size:12px;color:#1d1d1f;">
+          <strong>Suggested prompt:</strong><br>${escHtml(r.suggested_prompt || '')}
+          <div style="margin-top:8px;">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();useActionPrompt('${escHtml(r.suggested_agent)}','${escHtml(r.suggested_prompt)}')">
+              Use with ${r.suggested_agent} agent →
+            </button>
+          </div>
         </div>
       </div>
       <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-nba-item__run" onclick="event.stopPropagation();runNBAAction(${JSON.stringify(r).replace(/"/g, '&quot;')})">Run →</button>
@@ -1185,6 +1265,28 @@ function renderContacts(contacts) {
       </td>
     </tr>
   `).join('');
+}
+
+async function exportContacts(type) {
+  const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  const table = type === 'leads' ? 'lead_captures' : 'marketing_contacts';
+  const url = `/api/marketing/export-leads?format=csv&table=${table}&supabase_url=${encodeURIComponent(cfg.url||'')}&supabase_key=${encodeURIComponent(cfg.anonKey||'')}`;
+
+  showToast('Preparing export…', 'success');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `smartswing_${table}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('✓ Export downloaded!', 'success');
+  } catch(err) {
+    showToast('Export failed: ' + err.message, 'error');
+  }
 }
 
 function filterContacts() {
@@ -1364,6 +1466,20 @@ function confirmAssignCadence() {
   if (!contactId) { showToast('Select a contact first', 'error'); return; }
   showToast('Contact enrolled in cadence!', 'success');
   closeModal('assignCadenceModal');
+  // Enroll via API
+  const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  fetch('/api/marketing/enroll-cadence', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      contact_id: contactId,
+      cadence_id: cadenceId,
+      supabase_url: cfg.url || '',
+      supabase_key: cfg.anonKey || ''
+    })
+  }).then(r => r.json()).then(d => {
+    if (d.success) showToast(`✓ Enrolled — ${d.steps_scheduled} steps scheduled!`, 'success');
+  }).catch(() => {});
 }
 
 function editCadenceWithAI(idx) {
@@ -1387,7 +1503,7 @@ function renderCampaigns() {
     const startFmt = c.start_date ? new Date(c.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
     const endFmt = c.end_date ? new Date(c.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
     return `
-      <div class="mkt-campaign-card">
+      <div class="mkt-campaign-card" onclick="toggleCampaignExpand(this)">
         <div class="mkt-campaign-card__top">
           <div>
             <div class="mkt-campaign-card__name">${escHtml(c.name)}</div>
@@ -1405,8 +1521,15 @@ function renderCampaigns() {
         </div>
         ${c.budget ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">Budget: $${c.budget.toLocaleString()}</div>` : ''}
         <div class="mkt-campaign-card__actions">
-          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="briefCampaignWithAI('${escHtml(c.name)}', '${c.target_persona}', '${c.type}')">🤖 Generate Brief</button>
-          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="deleteCampaign('${c.id}')">Remove</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();briefCampaignWithAI('${escHtml(c.name)}', '${c.target_persona}', '${c.type}')">🤖 Generate Brief</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();deleteCampaign('${c.id}')">Remove</button>
+        </div>
+        <div class="mkt-campaign-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <p style="font-size:13px;color:var(--ink-2);margin-bottom:8px;">${escHtml(c.description || 'No description')}</p>
+          ${c.brief ? `<div style="font-size:12px;background:#f5f5f7;padding:10px;border-radius:8px;white-space:pre-wrap;">${escHtml(c.brief)}</div>` : ''}
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();launchCampaignOrchestration('${c.id}','${escHtml(c.name)}')">🚀 Launch with AI Agents</button>
+          </div>
         </div>
       </div>
     `;
@@ -1513,7 +1636,7 @@ function renderCalendar() {
         <div class="mkt-cal-day ${isToday ? 'mkt-cal-day--today' : ''}" onclick="openModal('addContentModal'); document.getElementById('ctDate').value='${dateStr}'">
           <div class="mkt-cal-day__num">${d.getDate()}</div>
           ${dayItems.map(item => `
-            <div class="mkt-cal-item mkt-cal-item--${item.platform} mkt-cal-item--${item.status}" title="${escHtml(item.title)}" onclick="event.stopPropagation();">
+            <div class="mkt-cal-item mkt-cal-item--${item.platform} mkt-cal-item--${item.status}" title="${escHtml(item.title)}" onclick="event.stopPropagation(); openContentDetail('${item.id}');">
               ${escHtml(item.title.substring(0, 22))}${item.title.length > 22 ? '…' : ''}
             </div>
           `).join('')}
@@ -1545,7 +1668,7 @@ function renderMiniCalendar() {
       <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
         <div style="min-width:80px;font-size:12px;font-weight:700;color:var(--muted);padding-top:2px;">${label}</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px;">${day.items.map(item => `
-          <span class="mkt-cal-item mkt-cal-item--${item.platform}" style="font-size:11px;">${escHtml(item.title.substring(0, 30))}</span>
+          <span class="mkt-cal-item mkt-cal-item--${item.platform}" style="font-size:11px;cursor:pointer;" onclick="openContentDetail('${item.id}')">${escHtml(item.title.substring(0, 30))}</span>
         `).join('')}</div>
       </div>
     `;
@@ -1710,6 +1833,168 @@ function clearTaskHistory() {
   updateKPIs();
 }
 
+/* ── CONTENT DETAIL ── */
+function openContentDetail(id) {
+  const item = MarketingStore.contentItems.find(i => i.id === id);
+  if (!item) return;
+  const platformEmojis = { tiktok: '🎵', instagram: '📸', youtube: '▶️', facebook: '👥', blog: '📝', email: '📧', linkedin: '💼' };
+  const typeLabels = { post: 'Post', reel: 'Reel', story: 'Story', video: 'Video', blog: 'Blog Post', email: 'Email', ad: 'Ad', script: 'Script' };
+  document.getElementById('cdTitle').textContent = item.title;
+  document.getElementById('cdMeta').innerHTML = `
+    <span class="mkt-badge mkt-badge--${item.platform}">${platformEmojis[item.platform] || ''} ${item.platform}</span>
+    <span class="mkt-badge">${typeLabels[item.type] || item.type}</span>
+    <span class="mkt-badge mkt-badge--${item.status}">${item.status}</span>
+    ${item.scheduled_date ? `<span style="font-size:12px;color:var(--muted);">📅 ${item.scheduled_date}</span>` : ''}
+  `;
+  const copyEl = document.getElementById('cdCopy');
+  if (item.copy_text) {
+    copyEl.style.display = 'block';
+    document.getElementById('cdCopyText').textContent = item.copy_text;
+  } else {
+    copyEl.style.display = 'none';
+  }
+  // Show workflow history if available
+  const wfEl = document.getElementById('cdWorkflow');
+  if (item.workflow_steps && item.workflow_steps.length) {
+    wfEl.style.display = 'block';
+    document.getElementById('cdWorkflowSteps').innerHTML = item.workflow_steps.map((s, i) => `
+      <div class="mkt-workflow-step mkt-workflow-step--${s.status}">
+        <div class="mkt-workflow-step__header">
+          <span class="mkt-workflow-step__num">${i+1}</span>
+          <span class="mkt-workflow-step__agent">${s.agent}</span>
+          <span class="mkt-workflow-step__role">${s.role}</span>
+          <span class="mkt-badge mkt-badge--${s.status === 'completed' ? 'customer' : s.status === 'running' ? 'prospect' : 'lead'}">${s.status}</span>
+        </div>
+        ${s.output ? `<div class="mkt-workflow-step__output">${escHtml(s.output.substring(0, 300))}${s.output.length > 300 ? '…' : ''}</div>` : ''}
+      </div>
+    `).join('');
+  } else {
+    wfEl.style.display = 'none';
+  }
+  document.getElementById('cdItemId').value = id;
+  openModal('contentDetailModal');
+}
+
+function approveContentItem() {
+  const id = document.getElementById('cdItemId').value;
+  const item = MarketingStore.contentItems.find(i => i.id === id);
+  if (!item) return;
+  item.status = 'scheduled';
+  renderCalendar(); renderMiniCalendar();
+  showToast('Content approved and scheduled!', 'success');
+  closeModal('contentDetailModal');
+}
+
+function editContentInAgents() {
+  const id = document.getElementById('cdItemId').value;
+  const item = MarketingStore.contentItems.find(i => i.id === id);
+  if (!item) return;
+  closeModal('contentDetailModal');
+  switchTab('agents', document.querySelector('[data-tab=agents]'));
+  document.getElementById('agentTaskInput').value = `Improve this content for ${item.platform}:\n\n${item.copy_text || item.title}`;
+  document.getElementById('agentTaskInput').focus();
+}
+
+function copyContentToClipboard() {
+  const id = document.getElementById('cdItemId').value;
+  const item = MarketingStore.contentItems.find(i => i.id === id);
+  if (!item) return;
+  navigator.clipboard.writeText(item.copy_text || item.title).then(() => showToast('Copied to clipboard!', 'success'));
+}
+
+/* ── ORCHESTRATION ── */
+async function runOrchestration() {
+  const workflow_type = document.getElementById('orchType').value;
+  const platform = document.getElementById('orchPlatform').value;
+  const title = document.getElementById('orchTitle').value.trim();
+  const context_text = document.getElementById('orchContext').value.trim();
+
+  if (!title) { showToast('Please enter a title or topic', 'error'); return; }
+
+  const btn = document.getElementById('orchRunBtn');
+  const statusEl = document.getElementById('orchStatus');
+  const pipelineEl = document.getElementById('orchPipeline');
+  const stepsEl = document.getElementById('orchPipelineSteps');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Running pipeline…';
+  statusEl.textContent = 'Initializing agents…';
+
+  // Show pipeline visualization
+  const pipelineMap = {
+    email_response: [{agent:'copywriter',role:'Draft'},{agent:'ux_designer',role:'Review'},{agent:'marketing_director',role:'Approve'}],
+    social_post: [{agent:'copywriter',role:'Caption'},{agent:'content_creator',role:'Visual Brief'},{agent:'ux_designer',role:'Design Review'},{agent:'marketing_director',role:'Approve'}],
+    reel: [{agent:'copywriter',role:'Script'},{agent:'content_creator',role:'Production Brief'},{agent:'ux_designer',role:'Visual Review'},{agent:'marketing_director',role:'Approve & Schedule'}],
+    youtube_video: [{agent:'copywriter',role:'Title & Script'},{agent:'content_creator',role:'Full Script'},{agent:'ux_designer',role:'Thumbnail Brief'},{agent:'marketing_director',role:'Approve & Schedule'}],
+    blog_post: [{agent:'copywriter',role:'Draft'},{agent:'content_creator',role:'Image Briefs'},{agent:'ux_designer',role:'Format Review'},{agent:'marketing_director',role:'Final Approval'}],
+    campaign_strategy: [{agent:'marketing_director',role:'Strategy & Content Map'},{agent:'copywriter',role:'All Copy'},{agent:'content_creator',role:'All Visuals'},{agent:'ux_designer',role:'Design System'},{agent:'marketing_director',role:'Final Assembly'}]
+  };
+  const agentIcons = { copywriter:'✍️', social_media:'📱', content_creator:'🎬', ux_designer:'🎨', marketing_director:'📣' };
+  const steps = pipelineMap[workflow_type] || [];
+  pipelineEl.style.display = 'block';
+  stepsEl.innerHTML = steps.map((s,i) => `
+    <div class="mkt-pipeline-step" id="orchStep${i}" data-status="pending">
+      <div class="mkt-pipeline-step__connector" ${i===0?'style="visibility:hidden"':''}></div>
+      <div class="mkt-pipeline-step__dot"></div>
+      <div class="mkt-pipeline-step__info">
+        <span class="mkt-pipeline-step__icon">${agentIcons[s.agent]}</span>
+        <span class="mkt-pipeline-step__agent">${s.agent}</span>
+        <span class="mkt-pipeline-step__role">${s.role}</span>
+        <span class="mkt-pipeline-step__status" id="orchStepStatus${i}">Waiting…</span>
+      </div>
+    </div>
+  `).join('');
+
+  try {
+    const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+    const res = await fetch('/api/marketing/orchestrate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workflow_type,
+        title,
+        context: { platform, additional: context_text },
+        supabase_url: cfg.url || '',
+        supabase_key: cfg.anonKey || ''
+      })
+    });
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.error || 'Pipeline failed');
+
+    // Update step statuses
+    (data.steps || []).forEach((s, i) => {
+      const stepEl = document.getElementById('orchStep'+i);
+      const stepStatus = document.getElementById('orchStepStatus'+i);
+      if (stepEl) { stepEl.dataset.status = 'completed'; }
+      if (stepStatus) stepStatus.textContent = '✓ Done';
+    });
+
+    // Add content items to local store
+    if (data.content_items_created && data.content_items_created.length) {
+      data.content_items_created.forEach(item => {
+        if (!MarketingStore.contentItems.find(c => c.id === item.id)) {
+          MarketingStore.contentItems.push(item);
+        }
+      });
+      renderCalendar(); renderMiniCalendar(); updateKPIs();
+      showToast(`✓ ${data.content_items_created.length} content item(s) added to calendar!`, 'success');
+    } else {
+      showToast('✓ Pipeline complete! Check calendar.', 'success');
+    }
+
+    statusEl.textContent = `✓ Pipeline complete (${(data.steps||[]).length} agents)`;
+    btn.textContent = 'Run Again';
+    btn.disabled = false;
+
+  } catch(err) {
+    statusEl.textContent = '✗ ' + err.message;
+    showToast('Pipeline error: ' + err.message, 'error');
+    btn.textContent = '🚀 Launch Pipeline';
+    btn.disabled = false;
+  }
+}
+
 /* ── DATA REFRESH ── */
 function refreshData() {
   loadContacts();
@@ -1729,6 +2014,91 @@ function escHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+/* ── EXPANDABLE: Action items ── */
+function expandAction(el) {
+  const detail = el.querySelector('.mkt-action-detail');
+  if (!detail) return;
+  const isOpen = detail.style.display !== 'none';
+  // Close all others
+  document.querySelectorAll('.mkt-action-detail').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.mkt-action-item').forEach(d => d.classList.remove('is-expanded'));
+  if (!isOpen) {
+    detail.style.display = 'block';
+    el.classList.add('is-expanded');
+  }
+}
+
+function useActionPrompt(agent, prompt) {
+  switchTab('agents', document.querySelector('[data-tab=agents]'));
+  const agentCards = document.querySelectorAll('.mkt-agent-card');
+  agentCards.forEach(c => { if (c.dataset.agent === agent) { selectAgent(c); } });
+  setTimeout(() => {
+    document.getElementById('agentTaskInput').value = prompt;
+    document.getElementById('agentTaskInput').focus();
+  }, 100);
+}
+
+/* ── EXPANDABLE: Campaign cards ── */
+function toggleCampaignExpand(card) {
+  const detail = card.querySelector('.mkt-campaign-detail');
+  if (!detail) return;
+  const isOpen = card.classList.contains('is-expanded');
+  document.querySelectorAll('.mkt-campaign-card').forEach(c => {
+    c.classList.remove('is-expanded');
+    const d = c.querySelector('.mkt-campaign-detail');
+    if (d) d.style.display = 'none';
+  });
+  if (!isOpen) {
+    card.classList.add('is-expanded');
+    detail.style.display = 'block';
+  }
+}
+
+function launchCampaignOrchestration(id, name) {
+  switchTab('agents', document.querySelector('[data-tab=agents]'));
+  setTimeout(() => {
+    const orchType = document.getElementById('orchType');
+    const orchTitle = document.getElementById('orchTitle');
+    const orchContext = document.getElementById('orchContext');
+    if (orchType) orchType.value = 'campaign_strategy';
+    if (orchTitle) { orchTitle.value = name; orchTitle.focus(); }
+    if (orchContext) orchContext.value = `Campaign ID: ${id}`;
+  }, 100);
+}
 </script>
+
+<!-- CONTENT DETAIL MODAL -->
+<div class="mkt-modal-overlay" id="contentDetailModal" onclick="closeModal('contentDetailModal')">
+  <div class="mkt-modal mkt-modal--lg" onclick="event.stopPropagation()">
+    <div class="mkt-modal__header">
+      <div class="mkt-modal__title" id="cdTitle">Content Detail</div>
+      <button class="mkt-modal__close" onclick="closeModal('contentDetailModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <div id="cdMeta" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+
+      <div id="cdCopy" style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Content / Copy</div>
+        <div id="cdCopyText" style="white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--black);background:var(--surface-2,#f5f5f7);border-radius:12px;padding:16px;border:1px solid var(--border);"></div>
+      </div>
+
+      <div id="cdWorkflow" style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Agent Workflow History</div>
+        <div id="cdWorkflowSteps"></div>
+      </div>
+
+      <input type="hidden" id="cdItemId">
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="mkt-btn mkt-btn--primary" onclick="approveContentItem()">✓ Approve</button>
+        <button class="mkt-btn mkt-btn--ghost" onclick="editContentInAgents()">✍️ Edit with Agent</button>
+        <button class="mkt-btn mkt-btn--ghost" onclick="copyContentToClipboard()">📋 Copy</button>
+        <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('contentDetailModal')" style="margin-left:auto;">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

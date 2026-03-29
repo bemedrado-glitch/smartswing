@@ -41,6 +41,7 @@ module.exports = async (req, res) => {
   const checkoutId = String(body.checkoutId || '').trim();
   const source = String(body.source || 'checkout-page').trim();
   const stripeCustomerId = String(body.stripeCustomerId || '').trim();
+  const couponCode = String(body.couponCode || '').trim().toUpperCase();
 
   if (!smartSwingUserId || !email) {
     return json(res, 400, { error: 'User id and email are required for paid checkout.' });
@@ -70,7 +71,10 @@ module.exports = async (req, res) => {
       customer_email: email,
       billing_address_collection: 'auto',
       phone_number_collection: { enabled: true },
-      allow_promotion_codes: true,
+      // When a specific coupon code is supplied, apply it via discounts (incompatible with allow_promotion_codes)
+      ...(couponCode === 'SWINGAI' && process.env.STRIPE_PROMO_CODE_SWINGAI
+        ? { discounts: [{ promotion_code: process.env.STRIPE_PROMO_CODE_SWINGAI }] }
+        : { allow_promotion_codes: true }),
       metadata: {
         appPlanId: planId,
         billingInterval,
