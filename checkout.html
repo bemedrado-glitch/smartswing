@@ -8,56 +8,83 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #071015;
-      --panel: rgba(11, 18, 24, 0.92);
+      --bg: #0a0a0a;
+      --bg-soft: #111;
+      --bg-mid: #1a1a1a;
+      --panel: rgba(10,18,24,0.92);
       --line: rgba(255,255,255,0.12);
-      --text: #f5f7fb;
-      --muted: #d9e2ea;
-      --green: #39ff14;
+      --text: #f5f7fa;
+      --muted: #dbe4eb;
+      --volt: #39ff14;
+      --volt-dark: #2bcc0f;
       --gold: #ffd84d;
-      --deep: #0d1117;
+      --deep: #0c1014;
+      --border: rgba(255,255,255,0.12);
+      --radius: 20px;
+      --page: min(1280px, calc(100% - 48px));
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "DM Sans", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.12), transparent 24%),
-        radial-gradient(circle at top right, rgba(255,216,77,0.08), transparent 20%),
-        linear-gradient(180deg, #04080c 0%, #0c1419 48%, #091116 100%);
+        radial-gradient(circle at top left, rgba(57,255,20,0.12), transparent 22%),
+        radial-gradient(circle at top right, rgba(255,216,77,0.12), transparent 18%),
+        linear-gradient(180deg, #04080c 0%, #0b1419 48%, #091116 100%);
+      background-attachment: fixed;
       min-height: 100vh;
     }
-    .page { width: min(1220px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 64px; }
-    .topbar, .hero, .checkout-grid, .summary-list, .trust-list, .payments { display: grid; gap: 18px; }
-    .topbar { grid-template-columns: auto 1fr auto; align-items: center; margin-bottom: 20px; }
-    .brand { text-decoration: none; font-family: "Sora", sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.05em; color: var(--green); }
-    .nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-    .btn, .btn-primary {
-      text-decoration: none;
-      border-radius: 999px;
-      padding: 12px 18px;
-      font-weight: 800;
-      font-size: 14px;
-      cursor: pointer;
-      transition: transform 180ms ease, border-color 180ms ease;
-      font: inherit;
+    /* Skip nav */
+    .skip-nav { position:absolute;top:-100%;left:16px;z-index:9999;padding:10px 20px;background:#39ff14;color:#0a0a0a;font-weight:700;border-radius:0 0 8px 8px;font-size:14px;text-decoration:none;transition:top 0.2s; }
+    .skip-nav:focus { top:0; }
+    :focus-visible { outline:2px solid #39ff14;outline-offset:3px; }
+    a:focus:not(:focus-visible),button:focus:not(:focus-visible) { outline:none; }
+
+    /* Nav */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 900;
+      background: rgba(10,10,10,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    .btn {
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      gap: 24px;
+      width: var(--page);
+      margin: 0 auto;
     }
-    .btn-primary {
-      border: 1px solid rgba(57,255,20,0.34);
-      background: linear-gradient(135deg, var(--green), #96ff76);
-      color: var(--deep);
+    .brand { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; text-decoration: none; }
+    .brand .dot { color: var(--volt); }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { font-size: 14px; font-weight: 500; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn-primary { display:inline-flex;align-items:center;padding:12px 24px;background:var(--volt);color:#0a0a0a;font-weight:700;font-size:15px;border-radius:12px;border:none;cursor:pointer;text-decoration:none;transition:background 0.2s; }
+    .btn-primary:hover { background:var(--volt-dark); }
+    .btn-ghost { display:inline-flex;align-items:center;padding:12px 24px;background:transparent;color:rgba(255,255,255,0.8);font-weight:600;font-size:15px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);cursor:pointer;text-decoration:none;transition:border-color 0.2s; }
+    .btn-ghost:hover { border-color:rgba(255,255,255,0.4); }
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .nav-cta .btn-ghost, .nav-cta .btn-primary { display: none; }
     }
-    .btn:hover, .btn-primary:hover, .panel:hover, .summary-card:hover, .payment-badge:hover { transform: translateY(-2px); }
-    .hero { grid-template-columns: 1.02fr 0.98fr; margin-bottom: 18px; }
-    .checkout-grid { grid-template-columns: 1.05fr 0.95fr; }
+
+    /* Page */
+    .page-wrap { width: var(--page); margin: 0 auto; padding: 40px 0 80px; }
+
+    /* Two-column grids */
+    .hero { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 18px; margin-bottom: 18px; }
+    .checkout-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; }
+
+    /* Panel */
     .panel, .summary-card {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -67,6 +94,8 @@
     }
     .panel { padding: 26px; }
     .summary-card { padding: 18px; }
+    .panel:hover, .summary-card:hover, .payment-badge:hover { transform: translateY(-2px); }
+
     .eyebrow {
       display: inline-flex;
       align-items: center;
@@ -81,7 +110,6 @@
       text-transform: uppercase;
     }
     h1 {
-      font-family: "Sora", sans-serif;
       margin: 18px 0 14px;
       font-size: clamp(38px, 6vw, 64px);
       line-height: 0.95;
@@ -89,14 +117,15 @@
       max-width: 12ch;
     }
     h2 {
-      font-family: "Sora", sans-serif;
       font-size: 28px;
       letter-spacing: -0.04em;
-      color: var(--green);
+      color: var(--volt);
       margin-bottom: 14px;
     }
     h3 { font-size: 18px; margin-bottom: 6px; }
     p, li, label, .micro { color: var(--muted); line-height: 1.7; }
+
+    /* Billing toggle */
     .toggle {
       display: inline-flex;
       gap: 8px;
@@ -118,18 +147,24 @@
       cursor: pointer;
     }
     .toggle button.active {
-      background: linear-gradient(135deg, var(--green), #96ff76);
+      background: linear-gradient(135deg, var(--volt), #96ff76);
       color: var(--deep);
     }
+
+    /* Summary list */
     .summary-list, .trust-list { margin-top: 16px; }
     .summary-card strong { display: block; color: var(--text); margin-bottom: 6px; }
+
+    /* Info box (account) */
     .info-box {
       border: 1px solid var(--line);
       border-radius: 20px;
       padding: 16px;
       background: rgba(255,255,255,0.04);
     }
-    .payments { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px; }
+
+    /* Payment badges */
+    .payments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 16px; }
     .payment-badge {
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -139,13 +174,21 @@
       font-weight: 800;
       transition: transform 180ms ease, border-color 180ms ease;
     }
+
+    /* Checkout form area */
     .checkout-box { display: grid; gap: 14px; margin-top: 18px; }
+
+    /* Secure grid (trust cards at bottom right) */
     .secure-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+
+    /* Notice */
     .notice {
-      border-left: 3px solid var(--green);
+      border-left: 3px solid var(--volt);
       padding-left: 14px;
       margin-top: 14px;
     }
+
+    /* Error banner */
     .error-banner {
       display: none;
       margin-top: 14px;
@@ -159,6 +202,8 @@
       line-height: 1.5;
     }
     .error-banner.visible { display: block; }
+
+    /* Spinner */
     .spinner {
       display: inline-block;
       width: 16px; height: 16px;
@@ -170,93 +215,181 @@
       margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer */
+    .footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 60px 0 32px; margin-top: 60px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+    .footer-brand .dot { color: var(--volt); }
+    .footer-tagline { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .footer-col-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-links a { font-size: 14px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px; }
+    .footer-bottom p { font-size: 13px; color: var(--muted); }
+    .footer-bottom-links { display: flex; gap: 20px; }
+    .footer-bottom-links a { font-size: 13px; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.2s; }
+    .footer-bottom-links a:hover { color: rgba(255,255,255,0.6); }
+
     @media (max-width: 960px) {
-      .hero, .checkout-grid, .secure-grid, .payments, .topbar { grid-template-columns: 1fr; }
-      .page { width: min(100%, calc(100% - 24px)); }
+      .hero, .checkout-grid, .secure-grid, .payments { grid-template-columns: 1fr; }
+      .page-wrap { width: min(100%, calc(100% - 24px)); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
     }
   </style>
+  <script src="./analytics.js"></script>
 </head>
 <body>
-  <div class="page">
-    <header class="topbar">
-      <a class="brand" href="./index.html">SmartSwing AI</a>
-      <div></div>
-      <nav class="nav">
-        <a class="btn" id="backToCart" href="./cart.html">Back to cart</a>
-        <a class="btn" href="./pricing.html">Pricing</a>
-      </nav>
-    </header>
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
 
-    <section class="hero">
-      <article class="panel">
-        <div class="eyebrow">Secure checkout</div>
-        <h1>Confirm your plan with a checkout flow that feels trustworthy.</h1>
-        <p>SmartSwing keeps plan details, billing cadence, and account context visible here. The actual recurring payment is completed on Stripe-hosted subscription checkout so card handling, wallets, and subscription security stay in Stripe's controlled flow.</p>
-        <div class="toggle" id="billingToggle">
-          <button type="button" data-interval="monthly">Monthly</button>
-          <button type="button" data-interval="yearly">Yearly | save 15%</button>
-        </div>
-        <div class="notice">Accepted payment methods shown below reflect common Stripe-supported card and wallet options, but the final options may vary by country, device, browser, and your Stripe checkout configuration.</div>
-      </article>
-      <article class="panel">
-        <h2 id="summaryTitle">Order summary</h2>
-        <div class="summary-list" id="summaryList"></div>
-      </article>
-    </section>
+  <nav class="nav" id="mainNav" aria-label="Main navigation">
+    <div class="nav-inner page">
+      <a href="./index.html" class="brand" aria-label="SmartSwing AI — Home">SmartSwing<span class="dot"> AI</span></a>
+      <div class="nav-links">
+        <a href="./for-players.html">For Players</a>
+        <a href="./for-coaches.html">For Coaches</a>
+        <a href="./for-clubs.html">For Clubs</a>
+        <a href="./how-it-works.html">How It Works</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./blog.html">Blog</a>
+      </div>
+      <div class="nav-cta">
+        <a href="./cart.html" class="btn-ghost" id="backToCart" style="padding:10px 20px;font-size:14px;">Back to cart</a>
+        <a href="./login.html" class="btn-ghost" style="padding:10px 20px;font-size:14px;">Sign In</a>
+        <a href="./signup.html" class="btn-primary" style="padding:10px 20px;font-size:14px;">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
 
-    <section class="checkout-grid">
-      <article class="panel">
-        <h2 id="checkoutHeading">Continue to secure Stripe checkout</h2>
-        <div class="info-box">
-          <strong id="accountLabel">Account</strong>
-          <div class="micro" id="accountCopy">Sign in to continue with your selected plan.</div>
-        </div>
-        <div class="payments">
-          <div class="payment-badge">Visa</div>
-          <div class="payment-badge">Mastercard</div>
-          <div class="payment-badge">American Express</div>
-          <div class="payment-badge">Discover</div>
-          <div class="payment-badge">Apple Pay</div>
-          <div class="payment-badge">Google Pay</div>
-          <div class="payment-badge">Link</div>
-          <div class="payment-badge">Cash App Pay</div>
-          <div class="payment-badge">PayPal</div>
-        </div>
-        <form id="checkoutForm" class="checkout-box">
-          <div id="checkoutFlow"></div>
-        </form>
-      </article>
+  <main id="main-content" style="padding-top:88px">
+    <div class="page-wrap">
 
-      <article class="panel">
-        <h2>Why this feels credible</h2>
-        <div class="trust-list">
-          <div class="summary-card">
-            <strong>Transparent plan summary</strong>
-            Price, billing cadence, review limits, and trial logic stay visible before the user leaves for Stripe.
+      <section class="hero">
+        <article class="panel">
+          <div class="eyebrow">Secure checkout</div>
+          <h1>Confirm your plan with a checkout flow that feels trustworthy.</h1>
+          <p>SmartSwing keeps plan details, billing cadence, and account context visible here. The actual recurring payment is completed on Stripe-hosted subscription checkout so card handling, wallets, and subscription security stay in Stripe's controlled flow.</p>
+          <div class="toggle" id="billingToggle">
+            <button type="button" data-interval="monthly">Monthly</button>
+            <button type="button" data-interval="yearly">Yearly | save 15%</button>
           </div>
-          <div class="summary-card">
-            <strong>Official payment handling</strong>
-            Card entry, wallets, and recurring billing stay on Stripe Checkout instead of a simulated client-side form.
-          </div>
-          <div class="summary-card">
-            <strong>Professional continuity</strong>
-            After payment verification, SmartSwing returns the user to a guided welcome flow instead of dropping them into a blank dashboard.
-          </div>
-        </div>
+          <div class="notice">Accepted payment methods shown below reflect common Stripe-supported card and wallet options, but the final options may vary by country, device, browser, and your Stripe checkout configuration.</div>
+        </article>
+        <article class="panel">
+          <h2 id="summaryTitle">Order summary</h2>
+          <div class="summary-list" id="summaryList"></div>
+        </article>
+      </section>
 
-        <div class="secure-grid">
-          <div class="summary-card">
-            <strong>Billing support</strong>
-            Cancel anytime from the billing portal when available.
+      <section class="checkout-grid">
+        <article class="panel">
+          <h2 id="checkoutHeading">Continue to secure Stripe checkout</h2>
+          <div class="info-box">
+            <strong id="accountLabel">Account</strong>
+            <div class="micro" id="accountCopy">Sign in to continue with your selected plan.</div>
           </div>
-          <div class="summary-card">
-            <strong>Questions?</strong>
-            <a href="./contact.html">Contact support</a> before completing checkout.
+          <div class="payments">
+            <div class="payment-badge">Visa</div>
+            <div class="payment-badge">Mastercard</div>
+            <div class="payment-badge">American Express</div>
+            <div class="payment-badge">Discover</div>
+            <div class="payment-badge">Apple Pay</div>
+            <div class="payment-badge">Google Pay</div>
+            <div class="payment-badge">Link</div>
+            <div class="payment-badge">Cash App Pay</div>
+            <div class="payment-badge">PayPal</div>
+          </div>
+          <form id="checkoutForm" class="checkout-box">
+            <div id="checkoutFlow"></div>
+          </form>
+        </article>
+
+        <article class="panel">
+          <h2>Your payment is protected</h2>
+          <div class="trust-list">
+            <div class="summary-card">
+              <strong>Bank-level encryption</strong>
+              Your payment details are handled entirely by Stripe. SmartSwing never touches your card data.
+            </div>
+            <div class="summary-card">
+              <strong>Cancel anytime</strong>
+              No lock-in. Manage or cancel your subscription from your account settings at any time.
+            </div>
+            <div class="summary-card">
+              <strong>Instant access</strong>
+              Your plan activates the moment payment is confirmed. Full dashboard access in seconds.
+            </div>
+          </div>
+
+          <div class="secure-grid">
+            <div class="summary-card">
+              <strong>Billing support</strong>
+              Cancel anytime from the billing portal when available.
+            </div>
+            <div class="summary-card">
+              <strong>Questions?</strong>
+              <a href="./contact.html">Contact support</a> before completing checkout.
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <footer class="footer" role="contentinfo" aria-label="Site footer">
+        <div>
+          <div class="footer-grid">
+            <div>
+              <div class="footer-brand">SmartSwing<span class="dot"> AI</span></div>
+              <p class="footer-tagline">AI-powered tennis and pickleball analysis for players, coaches, and clubs.</p>
+            </div>
+            <div>
+              <p class="footer-col-title">Platform</p>
+              <ul class="footer-links">
+                <li><a href="./for-players.html">For Players</a></li>
+                <li><a href="./for-coaches.html">For Coaches</a></li>
+                <li><a href="./for-clubs.html">For Clubs</a></li>
+                <li><a href="./for-parents.html">For Parents</a></li>
+                <li><a href="./pickleball.html">Pickleball</a></li>
+              </ul>
+            </div>
+            <div>
+              <p class="footer-col-title">Product</p>
+              <ul class="footer-links">
+                <li><a href="./pricing.html">Pricing</a></li>
+                <li><a href="./how-it-works.html">How It Works</a></li>
+                <li><a href="./features.html">Features</a></li>
+                <li><a href="./blog.html">Blog</a></li>
+                <li><a href="./about.html">About</a></li>
+              </ul>
+            </div>
+            <div>
+              <p class="footer-col-title">Legal</p>
+              <ul class="footer-links">
+                <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+                <li><a href="./user-agreement.html">Terms of Use</a></li>
+                <li><a href="./cookie-policy.html">Cookie Policy</a></li>
+                <li><a href="./accessibility.html">Accessibility</a></li>
+                <li><a href="./refund-policy.html">Refund Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer-bottom">
+            <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
+            <div class="footer-bottom-links">
+              <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+              <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+            </div>
           </div>
         </div>
-      </article>
-    </section>
-  </div>
+      </footer>
+
+    </div>
+  </main>
 
   <script src="./public-app-config.js"></script>
   <script src="/api/runtime-config.js"></script>
@@ -294,7 +427,7 @@
       document.getElementById('summaryList').innerHTML = [
         { title: 'Plan', body: plan.name },
         { title: 'Billing cadence', body: plan.id === 'free' ? 'Free activation' : (billingInterval === 'yearly' ? `Yearly billing | save 15% | monthly equivalent $${price.monthlyEquivalent.toFixed(2)}` : 'Monthly billing | cancel anytime') },
-        { title: 'Monthly reviews', body: Number.isFinite(plan.monthlyReviews) ? `${plan.monthlyReviews}` : 'Unlimited' },
+        { title: 'Analyses per month', body: Number.isFinite(plan.monthlyReviews) ? `${plan.monthlyReviews}` : 'Unlimited' },
         { title: plan.id === 'free' ? 'Free analyses' : 'Trial', body: plan.id === 'free' ? '2 lifetime analyses included — no credit card needed' : 'No free trial — cancel anytime after subscribing' },
         { title: 'Provider', body: plan.id === 'free' ? 'SmartSwing internal activation' : 'Stripe secure recurring checkout' },
         { title: 'Included perks', body: plan.perks.join(' | ') }
@@ -431,5 +564,8 @@
       }
     });
   </script>
+  <script src="./pwa.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./mobile-nav.js"></script>
 </body>
 </html>
