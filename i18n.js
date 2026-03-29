@@ -154,13 +154,27 @@
   function injectSwitcher(currentLang) {
     if (document.getElementById('ss-lang-switcher')) return;
     var switcher = buildSwitcher(currentLang);
-    var nav = document.getElementById('mainNav') || document.querySelector('.nav-links');
-    if (nav) {
-      nav.appendChild(switcher);
-    } else {
-      switcher.style.cssText = 'position:fixed;top:16px;right:16px;z-index:1000;';
-      document.body.appendChild(switcher);
+    // 1. Preferred: inject into .nav-cta (redesigned pages — index, features, how-it-works)
+    var navCta = document.querySelector('.nav-cta');
+    if (navCta) {
+      navCta.insertBefore(switcher, navCta.firstChild);
+      return;
     }
+    // 2. Fallback: append to .nav-links (pricing page — links+ctas share one container)
+    var navLinks = document.querySelector('.nav-links');
+    if (navLinks) {
+      navLinks.appendChild(switcher);
+      return;
+    }
+    // 3. Fallback: #mainNav (growth pages — policy, about, for-*, blog, contact)
+    var mainNav = document.getElementById('mainNav');
+    if (mainNav) {
+      mainNav.appendChild(switcher);
+      return;
+    }
+    // 4. Last-resort: fixed top-right
+    switcher.style.cssText = 'position:fixed;top:14px;right:16px;z-index:1000;';
+    document.body.appendChild(switcher);
   }
 
   function refreshSwitcher(lang) {

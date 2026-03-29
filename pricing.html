@@ -15,6 +15,10 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="SmartSwing AI Pricing">
   <meta name="twitter:description" content="Compare SmartSwing AI plans and unlock the right level of video analysis, dashboards, drills, and coach workflows.">
+  <meta name="twitter:image" content="https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
+  <meta name="keywords" content="AI tennis analysis, tennis swing analysis, biomechanics feedback, tennis coach app, tennis video analysis, tennis improvement, tennis drills, swing coach AI">
+  <meta name="author" content="SmartSwing AI">
+  <meta name="geo.region" content="US">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -95,6 +99,13 @@
       --page: min(1280px, calc(100% - 48px));
       --section-gap: 100px;
     }
+
+    /* ── ACCESSIBILITY: Skip nav ── */
+    .skip-nav { position:absolute; top:-100%; left:16px; z-index:9999; padding:10px 20px; background:#39ff14; color:#0a0a0a; font-weight:700; border-radius:0 0 8px 8px; font-size:14px; transition:top 0.2s; }
+    .skip-nav:focus { top:0; }
+    /* ── ACCESSIBILITY: Focus visible ── */
+    :focus-visible { outline:2px solid #39ff14; outline-offset:3px; }
+    a:focus:not(:focus-visible), button:focus:not(:focus-visible) { outline:none; }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -697,12 +708,22 @@
       .compare-row { grid-template-columns: 1fr; }
       .footer-grid { grid-template-columns: 1fr 1fr; }
     }
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+    }
     @media (max-width: 720px) {
       .pricing-grid { grid-template-columns: 1fr; }
-      .nav-links .btn-nav { display: none; }
-      .nav-links .btn-nav:last-child { display: inline-flex; }
       .cta-panel { padding: 40px 24px; }
       .footer-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-inner { height: 58px; }
+      .hero h1, .hero-h1 { font-size: clamp(32px, 10vw, 52px); letter-spacing: -1px; }
+      .btn-primary, .btn-ghost, .btn-cta, .btn-nav { min-height: 44px; }
+      .hero-actions, .cta-actions { flex-direction: column; align-items: stretch; gap: 10px; }
+      .hero-actions a, .hero-actions button, .cta-actions a { text-align: center; justify-content: center; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
     }
 
     /* Image color normalization — reduce blue cast, keep dark/neutral */
@@ -726,6 +747,7 @@
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
 
   <!-- NAV -->
   <nav class="nav-bar" aria-label="Main navigation">
@@ -741,6 +763,8 @@
       </div>
     </div>
   </nav>
+
+  <main id="main-content">
 
   <!-- PLAN STATUS STRIP -->
   <div class="plan-strip">
@@ -987,8 +1011,10 @@
     </div>
   </section>
 
+  </main>
+
   <!-- FOOTER -->
-  <footer class="site-footer">
+  <footer class="site-footer" role="contentinfo" aria-label="Site footer">
     <div class="footer-grid">
       <div class="footer-col">
         <strong>SmartSwing AI</strong>
@@ -1030,6 +1056,7 @@
   <script src="./site-experience.js"></script>
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
+  <script src="./mobile-nav.js"></script>
   <script>
     // ── Scroll reveal ──
     (function () {

@@ -74,15 +74,33 @@
       }
 
       try {
+        // Detect PKCE authorization code from URL (OAuth redirect appends ?code=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const pkceCode = urlParams.get('code');
+
+        if (pkceCode) {
+          statusText.textContent = 'Completing secure OAuth verification…';
+          // Get the initialized Supabase client (triggers detectSessionInUrl auto-exchange)
+          const client = await store.getSupabaseClient();
+          if (client) {
+            // Explicit exchangeCodeForSession as a safety net for PKCE flow
+            const { error: exchangeError } = await client.auth.exchangeCodeForSession(pkceCode);
+            if (exchangeError) {
+              // Non-fatal: detectSessionInUrl may have already handled it
+              console.warn('[auth-callback] exchangeCodeForSession warning:', exchangeError.message);
+            }
+          }
+        }
+
         const user = await store.restoreSupabaseSession();
         if (!user) {
           window.location.href = './login.html?type=error&message=' + encodeURIComponent('OAuth session was not completed. Please try again.');
           return;
         }
         statusBox.querySelector('strong').textContent = 'Authentication complete';
-        statusText.textContent = 'Redirecting to your SmartSwing workspace...';
+        statusText.textContent = 'Redirecting to your SmartSwing workspace…';
 
-        // Auto-enroll new users in Trial cadence
+        // Fire-and-forget auto-enroll for new users
         try {
           const cfg = window.SMARTSWING_CONFIG || window.SMARTSWING_SUPABASE_CONFIG || {};
           fetch('/api/marketing/auto-enroll', {
@@ -95,8 +113,8 @@
               supabase_url: cfg.url || cfg.supabaseUrl || '',
               supabase_key: cfg.anonKey || cfg.supabaseAnonKey || ''
             })
-          }).catch(() => {}); // fire-and-forget, never block auth flow
-        } catch(e) {}
+          }).catch(() => {}); // never block auth flow
+        } catch (_) {}
 
         const destination = store.getPostAuthDestinationForUser(user);
         setTimeout(() => { window.location.href = destination; }, 450);
