@@ -81,6 +81,23 @@
         }
         statusBox.querySelector('strong').textContent = 'Authentication complete';
         statusText.textContent = 'Redirecting to your SmartSwing workspace...';
+
+        // Auto-enroll new users in Trial cadence
+        try {
+          const cfg = window.SMARTSWING_CONFIG || window.SMARTSWING_SUPABASE_CONFIG || {};
+          fetch('/api/marketing/auto-enroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: user?.email || '',
+              name: user?.user_metadata?.full_name || '',
+              user_id: user?.id || '',
+              supabase_url: cfg.url || cfg.supabaseUrl || '',
+              supabase_key: cfg.anonKey || cfg.supabaseAnonKey || ''
+            })
+          }).catch(() => {}); // fire-and-forget, never block auth flow
+        } catch(e) {}
+
         const destination = store.getPostAuthDestinationForUser(user);
         setTimeout(() => { window.location.href = destination; }, 450);
       } catch (error) {
