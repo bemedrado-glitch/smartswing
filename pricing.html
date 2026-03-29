@@ -77,326 +77,923 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="./analytics.js"></script>
   <style>
-    :root{
-      --bg:#0a0a0a;
-      --panel:rgba(28,28,30,.88);
-      --line:rgba(255,255,255,.1);
-      --text:#f5f5f7;
-      --muted:#eef3f7;
-      --volt:#39ff14;
-      --accent:#ffd84d;
-      --teal:#00d4aa;
-      --white:#f5f5f7;
-      --dark:#0e1012;
-      --alert:#ffd76b;
+    :root {
+      --bg: #0a0a0a;
+      --bg-soft: #111;
+      --bg-mid: #1a1a1a;
+      --line: rgba(255,255,255,0.1);
+      --text: #f5f5f7;
+      --muted: rgba(255,255,255,0.55);
+      --subtle: rgba(255,255,255,0.35);
+      --volt: #39ff14;
+      --volt-dark: #2bcc0f;
+      --border: rgba(255,255,255,0.1);
+      --radius: 20px;
+      --radius-sm: 12px;
+      --page: min(1280px, calc(100% - 48px));
+      --section-gap: 100px;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:"DM Sans",sans-serif;
-      color:var(--text);
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(200,255,0,.1), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,212,170,.12), transparent 22%),
-        linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#111 100%);
-      min-height:100vh;
+        radial-gradient(circle at top left, rgba(57,255,20,0.05), transparent 24%),
+        linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
+      min-height: 100vh;
     }
-    .page{width:min(1260px,calc(100% - 40px));margin:0 auto;padding:24px 0 64px}
-    .top{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;margin-bottom:22px}
-    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
-    .brand span{color:var(--volt)}
-    .nav{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
-    .btn,.btn-primary,.btn-secondary{
-      text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;
-      transition:transform .18s ease;cursor:pointer;font:inherit
+
+    /* ── NAV ── */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.80);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
     }
-    .btn,.btn-secondary{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
-    .btn-primary{background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark);border:1px solid rgba(57,255,20,.35)}
-    .btn:hover,.btn-primary:hover,.btn-secondary:hover{transform:translateY(-2px)}
-    .hero,.summary,.pricing-grid,.compare,.faq{display:grid;gap:16px}
-    .hero{grid-template-columns:1.08fr .92fr;margin-bottom:16px}
-    .panel{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:28px;
-      padding:28px;
-      transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    .nav-inner {
+      width: var(--page);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      gap: 16px;
     }
-    .panel:hover,.pricing-card:hover,.qa:hover{transform:translateY(-4px);border-color:rgba(57,255,20,.3);box-shadow:0 18px 50px rgba(0,0,0,.3)}
-    .eyebrow,.chip{
-      display:inline-flex;align-items:center;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;
-      letter-spacing:.08em;text-transform:uppercase;background:rgba(255,216,77,.12);color:var(--accent);border:1px solid rgba(255,216,77,.22)
+    .brand {
+      text-decoration: none;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.05em;
+      color: var(--text);
+      white-space: nowrap;
     }
-    h1{font-size:clamp(42px,6vw,76px);line-height:.95;letter-spacing:-.06em;margin:16px 0 14px;max-width:10ch}
-    h2{font-size:clamp(28px,4vw,48px);line-height:1;letter-spacing:-.05em}
-    h3{font-size:24px;letter-spacing:-.03em;color:var(--volt)}
-    p{line-height:1.7}
-    .muted{color:var(--muted)}
-    .hero ul{display:grid;gap:10px;margin-top:18px;list-style:none}
-    .hero li{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.03);color:var(--muted)}
-    .summary{align-content:start}
-    .status{border:1px solid var(--line);border-radius:20px;padding:18px;background:rgba(255,255,255,.03);color:var(--muted)}
-    .status strong{display:block;color:var(--text);margin-bottom:8px}
-    .urgency{display:grid;gap:12px}
-    .billing-toggle{display:inline-flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding:8px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
-    .billing-toggle button{border:none;border-radius:999px;padding:10px 14px;background:transparent;color:var(--muted);font:inherit;font-weight:800;cursor:pointer}
-    .billing-toggle button.active{background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark)}
-    .urgency-box{border:1px solid rgba(255,215,107,.2);background:rgba(255,215,107,.06);border-radius:20px;padding:18px;color:#ffe7a6}
-    .pricing-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
-    .pricing-card{
-      position:relative;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:22px;
-      box-shadow:0 24px 80px rgba(0,0,0,.25)
+    .brand .dot { color: var(--volt); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
-    .pricing-card.featured{border-color:rgba(57,255,20,.34);transform:translateY(-10px)}
-    .tag{
-      position:absolute;top:14px;right:14px;border-radius:999px;padding:8px 10px;font-size:11px;
-      font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,216,77,.12);color:var(--accent)
+    .btn-nav {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      transition: color .18s, border-color .18s, transform .18s;
     }
-    .price{font-size:52px;line-height:1;letter-spacing:-.06em;margin:14px 0 6px}
-    .price small{font-size:15px;color:var(--muted)}
-    .price-note{color:var(--muted);font-size:14px}
-    .billing-copy{color:var(--accent);font-size:13px;font-weight:700;margin-top:10px}
-    .list{display:grid;gap:10px;margin:18px 0 22px}
-    .list div{border:1px solid var(--line);border-radius:14px;padding:11px 12px;background:rgba(255,255,255,.03);color:var(--muted)}
-    .anchor{margin-top:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);font-size:14px}
-    .compare{grid-template-columns:1fr 1fr;margin-bottom:18px}
-    .compare-table{display:grid;gap:10px}
-    .row{display:grid;grid-template-columns:1.1fr .9fr .9fr .9fr;gap:10px}
-    .cell{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.03);color:var(--muted)}
-    .cell strong{color:var(--text)}
-    .faq{grid-template-columns:1fr 1fr}
-    .qa{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px}
-    .footer{display:grid;grid-template-columns:1.05fr 1fr 1fr 1fr;gap:16px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
-    .footer-col{display:grid;gap:12px}
-    .footer-col strong{color:var(--text)}
-    .footer-links{display:flex;gap:10px;flex-wrap:wrap}
-    .footer-links a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.03);color:var(--muted);font-weight:700}
-    .range-wrap{display:grid;gap:12px}
-    .range-wrap input[type="range"]{width:100%}
-    .roi-number{font-size:38px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
-    .roi-stat{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.03);color:var(--muted)}
-    @media (max-width:1100px){
-      .hero,.pricing-grid,.compare,.faq,.footer{grid-template-columns:1fr}
-      .pricing-card.featured{transform:none}
-      .row{grid-template-columns:1fr}
+    .btn-nav:hover { color: var(--text); border-color: rgba(255,255,255,0.25); transform: translateY(-1px); }
+    .btn-cta {
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #0a0a0a;
+      background: var(--volt);
+      border: 1px solid rgba(57,255,20,0.35);
+      transition: background .18s, transform .18s;
     }
-    @media (max-width:760px){
-      .page{width:min(100%,calc(100% - 24px))}
-      .top{grid-template-columns:1fr}
-      .nav{justify-content:flex-start}
+    .btn-cta:hover { background: #50ff30; transform: translateY(-2px); }
+
+    /* ── LAYOUT ── */
+    .page-wrap { width: var(--page); margin: 0 auto; padding: 0 0 80px; }
+
+    /* ── HERO ── */
+    .hero-section {
+      padding: 72px 0 56px;
+      text-align: center;
+    }
+    .eyebrow-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(57,255,20,0.3);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--volt);
+      background: rgba(57,255,20,0.08);
+      margin-bottom: 24px;
+    }
+    .float-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255,255,255,0.05);
+      margin-bottom: 20px;
+    }
+    .float-badge::before { content: ""; display: block; width: 8px; height: 8px; border-radius: 50%; background: var(--volt); flex-shrink: 0; }
+    .hero-h1 {
+      font-size: clamp(40px, 6vw, 80px);
+      line-height: .95;
+      letter-spacing: -.06em;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+    .hero-lead {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .billing-toggle {
+      display: inline-flex;
+      gap: 4px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #1a1a1a;
+      margin-bottom: 32px;
+    }
+    .billing-toggle button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 22px;
+      background: transparent;
+      color: var(--muted);
+      font-family: "DM Sans", sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .billing-toggle button.active {
+      background: var(--volt);
+      color: #0a0a0a;
+    }
+    .urgency-chips {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .urgency-chip {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* ── PLAN STATUS STRIP ── */
+    .plan-strip {
+      background: #111;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .plan-strip-inner {
+      width: var(--page);
+      margin: 0 auto;
+      padding: 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .plan-strip-inner strong { color: var(--text); }
+    #planStatus { display: contents; }
+
+    /* ── PRICING CARDS ── */
+    .pricing-section { padding: 72px 0 0; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      align-items: end;
+    }
+    .pricing-card {
+      position: relative;
+      background: #1a1a1a;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px 24px 24px;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .pricing-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(57,255,20,0.25);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+    .pricing-card.featured {
+      background: var(--volt);
+      border-color: var(--volt);
+      color: #0a0a0a;
+      transform: translateY(-12px);
+      box-shadow: 0 32px 80px rgba(57,255,20,0.25);
+    }
+    .pricing-card.featured:hover {
+      transform: translateY(-16px);
+      border-color: var(--volt);
+      box-shadow: 0 40px 100px rgba(57,255,20,0.35);
+    }
+    .card-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: #0a0a0a;
+      color: var(--volt);
+      border: 1px solid rgba(57,255,20,0.4);
+      white-space: nowrap;
+    }
+    .card-name {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--volt);
+      margin-bottom: 12px;
+    }
+    .featured .card-name { color: #0a0a0a; }
+    .card-price {
+      font-size: clamp(42px, 5vw, 58px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.06em;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .featured .card-price { color: #0a0a0a; }
+    .card-price small {
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0;
+      color: var(--muted);
+    }
+    .featured .card-price small { color: rgba(0,0,0,0.55); }
+    .card-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .featured .card-note { color: rgba(0,0,0,0.6); }
+    .card-billing-copy {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--volt);
+      margin-bottom: 20px;
+    }
+    .featured .card-billing-copy { color: rgba(0,0,0,0.65); }
+    .card-features {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .card-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .featured .card-features li { color: rgba(0,0,0,0.7); }
+    .card-features li::before {
+      content: "";
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--volt);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .featured .card-features li::before { background: #0a0a0a; }
+    .card-btn {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-weight: 800;
+      font-size: 15px;
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      border: 1px solid var(--line);
+      transition: background .18s, transform .18s;
+      cursor: pointer;
+    }
+    .card-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+    .featured .card-btn {
+      background: #0a0a0a;
+      color: var(--volt);
+      border-color: rgba(0,0,0,0.2);
+    }
+    .featured .card-btn:hover { background: #111; }
+    .card-anchor {
+      font-size: 12px;
+      color: var(--subtle);
+      margin-top: 12px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .featured .card-anchor { color: rgba(0,0,0,0.5); }
+
+    /* ── SECTION SHARED ── */
+    .section { padding: 72px 0 0; }
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      margin-bottom: 16px;
+    }
+    .section-h2 {
+      font-size: clamp(28px, 4vw, 46px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -.05em;
+      margin-bottom: 14px;
+    }
+    .section-lead {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 600px;
+    }
+
+    /* ── ROI CALCULATOR ── */
+    .roi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .dark-card {
+      background: #1a1a1a;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .dark-card:hover { border-color: rgba(57,255,20,0.2); }
+    .roi-slider-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--volt);
+      height: 4px;
+      cursor: pointer;
+    }
+    .roi-big-num {
+      font-size: clamp(36px, 4vw, 52px);
+      font-weight: 800;
+      letter-spacing: -.06em;
+      color: var(--volt);
+      margin-top: 10px;
+    }
+    .roi-stats { display: grid; gap: 12px; margin-top: 20px; }
+    .roi-stat-row {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .roi-stat-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      margin-bottom: 6px;
+    }
+    .roi-stat-value { font-size: 15px; color: var(--text); font-weight: 500; }
+
+    /* ── COMPARISON TABLE ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .compare-table { display: grid; gap: 10px; margin-top: 20px; }
+    .compare-row {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr;
+      gap: 10px;
+    }
+    .compare-cell {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .compare-cell strong { display: block; color: var(--text); margin-bottom: 4px; }
+    .compare-row.header .compare-cell {
+      background: rgba(57,255,20,0.06);
+      border-color: rgba(57,255,20,0.15);
+      font-weight: 800;
+      color: var(--text);
+    }
+    .guarantee-list { display: grid; gap: 10px; margin-top: 20px; }
+    .guarantee-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .guarantee-item::before {
+      content: "";
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--volt);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ── FAQ ── */
+    .faq-section { padding: 72px 0 0; background: transparent; }
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 32px;
+    }
+    .faq-card {
+      background: #111;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color .2s, transform .2s;
+    }
+    .faq-card:hover { border-color: rgba(57,255,20,0.2); transform: translateY(-3px); }
+    .faq-q {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .faq-a {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── BIG CTA ── */
+    .cta-section { padding: 72px 0; }
+    .cta-panel {
+      background: #111;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 64px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-orb-1 {
+      position: absolute;
+      top: -80px;
+      left: -80px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(57,255,20,0.18), transparent 70%);
+      pointer-events: none;
+    }
+    .cta-orb-2 {
+      position: absolute;
+      bottom: -80px;
+      right: -80px;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(57,255,20,0.12), transparent 70%);
+      pointer-events: none;
+    }
+    .cta-panel h2 {
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 800;
+      letter-spacing: -.05em;
+      line-height: 1.05;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .cta-panel p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+      position: relative;
+    }
+    .cta-btn-volt {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      border-radius: 14px;
+      padding: 18px 40px;
+      font-weight: 800;
+      font-size: 17px;
+      background: var(--volt);
+      color: #0a0a0a;
+      border: none;
+      transition: background .18s, transform .18s, box-shadow .18s;
+      position: relative;
+      box-shadow: 0 8px 40px rgba(57,255,20,0.35);
+    }
+    .cta-btn-volt:hover { background: #50ff30; transform: translateY(-3px); box-shadow: 0 16px 60px rgba(57,255,20,0.5); }
+    .cta-sub {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--subtle);
+      position: relative;
+    }
+
+    /* ── FOOTER ── */
+    .site-footer {
+      border-top: 1px solid var(--line);
+      padding: 48px 0 32px;
+      margin-top: 0;
+    }
+    .footer-grid {
+      width: var(--page);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr 1fr;
+      gap: 24px;
+    }
+    .footer-col { display: grid; gap: 14px; align-content: start; }
+    .footer-col strong { font-size: 14px; font-weight: 800; color: var(--text); }
+    .footer-col .footer-tagline { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .footer-col .footer-copy { font-size: 12px; color: var(--subtle); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .footer-links a {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+      transition: color .18s, border-color .18s;
+    }
+    .footer-links a:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+
+    /* ── REVEAL ANIMATIONS ── */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .pricing-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-card.featured { transform: none; }
+      .roi-grid, .compare-grid, .faq-grid { grid-template-columns: 1fr; }
+      .compare-row { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 720px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      .nav-links .btn-nav { display: none; }
+      .nav-links .btn-nav:last-child { display: inline-flex; }
+      .cta-panel { padding: 40px 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Image color normalization — reduce blue cast, keep dark/neutral */
+    .hero-strip img,
+    .step-img img,
+    .step-media img,
+    .bento-main-img,
+    .bento-card img,
+    .hook-img img,
+    .showcase-img img,
+    .split-img img,
+    img[src*="redesign"] {
+      filter: saturate(0.75) brightness(0.88);
+      transition: filter 0.4s ease, transform 0.4s ease;
+    }
+    .step-card:hover .step-img img,
+    .step-row:hover .step-media img {
+      filter: saturate(0.85) brightness(0.92);
+      transform: scale(1.04);
     }
   </style>
-  <script src="./analytics.js"></script>
 </head>
 <body>
-  <div class="page">
-    <header class="top">
-      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav" id="mainNav">
-        <a class="btn" href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
-        <a class="btn" href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
-        <a class="btn" href="./for-clubs.html" data-i18n="nav.forClubs">For Clubs</a>
-        <a class="btn" href="./blog.html" data-i18n="nav.blog">Blog</a>
-        <a class="btn" href="./login.html" data-i18n="nav.signIn">Sign In</a>
-        <a class="btn-primary" href="./analyze.html" data-i18n="nav.startFree">Start Free Analysis</a>
-      </nav>
-    </header>
 
-    <section class="hero">
-      <article class="panel">
-        <div class="eyebrow" data-i18n="pricingPage.eyebrow">Pricing</div>
-        <h1 data-i18n="pricingPage.heading">Your next match is already in progress. Are you ready?</h1>
-        <p class="muted" data-i18n="pricingPage.body">Less than the cost of one private lesson. Results that stack every single week.</p>
-        <div class="billing-toggle" aria-label="Billing interval toggle" role="group">
-          <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true" data-i18n="pricingPage.toggleMonthly">Monthly</button>
-          <button type="button" data-billing-toggle="yearly" aria-pressed="false" data-i18n="pricingPage.toggleYearly">Yearly | save 15%</button>
-        </div>
-        <ul>
-          <li data-i18n="pricingPage.li1">Free tier removes friction: 1 analysis per month.</li>
-          <li data-i18n="pricingPage.li2">Player tier unlocks saved reports and repeat usage.</li>
-          <li data-i18n="pricingPage.li3">Pro is the best value for players who want constant feedback.</li>
-          <li data-i18n="pricingPage.li4">Tournament Pro adds the coach workflow and preparation layer.</li>
-        </ul>
-      </article>
-      <article class="summary">
-        <div class="status" id="planStatus">
-          <strong>Checking current plan...</strong>
-          Loading plan and review usage.
-        </div>
-        <div class="urgency">
-          <div class="urgency-box">
-            <strong id="launchPricingTitle" style="display:block;color:var(--text);margin-bottom:8px">Early access pricing — lock in your rate before it changes</strong>
-            <span id="launchPricingText">Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime</span>
-          </div>
-          <div class="urgency-box">
-            <strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.urgency2Title">Private lessons: $80–$150/hour.</strong>
-            <span data-i18n="pricingPage.urgency2Text">SmartSwing Performance: $0.66/day. One month of analysis for less than one hour of coaching.</span>
-          </div>
-        </div>
-      </article>
-    </section>
+  <!-- NAV -->
+  <nav class="nav-bar" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a class="brand" href="./index.html">SmartSwing<span class="dot"> AI</span></a>
+      <div class="nav-links">
+        <a class="btn-nav" href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
+        <a class="btn-nav" href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
+        <a class="btn-nav" href="./for-clubs.html" data-i18n="nav.forClubs">For Clubs</a>
+        <a class="btn-nav" href="./blog.html" data-i18n="nav.blog">Blog</a>
+        <a class="btn-nav" href="./login.html" data-i18n="nav.signIn">Sign In</a>
+        <a class="btn-cta" href="./analyze.html" data-i18n="nav.startFree">Start Free Analysis</a>
+      </div>
+    </div>
+  </nav>
 
-    <section class="pricing-grid">
-      <article class="pricing-card">
-        <div class="pricing-copy">
-          <h3 data-i18n="pricing.starter.name">Starter</h3>
-          <div class="price"><span data-plan-price="free">$0</span> <small data-plan-interval="free">/ month</small></div>
-          <div class="price-note" data-plan-note="free">For first-time users who want proof before commitment.</div>
-          <div class="list">
-            <div data-i18n="pricingPage.starterF1">1 analysis per month</div>
-            <div data-i18n="pricingPage.starterF2">Live report view only</div>
-            <div data-i18n="pricingPage.starterF3">No save, export, or print</div>
-            <div data-i18n="pricingPage.starterF4">Perfect for the first win</div>
-          </div>
-          <a class="btn-primary" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free" data-i18n="pricingPage.starterCta">Claim Starter</a>
-          <div class="anchor" data-i18n="pricingPage.starterAnchor">Your first insight is already waiting. No card required.</div>
-        </div>
-      </article>
+  <!-- PLAN STATUS STRIP -->
+  <div class="plan-strip">
+    <div class="plan-strip-inner">
+      <span id="planStatus"><strong>Checking current plan&hellip;</strong>&ensp;Loading plan and review usage.</span>
+    </div>
+  </div>
 
-      <article class="pricing-card">
-        <div class="pricing-copy">
-          <h3 data-i18n="pricing.player.name">Player</h3>
-          <div class="price"><span data-plan-price="starter">$9.99</span> <small data-plan-interval="starter">/ month</small></div>
-          <div class="price-note" data-plan-note="starter">For regular players who want steady feedback without unlimited usage.</div>
-          <div class="list">
-            <div data-i18n="pricingPage.playerF1">10 reports per month</div>
-            <div data-i18n="pricingPage.playerF2">Save and print reports</div>
-            <div data-i18n="pricingPage.playerF3">Progress tracking unlocked</div>
-            <div data-i18n="pricingPage.playerF4">Better than guessing between lessons</div>
-          </div>
-          <a class="btn-primary" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly" data-i18n="pricingPage.playerCta">Choose Player</a>
-          <div class="billing-copy" data-plan-billing-copy="starter">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor" data-i18n="pricingPage.playerAnchor">Less than skipping one lesson. More useful than all of them.</div>
-        </div>
-      </article>
+  <!-- HERO -->
+  <section class="hero-section reveal">
+    <div class="eyebrow-pill" data-i18n="pricingPage.eyebrow">Pricing</div>
+    <div class="float-badge">14-day free trial &mdash; no credit card needed</div>
+    <h1 class="hero-h1">
+      Your next match is<br>
+      <em style="font-style:normal;color:#39ff14">already in progress.</em>
+    </h1>
+    <p class="hero-lead" data-i18n="pricingPage.body">Less than the cost of one private lesson. Results that stack every single week.</p>
+    <div class="billing-toggle" aria-label="Billing interval toggle" role="group">
+      <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true" data-i18n="pricingPage.toggleMonthly">Monthly</button>
+      <button type="button" data-billing-toggle="yearly" aria-pressed="false" data-i18n="pricingPage.toggleYearly">Yearly &mdash; save 15%</button>
+    </div>
+    <div class="urgency-chips">
+      <div class="urgency-chip" id="launchPricingTitle">Early access pricing &mdash; lock in your rate</div>
+      <div class="urgency-chip" id="launchPricingText">Join 2,400+ players &bull; Less than $1/day &bull; Cancel anytime</div>
+      <div class="urgency-chip" data-i18n="pricingPage.urgency2Title">Private lessons: $80&ndash;$150/hr. SmartSwing: $0.66/day.</div>
+    </div>
+  </section>
 
-      <article class="pricing-card featured">
-        <div class="tag" data-i18n="pricingPage.performanceMostPopular">Most popular</div>
-        <div class="pricing-copy">
-          <h3 data-i18n="pricing.performance.name">Performance</h3>
-          <div class="price"><span data-plan-price="pro">$19.99</span> <small data-plan-interval="pro">/ month</small></div>
-          <div class="price-note" data-plan-note="pro">The ideal plan for players who want analysis to become a real habit.</div>
-          <div class="list">
-            <div data-i18n="pricingPage.performanceF1">Unlimited monthly reviews</div>
-            <div data-i18n="pricingPage.performanceF2">Drills and tactics library access</div>
-            <div data-i18n="pricingPage.performanceF3">Coach and player connection tools</div>
-            <div data-i18n="pricingPage.performanceF4">Weekly AI coaching reports</div>
-            <div data-i18n="pricingPage.performanceF5">Priority recommendation depth</div>
-          </div>
-          <a class="btn-primary" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly" data-i18n="pricingPage.performanceCta">Choose Performance</a>
-          <div class="billing-copy" data-plan-billing-copy="pro">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor" data-i18n="pricingPage.performanceAnchor">This is what consistent improvement feels like.</div>
-        </div>
-      </article>
+  <!-- PRICING CARDS -->
+  <section class="pricing-section">
+    <div class="page-wrap">
+      <div class="pricing-grid">
 
-      <article class="pricing-card">
-        <div class="pricing-copy">
-          <h3 data-i18n="pricing.tournament.name">Tournament Pro</h3>
-          <div class="price"><span data-plan-price="elite">$49.99</span> <small data-plan-interval="elite">/ month</small></div>
-          <div class="price-note" data-plan-note="elite">For players who want human review and tournament preparation built into the system.</div>
-          <div class="list">
-            <div data-i18n="pricingPage.tournamentF1">Unlimited assessments and exports</div>
-            <div data-i18n="pricingPage.tournamentF2">Coach feedback workflow</div>
-            <div data-i18n="pricingPage.tournamentF3">Tournament assessment and prep</div>
-            <div data-i18n="pricingPage.tournamentF4">Priority scheduling and queue</div>
-            <div data-i18n="pricingPage.tournamentF5">Best fit for serious competitors</div>
+        <!-- Starter -->
+        <article class="pricing-card reveal">
+          <div class="card-name" data-i18n="pricing.starter.name">Starter</div>
+          <div class="card-price">
+            <span data-plan-price="free">$0</span>
+            <small data-plan-interval="free">&thinsp;/ month</small>
           </div>
-          <a class="btn-primary" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly" data-i18n="pricingPage.tournamentCta">Choose Tournament Pro</a>
-          <div class="billing-copy" data-plan-billing-copy="elite">Cancel anytime. Save 15% on yearly billing.</div>
-          <div class="anchor" data-i18n="pricingPage.tournamentAnchor">The edge serious competitors already have.</div>
-        </div>
-      </article>
-    </section>
+          <div class="card-note" data-plan-note="free">For first-time users who want proof before commitment.</div>
+          <ul class="card-features">
+            <li data-i18n="pricingPage.starterF1">1 analysis per month</li>
+            <li data-i18n="pricingPage.starterF2">Live report view only</li>
+            <li data-i18n="pricingPage.starterF3">No save, export, or print</li>
+            <li data-i18n="pricingPage.starterF4">Perfect for the first win</li>
+          </ul>
+          <a class="card-btn" data-plan-select="free" data-billing-interval="monthly" href="./signup.html?plan=free" data-i18n="pricingPage.starterCta">Claim Starter</a>
+          <div class="card-anchor" data-i18n="pricingPage.starterAnchor">Your first insight is already waiting. No card required.</div>
+        </article>
 
-    <section class="compare">
-      <article class="panel">
-        <div class="chip" data-i18n="pricingPage.roiChip">ROI calculator</div>
-        <h2 style="margin-top:16px" data-i18n="pricingPage.roiHeading">How much do lessons cost you each month?</h2>
-        <p class="muted" style="margin-top:14px" data-i18n="pricingPage.roiBody">Move the slider to compare typical coaching spend with SmartSwing Performance. The point is not to replace good coaching. The point is to make every lesson more productive and reduce blind reps between sessions.</p>
-        <div class="range-wrap" style="margin-top:18px">
-          <label for="lessonSpendRange" class="muted" style="font-weight:700" data-i18n="pricingPage.roiLabel">Monthly lesson spend</label>
+        <!-- Player -->
+        <article class="pricing-card reveal">
+          <div class="card-name" data-i18n="pricing.player.name">Player</div>
+          <div class="card-price">
+            <span data-plan-price="starter">$9.99</span>
+            <small data-plan-interval="starter">&thinsp;/ month</small>
+          </div>
+          <div class="card-note" data-plan-note="starter">For regular players who want steady feedback without unlimited usage.</div>
+          <div class="card-billing-copy" data-plan-billing-copy="starter">Cancel anytime.</div>
+          <ul class="card-features">
+            <li data-i18n="pricingPage.playerF1">10 reports per month</li>
+            <li data-i18n="pricingPage.playerF2">Save and print reports</li>
+            <li data-i18n="pricingPage.playerF3">Progress tracking unlocked</li>
+            <li data-i18n="pricingPage.playerF4">Better than guessing between lessons</li>
+          </ul>
+          <a class="card-btn" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly" data-i18n="pricingPage.playerCta">Choose Player</a>
+          <div class="card-anchor" data-i18n="pricingPage.playerAnchor">Less than skipping one lesson. More useful than all of them.</div>
+        </article>
+
+        <!-- Performance (featured) -->
+        <article class="pricing-card featured reveal">
+          <div class="card-badge" data-i18n="pricingPage.performanceMostPopular">Most Popular</div>
+          <div class="card-name" data-i18n="pricing.performance.name">Performance</div>
+          <div class="card-price">
+            <span data-plan-price="pro">$19.99</span>
+            <small data-plan-interval="pro">&thinsp;/ month</small>
+          </div>
+          <div class="card-note" data-plan-note="pro">The ideal plan for players who want analysis to become a real habit.</div>
+          <div class="card-billing-copy" data-plan-billing-copy="pro">Cancel anytime | Save 15% yearly</div>
+          <ul class="card-features">
+            <li data-i18n="pricingPage.performanceF1">Unlimited monthly reviews</li>
+            <li data-i18n="pricingPage.performanceF2">Drills and tactics library access</li>
+            <li data-i18n="pricingPage.performanceF3">Coach and player connection tools</li>
+            <li data-i18n="pricingPage.performanceF4">Weekly AI coaching reports</li>
+            <li data-i18n="pricingPage.performanceF5">Priority recommendation depth</li>
+          </ul>
+          <a class="card-btn" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly" data-i18n="pricingPage.performanceCta">Choose Performance</a>
+          <div class="card-anchor" data-i18n="pricingPage.performanceAnchor">This is what consistent improvement feels like.</div>
+        </article>
+
+        <!-- Tournament Pro -->
+        <article class="pricing-card reveal">
+          <div class="card-name" data-i18n="pricing.tournament.name">Tournament Pro</div>
+          <div class="card-price">
+            <span data-plan-price="elite">$49.99</span>
+            <small data-plan-interval="elite">&thinsp;/ month</small>
+          </div>
+          <div class="card-note" data-plan-note="elite">For players who want human review and tournament preparation built into the system.</div>
+          <div class="card-billing-copy" data-plan-billing-copy="elite">Cancel anytime | Save 15% yearly</div>
+          <ul class="card-features">
+            <li data-i18n="pricingPage.tournamentF1">Unlimited assessments and exports</li>
+            <li data-i18n="pricingPage.tournamentF2">Coach feedback workflow</li>
+            <li data-i18n="pricingPage.tournamentF3">Tournament assessment and prep</li>
+            <li data-i18n="pricingPage.tournamentF4">Priority scheduling and queue</li>
+            <li data-i18n="pricingPage.tournamentF5">Best fit for serious competitors</li>
+          </ul>
+          <a class="card-btn" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly" data-i18n="pricingPage.tournamentCta">Choose Tournament Pro</a>
+          <div class="card-anchor" data-i18n="pricingPage.tournamentAnchor">The edge serious competitors already have.</div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ROI CALCULATOR -->
+  <section class="section">
+    <div class="page-wrap">
+      <div class="reveal">
+        <div class="section-eyebrow" data-i18n="pricingPage.roiChip">ROI Calculator</div>
+        <h2 class="section-h2" data-i18n="pricingPage.roiHeading">How much do lessons cost you each month?</h2>
+        <p class="section-lead" data-i18n="pricingPage.roiBody">Move the slider to compare typical coaching spend with SmartSwing Performance. The point is not to replace good coaching &mdash; it&rsquo;s to make every lesson more productive and reduce blind reps between sessions.</p>
+      </div>
+      <div class="roi-grid">
+        <div class="dark-card reveal">
+          <label for="lessonSpendRange" class="roi-slider-label" data-i18n="pricingPage.roiLabel">Monthly lesson spend</label>
           <input id="lessonSpendRange" type="range" min="50" max="1200" step="25" value="300">
-          <div class="roi-number" id="lessonSpendValue">$300</div>
+          <div class="roi-big-num" id="lessonSpendValue">$300</div>
         </div>
-      </article>
-      <article class="panel">
-        <div class="chip" data-i18n="pricingPage.whatThatMeans">What that means</div>
-        <div class="list" style="margin-top:18px">
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiSmartSwing">SmartSwing Performance</strong><span id="smartSwingAnnualValue">$239.88 per year</span></div>
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiMonthlySavings">Monthly savings vs. lessons</strong><span id="monthlySavingsValue">$280.01 per month</span></div>
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiLessonEquiv">Equivalent lessons covered</strong><span id="lessonEquivalentValue">About 2.0 one-hour private lessons</span></div>
-          <div class="roi-stat"><strong style="display:block;color:var(--text);margin-bottom:8px" data-i18n="pricingPage.roiFraming">Framing</strong><span data-i18n="pricingPage.roiFramingText">Use SmartSwing between lessons to keep the feedback loop alive instead of waiting for the next paid hour.</span></div>
+        <div class="dark-card reveal">
+          <div class="section-eyebrow" data-i18n="pricingPage.whatThatMeans">What that means</div>
+          <div class="roi-stats">
+            <div class="roi-stat-row">
+              <span class="roi-stat-label" data-i18n="pricingPage.roiSmartSwing">SmartSwing Performance</span>
+              <span class="roi-stat-value" id="smartSwingAnnualValue">$239.88 per year | $19.99 per month</span>
+            </div>
+            <div class="roi-stat-row">
+              <span class="roi-stat-label" data-i18n="pricingPage.roiMonthlySavings">Monthly savings vs. lessons</span>
+              <span class="roi-stat-value" id="monthlySavingsValue">$280.01 per month</span>
+            </div>
+            <div class="roi-stat-row">
+              <span class="roi-stat-label" data-i18n="pricingPage.roiLessonEquiv">Equivalent lessons covered</span>
+              <span class="roi-stat-value" id="lessonEquivalentValue">About 2.0 one-hour private lessons</span>
+            </div>
+            <div class="roi-stat-row">
+              <span class="roi-stat-label" data-i18n="pricingPage.roiFraming">Framing</span>
+              <span class="roi-stat-value" data-i18n="pricingPage.roiFramingText">Use SmartSwing between lessons to keep the feedback loop alive instead of waiting for the next paid hour.</span>
+            </div>
+          </div>
         </div>
-      </article>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <section class="compare">
-      <article class="panel">
-        <div class="chip" data-i18n="pricingPage.compareChip">Value comparison</div>
-        <h2 style="margin-top:16px" data-i18n="pricingPage.compareHeading">Why players switch from lessons-only to SmartSwing</h2>
-        <div class="compare-table" style="margin-top:18px">
-          <div class="row">
-            <div class="cell"><strong data-i18n="pricingPage.compareOption">Option</strong></div>
-            <div class="cell"><strong data-i18n="pricingPage.compareSpeed">Speed</strong></div>
-            <div class="cell"><strong data-i18n="pricingPage.compareClarity">Clarity</strong></div>
-            <div class="cell"><strong data-i18n="pricingPage.compareCost">Cost</strong></div>
-          </div>
-          <div class="row">
-            <div class="cell"><strong>SmartSwing Performance</strong><br>AI report + drills + tactics + dashboard</div>
-            <div class="cell">Minutes</div>
-            <div class="cell">High</div>
-            <div class="cell">$19.99/mo</div>
-          </div>
-          <div class="row">
-            <div class="cell"><strong>Private coach only</strong><br>Human feedback, no persistent AI tracking</div>
-            <div class="cell">Days</div>
-            <div class="cell">High</div>
-            <div class="cell">$150/hr+</div>
-          </div>
-          <div class="row">
-            <div class="cell"><strong>YouTube only</strong><br>General tips without player-specific diagnosis</div>
-            <div class="cell">Fast</div>
-            <div class="cell">Low</div>
-            <div class="cell">Free</div>
+  <!-- COMPARISON TABLE -->
+  <section class="section">
+    <div class="page-wrap">
+      <div class="compare-grid">
+        <div class="reveal">
+          <div class="section-eyebrow" data-i18n="pricingPage.compareChip">Value comparison</div>
+          <h2 class="section-h2" data-i18n="pricingPage.compareHeading">Why players switch from lessons-only to SmartSwing</h2>
+          <div class="compare-table">
+            <div class="compare-row header">
+              <div class="compare-cell"><strong data-i18n="pricingPage.compareOption">Option</strong></div>
+              <div class="compare-cell"><strong data-i18n="pricingPage.compareSpeed">Speed</strong></div>
+              <div class="compare-cell"><strong data-i18n="pricingPage.compareClarity">Clarity</strong></div>
+              <div class="compare-cell"><strong data-i18n="pricingPage.compareCost">Cost</strong></div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell"><strong>SmartSwing Performance</strong>AI report + drills + tactics + dashboard</div>
+              <div class="compare-cell">Minutes</div>
+              <div class="compare-cell">High</div>
+              <div class="compare-cell">$19.99/mo</div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell"><strong>Private coach only</strong>Human feedback, no persistent AI tracking</div>
+              <div class="compare-cell">Days</div>
+              <div class="compare-cell">High</div>
+              <div class="compare-cell">$150/hr+</div>
+            </div>
+            <div class="compare-row">
+              <div class="compare-cell"><strong>YouTube only</strong>General tips without player-specific diagnosis</div>
+              <div class="compare-cell">Fast</div>
+              <div class="compare-cell">Low</div>
+              <div class="compare-cell">Free</div>
+            </div>
           </div>
         </div>
-      </article>
-      <article class="panel">
-        <div class="chip" data-i18n="pricingPage.guaranteeChip">Guarantee</div>
-        <h2 style="margin-top:16px" data-i18n="pricingPage.guaranteeHeading">Low risk, clear upgrade path</h2>
-        <p class="muted" style="margin-top:16px" data-i18n="pricingPage.guaranteeBody">The free tier gives the first useful result. Paid plans then unlock saved reports, richer recommendations, exports, coach messaging, and higher-volume usage. This keeps the funnel honest and the upgrade decision easier.</p>
-        <div class="list" style="margin-top:18px">
-          <div>14-day trial logic remains available where the account is eligible.</div>
-          <div>Plan limits are enforced before save, export, and booking actions.</div>
-          <div>Paid checkouts route into Stripe-hosted recurring billing instead of client-side fake activation.</div>
+        <div class="reveal">
+          <div class="section-eyebrow" data-i18n="pricingPage.guaranteeChip">Guarantee</div>
+          <h2 class="section-h2" data-i18n="pricingPage.guaranteeHeading">Low risk, clear upgrade path</h2>
+          <p class="section-lead" style="margin-bottom:20px" data-i18n="pricingPage.guaranteeBody">The free tier gives the first useful result. Paid plans then unlock saved reports, richer recommendations, exports, coach messaging, and higher-volume usage. This keeps the funnel honest and the upgrade decision easier.</p>
+          <div class="guarantee-list">
+            <div class="guarantee-item">14-day trial logic remains available where the account is eligible.</div>
+            <div class="guarantee-item">Plan limits are enforced before save, export, and booking actions.</div>
+            <div class="guarantee-item">Paid checkouts route into Stripe-hosted recurring billing instead of client-side fake activation.</div>
+          </div>
         </div>
-      </article>
-    </section>
+      </div>
+    </div>
+  </section>
 
-    <section class="faq">
-      <article class="qa">
-        <h3 data-i18n="pricingPage.faq1Q">What counts as one review?</h3>
-        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq1A">Each generated report counts as one review. Opening the analyzer alone does not consume a credit.</p>
-      </article>
-      <article class="qa">
-        <h3 data-i18n="pricingPage.faq2Q">Can I switch plans anytime?</h3>
-        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq2A">Absolutely. Switch up or down whenever you want — no penalties, no friction. Monthly plans cancel anytime. Yearly plans stay active through the end of the paid term.</p>
-      </article>
-      <article class="qa">
-        <h3 data-i18n="pricingPage.faq3Q">What if I choose Starter — am I limited?</h3>
-        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq3A">Starter gives you one full analysis per month — enough to prove the concept. When you're ready to train consistently, upgrading takes 30 seconds.</p>
-      </article>
-      <article class="qa">
-        <h3 data-i18n="pricingPage.faq4Q">Where do drills and tactics unlock?</h3>
-        <p class="muted" style="margin-top:10px" data-i18n="pricingPage.faq4A">Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</p>
-      </article>
-    </section>
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="page-wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:8px">
+        <div class="section-eyebrow">Frequently Asked Questions</div>
+        <h2 class="section-h2">Clear answers, no surprises.</h2>
+      </div>
+      <div class="faq-grid">
+        <div class="faq-card reveal">
+          <div class="faq-q" data-i18n="pricingPage.faq1Q">What counts as one review?</div>
+          <div class="faq-a" data-i18n="pricingPage.faq1A">Each generated report counts as one review. Opening the analyzer alone does not consume a credit.</div>
+        </div>
+        <div class="faq-card reveal">
+          <div class="faq-q" data-i18n="pricingPage.faq2Q">Can I switch plans anytime?</div>
+          <div class="faq-a" data-i18n="pricingPage.faq2A">Absolutely. Switch up or down whenever you want &mdash; no penalties, no friction. Monthly plans cancel anytime. Yearly plans stay active through the end of the paid term.</div>
+        </div>
+        <div class="faq-card reveal">
+          <div class="faq-q" data-i18n="pricingPage.faq3Q">What if I choose Starter &mdash; am I limited?</div>
+          <div class="faq-a" data-i18n="pricingPage.faq3A">Starter gives you one full analysis per month &mdash; enough to prove the concept. When you&rsquo;re ready to train consistently, upgrading takes 30 seconds.</div>
+        </div>
+        <div class="faq-card reveal">
+          <div class="faq-q" data-i18n="pricingPage.faq4Q">Where do drills and tactics unlock?</div>
+          <div class="faq-a" data-i18n="pricingPage.faq4A">Performance and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <footer class="footer">
+  <!-- BIG CTA -->
+  <section class="cta-section">
+    <div class="page-wrap">
+      <div class="cta-panel reveal">
+        <div class="cta-orb-1"></div>
+        <div class="cta-orb-2"></div>
+        <h2>Start your first analysis<br><span style="color:#39ff14">free, right now.</span></h2>
+        <p>No credit card. No setup. Upload a swing and get your first biomechanics report in minutes.</p>
+        <a class="cta-btn-volt" href="./analyze.html">
+          Start Free Analysis
+        </a>
+        <div class="cta-sub">14-day trial on paid plans &bull; Cancel anytime &bull; 2,400+ players improving weekly</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-grid">
       <div class="footer-col">
         <strong>SmartSwing AI</strong>
-        <div data-i18n="pricingPage.footerTagline">Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover.</div>
-        <div style="font-size:13px;color:var(--muted)" data-i18n="footer.copyright">&copy; 2026 SmartSwing AI</div>
+        <div class="footer-tagline" data-i18n="pricingPage.footerTagline">Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover.</div>
+        <div class="footer-copy" data-i18n="footer.copyright">&copy; 2026 SmartSwing AI</div>
       </div>
       <div class="footer-col">
         <strong data-i18n="footer.col.pathways">Pathways</strong>
@@ -424,8 +1021,8 @@
           <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
         </div>
       </div>
-    </footer>
-  </div>
+    </div>
+  </footer>
 
   <script src="./public-app-config.js"></script>
   <script src="/api/runtime-config.js"></script>
@@ -434,6 +1031,17 @@
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
   <script>
+    // ── Scroll reveal ──
+    (function () {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    })();
+
+    // ── Store + billing state ──
     const store = window.SmartSwingStore;
     const BILLING_COPY = {
       monthly: 'Cancel anytime.',
@@ -448,6 +1056,7 @@
     const intervalFromQuery = new URLSearchParams(window.location.search).get('interval');
     let activeBillingInterval = store.normalizeBillingInterval(intervalFromQuery || 'monthly');
 
+    // ── Launch window ──
     function renderLaunchWindow() {
       const titleEl = document.getElementById('launchPricingTitle');
       const textEl = document.getElementById('launchPricingText');
@@ -458,21 +1067,20 @@
       const diffDays = Math.ceil(diffMs / 86400000);
 
       if (diffDays > 1) {
-        titleEl.textContent = 'Early access pricing — lock in your rate before it changes';
-        textEl.textContent = `Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime`;
+        titleEl.textContent = 'Early access pricing \u2014 lock in your rate before it changes';
+        textEl.textContent = 'Join 2,400+ players already training smarter \u2022 Less than $1/day on the Performance plan \u2022 Cancel anytime';
         return;
       }
-
       if (diffDays === 1) {
         titleEl.textContent = 'Early access pricing ends tomorrow.';
-        textEl.textContent = 'Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime';
+        textEl.textContent = 'Join 2,400+ players already training smarter \u2022 Less than $1/day on the Performance plan \u2022 Cancel anytime';
         return;
       }
-
-      titleEl.textContent = 'Early access pricing — lock in your rate before it changes';
-      textEl.textContent = 'Join 2,400+ players already training smarter • Less than $1/day on the Performance plan • Cancel anytime';
+      titleEl.textContent = 'Early access pricing \u2014 lock in your rate before it changes';
+      textEl.textContent = 'Join 2,400+ players already training smarter \u2022 Less than $1/day on the Performance plan \u2022 Cancel anytime';
     }
 
+    // ── ROI calculator ──
     function renderRoiCalculator() {
       const slider = document.getElementById('lessonSpendRange');
       if (!slider) return;
@@ -482,26 +1090,29 @@
       const hourlyLessonsCovered = lessonSpend / 150;
       const monthlySavings = Math.max(lessonSpend - smartSwingMonthly, 0);
 
-      document.getElementById('lessonSpendValue').textContent = `$${lessonSpend.toFixed(0)}`;
-      document.getElementById('smartSwingAnnualValue').textContent = `$${smartSwingAnnual.toFixed(2)} per year | $${smartSwingMonthly.toFixed(2)} per month`;
-      document.getElementById('monthlySavingsValue').textContent = `$${monthlySavings.toFixed(2)} per month`;
-      document.getElementById('lessonEquivalentValue').textContent = `About ${hourlyLessonsCovered.toFixed(1)} one-hour private lessons at $150 each`;
+      document.getElementById('lessonSpendValue').textContent = '$' + lessonSpend.toFixed(0);
+      document.getElementById('smartSwingAnnualValue').textContent = '$' + smartSwingAnnual.toFixed(2) + ' per year | $' + smartSwingMonthly.toFixed(2) + ' per month';
+      document.getElementById('monthlySavingsValue').textContent = '$' + monthlySavings.toFixed(2) + ' per month';
+      document.getElementById('lessonEquivalentValue').textContent = 'About ' + hourlyLessonsCovered.toFixed(1) + ' one-hour private lessons at $150 each';
     }
 
+    // ── Plan status strip ──
     function renderStatus() {
       const user = store.getCurrentUser();
       const el = document.getElementById('planStatus');
+      if (!el) return;
       if (!user) {
-        el.innerHTML = '<strong>No active session</strong>Create or sign into an account to activate a plan and sync review usage.';
+        el.innerHTML = '<strong>No active session</strong>&ensp;Create or sign into an account to activate a plan and sync review usage.';
         return;
       }
       const plan = store.getCurrentPlan();
       const usage = store.canGenerateReport();
-      const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
+      const usageText = Number.isFinite(usage.limit) ? (usage.used + '/' + usage.limit) : (usage.used + '/Unlimited');
       const intervalLabel = plan.billingInterval === 'yearly' ? 'yearly billing' : 'monthly billing';
-      el.innerHTML = `<strong>${user.email}</strong>Current plan: ${plan.name} | ${intervalLabel}. Reports used this month: ${usageText}.`;
+      el.innerHTML = '<strong>' + user.email + '</strong>&ensp;Current plan: ' + plan.name + ' | ' + intervalLabel + '. Reports used this month: ' + usageText + '.';
     }
 
+    // ── Billing interval renderer ──
     function renderBillingInterval(interval) {
       activeBillingInterval = store.normalizeBillingInterval(interval || 'monthly');
       document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
@@ -511,20 +1122,20 @@
 
       ['starter', 'pro', 'elite'].forEach((planId) => {
         const price = store.getPlanPrice(planId, activeBillingInterval);
-        const amountEl = document.querySelector(`[data-plan-price="${planId}"]`);
-        const intervalEl = document.querySelector(`[data-plan-interval="${planId}"]`);
-        const noteEl = document.querySelector(`[data-plan-note="${planId}"]`);
-        const buttonEl = document.querySelector(`[data-plan-button="${planId}"]`);
-        const copyEl = document.querySelector(`[data-plan-billing-copy="${planId}"]`);
-        if (amountEl) amountEl.textContent = `$${price.amount.toFixed(2)}`;
-        if (intervalEl) intervalEl.textContent = activeBillingInterval === 'yearly' ? '/ year' : '/ month';
+        const amountEl = document.querySelector('[data-plan-price="' + planId + '"]');
+        const intervalEl = document.querySelector('[data-plan-interval="' + planId + '"]');
+        const noteEl = document.querySelector('[data-plan-note="' + planId + '"]');
+        const buttonEl = document.querySelector('[data-plan-button="' + planId + '"]');
+        const copyEl = document.querySelector('[data-plan-billing-copy="' + planId + '"]');
+        if (amountEl) amountEl.textContent = '$' + price.amount.toFixed(2);
+        if (intervalEl) intervalEl.textContent = activeBillingInterval === 'yearly' ? '\u2009/ year' : '\u2009/ month';
         if (noteEl) {
           noteEl.textContent = activeBillingInterval === 'yearly'
-            ? `${store.getPlanDefinition(planId).name} billed yearly at 15% off. Monthly equivalent: $${price.monthlyEquivalent.toFixed(2)}.`
+            ? store.getPlanDefinition(planId).name + ' billed yearly at 15% off. Monthly equivalent: $' + price.monthlyEquivalent.toFixed(2) + '.'
             : PLAN_NOTES[planId];
         }
         if (buttonEl) {
-          buttonEl.href = `./signup.html?plan=${encodeURIComponent(planId)}&interval=${encodeURIComponent(activeBillingInterval)}`;
+          buttonEl.href = './signup.html?plan=' + encodeURIComponent(planId) + '&interval=' + encodeURIComponent(activeBillingInterval);
           buttonEl.dataset.billingInterval = activeBillingInterval;
         }
         if (copyEl) {
@@ -533,12 +1144,14 @@
       });
     }
 
+    // ── Event listeners ──
     document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
       button.addEventListener('click', () => renderBillingInterval(button.dataset.billingToggle));
     });
 
     document.getElementById('lessonSpendRange')?.addEventListener('input', renderRoiCalculator);
 
+    // ── Init ──
     renderStatus();
     renderBillingInterval(activeBillingInterval);
     renderLaunchWindow();

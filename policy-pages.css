@@ -6,6 +6,7 @@
   --text: #f5f7fa;
   --muted: #dbe4eb;
   --green: #39ff14;
+  --volt: #39ff14;
   --gold: #ffd84d;
   --deep: #0c1014;
 }
@@ -49,10 +50,10 @@ a { color: inherit; }
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.05em;
-  color: var(--green);
+  color: var(--text);
 }
 
-.brand span { color: var(--green); }
+.brand .dot { color: var(--volt); }
 
 .nav {
   display: flex;
