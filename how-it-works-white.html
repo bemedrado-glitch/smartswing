@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How SmartSwing AI Works — White Redesign Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./white-theme.css">
+  <style>
+    /* ── HOW IT WORKS PAGE SPECIFIC ── */
+
+    /* Hero */
+    .hiw-hero {
+      padding: 80px 0 0;
+      overflow: hidden;
+    }
+    .hiw-hero-inner {
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .hiw-hero-inner .wt-h1 { margin-top: 18px; }
+    .hiw-hero-inner .wt-lead {
+      margin-top: 20px;
+      max-width: 58ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hiw-hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .hiw-hero-strip {
+      margin-top: 56px;
+      position: relative;
+      height: 440px;
+      border-radius: 32px 32px 0 0;
+      overflow: hidden;
+    }
+    .hiw-hero-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+    }
+    .hiw-hero-strip::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 55%, #fff 100%);
+    }
+
+    /* Outcome chip row */
+    .outcome-chips {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: -20px;
+      position: relative;
+      z-index: 2;
+      padding-bottom: 64px;
+    }
+    .outcome-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 12px 20px;
+      box-shadow: var(--shadow-sm);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--mid);
+    }
+    .outcome-chip .icon {
+      font-size: 16px;
+    }
+
+    /* Steps */
+    .steps-flow {
+      display: grid;
+      gap: 80px;
+    }
+    .step-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .step-row.flip {
+      direction: rtl;
+    }
+    .step-row.flip > * {
+      direction: ltr;
+    }
+    .step-media {
+      border-radius: 28px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+    }
+    .step-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .step-copy {
+      display: grid;
+      gap: 0;
+      align-content: center;
+    }
+    .step-number {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--volt-dark);
+      margin-bottom: 14px;
+    }
+    .step-copy .wt-h2 { margin-top: 0; }
+    .step-copy .wt-lead { margin-top: 14px; }
+    .step-items {
+      list-style: none;
+      margin-top: 24px;
+      display: grid;
+      gap: 10px;
+    }
+    .step-items li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.5;
+    }
+    .step-items li::before {
+      content: '';
+      display: block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--volt);
+      flex: none;
+      margin-top: 1px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10l4 4 6-6' stroke='%231d1d1f' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: cover;
+    }
+
+    /* Step divider */
+    .step-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .step-connector::before,
+    .step-connector::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Outcomes / Results section */
+    .outcomes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .outcome-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: transform 200ms, box-shadow 200ms;
+    }
+    .outcome-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+    .outcome-card-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+    .outcome-card .wt-h4 { margin-bottom: 10px; }
+    .outcome-card .wt-body { color: var(--muted); font-size: 15px; }
+
+    /* Metrics bar */
+    .metrics-bar {
+      background: var(--black);
+      padding: 64px 0;
+    }
+    .metrics-bar-inner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      text-align: center;
+    }
+    .metrics-bar-inner strong {
+      display: block;
+      font-size: clamp(40px, 5vw, 60px);
+      font-weight: 900;
+      letter-spacing: -.05em;
+      color: var(--volt);
+      line-height: 1;
+    }
+    .metrics-bar-inner span {
+      display: block;
+      margin-top: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,.45);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .step-row, .step-row.flip { grid-template-columns: 1fr; direction: ltr; gap: 36px; }
+      .outcomes-grid { grid-template-columns: 1fr 1fr; }
+      .metrics-bar-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .hiw-hero-strip { height: 300px; }
+      .outcomes-grid { grid-template-columns: 1fr; }
+      .metrics-bar-inner { gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PREVIEW BANNER -->
+  <div class="wt-preview-banner">
+    <span class="dot"></span>
+    Preview Mode — White Redesign Concept &nbsp;·&nbsp; <a href="./how-it-works.html">View Current Dark Site →</a>
+  </div>
+
+  <!-- NAV -->
+  <nav class="wt-nav">
+    <div class="wt-nav-inner">
+      <a href="./index-white.html" class="wt-brand">SmartSwing<span class="wt-brand-dot"> AI</span></a>
+      <div class="wt-nav-links">
+        <a href="./for-players.html">For Players</a>
+        <a href="./for-coaches.html">For Coaches</a>
+        <a href="./for-clubs.html">For Clubs</a>
+        <a href="./how-it-works-white.html" class="active">How It Works</a>
+        <a href="./pricing-white.html">Pricing</a>
+        <a href="./blog.html">Blog</a>
+      </div>
+      <div class="wt-nav-cta">
+        <a href="./login.html" class="wt-btn wt-btn--ghost wt-btn--sm">Sign In</a>
+        <a href="./signup.html" class="wt-btn wt-btn--primary wt-btn--sm">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hiw-hero">
+    <div class="wt-page">
+      <div class="hiw-hero-inner">
+        <span class="wt-eyebrow">Capture. Analyze. Correct. Track.</span>
+        <h1 class="wt-h1">From one video to your next<br><span style="color:var(--volt-dark)">breakthrough</span> — in 60 seconds.</h1>
+        <p class="wt-lead">Most players finish a practice session without knowing what went wrong. SmartSwing closes that gap in 60 seconds — so every rep after this one is smarter than the last.</p>
+        <div class="hiw-hero-actions">
+          <a href="./analyze.html" class="wt-btn wt-btn--volt wt-btn--lg">Open Analyzer →</a>
+          <a href="./pricing-white.html" class="wt-btn wt-btn--ghost wt-btn--lg">Compare Plans</a>
+        </div>
+      </div>
+    </div>
+    <div class="wt-page hiw-hero-strip">
+      <img src="./assets/redesign/hero.jpg" alt="SmartSwing AI tennis analysis in action" loading="eager">
+    </div>
+  </section>
+
+  <!-- OUTCOME CHIPS -->
+  <div class="wt-page">
+    <div class="outcome-chips">
+      <div class="outcome-chip"><span class="icon">⚡</span>60-second analysis</div>
+      <div class="outcome-chip"><span class="icon">🎯</span>33 body landmarks tracked</div>
+      <div class="outcome-chip"><span class="icon">📊</span>Level-adjusted benchmarks</div>
+      <div class="outcome-chip"><span class="icon">🏋️</span>Personalised drill plan</div>
+      <div class="outcome-chip"><span class="icon">🤝</span>Coach-ready summary</div>
+    </div>
+  </div>
+
+  <!-- STEPS FLOW -->
+  <section class="wt-section" style="padding-top:0;">
+    <div class="wt-page">
+      <div class="steps-flow">
+
+        <!-- STEP 1 -->
+        <div class="step-row">
+          <div class="step-media">
+            <img src="./assets/redesign/step1.jpg" alt="Capture your tennis swing from behind the baseline" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 01 &mdash; Capture</div>
+            <h2 class="wt-h2">Capture the right angle and context</h2>
+            <p class="wt-lead">Film from behind the baseline or fence. SmartSwing guides you on angle quality before analysis even starts — so the report is based on clean signal, not guesswork.</p>
+            <ul class="step-items">
+              <li>Pre-capture guidance improves input quality before the upload starts.</li>
+              <li>Shot and session intent define the benchmark and feedback frame.</li>
+              <li>Profile details keep the scoring fair by level and player context.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step-connector">Then</div>
+
+        <!-- STEP 2 -->
+        <div class="step-row flip">
+          <div class="step-media">
+            <img src="./assets/redesign/ai-breakdown.png" alt="AI biomechanics report showing swing analysis" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 02 &mdash; Analyze</div>
+            <h2 class="wt-h2">Get your personalised biomechanics report</h2>
+            <p class="wt-lead">The AI tracks 33 body landmarks, calculates tennis-specific metrics, and compares your stroke to level-adjusted benchmarks — not pro-only standards that don't apply to your game.</p>
+            <ul class="step-items">
+              <li>Biomechanics, movement, positioning, timing, and contact behaviour assessed together.</li>
+              <li>The report emphasises top priorities instead of overwhelming low-value detail.</li>
+              <li>Expandable cards explain what a metric means and how to interpret it.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step-connector">Then</div>
+
+        <!-- STEP 3 -->
+        <div class="step-row">
+          <div class="step-media">
+            <img src="./assets/redesign/step3.jpg" alt="Personalised drill plan based on your swing analysis" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 03 &mdash; Train</div>
+            <h2 class="wt-h2">Train with a plan built around YOUR game</h2>
+            <p class="wt-lead">Every report surfaces your top 3 priorities with matching drill videos. Not generic advice — specific prescriptions for your specific movement issues.</p>
+            <ul class="step-items">
+              <li>Top 3 drill recommendations tied directly to the main weaknesses.</li>
+              <li>Top 3 tactical recommendations based on the player's current profile.</li>
+              <li>Coach-ready summary keeps the teaching conversation fast and useful.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step-connector">Then</div>
+
+        <!-- STEP 4 -->
+        <div class="step-row flip">
+          <div class="step-media">
+            <img src="./assets/redesign/social.jpg" alt="Progress dashboard tracking improvement over time" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 04 &mdash; Track</div>
+            <h2 class="wt-h2">Track every rep. See yourself improve.</h2>
+            <p class="wt-lead">Your progress dashboard shows exactly how each metric moves over time. Coaches can assign drills, add notes, and track follow-through — all in one place.</p>
+            <ul class="step-items">
+              <li>Player and coach views are separated into clean tabs by task.</li>
+              <li>Plan limits, trials, and privacy rules are enforced before save, export, and messaging actions.</li>
+              <li>Players and coaches stay in scoped views so communication and next actions remain easy.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS BAR -->
+  <div class="metrics-bar">
+    <div class="wt-page">
+      <div class="metrics-bar-inner">
+        <div><strong>60s</strong><span>Time to first insight</span></div>
+        <div><strong>33</strong><span>Body landmarks tracked</span></div>
+        <div><strong>94%</strong><span>Biomechanics accuracy</span></div>
+        <div><strong>10k+</strong><span>Swings analysed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTCOMES / RESULTS -->
+  <section class="wt-section">
+    <div class="wt-page">
+      <div class="wt-section-header">
+        <span class="wt-eyebrow">What you get</span>
+        <h2 class="wt-h2">Speed to correction is the product</h2>
+        <p class="wt-lead">Every surface helps the player understand what happened, why it matters, and what to do next.</p>
+      </div>
+      <div class="outcomes-grid">
+        <div class="outcome-card">
+          <div class="outcome-card-icon">🎾</div>
+          <h3 class="wt-h4">Instant Biomechanics Report</h3>
+          <p class="wt-body">Clear scores for stance, contact, rotation, balance, and racket path — all ranked by priority and explained in plain language.</p>
+        </div>
+        <div class="outcome-card">
+          <div class="outcome-card-icon">📋</div>
+          <h3 class="wt-h4">Personalised Drill Plan</h3>
+          <p class="wt-body">Top 3 drill recommendations matched directly to your weaknesses — with video walkthroughs so you know exactly how to fix them.</p>
+        </div>
+        <div class="outcome-card">
+          <div class="outcome-card-icon">♟️</div>
+          <h3 class="wt-h4">Tactical Adjustments</h3>
+          <p class="wt-body">Game-style recommendations based on your profile. Not generic patterns — specific adjustments for your level and playing style.</p>
+        </div>
+        <div class="outcome-card">
+          <div class="outcome-card-icon">📈</div>
+          <h3 class="wt-h4">Progress Dashboard</h3>
+          <p class="wt-body">Track every metric over time and see which areas are improving. No more guessing whether the work is paying off.</p>
+        </div>
+        <div class="outcome-card">
+          <div class="outcome-card-icon">🤝</div>
+          <h3 class="wt-h4">Coach-Ready Summary</h3>
+          <p class="wt-body">Share a concise report with your coach before your next lesson. No more spending paid hours on diagnosis — start with corrections.</p>
+        </div>
+        <div class="outcome-card">
+          <div class="outcome-card-icon">🔁</div>
+          <h3 class="wt-h4">Continuous Feedback Loop</h3>
+          <p class="wt-body">Analyse as often as you practice. Every session adds to your history. The system learns your game as you improve.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO IT'S FOR — Split -->
+  <section class="wt-section wt-section--soft">
+    <div class="wt-page">
+      <div class="wt-section-header">
+        <span class="wt-eyebrow">Who It's For</span>
+        <h2 class="wt-h2">Built for every level of the game</h2>
+        <p class="wt-lead">Whether you're a weekend player, competitive club member, or professional coach — SmartSwing fits into your workflow.</p>
+      </div>
+      <div class="wt-grid-3">
+        <div class="wt-card">
+          <div class="wt-card-img" style="height:200px;">
+            <img src="./assets/redesign/ai-assessment.png" alt="Tennis player receiving AI analysis feedback" style="height:200px;object-fit:cover;">
+          </div>
+          <div class="wt-card-body">
+            <h3 class="wt-h4" style="margin-bottom:10px;">Players</h3>
+            <p class="wt-body">Stop relying on feel alone. Get data-backed feedback on every practice session and train with intention between lessons.</p>
+          </div>
+        </div>
+        <div class="wt-card">
+          <div class="wt-card-img" style="height:200px;">
+            <img src="./assets/redesign/personalized.png" alt="Tennis coach reviewing player analysis report" style="height:200px;object-fit:cover;">
+          </div>
+          <div class="wt-card-body">
+            <h3 class="wt-h4" style="margin-bottom:10px;">Coaches</h3>
+            <p class="wt-body">Walk into every lesson with a full biomechanics brief. Spend teaching time on corrections, not diagnostics. Scale your impact.</p>
+          </div>
+        </div>
+        <div class="wt-card">
+          <div class="wt-card-img" style="height:200px;">
+            <img src="./assets/redesign/woman-analysis.png" alt="Pickleball player using SmartSwing analysis" style="height:200px;object-fit:cover;">
+          </div>
+          <div class="wt-card-body">
+            <h3 class="wt-h4" style="margin-bottom:10px;">Pickleball Players</h3>
+            <p class="wt-body">SmartSwing works for pickleball too. Same AI engine, same biomechanics depth — optimised for dink, drive, and overhead shots.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIG CTA PANEL -->
+  <section class="wt-section">
+    <div class="wt-page">
+      <div class="wt-cta-panel">
+        <span class="wt-eyebrow" style="color:var(--volt);background:rgba(57,255,20,.15);">Run it now</span>
+        <h2 class="wt-h2" style="margin-top:16px;color:#fff;font-size:clamp(40px,5vw,68px);">See your game the way a biomechanics coach sees it.</h2>
+        <p class="wt-lead" style="margin-top:16px;color:rgba(255,255,255,.5);">One video. 60 seconds. A clear action plan for your next session. No credit card required for the free plan.</p>
+        <div class="wt-cta-actions">
+          <a href="./analyze.html" class="wt-btn wt-btn--volt wt-btn--lg">Open Analyzer →</a>
+          <a href="./pricing-white.html" class="wt-btn wt-btn--outline-white wt-btn--lg">Compare Plans</a>
+          <a href="./contact.html" class="wt-btn wt-btn--outline-white wt-btn--lg">Talk to Us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="wt-footer">
+    <div class="wt-footer-grid">
+      <div>
+        <div class="wt-footer-brand">SmartSwing<span class="wt-footer-brand-dot"> AI</span></div>
+        <p class="wt-footer-tagline">Workflow overview from capture to analysis, drills, tactics, and follow-through.</p>
+        <p style="margin-top:16px;font-size:13px;color:var(--subtle);">&copy; 2026 SmartSwing AI</p>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Pathways</h4>
+        <ul>
+          <li><a href="./for-players.html">For Players</a></li>
+          <li><a href="./for-coaches.html">For Coaches</a></li>
+          <li><a href="./for-clubs.html">For Clubs</a></li>
+          <li><a href="./for-parents.html">For Parents</a></li>
+        </ul>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="./blog.html">Blog</a></li>
+          <li><a href="./library.html">Drill Library</a></li>
+          <li><a href="./contact.html">Contact</a></li>
+          <li><a href="./refund-policy.html">Refund Policy</a></li>
+        </ul>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a></li>
+          <li><a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wt-footer-bottom">
+      <p>&copy; 2026 SmartSwing AI. All rights reserved.</p>
+      <div class="wt-footer-bottom-links">
+        <a href="./privacy-policy.html">Privacy</a>
+        <a href="./user-agreement.html">Terms</a>
+        <a href="./cookie-policy.html">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- Scroll reveal + progress bar + nav scroll -->
+  <script>
+  (function(){
+    var bar=document.createElement('div'); bar.className='wt-scroll-progress'; document.body.prepend(bar);
+    var nav=document.querySelector('.wt-nav,nav,header');
+    window.addEventListener('scroll',function(){ var p=window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight); bar.style.transform='scaleX('+p+')'; if(nav)nav.classList.toggle('scrolled',window.scrollY>40); },{passive:true});
+    var io=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('visible');io.unobserve(x.target);}});},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.wt-reveal,.wt-stagger').forEach(function(el){io.observe(el);});
+    document.querySelectorAll('.wt-section-header,.wt-card,.wt-split-copy,.wt-split-img,.wt-metric,.wt-testimonial,.wt-faq-item').forEach(function(el,i){
+      if(!el.classList.contains('wt-reveal')){el.classList.add('wt-reveal');el.style.transitionDelay=(i%5*55)+'ms';}
+      io.observe(el);
+    });
+  })();
+  </script>
+</body>
+</html>

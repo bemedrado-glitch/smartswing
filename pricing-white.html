@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI Pricing — White Redesign Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./white-theme.css">
+  <style>
+    /* ── PRICING PAGE SPECIFIC ── */
+
+    /* Hero / Intro */
+    .pricing-hero {
+      padding: 80px 0 64px;
+      text-align: center;
+    }
+    .pricing-hero .wt-h1 {
+      margin-top: 16px;
+      font-size: clamp(44px, 6vw, 80px);
+    }
+    .pricing-hero .wt-lead {
+      margin-top: 18px;
+      max-width: 52ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Billing Toggle */
+    .billing-toggle {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: 32px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-soft);
+    }
+    .billing-toggle button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 22px;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 160ms, color 160ms;
+    }
+    .billing-toggle button.active {
+      background: var(--black);
+      color: #fff;
+    }
+
+    /* Urgency chips */
+    .urgency-chips {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .urgency-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--mid);
+      box-shadow: var(--shadow-sm);
+    }
+    .urgency-chip .bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--volt-dark);
+      flex: none;
+    }
+
+    /* Pricing Cards Grid */
+    .pricing-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .pricing-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px 32px;
+      position: relative;
+      transition: transform 200ms, box-shadow 200ms;
+    }
+    .pricing-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+    .pricing-card.featured {
+      background: var(--black);
+      border-color: var(--black);
+      transform: translateY(-12px);
+    }
+    .pricing-card.featured:hover {
+      transform: translateY(-18px);
+    }
+    .card-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--volt);
+      color: var(--black);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .card-plan-name {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .pricing-card.featured .card-plan-name { color: rgba(255,255,255,.5); }
+    .card-price {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -.06em;
+      line-height: 1;
+      color: var(--black);
+    }
+    .pricing-card.featured .card-price { color: #fff; }
+    .card-price small {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+    .pricing-card.featured .card-price small { color: rgba(255,255,255,.5); }
+    .card-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.5;
+      min-height: 38px;
+    }
+    .pricing-card.featured .card-note { color: rgba(255,255,255,.5); }
+    .card-billing-copy {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--volt-dark);
+      margin-top: 6px;
+    }
+    .pricing-card.featured .card-billing-copy { color: var(--volt); }
+    .card-features {
+      list-style: none;
+      margin: 20px 0 24px;
+      display: grid;
+      gap: 10px;
+    }
+    .card-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.45;
+    }
+    .pricing-card.featured .card-features li { color: rgba(255,255,255,.7); }
+    .card-features li::before {
+      content: '';
+      display: block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--volt);
+      flex: none;
+      margin-top: 1px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10l4 4 6-6' stroke='%231d1d1f' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: cover;
+    }
+    .card-anchor {
+      font-size: 12px;
+      color: var(--subtle);
+      margin-top: 12px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+    .pricing-card.featured .card-anchor { color: rgba(255,255,255,.35); }
+
+    /* Plan status strip */
+    .plan-status-strip {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 24px;
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .plan-status-strip strong { color: var(--black); }
+    .plan-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex: none;
+    }
+
+    /* ROI section */
+    .roi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .roi-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+    }
+    .roi-card .wt-h3 { margin-top: 12px; }
+    .roi-card .wt-body { margin-top: 14px; }
+    .roi-slider-wrap {
+      margin-top: 28px;
+      display: grid;
+      gap: 12px;
+    }
+    .roi-slider-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--mid);
+    }
+    .roi-slider-value {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -.05em;
+      color: var(--black);
+      line-height: 1;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      border-radius: 999px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--black);
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .roi-stats-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .roi-stat-item {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+    .roi-stat-item strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 4px;
+    }
+    .roi-stat-item span {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* Comparison table section */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .compare-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+    }
+    .compare-card .wt-h3 { margin-top: 12px; }
+    .compare-table-wrap {
+      margin-top: 24px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .guarantee-list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .guarantee-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--mid);
+      padding: 12px;
+      background: var(--bg-soft);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    /* FAQ section */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .faq-intro .wt-h2 { margin-top: 12px; }
+    .faq-intro .wt-lead { margin-top: 14px; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .pricing-cards-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-card.featured { transform: none; }
+      .pricing-card.featured:hover { transform: translateY(-6px); }
+      .roi-grid, .compare-grid, .faq-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .pricing-cards-grid { grid-template-columns: 1fr; }
+      .urgency-chips { flex-direction: column; align-items: stretch; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PREVIEW BANNER -->
+  <div class="wt-preview-banner">
+    <span class="dot"></span>
+    Preview Mode — White Redesign Concept &nbsp;·&nbsp; <a href="./pricing.html">View Current Dark Site →</a>
+  </div>
+
+  <!-- NAV -->
+  <nav class="wt-nav">
+    <div class="wt-nav-inner">
+      <a href="./index-white.html" class="wt-brand">SmartSwing<span class="wt-brand-dot"> AI</span></a>
+      <div class="wt-nav-links">
+        <a href="./for-players.html">For Players</a>
+        <a href="./for-coaches.html">For Coaches</a>
+        <a href="./for-clubs.html">For Clubs</a>
+        <a href="./how-it-works-white.html">How It Works</a>
+        <a href="./pricing-white.html" class="active">Pricing</a>
+        <a href="./blog.html">Blog</a>
+      </div>
+      <div class="wt-nav-cta">
+        <a href="./login.html" class="wt-btn wt-btn--ghost wt-btn--sm">Sign In</a>
+        <a href="./signup.html" class="wt-btn wt-btn--primary wt-btn--sm">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="pricing-hero" style="position:relative;overflow:hidden;">
+    <div class="wt-hero-bg" aria-hidden="true"></div>
+    <div class="wt-page">
+      <span class="wt-eyebrow">Pricing</span>
+      <div class="wt-float-badge" style="margin-bottom:24px;"><span class="wt-dot"></span><span style="font:600 13px/1 DM Sans,sans-serif;color:#1d1d1f;">14-day free trial — no credit card needed</span></div>
+      <h1 class="wt-h1" style="margin-top:16px;font-size:clamp(44px,6vw,80px);">Your next match is<br><span class="wt-volt-text">already in progress.</span></h1>
+      <p class="wt-lead">Less than the cost of one private lesson. Results that stack every single week.</p>
+
+      <div class="billing-toggle" aria-label="Billing interval toggle" role="group">
+        <button type="button" class="active" data-billing-toggle="monthly" aria-pressed="true">Monthly</button>
+        <button type="button" data-billing-toggle="yearly" aria-pressed="false">Yearly &nbsp;—&nbsp; save 15%</button>
+      </div>
+
+      <div class="urgency-chips">
+        <div class="urgency-chip"><span class="bullet"></span>2,400+ players already training smarter</div>
+        <div class="urgency-chip"><span class="bullet"></span>Less than $1/day on Performance</div>
+        <div class="urgency-chip"><span class="bullet"></span>Cancel anytime</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAN STATUS STRIP -->
+  <div class="wt-page">
+    <div class="plan-status-strip" id="planStatus">
+      <span class="plan-status-dot"></span>
+      <span><strong>Checking current plan…</strong> Loading plan and review usage.</span>
+    </div>
+  </div>
+
+  <!-- PRICING CARDS -->
+  <section class="wt-section" style="padding-top:0">
+    <div class="wt-page">
+      <div class="pricing-cards-grid">
+
+        <!-- Starter -->
+        <article class="pricing-card">
+          <div class="card-plan-name">Starter</div>
+          <div class="card-price"><span data-plan-price="free">$0</span> <small data-plan-interval="free">/ month</small></div>
+          <p class="card-note" data-plan-note="free">For first-time users who want proof before commitment.</p>
+          <ul class="card-features">
+            <li>1 analysis per month</li>
+            <li>Live report view only</li>
+            <li>No save, export, or print</li>
+            <li>Perfect for the first win</li>
+          </ul>
+          <a class="wt-btn wt-btn--ghost wt-btn--full" data-plan-select="free" href="./signup.html?plan=free">Claim Starter</a>
+          <p class="card-anchor">Your first insight is already waiting. No card required.</p>
+        </article>
+
+        <!-- Player -->
+        <article class="pricing-card">
+          <div class="card-plan-name">Player</div>
+          <div class="card-price"><span data-plan-price="starter">$9.99</span> <small data-plan-interval="starter">/ month</small></div>
+          <p class="card-note" data-plan-note="starter">For regular players who want steady feedback without unlimited usage.</p>
+          <div class="card-billing-copy" data-plan-billing-copy="starter">Cancel anytime. Save 15% on yearly billing.</div>
+          <ul class="card-features">
+            <li>10 reports per month</li>
+            <li>Save and print reports</li>
+            <li>Progress tracking unlocked</li>
+            <li>Better than guessing between lessons</li>
+          </ul>
+          <a class="wt-btn wt-btn--primary wt-btn--full" data-plan-select="starter" data-plan-button="starter" data-billing-interval="monthly" href="./signup.html?plan=starter&interval=monthly">Choose Player</a>
+          <p class="card-anchor">Less than skipping one lesson. More useful than all of them.</p>
+        </article>
+
+        <!-- Performance — Featured -->
+        <article class="pricing-card featured">
+          <div class="card-badge">Most Popular</div>
+          <div class="card-plan-name">Performance</div>
+          <div class="card-price"><span data-plan-price="pro">$19.99</span> <small data-plan-interval="pro">/ month</small></div>
+          <p class="card-note" data-plan-note="pro">The ideal plan for players who want analysis to become a real habit.</p>
+          <div class="card-billing-copy" data-plan-billing-copy="pro">Cancel anytime. Save 15% on yearly billing.</div>
+          <ul class="card-features">
+            <li>Unlimited monthly reviews</li>
+            <li>Drills and tactics library access</li>
+            <li>Coach and player connection tools</li>
+            <li>Weekly AI coaching reports</li>
+            <li>Priority recommendation depth</li>
+          </ul>
+          <a class="wt-btn wt-btn--volt wt-btn--full" data-plan-select="pro" data-plan-button="pro" data-billing-interval="monthly" href="./signup.html?plan=pro&interval=monthly">Choose Performance</a>
+          <p class="card-anchor">This is what consistent improvement feels like.</p>
+        </article>
+
+        <!-- Tournament Pro -->
+        <article class="pricing-card">
+          <div class="card-plan-name">Tournament Pro</div>
+          <div class="card-price"><span data-plan-price="elite">$49.99</span> <small data-plan-interval="elite">/ month</small></div>
+          <p class="card-note" data-plan-note="elite">For players who want human review and tournament preparation built into the system.</p>
+          <div class="card-billing-copy" data-plan-billing-copy="elite">Cancel anytime. Save 15% on yearly billing.</div>
+          <ul class="card-features">
+            <li>Unlimited assessments and exports</li>
+            <li>Coach feedback workflow</li>
+            <li>Tournament assessment and prep</li>
+            <li>Priority scheduling and queue</li>
+            <li>Best fit for serious competitors</li>
+          </ul>
+          <a class="wt-btn wt-btn--primary wt-btn--full" data-plan-select="elite" data-plan-button="elite" data-billing-interval="monthly" href="./signup.html?plan=elite&interval=monthly">Choose Tournament Pro</a>
+          <p class="card-anchor">The edge serious competitors already have.</p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ROI CALCULATOR -->
+  <section class="wt-section wt-section--soft">
+    <div class="wt-page">
+      <div class="roi-grid">
+        <div class="roi-card">
+          <span class="wt-eyebrow">ROI Calculator</span>
+          <h2 class="wt-h3" style="margin-top:14px;">How much do lessons cost you each month?</h2>
+          <p class="wt-body" style="margin-top:14px;">Move the slider to compare typical coaching spend with SmartSwing Performance. The point is not to replace good coaching — it's to make every lesson more productive.</p>
+          <div class="roi-slider-wrap">
+            <div class="roi-slider-label">Monthly lesson spend</div>
+            <div class="roi-slider-value" id="lessonSpendValue">$300</div>
+            <input id="lessonSpendRange" type="range" min="50" max="1200" step="25" value="300">
+          </div>
+        </div>
+        <div class="roi-card">
+          <span class="wt-eyebrow">What That Means</span>
+          <div class="roi-stats-list">
+            <div class="roi-stat-item">
+              <strong>SmartSwing Performance</strong>
+              <span id="smartSwingAnnualValue">$239.88 per year</span>
+            </div>
+            <div class="roi-stat-item">
+              <strong>Monthly savings vs. lessons</strong>
+              <span id="monthlySavingsValue">$280.01 per month</span>
+            </div>
+            <div class="roi-stat-item">
+              <strong>Equivalent lessons covered</strong>
+              <span id="lessonEquivalentValue">About 2.0 one-hour private lessons</span>
+            </div>
+            <div class="roi-stat-item">
+              <strong>Framing</strong>
+              <span>Use SmartSwing between lessons to keep the feedback loop alive instead of waiting for the next paid hour.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARISON TABLE -->
+  <section class="wt-section">
+    <div class="wt-page">
+      <div class="compare-grid">
+        <div class="compare-card">
+          <span class="wt-eyebrow">Value Comparison</span>
+          <h2 class="wt-h3" style="margin-top:14px;">Why players switch from lessons-only to SmartSwing</h2>
+          <div class="compare-table-wrap">
+            <table class="wt-table">
+              <thead>
+                <tr>
+                  <th>Option</th>
+                  <th>Speed</th>
+                  <th>Clarity</th>
+                  <th>Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>SmartSwing Performance</strong><br><span style="font-weight:400;font-size:13px;color:var(--muted)">AI report + drills + tactics + dashboard</span></td>
+                  <td>Minutes</td>
+                  <td>High</td>
+                  <td>$19.99/mo</td>
+                </tr>
+                <tr>
+                  <td><strong>Private coach only</strong><br><span style="font-weight:400;font-size:13px;color:var(--muted)">Human feedback, no persistent AI tracking</span></td>
+                  <td>Days</td>
+                  <td>High</td>
+                  <td>$150/hr+</td>
+                </tr>
+                <tr>
+                  <td><strong>YouTube only</strong><br><span style="font-weight:400;font-size:13px;color:var(--muted)">General tips without player-specific diagnosis</span></td>
+                  <td>Fast</td>
+                  <td>Low</td>
+                  <td>Free</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="compare-card">
+          <span class="wt-eyebrow">Guarantee</span>
+          <h2 class="wt-h3" style="margin-top:14px;">Low risk, clear upgrade path</h2>
+          <p class="wt-body" style="margin-top:14px;">The free tier gives the first useful result. Paid plans unlock saved reports, richer recommendations, exports, coach messaging, and higher-volume usage. This keeps the funnel honest and the upgrade decision easier.</p>
+          <ul class="guarantee-list">
+            <li>14-day trial logic remains available where the account is eligible.</li>
+            <li>Plan limits are enforced before save, export, and booking actions.</li>
+            <li>Paid checkouts route into Stripe-hosted recurring billing.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="wt-section wt-section--soft">
+    <div class="wt-page">
+      <div class="faq-grid">
+        <div class="faq-intro">
+          <span class="wt-eyebrow">FAQ</span>
+          <h2 class="wt-h2" style="margin-top:14px;">Common questions</h2>
+          <p class="wt-lead" style="margin-top:14px;">Everything you need to know before picking a plan.</p>
+        </div>
+        <div>
+          <div class="wt-faq">
+            <details class="wt-faq-item">
+              <summary>What counts as one review?</summary>
+              <div class="wt-faq-body">Each generated report counts as one review. Opening the analyzer alone does not consume a credit.</div>
+            </details>
+            <details class="wt-faq-item">
+              <summary>Can I switch plans anytime?</summary>
+              <div class="wt-faq-body">Absolutely. Switch up or down whenever you want — no penalties, no friction. Monthly plans cancel anytime. Yearly plans stay active through the end of the paid term.</div>
+            </details>
+            <details class="wt-faq-item">
+              <summary>What if I choose Starter — am I limited?</summary>
+              <div class="wt-faq-body">Starter gives you one full analysis per month — enough to prove the concept. When you're ready to train consistently, upgrading takes 30 seconds.</div>
+            </details>
+            <details class="wt-faq-item">
+              <summary>Where do drills and tactics unlock?</summary>
+              <div class="wt-faq-body">Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.</div>
+            </details>
+            <details class="wt-faq-item">
+              <summary>Why can't Starter save reports?</summary>
+              <div class="wt-faq-body">Starter is designed to create the first success moment. Save, print, and export unlock on paid plans.</div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIG CTA -->
+  <section class="wt-section">
+    <div class="wt-page">
+      <div class="wt-cta-panel">
+        <span class="wt-eyebrow" style="color:var(--volt);background:rgba(57,255,20,.15);">Start today</span>
+        <h2 class="wt-h2" style="margin-top:16px;color:#fff;">Start free.<br>Upgrade when you're ready.</h2>
+        <p class="wt-lead" style="margin-top:16px;color:rgba(255,255,255,.5);">No credit card for the free plan. Cancel paid plans anytime. One video is all it takes.</p>
+        <div class="wt-cta-actions">
+          <a href="./signup.html?plan=free" class="wt-btn wt-btn--volt wt-btn--lg">Start Free Analysis →</a>
+          <a href="./how-it-works-white.html" class="wt-btn wt-btn--outline-white wt-btn--lg">See How It Works</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="wt-footer">
+    <div class="wt-footer-grid">
+      <div>
+        <div class="wt-footer-brand">SmartSwing<span class="wt-footer-brand-dot"> AI</span></div>
+        <p class="wt-footer-tagline">Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover.</p>
+        <p style="margin-top:16px;font-size:13px;color:var(--subtle);">&copy; 2026 SmartSwing AI</p>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Pathways</h4>
+        <ul>
+          <li><a href="./for-players.html">For Players</a></li>
+          <li><a href="./for-coaches.html">For Coaches</a></li>
+          <li><a href="./for-clubs.html">For Clubs</a></li>
+          <li><a href="./for-parents.html">For Parents</a></li>
+        </ul>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="./blog.html">Blog</a></li>
+          <li><a href="./library.html">Drill Library</a></li>
+          <li><a href="./contact.html">Contact</a></li>
+          <li><a href="./refund-policy.html">Refund Policy</a></li>
+        </ul>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a></li>
+          <li><a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wt-footer-bottom">
+      <p>&copy; 2026 SmartSwing AI. All rights reserved.</p>
+      <div class="wt-footer-bottom-links">
+        <a href="./privacy-policy.html">Privacy</a>
+        <a href="./user-agreement.html">Terms</a>
+        <a href="./cookie-policy.html">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script>
+    const store = window.SmartSwingStore;
+
+    const BILLING_COPY = {
+      monthly: 'Cancel anytime.',
+      yearly: 'Cancel anytime | billed yearly | save 15%'
+    };
+    const PLAN_NOTES = {
+      starter: 'For regular players who want steady feedback without unlimited usage.',
+      pro: 'The ideal plan for players who want analysis to become a real habit.',
+      elite: 'For players who want human review and tournament preparation built into the system.'
+    };
+
+    const intervalFromQuery = new URLSearchParams(window.location.search).get('interval');
+    let activeBillingInterval = (store && store.normalizeBillingInterval)
+      ? store.normalizeBillingInterval(intervalFromQuery || 'monthly')
+      : (intervalFromQuery === 'yearly' ? 'yearly' : 'monthly');
+
+    function renderRoiCalculator() {
+      const slider = document.getElementById('lessonSpendRange');
+      if (!slider) return;
+      const lessonSpend = Number(slider.value || 0);
+      const smartSwingMonthly = (store && store.getPlanPrice) ? store.getPlanPrice('pro', 'monthly').amount : 19.99;
+      const smartSwingAnnual = (store && store.getPlanPrice) ? store.getPlanPrice('pro', 'yearly').amount : 203.88;
+      const hourlyLessonsCovered = lessonSpend / 150;
+      const monthlySavings = Math.max(lessonSpend - smartSwingMonthly, 0);
+
+      document.getElementById('lessonSpendValue').textContent = `$${lessonSpend.toFixed(0)}`;
+      document.getElementById('smartSwingAnnualValue').textContent = `$${smartSwingAnnual.toFixed(2)} per year | $${smartSwingMonthly.toFixed(2)} per month`;
+      document.getElementById('monthlySavingsValue').textContent = `$${monthlySavings.toFixed(2)} per month`;
+      document.getElementById('lessonEquivalentValue').textContent = `About ${hourlyLessonsCovered.toFixed(1)} one-hour private lessons at $150 each`;
+    }
+
+    function renderStatus() {
+      const el = document.getElementById('planStatus');
+      if (!el) return;
+      if (!store) {
+        el.innerHTML = '<span class="plan-status-dot"></span><span><strong>Demo Mode</strong> — connect an account to see live plan status.</span>';
+        return;
+      }
+      const user = store.getCurrentUser();
+      if (!user) {
+        el.innerHTML = '<span class="plan-status-dot"></span><span><strong>No active session</strong> — create or sign into an account to activate a plan and sync review usage.</span>';
+        return;
+      }
+      const plan = store.getCurrentPlan();
+      const usage = store.canGenerateReport();
+      const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
+      const intervalLabel = plan.billingInterval === 'yearly' ? 'yearly billing' : 'monthly billing';
+      el.innerHTML = `<span class="plan-status-dot" style="background:var(--volt-dark)"></span><span><strong>${user.email}</strong> — Current plan: ${plan.name} | ${intervalLabel}. Reports used this month: ${usageText}.</span>`;
+    }
+
+    function renderBillingInterval(interval) {
+      activeBillingInterval = (store && store.normalizeBillingInterval)
+        ? store.normalizeBillingInterval(interval || 'monthly')
+        : (interval === 'yearly' ? 'yearly' : 'monthly');
+
+      document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
+        button.classList.toggle('active', button.dataset.billingToggle === activeBillingInterval);
+        button.setAttribute('aria-pressed', button.dataset.billingToggle === activeBillingInterval ? 'true' : 'false');
+      });
+
+      ['starter', 'pro', 'elite'].forEach((planId) => {
+        if (!store || !store.getPlanPrice) return;
+        const price = store.getPlanPrice(planId, activeBillingInterval);
+        const amountEl = document.querySelector(`[data-plan-price="${planId}"]`);
+        const intervalEl = document.querySelector(`[data-plan-interval="${planId}"]`);
+        const noteEl = document.querySelector(`[data-plan-note="${planId}"]`);
+        const buttonEl = document.querySelector(`[data-plan-button="${planId}"]`);
+        const copyEl = document.querySelector(`[data-plan-billing-copy="${planId}"]`);
+        if (amountEl) amountEl.textContent = `$${price.amount.toFixed(2)}`;
+        if (intervalEl) intervalEl.textContent = activeBillingInterval === 'yearly' ? '/ year' : '/ month';
+        if (noteEl) {
+          noteEl.textContent = activeBillingInterval === 'yearly'
+            ? `${store.getPlanDefinition(planId).name} billed yearly at 15% off. Monthly equivalent: $${price.monthlyEquivalent.toFixed(2)}.`
+            : PLAN_NOTES[planId];
+        }
+        if (buttonEl) {
+          buttonEl.href = `./signup.html?plan=${encodeURIComponent(planId)}&interval=${encodeURIComponent(activeBillingInterval)}`;
+          buttonEl.dataset.billingInterval = activeBillingInterval;
+        }
+        if (copyEl) copyEl.textContent = BILLING_COPY[activeBillingInterval];
+      });
+    }
+
+    document.querySelectorAll('[data-billing-toggle]').forEach((button) => {
+      button.addEventListener('click', () => renderBillingInterval(button.dataset.billingToggle));
+    });
+
+    const slider = document.getElementById('lessonSpendRange');
+    if (slider) {
+      slider.addEventListener('input', renderRoiCalculator);
+    }
+
+    // Init
+    renderStatus();
+    renderRoiCalculator();
+  </script>
+
+  <!-- Scroll reveal + progress bar + nav scroll -->
+  <script>
+  (function(){
+    var bar=document.createElement('div'); bar.className='wt-scroll-progress'; document.body.prepend(bar);
+    var nav=document.querySelector('.wt-nav,nav,header');
+    window.addEventListener('scroll',function(){ var p=window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight); bar.style.transform='scaleX('+p+')'; if(nav)nav.classList.toggle('scrolled',window.scrollY>40); },{passive:true});
+    var io=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('visible');io.unobserve(x.target);}});},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.wt-reveal,.wt-stagger').forEach(function(el){io.observe(el);});
+    document.querySelectorAll('.wt-section-header,.wt-card,.wt-split-copy,.wt-split-img,.wt-metric,.wt-testimonial,.wt-faq-item').forEach(function(el,i){
+      if(!el.classList.contains('wt-reveal')){el.classList.add('wt-reveal');el.style.transitionDelay=(i%5*55)+'ms';}
+      io.observe(el);
+    });
+  })();
+  </script>
+</body>
+</html>

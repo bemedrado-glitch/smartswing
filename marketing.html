@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI — Marketing Dashboard</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="white-theme.css">
+  <link rel="stylesheet" href="marketing.css">
+</head>
+<body>
+
+<!-- Toast container -->
+<div class="mkt-toast-wrap" id="toastWrap"></div>
+
+<!-- Mobile sidebar overlay -->
+<div class="mkt-sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- APP SHELL -->
+<div class="mkt-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="mkt-sidebar" id="sidebar">
+    <div class="mkt-sidebar__logo">
+      <div class="mkt-sidebar__logo-mark">S</div>
+      <div>
+        <div class="mkt-sidebar__logo-text">SmartSwing AI</div>
+        <div class="mkt-sidebar__logo-sub">Marketing Dashboard</div>
+      </div>
+    </div>
+
+    <nav class="mkt-sidebar__nav">
+      <div class="mkt-sidebar__section">
+        <div class="mkt-sidebar__section-label">Overview</div>
+        <button class="mkt-nav-item is-active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+          <span class="mkt-nav-item__icon">🏠</span> Dashboard
+        </button>
+      </div>
+
+      <div class="mkt-sidebar__section">
+        <div class="mkt-sidebar__section-label">CRM</div>
+        <button class="mkt-nav-item" data-tab="contacts" onclick="switchTab('contacts', this)">
+          <span class="mkt-nav-item__icon">👥</span> Contacts
+          <span class="mkt-nav-item__badge" id="contactsBadge">0</span>
+        </button>
+        <button class="mkt-nav-item" data-tab="campaigns" onclick="switchTab('campaigns', this)">
+          <span class="mkt-nav-item__icon">📢</span> Campaigns
+        </button>
+      </div>
+
+      <div class="mkt-sidebar__section">
+        <div class="mkt-sidebar__section-label">Content</div>
+        <button class="mkt-nav-item" data-tab="cadences" onclick="switchTab('cadences', this)">
+          <span class="mkt-nav-item__icon">📧</span> Cadences
+        </button>
+        <button class="mkt-nav-item" data-tab="calendar" onclick="switchTab('calendar', this)">
+          <span class="mkt-nav-item__icon">📅</span> Content Calendar
+        </button>
+      </div>
+
+      <div class="mkt-sidebar__section">
+        <div class="mkt-sidebar__section-label">Automation</div>
+        <button class="mkt-nav-item" data-tab="agents" onclick="switchTab('agents', this)">
+          <span class="mkt-nav-item__icon">🤖</span> AI Agents
+        </button>
+        <button class="mkt-nav-item" data-tab="analytics" onclick="switchTab('analytics', this)">
+          <span class="mkt-nav-item__icon">📊</span> Analytics
+        </button>
+      </div>
+    </nav>
+
+    <div class="mkt-sidebar__footer">
+      <div class="mkt-sidebar__user">
+        <div class="mkt-sidebar__avatar" id="sidebarUserAvatar">M</div>
+        <div>
+          <div class="mkt-sidebar__user-name" id="sidebarUserName">Marketing Team</div>
+          <div class="mkt-sidebar__user-role">Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="mkt-main">
+    <!-- TOPBAR -->
+    <div class="mkt-topbar">
+      <button class="mkt-menu-btn" onclick="openSidebar()" aria-label="Open menu">☰</button>
+      <div class="mkt-topbar__title" id="topbarTitle">Dashboard</div>
+      <div class="mkt-topbar__actions">
+        <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="refreshData()">↻ Refresh</button>
+        <button class="mkt-btn mkt-btn--volt mkt-btn--sm" onclick="openModal('addContactModal')">+ Add Contact</button>
+      </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="mkt-content">
+
+      <!-- ─────────────── TAB: DASHBOARD ─────────────── -->
+      <div class="mkt-tab-panel is-active" id="tab-dashboard">
+
+        <div class="mkt-kpi-grid">
+          <div class="mkt-kpi-card">
+            <div class="mkt-kpi-card__icon">👥</div>
+            <div class="mkt-kpi-card__label">Total Contacts</div>
+            <div class="mkt-kpi-card__value" id="kpiContacts">—</div>
+            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 12 this week</div>
+          </div>
+          <div class="mkt-kpi-card">
+            <div class="mkt-kpi-card__icon">📢</div>
+            <div class="mkt-kpi-card__label">Active Campaigns</div>
+            <div class="mkt-kpi-card__value" id="kpiCampaigns">—</div>
+            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 2 launched</div>
+          </div>
+          <div class="mkt-kpi-card">
+            <div class="mkt-kpi-card__icon">📅</div>
+            <div class="mkt-kpi-card__label">Content This Week</div>
+            <div class="mkt-kpi-card__value" id="kpiContent">—</div>
+            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 3 scheduled</div>
+          </div>
+          <div class="mkt-kpi-card mkt-kpi-card--volt">
+            <div class="mkt-kpi-card__icon">🤖</div>
+            <div class="mkt-kpi-card__label">AI Tasks Run</div>
+            <div class="mkt-kpi-card__value" id="kpiTasks">—</div>
+            <div class="mkt-kpi-card__delta">Total agent runs</div>
+          </div>
+        </div>
+
+        <div class="mkt-grid-2">
+          <!-- Next Best Actions -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">🧠 AI Next Best Actions</div>
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadNextActions()">Refresh</button>
+            </div>
+            <ul class="mkt-nba-list" id="nbaList">
+              <li class="mkt-nba-item">
+                <div style="padding:24px;width:100%;text-align:center;color:var(--muted);font-size:13px;">Loading recommendations…</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">⚡ Recent Activity</div>
+            </div>
+            <div class="mkt-panel__body--no-pad">
+              <ul class="mkt-activity-list" id="activityFeed" style="padding:0 20px;">
+                <li class="mkt-activity-item">
+                  <div class="mkt-activity-item__dot mkt-activity-item__dot--agent"></div>
+                  <div class="mkt-activity-item__text">AI Copywriter generated new email for "Club Outreach" cadence</div>
+                  <div class="mkt-activity-item__time">2m ago</div>
+                </li>
+                <li class="mkt-activity-item">
+                  <div class="mkt-activity-item__dot mkt-activity-item__dot--contact"></div>
+                  <div class="mkt-activity-item__text"><strong>Sarah Mitchell</strong> enrolled in "New Lead — Tennis Players" cadence</div>
+                  <div class="mkt-activity-item__time">18m ago</div>
+                </li>
+                <li class="mkt-activity-item">
+                  <div class="mkt-activity-item__dot mkt-activity-item__dot--email"></div>
+                  <div class="mkt-activity-item__text">Email campaign "Q2 Coach Launch" sent to 47 contacts</div>
+                  <div class="mkt-activity-item__time">1h ago</div>
+                </li>
+                <li class="mkt-activity-item">
+                  <div class="mkt-activity-item__dot mkt-activity-item__dot--social"></div>
+                  <div class="mkt-activity-item__text">TikTok post "3 things your coach can see" scheduled for tomorrow 9am</div>
+                  <div class="mkt-activity-item__time">2h ago</div>
+                </li>
+                <li class="mkt-activity-item">
+                  <div class="mkt-activity-item__dot mkt-activity-item__dot--contact"></div>
+                  <div class="mkt-activity-item__text"><strong>Westchester Tennis Academy</strong> added to Club pipeline</div>
+                  <div class="mkt-activity-item__time">3h ago</div>
+                </li>
+                <li class="mkt-activity-item">
+                  <div class="mkt-activity-item__dot mkt-activity-item__dot--email"></div>
+                  <div class="mkt-activity-item__text">Cadence "Trial to Paid" Email 4 sent — 73% open rate</div>
+                  <div class="mkt-activity-item__time">5h ago</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini content calendar — next 7 days -->
+        <div class="mkt-panel">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">📅 Upcoming Content (Next 7 Days)</div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="switchTab('calendar', document.querySelector('[data-tab=calendar]'))">View full calendar</button>
+          </div>
+          <div class="mkt-panel__body--no-pad">
+            <div id="miniCalendar" style="padding:8px 16px 16px;"></div>
+          </div>
+        </div>
+
+      </div><!-- /tab-dashboard -->
+
+      <!-- ─────────────── TAB: CONTACTS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-contacts">
+
+        <div class="mkt-filters">
+          <input type="text" class="mkt-search" id="contactSearch" placeholder="Search contacts…" oninput="filterContacts()">
+          <select class="mkt-filter-select" id="filterPersona" onchange="filterContacts()">
+            <option value="">All Personas</option>
+            <option value="player">Player</option>
+            <option value="coach">Coach</option>
+            <option value="club">Club</option>
+            <option value="parent">Parent</option>
+            <option value="pickleball">Pickleball</option>
+          </select>
+          <select class="mkt-filter-select" id="filterStage" onchange="filterContacts()">
+            <option value="">All Stages</option>
+            <option value="lead">Lead</option>
+            <option value="prospect">Prospect</option>
+            <option value="trial">Trial</option>
+            <option value="customer">Customer</option>
+            <option value="churned">Churned</option>
+          </select>
+          <div class="mkt-filters__spacer"></div>
+          <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openModal('addContactModal')">+ Add Contact</button>
+        </div>
+
+        <div class="mkt-panel">
+          <div class="mkt-panel__body--no-pad">
+            <div class="mkt-table-wrap">
+              <table class="mkt-table" id="contactsTable">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Persona</th>
+                    <th>Stage</th>
+                    <th>Source</th>
+                    <th>Tags</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contactsTbody">
+                  <tr>
+                    <td colspan="7">
+                      <div class="mkt-empty">
+                        <div class="mkt-empty__icon">👥</div>
+                        <div class="mkt-empty__title">No contacts yet</div>
+                        <div class="mkt-empty__text">Add your first contact to get started with the CRM.</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-contacts -->
+
+      <!-- ─────────────── TAB: CADENCES ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-cadences">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Email & SMS Cadences</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">4 pre-built sequences. Click any cadence to expand steps.</p>
+          </div>
+        </div>
+
+        <div class="mkt-cadence-grid" id="cadenceGrid">
+          <!-- Populated by JS -->
+        </div>
+
+      </div><!-- /tab-cadences -->
+
+      <!-- ─────────────── TAB: CONTENT CALENDAR ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-calendar">
+
+        <div class="mkt-cal-header">
+          <div class="mkt-cal-nav">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-btn--icon" onclick="calNav(-1)">‹</button>
+            <div class="mkt-cal-nav__label" id="calLabel">—</div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-btn--icon" onclick="calNav(1)">›</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="calToday()">Today</button>
+            <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openModal('addContentModal')">+ Add Content</button>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+          <span class="mkt-badge mkt-badge--tiktok">TikTok</span>
+          <span class="mkt-badge mkt-badge--instagram">Instagram</span>
+          <span class="mkt-badge mkt-badge--youtube">YouTube</span>
+          <span class="mkt-badge mkt-badge--facebook">Facebook</span>
+          <span class="mkt-badge mkt-badge--blog">Blog</span>
+          <span class="mkt-badge mkt-badge--email">Email</span>
+        </div>
+
+        <div class="mkt-cal-grid" id="calGrid">
+          <!-- Populated by JS -->
+        </div>
+
+      </div><!-- /tab-calendar -->
+
+      <!-- ─────────────── TAB: CAMPAIGNS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-campaigns">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Campaigns</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Track and manage marketing campaigns.</p>
+          </div>
+          <button class="mkt-btn mkt-btn--primary" onclick="openModal('addCampaignModal')">+ New Campaign</button>
+        </div>
+
+        <div class="mkt-campaign-grid" id="campaignGrid">
+          <!-- Populated by JS -->
+        </div>
+
+      </div><!-- /tab-campaigns -->
+
+      <!-- ─────────────── TAB: AI AGENTS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-agents">
+
+        <div style="margin-bottom:20px;">
+          <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">AI Marketing Agents</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px;">Select an agent, describe your task, and get expert output.</p>
+        </div>
+
+        <!-- Agent cards -->
+        <div class="mkt-agent-grid" id="agentGrid">
+          <div class="mkt-agent-card is-selected" data-agent="copywriter" onclick="selectAgent(this)">
+            <div class="mkt-agent-card__icon">✍️</div>
+            <div class="mkt-agent-card__name">Copywriter</div>
+            <div class="mkt-agent-card__desc">Direct response copy using SPIN + Corporate Visions methodology</div>
+          </div>
+          <div class="mkt-agent-card" data-agent="social_media" onclick="selectAgent(this)">
+            <div class="mkt-agent-card__icon">📱</div>
+            <div class="mkt-agent-card__name">Social Media Manager</div>
+            <div class="mkt-agent-card__desc">Platform-native content for TikTok, Instagram, YouTube, Facebook</div>
+          </div>
+          <div class="mkt-agent-card" data-agent="content_creator" onclick="selectAgent(this)">
+            <div class="mkt-agent-card__icon">🎬</div>
+            <div class="mkt-agent-card__name">Content Creator</div>
+            <div class="mkt-agent-card__desc">Scripts, captions, storyboards adapted to each platform</div>
+          </div>
+          <div class="mkt-agent-card" data-agent="ux_designer" onclick="selectAgent(this)">
+            <div class="mkt-agent-card__icon">🎨</div>
+            <div class="mkt-agent-card__name">UI/UX Designer</div>
+            <div class="mkt-agent-card__desc">Design briefs, wireframe descriptions, CRO recommendations</div>
+          </div>
+          <div class="mkt-agent-card" data-agent="marketing_director" onclick="selectAgent(this)">
+            <div class="mkt-agent-card__icon">📣</div>
+            <div class="mkt-agent-card__name">Marketing Director</div>
+            <div class="mkt-agent-card__desc">Campaign strategy, content maps, team coordination, 30/60/90 plans</div>
+          </div>
+        </div>
+
+        <!-- Agent chat panel -->
+        <div class="mkt-agent-chat">
+          <div class="mkt-agent-chat__header">
+            <span style="font-size:18px;" id="agentChatIcon">✍️</span>
+            <div class="mkt-agent-chat__name" id="agentChatName">Copywriter Agent</div>
+            <div class="mkt-agent-chat__status">
+              <span class="mkt-agent-chat__status-dot" id="agentStatusDot"></span>
+              <span id="agentStatusText">Ready</span>
+            </div>
+          </div>
+
+          <!-- Response area -->
+          <div class="mkt-agent-response" id="agentResponse" data-placeholder="Your agent response will appear here…"></div>
+
+          <!-- Input area -->
+          <div class="mkt-agent-chat__input-area">
+            <textarea class="mkt-agent-chat__textarea" id="agentTaskInput" placeholder="Describe what you need… e.g. 'Write a subject line for a tennis player re-engagement email'" rows="2" onkeydown="handleAgentKey(event)"></textarea>
+            <button class="mkt-btn mkt-btn--volt" id="agentRunBtn" onclick="runAgent()">
+              Run Agent
+            </button>
+          </div>
+        </div>
+
+        <!-- Task history -->
+        <div class="mkt-panel">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">📋 Task History</div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="clearTaskHistory()">Clear</button>
+          </div>
+          <div class="mkt-panel__body--no-pad">
+            <div class="mkt-table-wrap">
+              <table class="mkt-table mkt-task-table">
+                <thead>
+                  <tr>
+                    <th>Agent</th>
+                    <th>Task</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="taskHistoryTbody">
+                  <tr>
+                    <td colspan="5">
+                      <div class="mkt-empty" style="padding:24px;">
+                        <div class="mkt-empty__text">No tasks run yet. Select an agent above and describe a task.</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-agents -->
+
+      <!-- ─────────────── TAB: ANALYTICS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-analytics">
+
+        <div class="mkt-kpi-grid" style="margin-bottom:24px;">
+          <div class="mkt-kpi-card">
+            <div class="mkt-kpi-card__icon">📧</div>
+            <div class="mkt-kpi-card__label">Avg Email Open Rate</div>
+            <div class="mkt-kpi-card__value">67%</div>
+            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 8% vs last month</div>
+          </div>
+          <div class="mkt-kpi-card">
+            <div class="mkt-kpi-card__icon">👆</div>
+            <div class="mkt-kpi-card__label">Avg Click Rate</div>
+            <div class="mkt-kpi-card__value">22%</div>
+            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 4% vs last month</div>
+          </div>
+          <div class="mkt-kpi-card">
+            <div class="mkt-kpi-card__icon">🔄</div>
+            <div class="mkt-kpi-card__label">Trial Conversion</div>
+            <div class="mkt-kpi-card__value">34%</div>
+            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 6% vs last month</div>
+          </div>
+          <div class="mkt-kpi-card mkt-kpi-card--volt">
+            <div class="mkt-kpi-card__icon">💰</div>
+            <div class="mkt-kpi-card__label">Revenue Influenced</div>
+            <div class="mkt-kpi-card__value">$12.4k</div>
+            <div class="mkt-kpi-card__delta">This month</div>
+          </div>
+        </div>
+
+        <div class="mkt-grid-3">
+
+          <!-- Brand Health Score -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">🏆 Brand Health Score</div>
+            </div>
+            <div class="mkt-gauge-wrap">
+              <div class="mkt-gauge">
+                <div class="mkt-gauge__bg"></div>
+                <div class="mkt-gauge__fill" style="--gauge-deg:130deg;"></div>
+                <div class="mkt-gauge__inner"></div>
+              </div>
+              <div class="mkt-gauge__score">72</div>
+              <div class="mkt-gauge__label">/ 100 — Good</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;line-height:1.5;">Based on sentiment, mentions,<br>SEO visibility, and social engagement</div>
+            </div>
+          </div>
+
+          <!-- Channel Performance -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">📈 Channel Performance</div>
+            </div>
+            <div class="mkt-panel__body">
+              <ul class="mkt-channel-list">
+                <li class="mkt-channel-item">
+                  <div class="mkt-channel-item__top">
+                    <span class="mkt-channel-item__name">Organic Search</span>
+                    <span class="mkt-channel-item__value">84%</span>
+                  </div>
+                  <div class="mkt-bar"><div class="mkt-bar__fill mkt-bar__fill--volt" style="width:84%;"></div></div>
+                </li>
+                <li class="mkt-channel-item">
+                  <div class="mkt-channel-item__top">
+                    <span class="mkt-channel-item__name">Email Cadences</span>
+                    <span class="mkt-channel-item__value">67%</span>
+                  </div>
+                  <div class="mkt-bar"><div class="mkt-bar__fill mkt-bar__fill--orange" style="width:67%;"></div></div>
+                </li>
+                <li class="mkt-channel-item">
+                  <div class="mkt-channel-item__top">
+                    <span class="mkt-channel-item__name">Social (TikTok/IG)</span>
+                    <span class="mkt-channel-item__value">58%</span>
+                  </div>
+                  <div class="mkt-bar"><div class="mkt-bar__fill" style="width:58%;background:#c13584;"></div></div>
+                </li>
+                <li class="mkt-channel-item">
+                  <div class="mkt-channel-item__top">
+                    <span class="mkt-channel-item__name">Paid Ads</span>
+                    <span class="mkt-channel-item__value">41%</span>
+                  </div>
+                  <div class="mkt-bar"><div class="mkt-bar__fill mkt-bar__fill--blue" style="width:41%;"></div></div>
+                </li>
+                <li class="mkt-channel-item">
+                  <div class="mkt-channel-item__top">
+                    <span class="mkt-channel-item__name">Referrals</span>
+                    <span class="mkt-channel-item__value">29%</span>
+                  </div>
+                  <div class="mkt-bar"><div class="mkt-bar__fill mkt-bar__fill--purple" style="width:29%;"></div></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- AI Recommendations -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">💡 AI Recommendations</div>
+            </div>
+            <div class="mkt-panel__body">
+              <ul style="list-style:none;display:flex;flex-direction:column;gap:12px;">
+                <li style="font-size:13px;color:var(--black);padding:10px;background:var(--bg-soft);border-radius:8px;line-height:1.5;">
+                  <strong>Double down on TikTok.</strong> Your biomechanics content is outperforming all other formats at 3.2x average engagement.
+                </li>
+                <li style="font-size:13px;color:var(--black);padding:10px;background:var(--bg-soft);border-radius:8px;line-height:1.5;">
+                  <strong>Re-engage churned players.</strong> 18 accounts churned 30–60 days ago. A personalized win-back cadence historically recovers ~22%.
+                </li>
+                <li style="font-size:13px;color:var(--black);padding:10px;background:var(--bg-soft);border-radius:8px;line-height:1.5;">
+                  <strong>Launch club B2B pilot push.</strong> Q2 decision season for club directors. 47 club contacts are untouched in your pipeline.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mkt-grid-2">
+
+          <!-- Top Content -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">🌟 Top Content by Engagement</div>
+            </div>
+            <div class="mkt-panel__body--no-pad">
+              <div class="mkt-table-wrap">
+                <table class="mkt-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Platform</th>
+                      <th>Reach</th>
+                      <th>Eng. Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><div class="mkt-table__name">Backhand mechanics breakdown</div><div class="mkt-table__sub">Reel / 90 sec</div></td>
+                      <td><span class="mkt-badge mkt-badge--tiktok">TikTok</span></td>
+                      <td>48.2k</td>
+                      <td><strong style="color:var(--volt-dark);">9.4%</strong></td>
+                    </tr>
+                    <tr>
+                      <td><div class="mkt-table__name">AI vs human coach — which is better?</div><div class="mkt-table__sub">YouTube Short</div></td>
+                      <td><span class="mkt-badge mkt-badge--youtube">YouTube</span></td>
+                      <td>22.1k</td>
+                      <td><strong style="color:var(--volt-dark);">7.1%</strong></td>
+                    </tr>
+                    <tr>
+                      <td><div class="mkt-table__name">How I fixed my serve in 14 days</div><div class="mkt-table__sub">Carousel (8 slides)</div></td>
+                      <td><span class="mkt-badge mkt-badge--instagram">Instagram</span></td>
+                      <td>14.8k</td>
+                      <td><strong>5.8%</strong></td>
+                    </tr>
+                    <tr>
+                      <td><div class="mkt-table__name">SmartSwing AI full walkthrough</div><div class="mkt-table__sub">Video review (6 min)</div></td>
+                      <td><span class="mkt-badge mkt-badge--youtube">YouTube</span></td>
+                      <td>8.3k</td>
+                      <td><strong>4.2%</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Brand Mentions -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">🔔 Brand Mentions</div>
+            </div>
+            <div class="mkt-panel__body--no-pad" style="padding:0 20px;">
+              <ul class="mkt-mention-list">
+                <li class="mkt-mention-item">
+                  <div class="mkt-mention-item__sentiment mkt-mention-item__sentiment--positive"></div>
+                  <div>
+                    <div class="mkt-mention-item__text">"SmartSwing finally gave me feedback my coach never bothered to explain. Game changer."</div>
+                    <div class="mkt-mention-item__source">Reddit r/tennis · 2h ago</div>
+                  </div>
+                </li>
+                <li class="mkt-mention-item">
+                  <div class="mkt-mention-item__sentiment mkt-mention-item__sentiment--positive"></div>
+                  <div>
+                    <div class="mkt-mention-item__text">"Using SmartSwing with all my junior clients now. The parent reports alone are worth it."</div>
+                    <div class="mkt-mention-item__source">Twitter/X · 4h ago</div>
+                  </div>
+                </li>
+                <li class="mkt-mention-item">
+                  <div class="mkt-mention-item__sentiment mkt-mention-item__sentiment--neutral"></div>
+                  <div>
+                    <div class="mkt-mention-item__text">"Tried SmartSwing, interesting concept. Wish the video upload was faster."</div>
+                    <div class="mkt-mention-item__source">Reddit r/tenniscoaches · 6h ago</div>
+                  </div>
+                </li>
+                <li class="mkt-mention-item">
+                  <div class="mkt-mention-item__sentiment mkt-mention-item__sentiment--negative"></div>
+                  <div>
+                    <div class="mkt-mention-item__text">"AI can't replace a real coach, this feels gimmicky to me."</div>
+                    <div class="mkt-mention-item__source">Facebook Tennis Group · 8h ago</div>
+                  </div>
+                </li>
+                <li class="mkt-mention-item">
+                  <div class="mkt-mention-item__sentiment mkt-mention-item__sentiment--positive"></div>
+                  <div>
+                    <div class="mkt-mention-item__text">"Our club just piloted SmartSwing. 3 months in, member retention is noticeably better."</div>
+                    <div class="mkt-mention-item__source">LinkedIn · 1d ago</div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+      </div><!-- /tab-analytics -->
+
+    </div><!-- /mkt-content -->
+
+    <!-- Mobile bottom tab bar -->
+    <nav class="mkt-mobile-tabs">
+      <button class="mkt-mobile-tab is-active" data-tab="dashboard" onclick="switchTab('dashboard', this); syncMobileTabs(this)">
+        <span class="mkt-mobile-tab__icon">🏠</span>
+        Home
+      </button>
+      <button class="mkt-mobile-tab" data-tab="contacts" onclick="switchTab('contacts', document.querySelector('.mkt-nav-item[data-tab=contacts]')); syncMobileTabs(this)">
+        <span class="mkt-mobile-tab__icon">👥</span>
+        Contacts
+      </button>
+      <button class="mkt-mobile-tab" data-tab="cadences" onclick="switchTab('cadences', document.querySelector('.mkt-nav-item[data-tab=cadences]')); syncMobileTabs(this)">
+        <span class="mkt-mobile-tab__icon">📧</span>
+        Cadences
+      </button>
+      <button class="mkt-mobile-tab" data-tab="agents" onclick="switchTab('agents', document.querySelector('.mkt-nav-item[data-tab=agents]')); syncMobileTabs(this)">
+        <span class="mkt-mobile-tab__icon">🤖</span>
+        Agents
+      </button>
+      <button class="mkt-mobile-tab" data-tab="analytics" onclick="switchTab('analytics', document.querySelector('.mkt-nav-item[data-tab=analytics]')); syncMobileTabs(this)">
+        <span class="mkt-mobile-tab__icon">📊</span>
+        Analytics
+      </button>
+    </nav>
+
+  </main>
+</div><!-- /mkt-shell -->
+
+<!-- ─────────────── MODALS ─────────────── -->
+
+<!-- Add Contact Modal -->
+<div class="mkt-modal-overlay" id="addContactModal">
+  <div class="mkt-modal">
+    <div class="mkt-modal__header">
+      <div class="mkt-modal__title">Add Contact</div>
+      <button class="mkt-modal__close" onclick="closeModal('addContactModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <div class="mkt-form-row">
+        <div class="mkt-form-group">
+          <label class="mkt-label">First Name</label>
+          <input type="text" class="mkt-input" id="cFirstName" placeholder="Sarah">
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">Last Name</label>
+          <input type="text" class="mkt-input" id="cLastName" placeholder="Mitchell">
+        </div>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Email *</label>
+        <input type="email" class="mkt-input" id="cEmail" placeholder="sarah@example.com">
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Phone</label>
+        <input type="tel" class="mkt-input" id="cPhone" placeholder="+1 (555) 000-0000">
+      </div>
+      <div class="mkt-form-row">
+        <div class="mkt-form-group">
+          <label class="mkt-label">Persona</label>
+          <select class="mkt-select" id="cPersona">
+            <option value="player">Player</option>
+            <option value="coach">Coach</option>
+            <option value="club">Club</option>
+            <option value="parent">Parent</option>
+            <option value="pickleball">Pickleball</option>
+          </select>
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">Stage</label>
+          <select class="mkt-select" id="cStage">
+            <option value="lead">Lead</option>
+            <option value="prospect">Prospect</option>
+            <option value="trial">Trial</option>
+            <option value="customer">Customer</option>
+            <option value="churned">Churned</option>
+          </select>
+        </div>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Source</label>
+        <select class="mkt-select" id="cSource">
+          <option value="organic">Organic Search</option>
+          <option value="social">Social Media</option>
+          <option value="referral">Referral</option>
+          <option value="paid">Paid Ad</option>
+          <option value="email">Email Outreach</option>
+          <option value="event">Event</option>
+          <option value="manual">Manual Entry</option>
+        </select>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Notes</label>
+        <textarea class="mkt-textarea" id="cNotes" placeholder="Any context about this contact…"></textarea>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Assign to Cadence</label>
+        <select class="mkt-select" id="cCadence">
+          <option value="">— No cadence —</option>
+          <option value="cadence-players-new-lead">New Lead — Tennis Players</option>
+          <option value="cadence-coaches-new-lead">New Lead — Tennis Coaches</option>
+          <option value="cadence-trial-to-paid">Trial to Paid Conversion</option>
+          <option value="cadence-club-outreach">Club / Academy Outreach</option>
+        </select>
+      </div>
+    </div>
+    <div class="mkt-modal__footer">
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('addContactModal')">Cancel</button>
+      <button class="mkt-btn mkt-btn--primary" onclick="saveContact()">Add Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Content Modal -->
+<div class="mkt-modal-overlay" id="addContentModal">
+  <div class="mkt-modal">
+    <div class="mkt-modal__header">
+      <div class="mkt-modal__title">Add Content</div>
+      <button class="mkt-modal__close" onclick="closeModal('addContentModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <div class="mkt-form-group">
+        <label class="mkt-label">Title *</label>
+        <input type="text" class="mkt-input" id="ctTitle" placeholder="Backhand mechanics breakdown (TikTok Reel)">
+      </div>
+      <div class="mkt-form-row">
+        <div class="mkt-form-group">
+          <label class="mkt-label">Platform</label>
+          <select class="mkt-select" id="ctPlatform">
+            <option value="tiktok">TikTok</option>
+            <option value="instagram">Instagram</option>
+            <option value="youtube">YouTube</option>
+            <option value="facebook">Facebook</option>
+            <option value="blog">Blog</option>
+            <option value="email">Email</option>
+            <option value="linkedin">LinkedIn</option>
+          </select>
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">Type</label>
+          <select class="mkt-select" id="ctType">
+            <option value="post">Post</option>
+            <option value="reel">Reel / Short</option>
+            <option value="story">Story</option>
+            <option value="video">Long-form Video</option>
+            <option value="blog">Blog Post</option>
+            <option value="email">Email</option>
+            <option value="ad">Ad</option>
+          </select>
+        </div>
+      </div>
+      <div class="mkt-form-row">
+        <div class="mkt-form-group">
+          <label class="mkt-label">Status</label>
+          <select class="mkt-select" id="ctStatus">
+            <option value="draft">Draft</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">Scheduled Date</label>
+          <input type="date" class="mkt-input" id="ctDate">
+        </div>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Copy / Caption</label>
+        <textarea class="mkt-textarea" id="ctCopy" placeholder="Post copy, script excerpt, or notes…" style="min-height:100px;"></textarea>
+      </div>
+    </div>
+    <div class="mkt-modal__footer">
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('addContentModal')">Cancel</button>
+      <button class="mkt-btn mkt-btn--primary" onclick="saveContent()">Save Content</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Campaign Modal -->
+<div class="mkt-modal-overlay" id="addCampaignModal">
+  <div class="mkt-modal">
+    <div class="mkt-modal__header">
+      <div class="mkt-modal__title">New Campaign</div>
+      <button class="mkt-modal__close" onclick="closeModal('addCampaignModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <div class="mkt-form-group">
+        <label class="mkt-label">Campaign Name *</label>
+        <input type="text" class="mkt-input" id="cpName" placeholder="Q2 Coach Outreach Push">
+      </div>
+      <div class="mkt-form-row">
+        <div class="mkt-form-group">
+          <label class="mkt-label">Type</label>
+          <select class="mkt-select" id="cpType">
+            <option value="email">Email</option>
+            <option value="social">Social</option>
+            <option value="paid">Paid Ads</option>
+            <option value="content">Content</option>
+            <option value="outreach">Outreach</option>
+            <option value="event">Event</option>
+          </select>
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">Target Persona</label>
+          <select class="mkt-select" id="cpPersona">
+            <option value="player">Players</option>
+            <option value="coach">Coaches</option>
+            <option value="club">Clubs</option>
+            <option value="parent">Parents</option>
+            <option value="pickleball">Pickleball</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
+      <div class="mkt-form-row">
+        <div class="mkt-form-group">
+          <label class="mkt-label">Start Date</label>
+          <input type="date" class="mkt-input" id="cpStart">
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">End Date</label>
+          <input type="date" class="mkt-input" id="cpEnd">
+        </div>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Budget ($)</label>
+        <input type="number" class="mkt-input" id="cpBudget" placeholder="500">
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Description</label>
+        <textarea class="mkt-textarea" id="cpDesc" placeholder="What is this campaign trying to achieve?"></textarea>
+      </div>
+      <div class="mkt-form-group">
+        <label class="mkt-label" style="display:flex;align-items:center;justify-content:space-between;">
+          Campaign Brief
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="generateCampaignBrief()" type="button">🤖 Generate with AI</button>
+        </label>
+        <textarea class="mkt-textarea" id="cpBrief" placeholder="Campaign brief will be generated here by AI…" style="min-height:120px;"></textarea>
+      </div>
+    </div>
+    <div class="mkt-modal__footer">
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('addCampaignModal')">Cancel</button>
+      <button class="mkt-btn mkt-btn--primary" onclick="saveCampaign()">Create Campaign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Email Preview Modal -->
+<div class="mkt-modal-overlay" id="emailPreviewModal">
+  <div class="mkt-modal mkt-modal--lg">
+    <div class="mkt-modal__header">
+      <div>
+        <div class="mkt-modal__title" id="emailPreviewSubject">Email Preview</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="emailPreviewMeta">Day 0 · Intro</div>
+      </div>
+      <button class="mkt-modal__close" onclick="closeModal('emailPreviewModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <div style="background:var(--bg-soft);border-radius:12px;padding:24px;font-size:14px;line-height:1.8;color:var(--black);" id="emailPreviewBody">
+        <!-- Email body rendered here -->
+      </div>
+    </div>
+    <div class="mkt-modal__footer">
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('emailPreviewModal')">Close</button>
+      <button class="mkt-btn mkt-btn--primary" onclick="copyEmailToAgent()">Edit with AI ✍️</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assign to Contact Modal -->
+<div class="mkt-modal-overlay" id="assignCadenceModal">
+  <div class="mkt-modal">
+    <div class="mkt-modal__header">
+      <div class="mkt-modal__title" id="assignCadenceTitle">Assign Cadence</div>
+      <button class="mkt-modal__close" onclick="closeModal('assignCadenceModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <p style="font-size:13.5px;color:var(--mid);margin-bottom:16px;">Select a contact to enroll in this cadence:</p>
+      <div class="mkt-form-group">
+        <label class="mkt-label">Contact</label>
+        <select class="mkt-select" id="assignCadenceContact">
+          <option value="">— Select a contact —</option>
+        </select>
+      </div>
+      <input type="hidden" id="assignCadenceId">
+    </div>
+    <div class="mkt-modal__footer">
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('assignCadenceModal')">Cancel</button>
+      <button class="mkt-btn mkt-btn--primary" onclick="confirmAssignCadence()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="public-app-config.js"></script>
+<script src="app-data.js"></script>
+<script src="marketing-cadences.js"></script>
+<script>
+/* ─────────────────────────────────────────────────────────────────
+   SmartSwing AI — Marketing Dashboard JS
+   window.MarketingStore — all dashboard state
+───────────────────────────────────────────────────────────────── */
+
+window.MarketingStore = {
+  currentTab: 'dashboard',
+  contacts: [],
+  campaigns: [],
+  contentItems: [],
+  taskHistory: [],
+  selectedAgent: 'copywriter',
+  currentEmailPreview: null,
+  calOffset: 0, // weeks from today
+  supabase: null,
+
+  // Seed campaigns
+  defaultCampaigns: [
+    { id: 'c1', name: 'Q2 Coach Outreach', type: 'email', status: 'active', target_persona: 'coach', start_date: '2026-03-01', end_date: '2026-04-30', budget: 0, description: 'SPIN-based outreach to 47 USPTA coaches', progress: 38 },
+    { id: 'c2', name: 'TikTok Biomechanics Series', type: 'social', status: 'active', target_persona: 'player', start_date: '2026-03-15', end_date: '2026-04-15', budget: 200, description: '8-part TikTok series on swing mechanics', progress: 62 },
+    { id: 'c3', name: 'Club Pilot Program Launch', type: 'outreach', status: 'draft', target_persona: 'club', start_date: '2026-04-01', end_date: '2026-06-30', budget: 500, description: 'Offer 60-day free pilot to 20 clubs', progress: 10 },
+    { id: 'c4', name: 'Trial Conversion Push', type: 'email', status: 'active', target_persona: 'player', start_date: '2026-03-10', end_date: '2026-03-31', budget: 0, description: 'Automated conversion cadence for 90-day trial users', progress: 85 },
+  ],
+
+  // Seed content
+  defaultContent: [
+    { id: 'ct1', title: 'Backhand mechanics breakdown', platform: 'tiktok', status: 'scheduled', scheduled_date: offsetDate(1), type: 'reel' },
+    { id: 'ct2', title: 'Serve percentage — 3 quick fixes', platform: 'instagram', status: 'scheduled', scheduled_date: offsetDate(1), type: 'reel' },
+    { id: 'ct3', title: 'Q2 Coach Outreach Email #1', platform: 'email', status: 'scheduled', scheduled_date: offsetDate(2), type: 'email' },
+    { id: 'ct4', title: 'AI vs human coach debate', platform: 'youtube', status: 'draft', scheduled_date: offsetDate(3), type: 'video' },
+    { id: 'ct5', title: 'How SmartSwing works — club walkthrough', platform: 'facebook', status: 'draft', scheduled_date: offsetDate(4), type: 'post' },
+    { id: 'ct6', title: 'How AI is changing tennis coaching in 2026', platform: 'blog', status: 'draft', scheduled_date: offsetDate(4), type: 'blog' },
+    { id: 'ct7', title: 'Trial to Paid Email — Final urgency', platform: 'email', status: 'published', scheduled_date: offsetDate(-1), type: 'email' },
+    { id: 'ct8', title: 'NTRP improvement story — from 3.5 to 4.0', platform: 'instagram', status: 'published', scheduled_date: offsetDate(-2), type: 'post' },
+  ]
+};
+
+function offsetDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', function () {
+  initSupabase();
+  MarketingStore.campaigns = [...MarketingStore.defaultCampaigns];
+  MarketingStore.contentItems = [...MarketingStore.defaultContent];
+  renderCadences();
+  renderCampaigns();
+  renderCalendar();
+  renderMiniCalendar();
+  loadNextActions();
+  loadContacts();
+  updateKPIs();
+});
+
+function initSupabase() {
+  const cfg = window.SMARTSWING_SUPABASE_CONFIG;
+  if (cfg && cfg.url && cfg.anonKey) {
+    MarketingStore.supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+  }
+}
+
+/* ── TAB NAVIGATION ── */
+function switchTab(tabName, triggerEl) {
+  // Hide all panels
+  document.querySelectorAll('.mkt-tab-panel').forEach(p => p.classList.remove('is-active'));
+  // Deactivate sidebar items
+  document.querySelectorAll('.mkt-nav-item').forEach(el => el.classList.remove('is-active'));
+  // Show target panel
+  const panel = document.getElementById('tab-' + tabName);
+  if (panel) panel.classList.add('is-active');
+  // Activate sidebar item
+  if (triggerEl) triggerEl.classList.add('is-active');
+  // Update topbar title
+  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', cadences: 'Cadences', calendar: 'Content Calendar', campaigns: 'Campaigns', agents: 'AI Agents', analytics: 'Analytics' };
+  document.getElementById('topbarTitle').textContent = titles[tabName] || tabName;
+  MarketingStore.currentTab = tabName;
+  closeSidebar();
+
+  if (tabName === 'calendar') renderCalendar();
+}
+
+function syncMobileTabs(el) {
+  document.querySelectorAll('.mkt-mobile-tab').forEach(t => t.classList.remove('is-active'));
+  el.classList.add('is-active');
+}
+
+/* ── SIDEBAR ── */
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('is-open');
+  document.getElementById('sidebarOverlay').classList.add('is-open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('is-open');
+  document.getElementById('sidebarOverlay').classList.remove('is-open');
+}
+
+/* ── MODALS ── */
+function openModal(id) {
+  document.getElementById(id).classList.add('is-open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('is-open');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.mkt-modal-overlay.is-open').forEach(m => m.classList.remove('is-open'));
+  }
+});
+
+/* ── TOAST ── */
+function showToast(message, type = '') {
+  const wrap = document.getElementById('toastWrap');
+  const toast = document.createElement('div');
+  toast.className = `mkt-toast${type ? ' mkt-toast--' + type : ''}`;
+  toast.textContent = message;
+  wrap.appendChild(toast);
+  setTimeout(() => {
+    toast.style.transition = 'opacity 300ms';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+/* ── KPI UPDATES ── */
+function updateKPIs() {
+  document.getElementById('kpiContacts').textContent = MarketingStore.contacts.length || '—';
+  document.getElementById('contactsBadge').textContent = MarketingStore.contacts.length;
+  const activeCampaigns = MarketingStore.campaigns.filter(c => c.status === 'active').length;
+  document.getElementById('kpiCampaigns').textContent = activeCampaigns;
+  // Content this week
+  const now = new Date();
+  const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
+  const thisWeekContent = MarketingStore.contentItems.filter(c => {
+    const d = new Date(c.scheduled_date);
+    return d >= now && d <= weekEnd;
+  }).length;
+  document.getElementById('kpiContent').textContent = thisWeekContent;
+  document.getElementById('kpiTasks').textContent = MarketingStore.taskHistory.length;
+}
+
+/* ── NEXT BEST ACTIONS ── */
+async function loadNextActions() {
+  const list = document.getElementById('nbaList');
+  list.innerHTML = '<li class="mkt-nba-item"><div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;width:100%;">Loading…</div></li>';
+
+  try {
+    const res = await fetch('/api/marketing/next-action');
+    const data = await res.json();
+    if (!data.success || !data.recommendations) throw new Error('No data');
+    renderNextActions(data.recommendations);
+  } catch (e) {
+    // Fallback
+    renderNextActions([
+      { priority: 1, action: 'Follow up with 3 prospects who opened email but didn\'t click', type: 'email', urgency: 'high', deadline: 'Today', suggested_agent: 'copywriter', suggested_prompt: 'Write a 2-sentence follow-up SMS for a tennis player who opened my email but didn\'t click.' },
+      { priority: 2, action: 'Post Tuesday TikTok — backhand mechanics breakdown', type: 'social', urgency: 'medium', deadline: 'Tomorrow', suggested_agent: 'content_creator', suggested_prompt: 'Write a 60-second TikTok script on backhand mechanics. Hook, 3 tips, CTA.' },
+      { priority: 3, action: 'Launch Q2 coach outreach cadence — 47 contacts ready', type: 'campaign', urgency: 'medium', deadline: 'This week', suggested_agent: 'marketing_director', suggested_prompt: 'Create a 30-day plan for launching our coach outreach cadence to 47 coaches.' }
+    ]);
+  }
+}
+
+function renderNextActions(recommendations) {
+  const list = document.getElementById('nbaList');
+  list.innerHTML = recommendations.map(r => `
+    <li class="mkt-nba-item" onclick="runNBAAction(${JSON.stringify(r).replace(/"/g, '&quot;')})">
+      <div class="mkt-nba-item__priority mkt-nba-item__priority--${r.priority}">${r.priority}</div>
+      <div style="flex:1;">
+        <div class="mkt-nba-item__text">${r.action}</div>
+        <div class="mkt-nba-item__meta">
+          <span class="mkt-badge mkt-badge--${r.urgency}">${r.urgency}</span>
+          <span class="mkt-nba-item__deadline">📅 ${r.deadline}</span>
+        </div>
+      </div>
+      <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-nba-item__run" onclick="event.stopPropagation();runNBAAction(${JSON.stringify(r).replace(/"/g, '&quot;')})">Run →</button>
+    </li>
+  `).join('');
+}
+
+function runNBAAction(rec) {
+  if (rec.suggested_agent && rec.suggested_prompt) {
+    MarketingStore.selectedAgent = rec.suggested_agent;
+    document.querySelectorAll('.mkt-agent-card').forEach(c => {
+      c.classList.toggle('is-selected', c.dataset.agent === rec.suggested_agent);
+    });
+    const icons = { copywriter: '✍️', social_media: '📱', content_creator: '🎬', ux_designer: '🎨', marketing_director: '📣' };
+    const names = { copywriter: 'Copywriter Agent', social_media: 'Social Media Manager', content_creator: 'Content Creator', ux_designer: 'UI/UX Designer', marketing_director: 'Marketing Director' };
+    document.getElementById('agentChatIcon').textContent = icons[rec.suggested_agent] || '🤖';
+    document.getElementById('agentChatName').textContent = names[rec.suggested_agent] || rec.suggested_agent;
+    document.getElementById('agentTaskInput').value = rec.suggested_prompt;
+    switchTab('agents', document.querySelector('[data-tab=agents]'));
+  }
+}
+
+/* ── CONTACTS ── */
+async function loadContacts() {
+  if (!MarketingStore.supabase) {
+    // Demo mode
+    MarketingStore.contacts = [
+      { id: '1', name: 'Sarah Mitchell', email: 'sarah@example.com', persona: 'player', stage: 'trial', source: 'organic', tags: ['tennis', 'backhand'] },
+      { id: '2', name: 'Mike Rodriguez', email: 'mike.coach@tennis.com', persona: 'coach', stage: 'customer', source: 'referral', tags: ['USPTA', 'junior'] },
+      { id: '3', name: 'Westchester Academy', email: 'director@westchestertennis.com', persona: 'club', stage: 'prospect', source: 'email', tags: ['club', 'pilot'] },
+      { id: '4', name: 'David Chen', email: 'david.c@email.com', persona: 'player', stage: 'lead', source: 'social', tags: ['4.0', 'topspin'] },
+      { id: '5', name: 'Jennifer Parks', email: 'jparks@gmail.com', persona: 'parent', stage: 'lead', source: 'paid', tags: ['junior', 'parent'] },
+    ];
+    renderContacts(MarketingStore.contacts);
+    updateKPIs();
+    return;
+  }
+
+  try {
+    const { data, error } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) throw error;
+    MarketingStore.contacts = (data || []).map(c => ({ ...c, name: c.name || c.email }));
+    renderContacts(MarketingStore.contacts);
+    updateKPIs();
+  } catch (e) {
+    showToast('Could not load contacts from database. Showing demo data.', '');
+    loadContacts_demo();
+  }
+}
+
+function loadContacts_demo() {
+  MarketingStore.contacts = [];
+  renderContacts([]);
+  updateKPIs();
+}
+
+function renderContacts(contacts) {
+  const tbody = document.getElementById('contactsTbody');
+  if (!contacts.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">👥</div><div class="mkt-empty__title">No contacts</div><div class="mkt-empty__text">Add your first contact to get started.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = contacts.map(c => `
+    <tr>
+      <td>
+        <div class="mkt-table__name">${escHtml(c.name || '')}</div>
+      </td>
+      <td><div class="mkt-table__sub">${escHtml(c.email)}</div></td>
+      <td><span class="mkt-badge mkt-badge--${c.persona || 'player'}">${c.persona || 'player'}</span></td>
+      <td><span class="mkt-badge mkt-badge--${c.stage || 'lead'}">${c.stage || 'lead'}</span></td>
+      <td><span style="font-size:12px;color:var(--muted);">${escHtml(c.source || '—')}</span></td>
+      <td>${(c.tags || []).slice(0,3).map(t => `<span style="font-size:11px;background:var(--bg-soft);padding:2px 7px;border-radius:999px;margin-right:3px;">${escHtml(t)}</span>`).join('')}</td>
+      <td>
+        <div class="mkt-table__actions">
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openAssignCadenceModal('${c.id}', '${escHtml(c.name || c.email)}')">Cadence</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-btn--icon" onclick="deleteContact('${c.id}')" title="Remove">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterContacts() {
+  const q = document.getElementById('contactSearch').value.toLowerCase();
+  const persona = document.getElementById('filterPersona').value;
+  const stage = document.getElementById('filterStage').value;
+  const filtered = MarketingStore.contacts.filter(c => {
+    const matchQ = !q || (c.name || '').toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+    const matchPersona = !persona || c.persona === persona;
+    const matchStage = !stage || c.stage === stage;
+    return matchQ && matchPersona && matchStage;
+  });
+  renderContacts(filtered);
+}
+
+async function saveContact() {
+  const email = document.getElementById('cEmail').value.trim();
+  if (!email) { showToast('Email is required', 'error'); return; }
+
+  const first = document.getElementById('cFirstName').value.trim();
+  const last = document.getElementById('cLastName').value.trim();
+  const contact = {
+    id: 'local_' + Date.now(),
+    email,
+    name: [first, last].filter(Boolean).join(' ') || email,
+    phone: document.getElementById('cPhone').value.trim(),
+    persona: document.getElementById('cPersona').value,
+    stage: document.getElementById('cStage').value,
+    source: document.getElementById('cSource').value,
+    notes: document.getElementById('cNotes').value.trim(),
+    tags: [],
+  };
+
+  if (MarketingStore.supabase) {
+    try {
+      const { data, error } = await MarketingStore.supabase
+        .from('marketing_contacts')
+        .insert([{ ...contact, id: undefined }])
+        .select()
+        .single();
+      if (error) throw error;
+      contact.id = data.id;
+    } catch (e) {
+      console.warn('Supabase insert failed, using local state', e);
+    }
+  }
+
+  MarketingStore.contacts.unshift(contact);
+  renderContacts(MarketingStore.contacts);
+  updateKPIs();
+  closeModal('addContactModal');
+  // Reset form
+  ['cFirstName','cLastName','cEmail','cPhone','cNotes'].forEach(id => document.getElementById(id).value = '');
+  showToast('Contact added!', 'success');
+}
+
+function deleteContact(id) {
+  if (!confirm('Remove this contact?')) return;
+  MarketingStore.contacts = MarketingStore.contacts.filter(c => c.id !== id);
+  renderContacts(MarketingStore.contacts);
+  filterContacts();
+  updateKPIs();
+  showToast('Contact removed');
+  if (MarketingStore.supabase && !id.startsWith('local_')) {
+    MarketingStore.supabase.from('marketing_contacts').delete().eq('id', id).then(() => {});
+  }
+}
+
+/* ── CADENCES ── */
+function renderCadences() {
+  const grid = document.getElementById('cadenceGrid');
+  grid.innerHTML = (window.MARKETING_CADENCES || []).map((c, idx) => {
+    const emailCount = (c.emails || []).length;
+    const smsCount = (c.sms || []).length;
+    const personaBadge = c.target_persona ? `<span class="mkt-badge mkt-badge--${c.target_persona}">${c.target_persona}</span>` : '';
+    const steps = [
+      ...(c.emails || []).map(e => ({ type: 'email', ...e })),
+      ...(c.sms || []).map(s => ({ type: 'sms', ...s }))
+    ].sort((a, b) => a.delay_days - b.delay_days);
+
+    return `
+      <div class="mkt-cadence-card" id="cadence-card-${idx}">
+        <div class="mkt-cadence-card__header" onclick="toggleCadence(${idx})">
+          <div>
+            <div class="mkt-cadence-card__title">${escHtml(c.name)}</div>
+            <div class="mkt-cadence-card__meta">
+              ${personaBadge}
+              <span class="mkt-cadence-card__stats">📧 ${emailCount} emails · 💬 ${smsCount} SMS · ${emailCount + smsCount} steps total</span>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">${escHtml(c.methodology || '')}</div>
+          </div>
+          <span class="mkt-cadence-card__chevron">▼</span>
+        </div>
+        <div class="mkt-cadence-card__body">
+          ${steps.map((step, si) => {
+            if (step.type === 'email') {
+              const preview = (step.body_text || '').substring(0, 80).replace(/\n/g, ' ');
+              return `
+                <div class="mkt-cadence-step" onclick="previewEmail(${idx}, ${step.sequence_num - 1})">
+                  <div class="mkt-cadence-step__num">${step.sequence_num}</div>
+                  <div class="mkt-cadence-step__info">
+                    <div class="mkt-cadence-step__day">Day ${step.delay_days} · Email</div>
+                    <div class="mkt-cadence-step__subject">${escHtml(step.subject)}</div>
+                    <div class="mkt-cadence-step__preview">${escHtml(preview)}…</div>
+                  </div>
+                  <span class="mkt-badge mkt-badge--${step.email_type || 'followup'}" style="flex-shrink:0;font-size:10px;">${step.email_type || ''}</span>
+                </div>`;
+            } else {
+              return `
+                <div class="mkt-cadence-step mkt-cadence-step--sms">
+                  <div class="mkt-cadence-step__num">SMS</div>
+                  <div class="mkt-cadence-step__info">
+                    <div class="mkt-cadence-step__day">Day ${step.delay_days} · SMS</div>
+                    <div class="mkt-cadence-step__subject" style="font-size:13px;">${escHtml((step.message || '').substring(0, 80))}…</div>
+                  </div>
+                </div>`;
+            }
+          }).join('')}
+          <div class="mkt-cadence-card__actions">
+            <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openAssignCadenceByIdx(${idx})">Assign to Contact</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="editCadenceWithAI(${idx})">🤖 Edit with AI</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleCadence(idx) {
+  const card = document.getElementById('cadence-card-' + idx);
+  card.classList.toggle('is-expanded');
+}
+
+function previewEmail(cadenceIdx, emailIdx) {
+  const cadence = window.MARKETING_CADENCES[cadenceIdx];
+  if (!cadence) return;
+  const email = cadence.emails[emailIdx];
+  if (!email) return;
+  MarketingStore.currentEmailPreview = email;
+  document.getElementById('emailPreviewSubject').textContent = email.subject;
+  document.getElementById('emailPreviewMeta').textContent = `Day ${email.delay_days} · ${email.email_type || 'email'}`;
+  document.getElementById('emailPreviewBody').innerHTML = email.body_html || email.body_text;
+  openModal('emailPreviewModal');
+}
+
+function copyEmailToAgent() {
+  if (!MarketingStore.currentEmailPreview) return;
+  closeModal('emailPreviewModal');
+  const ep = MarketingStore.currentEmailPreview;
+  document.getElementById('agentTaskInput').value = `Rewrite this email with more urgency and a stronger CTA:\n\nSubject: ${ep.subject}\n\n${ep.body_text || ''}`;
+  MarketingStore.selectedAgent = 'copywriter';
+  document.querySelectorAll('.mkt-agent-card').forEach(c => c.classList.toggle('is-selected', c.dataset.agent === 'copywriter'));
+  document.getElementById('agentChatName').textContent = 'Copywriter Agent';
+  document.getElementById('agentChatIcon').textContent = '✍️';
+  switchTab('agents', document.querySelector('[data-tab=agents]'));
+}
+
+function openAssignCadenceByIdx(idx) {
+  const cadence = window.MARKETING_CADENCES[idx];
+  if (!cadence) return;
+  openAssignCadenceModal(null, null, cadence.id, cadence.name);
+}
+
+function openAssignCadenceModal(contactId, contactName, cadenceId, cadenceName) {
+  document.getElementById('assignCadenceTitle').textContent = cadenceName ? `Assign "${cadenceName}"` : 'Assign to Cadence';
+  document.getElementById('assignCadenceId').value = cadenceId || '';
+  // Populate contacts
+  const sel = document.getElementById('assignCadenceContact');
+  sel.innerHTML = '<option value="">— Select a contact —</option>' +
+    MarketingStore.contacts.map(c => `<option value="${c.id}"${contactId === c.id ? ' selected' : ''}>${escHtml(c.name || c.email)}</option>`).join('');
+  openModal('assignCadenceModal');
+}
+
+function confirmAssignCadence() {
+  const contactId = document.getElementById('assignCadenceContact').value;
+  const cadenceId = document.getElementById('assignCadenceId').value;
+  if (!contactId) { showToast('Select a contact first', 'error'); return; }
+  showToast('Contact enrolled in cadence!', 'success');
+  closeModal('assignCadenceModal');
+}
+
+function editCadenceWithAI(idx) {
+  const cadence = window.MARKETING_CADENCES[idx];
+  if (!cadence) return;
+  document.getElementById('agentTaskInput').value = `Review and improve this email cadence for ${cadence.target_persona}s: "${cadence.name}". Suggest better subject lines, stronger CTAs, and any messaging improvements based on ${cadence.methodology} methodology.`;
+  MarketingStore.selectedAgent = 'copywriter';
+  document.querySelectorAll('.mkt-agent-card').forEach(c => c.classList.toggle('is-selected', c.dataset.agent === 'copywriter'));
+  switchTab('agents', document.querySelector('[data-tab=agents]'));
+}
+
+/* ── CAMPAIGNS ── */
+function renderCampaigns() {
+  const grid = document.getElementById('campaignGrid');
+  if (!MarketingStore.campaigns.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;"><div class="mkt-empty"><div class="mkt-empty__icon">📢</div><div class="mkt-empty__title">No campaigns yet</div><div class="mkt-empty__text">Create your first campaign to get started.</div></div></div>`;
+    return;
+  }
+  grid.innerHTML = MarketingStore.campaigns.map(c => {
+    const progress = c.progress || 0;
+    const startFmt = c.start_date ? new Date(c.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+    const endFmt = c.end_date ? new Date(c.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+    return `
+      <div class="mkt-campaign-card">
+        <div class="mkt-campaign-card__top">
+          <div>
+            <div class="mkt-campaign-card__name">${escHtml(c.name)}</div>
+            <div class="mkt-campaign-card__type">${c.type} · ${c.target_persona || 'all'}</div>
+          </div>
+          <span class="mkt-badge mkt-badge--${c.status}">${c.status}</span>
+        </div>
+        ${c.description ? `<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">${escHtml(c.description)}</p>` : ''}
+        <div class="mkt-progress">
+          <div class="mkt-progress__bar" style="width:${progress}%;"></div>
+        </div>
+        <div class="mkt-campaign-card__dates">
+          <span>${startFmt} → ${endFmt}</span>
+          <span><strong>${progress}%</strong> complete</span>
+        </div>
+        ${c.budget ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">Budget: $${c.budget.toLocaleString()}</div>` : ''}
+        <div class="mkt-campaign-card__actions">
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="briefCampaignWithAI('${escHtml(c.name)}', '${c.target_persona}', '${c.type}')">🤖 Generate Brief</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="deleteCampaign('${c.id}')">Remove</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function saveCampaign() {
+  const name = document.getElementById('cpName').value.trim();
+  if (!name) { showToast('Campaign name is required', 'error'); return; }
+  const campaign = {
+    id: 'local_' + Date.now(),
+    name,
+    type: document.getElementById('cpType').value,
+    status: 'draft',
+    target_persona: document.getElementById('cpPersona').value,
+    start_date: document.getElementById('cpStart').value,
+    end_date: document.getElementById('cpEnd').value,
+    budget: parseFloat(document.getElementById('cpBudget').value) || 0,
+    description: document.getElementById('cpDesc').value.trim(),
+    brief: document.getElementById('cpBrief').value.trim(),
+    progress: 0
+  };
+  MarketingStore.campaigns.unshift(campaign);
+  renderCampaigns();
+  closeModal('addCampaignModal');
+  ['cpName','cpStart','cpEnd','cpBudget','cpDesc','cpBrief'].forEach(id => document.getElementById(id).value = '');
+  showToast('Campaign created!', 'success');
+}
+
+function deleteCampaign(id) {
+  if (!confirm('Remove this campaign?')) return;
+  MarketingStore.campaigns = MarketingStore.campaigns.filter(c => c.id !== id);
+  renderCampaigns();
+  showToast('Campaign removed');
+}
+
+async function generateCampaignBrief() {
+  const name = document.getElementById('cpName').value.trim() || 'New Campaign';
+  const type = document.getElementById('cpType').value;
+  const persona = document.getElementById('cpPersona').value;
+  const desc = document.getElementById('cpDesc').value.trim();
+  const briefField = document.getElementById('cpBrief');
+  briefField.value = 'Generating brief with AI…';
+  try {
+    const res = await fetch('/api/marketing/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agent_type: 'marketing_director',
+        task: `Create a comprehensive campaign brief for: "${name}". Type: ${type}. Target persona: ${persona}. ${desc ? 'Description: ' + desc : ''}. Include: campaign objective, key messages, success metrics, content plan, and recommended cadence.`
+      })
+    });
+    const data = await res.json();
+    briefField.value = data.response || 'Could not generate brief. Check API configuration.';
+  } catch (e) {
+    briefField.value = 'API call failed. Make sure ANTHROPIC_API_KEY is configured in your environment.';
+  }
+}
+
+function briefCampaignWithAI(name, persona, type) {
+  document.getElementById('cpName').value = name;
+  document.getElementById('cpPersona').value = persona || 'player';
+  document.getElementById('cpType').value = type || 'email';
+  openModal('addCampaignModal');
+  setTimeout(() => generateCampaignBrief(), 300);
+}
+
+/* ── CONTENT CALENDAR ── */
+function getWeekStart(offset) {
+  const today = new Date();
+  const day = today.getDay(); // 0 = Sun
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7));
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+function renderCalendar() {
+  const weekStart = getWeekStart(MarketingStore.calOffset);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    days.push(d);
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Update label
+  const startFmt = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const endD = new Date(weekStart); endD.setDate(weekStart.getDate() + 6);
+  const endFmt = endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  document.getElementById('calLabel').textContent = `${startFmt} – ${endFmt}`;
+
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = dayNames.map(d => `<div class="mkt-cal-day-header">${d}</div>`).join('') +
+    days.map(d => {
+      const isToday = d.getTime() === today.getTime();
+      const dateStr = d.toISOString().split('T')[0];
+      const dayItems = MarketingStore.contentItems.filter(c => c.scheduled_date === dateStr);
+      return `
+        <div class="mkt-cal-day ${isToday ? 'mkt-cal-day--today' : ''}" onclick="openModal('addContentModal'); document.getElementById('ctDate').value='${dateStr}'">
+          <div class="mkt-cal-day__num">${d.getDate()}</div>
+          ${dayItems.map(item => `
+            <div class="mkt-cal-item mkt-cal-item--${item.platform} mkt-cal-item--${item.status}" title="${escHtml(item.title)}" onclick="event.stopPropagation();">
+              ${escHtml(item.title.substring(0, 22))}${item.title.length > 22 ? '…' : ''}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
+}
+
+function renderMiniCalendar() {
+  const today = new Date();
+  const items = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    const dayItems = MarketingStore.contentItems.filter(c => c.scheduled_date === dateStr);
+    if (dayItems.length) {
+      items.push({ date: d, items: dayItems });
+    }
+  }
+  const container = document.getElementById('miniCalendar');
+  if (!items.length) {
+    container.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:8px 0;">No content scheduled in the next 7 days.</div>`;
+    return;
+  }
+  container.innerHTML = items.map(day => {
+    const label = day.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return `
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="min-width:80px;font-size:12px;font-weight:700;color:var(--muted);padding-top:2px;">${label}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">${day.items.map(item => `
+          <span class="mkt-cal-item mkt-cal-item--${item.platform}" style="font-size:11px;">${escHtml(item.title.substring(0, 30))}</span>
+        `).join('')}</div>
+      </div>
+    `;
+  }).join('') + `<div style="padding-top:8px;"><button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="switchTab('calendar', document.querySelector('[data-tab=calendar]'))">View full calendar →</button></div>`;
+}
+
+function calNav(dir) {
+  MarketingStore.calOffset += dir;
+  renderCalendar();
+}
+
+function calToday() {
+  MarketingStore.calOffset = 0;
+  renderCalendar();
+}
+
+function saveContent() {
+  const title = document.getElementById('ctTitle').value.trim();
+  if (!title) { showToast('Title is required', 'error'); return; }
+  const item = {
+    id: 'local_' + Date.now(),
+    title,
+    platform: document.getElementById('ctPlatform').value,
+    type: document.getElementById('ctType').value,
+    status: document.getElementById('ctStatus').value,
+    scheduled_date: document.getElementById('ctDate').value || offsetDate(1),
+    copy_text: document.getElementById('ctCopy').value.trim()
+  };
+  MarketingStore.contentItems.push(item);
+  renderCalendar();
+  renderMiniCalendar();
+  updateKPIs();
+  closeModal('addContentModal');
+  ['ctTitle','ctCopy'].forEach(id => document.getElementById(id).value = '');
+  showToast('Content added to calendar!', 'success');
+}
+
+/* ── AI AGENTS ── */
+function selectAgent(card) {
+  document.querySelectorAll('.mkt-agent-card').forEach(c => c.classList.remove('is-selected'));
+  card.classList.add('is-selected');
+  MarketingStore.selectedAgent = card.dataset.agent;
+  const icons = { copywriter: '✍️', social_media: '📱', content_creator: '🎬', ux_designer: '🎨', marketing_director: '📣' };
+  const names = { copywriter: 'Copywriter Agent', social_media: 'Social Media Manager', content_creator: 'Content Creator', ux_designer: 'UI/UX Designer', marketing_director: 'Marketing Director' };
+  document.getElementById('agentChatIcon').textContent = icons[MarketingStore.selectedAgent] || '🤖';
+  document.getElementById('agentChatName').textContent = names[MarketingStore.selectedAgent] || MarketingStore.selectedAgent;
+  document.getElementById('agentResponse').textContent = '';
+  document.getElementById('agentTaskInput').focus();
+}
+
+function handleAgentKey(e) {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    runAgent();
+  }
+}
+
+async function runAgent() {
+  const task = document.getElementById('agentTaskInput').value.trim();
+  if (!task) { showToast('Describe a task for the agent', 'error'); return; }
+
+  const btn = document.getElementById('agentRunBtn');
+  const dot = document.getElementById('agentStatusDot');
+  const statusText = document.getElementById('agentStatusText');
+  const responseEl = document.getElementById('agentResponse');
+
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  dot.classList.add('mkt-agent-chat__status-dot--thinking');
+  statusText.textContent = 'Thinking…';
+  responseEl.innerHTML = `<div class="mkt-agent-response__thinking"><div class="mkt-typing-dots"><span></span><span></span><span></span></div> Agent is working…</div>`;
+
+  const startTime = Date.now();
+
+  try {
+    const res = await fetch('/api/marketing/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        agent_type: MarketingStore.selectedAgent,
+        task
+      })
+    });
+
+    const data = await res.json();
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    if (data.success) {
+      responseEl.textContent = data.response;
+      statusText.textContent = `Done (${elapsed}s)`;
+      dot.classList.remove('mkt-agent-chat__status-dot--thinking');
+
+      // Save to history
+      const taskEntry = {
+        id: data.task_id || ('t' + Date.now()),
+        agent: MarketingStore.selectedAgent,
+        task: task.substring(0, 80) + (task.length > 80 ? '…' : ''),
+        status: 'completed',
+        response: data.response,
+        time: new Date().toLocaleTimeString()
+      };
+      MarketingStore.taskHistory.unshift(taskEntry);
+      renderTaskHistory();
+      updateKPIs();
+
+      // Log to Supabase if available
+      if (MarketingStore.supabase) {
+        MarketingStore.supabase.from('agent_tasks').insert([{
+          agent_type: MarketingStore.selectedAgent,
+          task,
+          status: 'completed',
+          input_data: { task },
+          output_data: { response: data.response }
+        }]).then(() => {});
+      }
+    } else {
+      responseEl.textContent = `Error: ${data.error || 'Unknown error'}`;
+      statusText.textContent = 'Error';
+      dot.classList.remove('mkt-agent-chat__status-dot--thinking');
+    }
+  } catch (e) {
+    responseEl.textContent = `Network error: ${e.message}. Make sure the API server is running.`;
+    statusText.textContent = 'Error';
+    dot.classList.remove('mkt-agent-chat__status-dot--thinking');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Run Agent';
+}
+
+function renderTaskHistory() {
+  const tbody = document.getElementById('taskHistoryTbody');
+  if (!MarketingStore.taskHistory.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="mkt-empty" style="padding:24px;"><div class="mkt-empty__text">No tasks run yet.</div></div></td></tr>`;
+    return;
+  }
+  const agentIcons = { copywriter: '✍️', social_media: '📱', content_creator: '🎬', ux_designer: '🎨', marketing_director: '📣' };
+  tbody.innerHTML = MarketingStore.taskHistory.map(t => `
+    <tr>
+      <td><span style="font-size:16px;">${agentIcons[t.agent] || '🤖'}</span> <span style="font-size:12px;color:var(--mid);">${t.agent}</span></td>
+      <td><div style="font-size:13px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(t.task)}</div></td>
+      <td><span class="mkt-badge mkt-badge--${t.status === 'completed' ? 'customer' : 'lead'}">${t.status}</span></td>
+      <td><span style="font-size:12px;color:var(--muted);">${t.time}</span></td>
+      <td>
+        <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="viewTaskResponse('${t.id}')">View</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function viewTaskResponse(id) {
+  const task = MarketingStore.taskHistory.find(t => t.id === id);
+  if (!task) return;
+  document.getElementById('agentResponse').textContent = task.response;
+  document.getElementById('agentTaskInput').value = task.task;
+}
+
+function clearTaskHistory() {
+  if (!confirm('Clear all task history?')) return;
+  MarketingStore.taskHistory = [];
+  renderTaskHistory();
+  updateKPIs();
+}
+
+/* ── DATA REFRESH ── */
+function refreshData() {
+  loadContacts();
+  loadNextActions();
+  renderCalendar();
+  renderMiniCalendar();
+  showToast('Data refreshed');
+}
+
+/* ── UTILS ── */
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI Features — White Redesign Preview</title>
+  <meta name="description" content="Explore SmartSwing AI features: biomechanics analysis, drill recommendations, coach dashboards, and role-based privacy — all in one clean platform.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./white-theme.css">
+  <style>
+    /* ── PAGE-SPECIFIC ── */
+
+    /* Bento grid */
+    .bento {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr .9fr;
+      grid-template-rows: auto auto;
+      gap: 20px;
+    }
+    .bento-main {
+      grid-row: span 2;
+      min-height: 520px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      background: var(--black);
+    }
+    .bento-main-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: .55;
+      position: absolute;
+      inset: 0;
+    }
+    .bento-main-body {
+      position: relative;
+      z-index: 1;
+      padding: 36px 32px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .bento-main-body .wt-eyebrow { margin-bottom: 18px; }
+    .bento-main-body .wt-h3 { color: #fff; font-size: clamp(28px, 3.5vw, 42px); max-width: 12ch; }
+    .bento-main-body .wt-lead { color: rgba(255,255,255,.6); margin-top: 14px; }
+    .bento-main-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .bento-main-chips .wt-chip {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.15);
+      color: rgba(255,255,255,.8);
+    }
+
+    .bento-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #fff;
+      transition: transform 200ms, box-shadow 200ms;
+    }
+    .bento-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .bento-card-img {
+      height: 180px;
+      overflow: hidden;
+    }
+    .bento-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 300ms;
+    }
+    .bento-card:hover .bento-card-img img { transform: scale(1.05); }
+    .bento-card-body { padding: 24px; }
+    .bento-card-body .wt-h4 { margin-top: 8px; }
+    .bento-card-body .wt-body { margin-top: 8px; font-size: 14px; }
+
+    /* Feature detail list inside bento cards */
+    .bento-detail { margin-top: 14px; display: grid; gap: 8px; }
+    .bento-detail-item {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 10px 14px;
+      background: var(--bg-soft);
+      border-radius: var(--radius-sm);
+      line-height: 1.5;
+    }
+    .bento-detail-item strong { color: var(--black); font-weight: 700; }
+
+    /* Split sections spacing */
+    .split-section + .split-section { margin-top: 80px; }
+
+    /* Values card grid */
+    .value-card {
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      transition: transform 200ms, box-shadow 200ms;
+    }
+    .value-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .value-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: var(--bg-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .value-card .wt-h4 { margin-bottom: 10px; }
+
+    /* Testimonials */
+    .testimonials-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+    }
+
+    /* Inline quote highlight */
+    .quote-highlight {
+      border-left: 3px solid var(--volt);
+      padding-left: 18px;
+      margin: 16px 0;
+      font-size: 17px;
+      font-style: italic;
+      color: var(--mid);
+      line-height: 1.6;
+    }
+
+    /* Responsive bento */
+    @media (max-width: 1024px) {
+      .bento { grid-template-columns: 1fr 1fr; }
+      .bento-main { grid-row: span 1; min-height: 320px; }
+      .testimonials-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .bento { grid-template-columns: 1fr; }
+      .testimonials-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="wt-nav">
+    <div class="wt-nav-inner">
+      <a href="./index-white.html" class="wt-brand">SmartSwing<span class="wt-brand-dot">.</span>AI</a>
+      <div class="wt-nav-links">
+        <a href="./index-white.html">Home</a>
+        <a href="./features-white.html" class="active">Features</a>
+        <a href="./about-white.html">About</a>
+        <a href="./pricing.html">Pricing</a>
+        <a href="./for-coaches.html">Coaches</a>
+        <a href="./blog.html">Blog</a>
+      </div>
+      <div class="wt-nav-cta">
+        <a href="./login.html" class="wt-btn wt-btn--ghost wt-btn--sm">Sign In</a>
+        <a href="./analyze.html" class="wt-btn wt-btn--primary wt-btn--sm">Start Free Analysis</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="wt-hero" style="position:relative;overflow:hidden;">
+    <div class="wt-hero-bg" aria-hidden="true"></div>
+    <div class="wt-page">
+      <div class="wt-hero-inner wt-reveal">
+        <span class="wt-eyebrow">Feature stack</span>
+        <div class="wt-float-badge" style="margin-bottom:24px;"><span class="wt-dot"></span><span style="font:600 13px/1 DM Sans,sans-serif;color:#1d1d1f;">AI-powered · Biomechanics-grade · Instant feedback</span></div>
+        <h1 class="wt-h1">The operating system for <span class="wt-volt-text">tennis improvement.</span></h1>
+        <p class="wt-lead">Video analysis, coach-ready reports, drill recommendations, player progress, and role-based dashboards — connected into one clean, purposeful flow.</p>
+        <div class="wt-hero-actions">
+          <a href="./analyze.html" class="wt-btn wt-btn--primary wt-btn--lg">Open Analyzer</a>
+          <a href="./pricing.html" class="wt-btn wt-btn--ghost wt-btn--lg">Compare Plans</a>
+        </div>
+        <p class="wt-hero-note">No app download needed. Works on any browser, any device.</p>
+      </div>
+      <div class="wt-hero-strip">
+        <img src="./assets/redesign/ai-breakdown.png" alt="AI biomechanics breakdown side by side">
+      </div>
+    </div>
+  </section>
+
+  <!-- STAT CHIPS -->
+  <div class="wt-page">
+    <div class="wt-stat-chips">
+      <div class="wt-stat-chip"><strong>60s</strong><span>average report time</span></div>
+      <div class="wt-stat-chip"><strong>Top 3</strong><span>priority fixes, not a metric wall</span></div>
+      <div class="wt-stat-chip"><strong>Web-based</strong><span>no app download</span></div>
+      <div class="wt-stat-chip"><strong>Coach + Player</strong><span>separate role views</span></div>
+    </div>
+  </div>
+
+  <!-- BENTO FEATURE GRID -->
+  <section class="wt-section wt-page">
+    <div class="wt-section-header">
+      <span class="wt-eyebrow">Core capabilities</span>
+      <h2 class="wt-h2">Every layer reinforces the next.</h2>
+      <p class="wt-lead">The value is not one feature — it is what happens when analysis, drills, coaching, and progress all share a common language.</p>
+    </div>
+
+    <div class="bento">
+      <!-- Main card -->
+      <div class="bento-main">
+        <img class="bento-main-img" src="./assets/redesign/swing-analysis.png" alt="Swing analysis">
+        <div class="bento-main-body">
+          <span class="wt-eyebrow">Core engine</span>
+          <h3 class="wt-h3">AI video analysis built to drive the next rep, not just the report.</h3>
+          <p class="wt-lead">Pose tracking, tennis-specific biomechanics, level-adjusted scoring, and top-priority feedback work together so players leave with a real plan.</p>
+          <div class="bento-main-chips">
+            <span class="wt-chip">Readable biomechanics</span>
+            <span class="wt-chip">Coach-ready summaries</span>
+            <span class="wt-chip">Plan-based guardrails</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports card -->
+      <div class="bento-card">
+        <div class="bento-card-img">
+          <img src="./assets/redesign/ai-assessment.png" alt="AI assessment report">
+        </div>
+        <div class="bento-card-body">
+          <span class="wt-chip wt-chip--volt">Reports</span>
+          <h4 class="wt-h4">Readable biomechanics</h4>
+          <p class="wt-body">Angles are translated into coaching insight, expandable explanations, and clear fixes — not walls of disconnected logic.</p>
+          <div class="bento-detail">
+            <div class="bento-detail-item"><strong>Plain English:</strong> movement data becomes actionable feedback players, parents, and coaches can use immediately.</div>
+            <div class="bento-detail-item"><strong>Priority feed:</strong> the same top issues flow into drills, tactics, and coach notes automatically.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboards card -->
+      <div class="bento-card">
+        <div class="bento-card-img">
+          <img src="./assets/redesign/personalized.png" alt="Personalized player dashboard">
+        </div>
+        <div class="bento-card-body">
+          <span class="wt-chip">Dashboards</span>
+          <h4 class="wt-h4">Cleaner player and coach tabs</h4>
+          <p class="wt-body">Messaging, scheduling, drills, analytics, and activities separated so each role sees exactly what it needs.</p>
+          <div class="bento-detail">
+            <div class="bento-detail-item"><strong>Role-scoped:</strong> player and coach views never compete for the same screen real estate.</div>
+            <div class="bento-detail-item"><strong>One source:</strong> exports, scheduling, and library access all obey the active plan automatically.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training card -->
+      <div class="bento-card">
+        <div class="bento-card-img">
+          <img src="./assets/redesign/tactical.png" alt="Tactical drills recommendation">
+        </div>
+        <div class="bento-card-body">
+          <span class="wt-chip wt-chip--volt">Training</span>
+          <h4 class="wt-h4">Drills and tactics tied to weaknesses</h4>
+          <p class="wt-body">Recommendation logic limits output to the top 3 drill plans and top 3 tactical plays — no overwhelm, just the next best action.</p>
+          <div class="bento-detail">
+            <div class="bento-detail-item"><strong>Focused:</strong> fewer choices means better compliance and stronger habit formation.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Access control card -->
+      <div class="bento-card">
+        <div class="bento-card-img">
+          <img src="./assets/redesign/ai-improvement.png" alt="Privacy and access control">
+        </div>
+        <div class="bento-card-body">
+          <span class="wt-chip">Access control</span>
+          <h4 class="wt-h4">Privacy and plan guardrails</h4>
+          <p class="wt-body">Scoped visibility, entitlement checks, role-based messaging, trial enforcement, and plan limits protect the right data and the right flows.</p>
+          <div class="bento-detail">
+            <div class="bento-detail-item"><strong>Predictable:</strong> privacy, subscription limits, and coach access enforce themselves.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS BAR -->
+  <div class="wt-metrics">
+    <div class="wt-metrics-inner">
+      <div class="wt-metric"><strong>60s</strong><span>Average time to first report</span></div>
+      <div class="wt-metric"><strong>Top 3</strong><span>Priority fixes per analysis</span></div>
+      <div class="wt-metric"><strong>100%</strong><span>Web-based, zero app install</span></div>
+      <div class="wt-metric"><strong>2 roles</strong><span>Player + Coach, separate views</span></div>
+    </div>
+  </div>
+
+  <!-- SPLIT: What players feel -->
+  <section class="wt-section wt-page split-section">
+    <div class="wt-split">
+      <div class="wt-split-img">
+        <img src="./assets/redesign/woman-analysis.png" alt="Player reviewing swing analysis">
+      </div>
+      <div class="wt-split-copy">
+        <span class="wt-eyebrow">Player experience</span>
+        <h2 class="wt-h2">What players feel when it works.</h2>
+        <ul class="wt-feature-list">
+          <li>"I know what to fix first." — Top 3 feedback replaces a confusing metric wall.</li>
+          <li>"I can actually follow the plan." — Drills, tactics, and dashboard actions stay connected.</li>
+          <li>"The score feels fair." — Level, age, and gender adjustments prevent demotivating outputs.</li>
+          <li>"Progress feels real." — Session-over-session tracking makes improvement visible.</li>
+        </ul>
+        <div class="wt-hero-actions" style="justify-content: flex-start; margin-top: 28px;">
+          <a href="./analyze.html" class="wt-btn wt-btn--primary">Try It Free</a>
+          <a href="./for-players.html" class="wt-btn wt-btn--ghost">For Players</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPLIT: What coaches gain -->
+  <section class="wt-section wt-section--soft split-section">
+    <div class="wt-page">
+      <div class="wt-split wt-split--flip">
+        <div class="wt-split-img">
+          <img src="./assets/redesign/woman-analysis2.png" alt="Coach reviewing player analysis">
+        </div>
+        <div class="wt-split-copy">
+          <span class="wt-eyebrow">Coach experience</span>
+          <h2 class="wt-h2">What coaches gain every session.</h2>
+          <ul class="wt-feature-list">
+            <li>Faster triage — who needs help, what changed, and what to assign next, in one view.</li>
+            <li>Better athlete accountability — one system for messaging, assignments, and schedule flow.</li>
+            <li>Clearer reporting — coach-ready summaries that say what matters without raw scoring clutter.</li>
+            <li>Scalable workflows — manage a full roster without custom software or spreadsheets.</li>
+          </ul>
+          <div class="wt-hero-actions" style="justify-content: flex-start; margin-top: 28px;">
+            <a href="./for-coaches.html" class="wt-btn wt-btn--primary">For Coaches</a>
+            <a href="./for-clubs.html" class="wt-btn wt-btn--ghost">For Clubs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="wt-section wt-page">
+    <div class="wt-section-header">
+      <span class="wt-eyebrow">Proof</span>
+      <h2 class="wt-h2">Players buy proof. Coaches buy clarity.</h2>
+    </div>
+    <div class="testimonials-row">
+      <div class="wt-testimonial">
+        <div class="wt-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="wt-testimonial-quote">"The report finally told me what mattered. Not ten disconnected numbers. Just the three things costing me depth and consistency."</p>
+        <div class="wt-testimonial-author">
+          <div class="wt-avatar"><img src="./assets/avatar/Persona 3 Tennis.png" alt="Marcos"></div>
+          <div>
+            <div class="wt-author-name">Marcos</div>
+            <div class="wt-author-title">4.0 league player</div>
+          </div>
+        </div>
+      </div>
+      <div class="wt-testimonial">
+        <div class="wt-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="wt-testimonial-quote">"I can see what changed, why it matters, and what to assign next without rewriting the whole session plan."</p>
+        <div class="wt-testimonial-author">
+          <div class="wt-avatar"><img src="./assets/avatar/Coach Ace 16_9.png" alt="Coach Elena"></div>
+          <div>
+            <div class="wt-author-name">Coach Elena</div>
+            <div class="wt-author-title">Head coach, USTA program</div>
+          </div>
+        </div>
+      </div>
+      <div class="wt-testimonial">
+        <div class="wt-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="wt-testimonial-quote">"My son stopped asking if the score was bad and started asking what the next drill would improve. That's a huge shift."</p>
+        <div class="wt-testimonial-author">
+          <div class="wt-avatar"><img src="./assets/avatar/Persona 1 Tennis.png" alt="Parent"></div>
+          <div>
+            <div class="wt-author-name">Parent, U14 family</div>
+            <div class="wt-author-title">Junior development program</div>
+          </div>
+        </div>
+      </div>
+      <div class="wt-testimonial">
+        <div class="wt-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <p class="wt-testimonial-quote">"It feels like a film room and a coach note in one screen. The numbers finally connect to a decision I can make on court."</p>
+        <div class="wt-testimonial-author">
+          <div class="wt-avatar"><img src="./assets/avatar/Persona 4 Tennis.png" alt="Division athlete"></div>
+          <div>
+            <div class="wt-author-name">Division athlete</div>
+            <div class="wt-author-title">College tennis program</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="wt-section wt-section--soft">
+    <div class="wt-page">
+      <div class="wt-section-header">
+        <span class="wt-eyebrow">FAQ</span>
+        <h2 class="wt-h2">Common questions.</h2>
+      </div>
+      <div class="wt-faq" style="max-width: 760px; margin: 0 auto;">
+        <details class="wt-faq-item">
+          <summary>What does SmartSwing AI analyze in a tennis video?</summary>
+          <div class="wt-faq-body">SmartSwing AI analyzes biomechanics including stroke mechanics, hip rotation, contact point, footwork patterns, and follow-through. It identifies your top technical issues and maps them to drills and tactical adjustments — in plain language you can act on immediately.</div>
+        </details>
+        <details class="wt-faq-item">
+          <summary>Does SmartSwing AI work for coaches?</summary>
+          <div class="wt-faq-body">Yes. Coaches get a dedicated dashboard to review player reports, assign drills, add notes, and track progress over time. The coach workflow is fully separate from the player view so each role only sees what it needs.</div>
+        </details>
+        <details class="wt-faq-item">
+          <summary>Do I need to download an app to use SmartSwing AI?</summary>
+          <div class="wt-faq-body">No. SmartSwing AI is fully web-based. Upload a video from any browser on any device — phone, tablet, or desktop — with no app download required.</div>
+        </details>
+        <details class="wt-faq-item">
+          <summary>How fast does SmartSwing AI generate a report?</summary>
+          <div class="wt-faq-body">Most reports are ready within 60 seconds of uploading a video. You get your top 3 priority fixes, matching drill recommendations, and tactical guidance without waiting.</div>
+        </details>
+        <details class="wt-faq-item">
+          <summary>Does SmartSwing AI work for pickleball?</summary>
+          <div class="wt-faq-body">Yes. SmartSwing AI supports both tennis and pickleball swing analysis, with sport-specific biomechanics scoring calibrated for each game's unique mechanics and player needs.</div>
+        </details>
+        <details class="wt-faq-item">
+          <summary>How is the scoring adjusted for different player levels?</summary>
+          <div class="wt-faq-body">The scoring engine adjusts for level, age, and gender so a beginner's report is benchmarked differently from an advanced player's. This prevents discouraging output and makes progress feel meaningful at every stage.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA PANEL -->
+  <section class="wt-section wt-page">
+    <div class="wt-cta-panel">
+      <span class="wt-eyebrow">Next move</span>
+      <h2 class="wt-h2" style="margin-top: 16px;">Open the analyzer and see the full feature loop live.</h2>
+      <p class="wt-lead" style="margin-top: 14px; max-width: 44ch; margin-left: auto; margin-right: auto;">One video. Sixty seconds. A clear plan for the next session — not a wall of metrics to decode.</p>
+      <div class="wt-cta-actions">
+        <a href="./analyze.html" class="wt-btn wt-btn--volt wt-btn--lg">Start Free Analysis</a>
+        <a href="./pricing.html" class="wt-btn wt-btn--outline-white wt-btn--lg">Compare Plans</a>
+        <a href="./contact.html" class="wt-btn wt-btn--outline-white wt-btn--lg">Talk to Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="wt-footer">
+    <div class="wt-footer-grid">
+      <div>
+        <div class="wt-footer-brand">SmartSwing<span class="wt-footer-brand-dot">.</span>AI</div>
+        <p class="wt-footer-tagline">AI-powered tennis and pickleball analysis for players, coaches, and performance programs.</p>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Pathways</h4>
+        <ul>
+          <li><a href="./for-players.html">For Players</a></li>
+          <li><a href="./for-coaches.html">For Coaches</a></li>
+          <li><a href="./for-clubs.html">For Clubs</a></li>
+          <li><a href="./for-parents.html">For Parents</a></li>
+          <li><a href="./pickleball.html">Pickleball</a></li>
+        </ul>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="./blog.html">Blog</a></li>
+          <li><a href="./library.html">Library</a></li>
+          <li><a href="./contact.html">Contact</a></li>
+          <li><a href="./refund-policy.html">Refund Policy</a></li>
+          <li><a href="./pricing.html">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="wt-footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a></li>
+          <li><a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wt-footer-bottom">
+      <p>&copy; 2026 SmartSwing AI. All rights reserved.</p>
+      <div class="wt-footer-bottom-links">
+        <a href="./privacy-policy.html">Privacy</a>
+        <a href="./user-agreement.html">Terms</a>
+        <a href="./accessibility.html">Accessibility</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- PREVIEW BANNER -->
+  <div class="wt-preview-banner">
+    <span class="dot"></span>
+    Preview Mode — White Redesign Concept &nbsp;·&nbsp;
+    <a href="./features.html">View Current Dark Site &rarr;</a>
+  </div>
+
+
+  <!-- Scroll reveal + progress bar + nav scroll -->
+  <script>
+  (function(){
+    var bar=document.createElement('div'); bar.className='wt-scroll-progress'; document.body.prepend(bar);
+    var nav=document.querySelector('.wt-nav,nav,header');
+    window.addEventListener('scroll',function(){ var p=window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight); bar.style.transform='scaleX('+p+')'; if(nav)nav.classList.toggle('scrolled',window.scrollY>40); },{passive:true});
+    var io=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('visible');io.unobserve(x.target);}});},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.wt-reveal,.wt-stagger').forEach(function(el){io.observe(el);});
+    document.querySelectorAll('.wt-section-header,.wt-card,.wt-split-copy,.wt-split-img,.wt-metric,.wt-testimonial,.wt-faq-item').forEach(function(el,i){
+      if(!el.classList.contains('wt-reveal')){el.classList.add('wt-reveal');el.style.transitionDelay=(i%5*55)+'ms';}
+      io.observe(el);
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,4042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI — Analyzer (White Preview)</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <link rel="manifest" href="./manifest.json">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Local AI runtime first for stability; fallback mirrors are used only if these fail -->
+  <script src="./assets/vendor/tf.min.js"></script>
+  <script src="./assets/vendor/mediapipe/pose/pose.js"></script>
+  <script src="./assets/vendor/pose-detection.min.js"></script>
+  <script src="./public-app-config.js"></script>
+  <script src="/api/runtime-config.js"></script>
+  <script src="./app-data.js"></script>
+  <script src="./pwa.js"></script>
+  
+  <style>
+    :root {
+      --neon-green: #39FF14;
+      --electric-cyan: #FFD84D;
+      --void-black: #000000;
+      --deep-navy: #0D1B2A;
+      --silver: #F5F5F7;
+      --gray: #EEF3F7;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --error: #FF3E6C;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--void-black);
+      color: var(--silver);
+      line-height: 1.6;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container { max-width: 1600px; margin: 0 auto; }
+    
+    .wizard-section {
+      background: linear-gradient(135deg, var(--deep-navy), var(--void-black));
+      border-radius: 28px;
+      padding: 48px;
+      border: 1px solid rgba(57, 255, 20, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    
+    .header { text-align: center; margin-bottom: 48px; }
+    
+    .title {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      margin-bottom: 12px;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, var(--neon-green) 0%, #82ff63 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      color: var(--silver);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .plan-strip {
+      margin: 16px auto 0;
+      max-width: 760px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(57, 255, 20, 0.22);
+      background: rgba(57, 255, 20, 0.07);
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .plan-strip strong {
+      color: var(--neon-green);
+    }
+
+    .usage-alert {
+      margin-top: 6px;
+      color: #ffd68a;
+      font-weight: 700;
+    }
+    
+    /* Wizard Steps */
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      position: relative;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .wizard-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 0;
+    }
+    
+    .wizard-step {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-weight: 900;
+      transition: all 0.3s ease;
+    }
+    
+    .wizard-step.active .step-circle {
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      border-color: var(--neon-green);
+      color: var(--void-black);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+    }
+    
+    .wizard-step.completed .step-circle {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+    
+    .step-label {
+      font-size: 12px;
+      color: var(--electric-cyan);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .wizard-step.active .step-label { color: var(--neon-green); }
+    
+    /* Step Content */
+    .step-content { display: none; }
+    .step-content.active { display: block; animation: fadeIn 0.3s ease; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .step-title {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 24px;
+      color: var(--neon-green);
+    }
+    
+    /* Selection Cards */
+    .selection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin: 32px 0;
+    }
+    
+    .selection-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    
+    .selection-card:hover {
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.05);
+      transform: translateY(-4px);
+    }
+    
+    .selection-card.selected {
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.1);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
+    }
+    
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--neon-green); }
+    .card-subtitle { font-size: 12px; color: var(--silver); font-weight: 600; }
+    
+    /* Buttons */
+    .btn {
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-family: inherit;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      color: var(--void-black);
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(57, 255, 20, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--silver);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+    
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed rgba(57, 255, 20, 0.3);
+      border-radius: 20px;
+      padding: 60px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(57, 255, 20, 0.02);
+      margin: 32px 0;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--neon-green);
+      background: rgba(57, 255, 20, 0.05);
+    }
+    
+    /* Analysis View */
+    .ai-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .ai-status.ready {
+      background: rgba(57, 255, 20, 0.15);
+      color: var(--neon-green);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+    }
+    
+    .ai-status.loading {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    
+    .ai-status.error {
+      background: rgba(255, 62, 108, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(255, 62, 108, 0.3);
+    }
+    
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    
+    @media (max-width: 1200px) {
+      .analysis-grid { grid-template-columns: 1fr; }
+    }
+    
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--void-black);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(57, 255, 20, 0.2);
+    }
+    
+    #videoElement, #poseCanvas {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    
+    #videoElement { object-fit: contain; }
+    #poseCanvas { pointer-events: none; }
+    
+    .stats-panel {
+      background: rgba(10, 22, 40, 0.6);
+      border-radius: 24px;
+      padding: 32px;
+      border: 1px solid rgba(57, 255, 20, 0.15);
+    }
+    
+    .stat-card {
+      background: rgba(57, 255, 20, 0.05);
+      border: 1px solid rgba(57, 255, 20, 0.15);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--electric-cyan);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--neon-green);
+      line-height: 1;
+    }
+    
+    .angles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .angle-item {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .angle-name {
+      font-size: 10px;
+      color: var(--electric-cyan);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    
+    .angle-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--neon-green);
+    }
+    
+    /* Report Styles */
+    .report-header {
+      text-align: center;
+      padding: 48px;
+      background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 229, 255, 0.05));
+      border-radius: 24px;
+      margin-bottom: 48px;
+    }
+    
+    .smartswing-score {
+      font-size: 120px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    
+    .grade-badge {
+      display: inline-block;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      color: var(--void-black);
+      border-radius: 24px;
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+    
+    .percentile {
+      font-size: 18px;
+      color: var(--gray);
+      margin-bottom: 24px;
+    }
+    
+    .report-section {
+      background: linear-gradient(135deg, rgba(13, 59, 71, 0.2), rgba(10, 22, 40, 0.2));
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(57, 255, 20, 0.1);
+    }
+    
+    .report-section-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: var(--neon-green);
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 24px 0;
+    }
+    
+    .metric-card {
+      background: rgba(10, 22, 40, 0.6);
+      border: 1px solid rgba(57, 255, 20, 0.15);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .metric-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--electric-cyan);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    
+    .metric-value-large {
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--neon-green), var(--electric-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    
+    .metric-label {
+      font-size: 12px;
+      color: var(--silver);
+    }
+    
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+    
+    .metric-row-label {
+      font-size: 14px;
+      color: var(--silver);
+    }
+    
+    .metric-row-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--neon-green);
+    }
+    
+    .info-box {
+      background: rgba(255, 216, 77, 0.1);
+      border-left: 3px solid var(--electric-cyan);
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .selection-card,
+    .stat-card,
+    .angle-item,
+    .metric-card,
+    .report-section {
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .selection-card:hover,
+    .stat-card:hover,
+    .angle-item:hover,
+    .metric-card:hover,
+    .report-section:hover {
+      transform: translateY(-3px);
+      border-color: rgba(57, 255, 20, 0.32);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+    }
+    
+    @media print {
+      .btn-group, .wizard-steps {
+        display: none !important;
+      }
+    }
+  </style>
+  <!-- Vercel Web Analytics -->
+  <script src="./analytics.js"></script>
+
+  <!-- WHITE THEME OVERRIDE -->
+  <link rel="stylesheet" href="./white-theme.css">
+  <style>
+    :root {
+      --void-black: #ffffff;
+      --deep-navy:  #f5f5f7;
+      --silver:     #1d1d1f;
+      --gray:       #424245;
+    }
+    body { background: #f5f5f7 !important; color: #1d1d1f !important; }
+    .wizard-section { background: #fff !important; border: 1px solid #e5e5e7 !important; box-shadow: 0 4px 32px rgba(0,0,0,.07) !important; }
+    .title { color: #1d1d1f !important; }
+    .gradient-text { background: linear-gradient(135deg,#1d1d1f,#424245) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; background-clip:text !important; }
+    .subtitle { color: #424245 !important; }
+    .wizard-steps::before { background: #e5e5e7 !important; }
+    .step-circle { background: #f5f5f7 !important; border-color: #e5e5e7 !important; color: #86868b !important; }
+    .wizard-step.active .step-circle { background: #1d1d1f !important; border-color: #1d1d1f !important; color: #fff !important; box-shadow: 0 4px 16px rgba(0,0,0,.15) !important; }
+    .wizard-step.completed .step-circle { background: #39ff14 !important; border-color: #39ff14 !important; color: #1d1d1f !important; }
+    .step-label { color: #86868b !important; }
+    .wizard-step.active .step-label { color: #1d1d1f !important; }
+    .step-title { color: #1d1d1f !important; }
+    .selection-card { background: #fff !important; border-color: #e5e5e7 !important; }
+    .selection-card:hover { border-color: #1d1d1f !important; background: #f5f5f7 !important; box-shadow: 0 4px 16px rgba(0,0,0,.08) !important; }
+    .selection-card.selected { border-color: #2bcc0f !important; background: rgba(57,255,20,.06) !important; box-shadow: 0 0 0 3px rgba(57,255,20,.15) !important; }
+    .card-title { color: #2bcc0f !important; }
+    .card-subtitle { color: #86868b !important; }
+    .btn-primary { background: #1d1d1f !important; color: #fff !important; }
+    .btn-primary:hover:not(:disabled) { background: #3a3a3c !important; box-shadow: 0 8px 24px rgba(0,0,0,.15) !important; }
+    .btn-secondary { background: #f5f5f7 !important; color: #424245 !important; border-color: #e5e5e7 !important; }
+    .btn-secondary:hover:not(:disabled) { background: #e8e8ec !important; }
+    .upload-zone { border-color: #e5e5e7 !important; background: #fafafa !important; }
+    .upload-zone:hover { border-color: #2bcc0f !important; background: rgba(57,255,20,.04) !important; }
+    .plan-strip { background: rgba(57,255,20,.06) !important; border-color: rgba(57,255,20,.2) !important; color: #424245 !important; }
+    .plan-strip strong { color: #2bcc0f !important; }
+    .ai-status.ready { background: rgba(57,255,20,.1) !important; color: #2bcc0f !important; border-color: rgba(57,255,20,.2) !important; }
+    .ai-status.loading { background: rgba(245,158,11,.08) !important; color: #b45309 !important; border-color: rgba(245,158,11,.2) !important; }
+    .ai-status.error { background: rgba(239,68,68,.08) !important; color: #b91c1c !important; border-color: rgba(239,68,68,.2) !important; }
+    canvas, video { background: #000 !important; }
+    .wt-nav { margin: -20px -20px 24px; padding: 0 20px; }
+  </style>
+
+</head>
+<body>
+
+  <nav class="wt-nav">
+    <div class="wt-nav-inner">
+      <a href="./index-white.html" class="wt-brand">SmartSwing<span class="wt-brand-dot"> AI</span></a>
+      <div class="wt-nav-links">
+        <a href="./for-players-white.html">For Players</a>
+        <a href="./for-coaches-white.html">For Coaches</a>
+        <a href="./how-it-works-white.html">How It Works</a>
+        <a href="./pricing-white.html">Pricing</a>
+      </div>
+      <div class="wt-nav-cta">
+        <a href="./signup.html" class="wt-btn wt-btn--primary wt-btn--sm">Sign In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="wt-preview-banner">
+    <span class="dot"></span>
+    Preview Mode &mdash; White Redesign &nbsp;&middot;&nbsp; <a href="./analyze.html">View Original Dark Analyzer &rarr;</a>
+  </div>
+
+  <div class="container">
+    <div class="wizard-section">
+      <div class="header">
+        <h1 class="title"><span class="gradient-text">SmartSwing AI</span></h1>
+        <p class="subtitle">Professional Tennis Biomechanics Analysis</p>
+        <div class="plan-strip" id="planStrip"></div>
+      </div>
+
+      <!-- Wizard Steps -->
+      <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Profile</div>
+        </div>
+        <div class="wizard-step" data-step="2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Shot Type</div>
+        </div>
+        <div class="wizard-step" data-step="3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Upload</div>
+        </div>
+        <div class="wizard-step" data-step="4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Analysis</div>
+        </div>
+        <div class="wizard-step" data-step="5">
+          <div class="step-circle">5</div>
+          <div class="step-label">Report</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Profile -->
+      <div class="step-content active" data-step="1">
+        <h2 class="step-title">Tell us about yourself</h2>
+        
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Gender</h3>
+          <div class="selection-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="selection-card" data-field="gender" data-value="male">
+              <div class="card-title">Male</div>
+            </div>
+            <div class="selection-card" data-field="gender" data-value="female">
+              <div class="card-title">Female</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Age Range</h3>
+          <div class="selection-grid">
+            <div class="selection-card" data-field="age" data-value="5-10"><div class="card-title">5-10</div><div class="card-subtitle">Youth</div></div>
+            <div class="selection-card" data-field="age" data-value="11-15"><div class="card-title">11-15</div><div class="card-subtitle">Junior</div></div>
+            <div class="selection-card" data-field="age" data-value="16-20"><div class="card-title">16-20</div><div class="card-subtitle">Young Adult</div></div>
+            <div class="selection-card" data-field="age" data-value="21-25"><div class="card-title">21-25</div><div class="card-subtitle">Adult</div></div>
+            <div class="selection-card" data-field="age" data-value="26-30"><div class="card-title">26-30</div><div class="card-subtitle">Prime</div></div>
+            <div class="selection-card" data-field="age" data-value="31-35"><div class="card-title">31-35</div><div class="card-subtitle">Prime</div></div>
+            <div class="selection-card" data-field="age" data-value="36-40"><div class="card-title">36-40</div><div class="card-subtitle">Experienced</div></div>
+            <div class="selection-card" data-field="age" data-value="40-45"><div class="card-title">40-45</div><div class="card-subtitle">Master</div></div>
+            <div class="selection-card" data-field="age" data-value="45-50"><div class="card-title">45-50</div><div class="card-subtitle">Master</div></div>
+            <div class="selection-card" data-field="age" data-value="50+"><div class="card-title">50+</div><div class="card-subtitle">Veteran</div></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Playing Level</h3>
+          <div class="selection-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="selection-card" data-field="level" data-value="beginner"><div class="card-title">Beginner</div><div class="card-subtitle">Just started</div></div>
+            <div class="selection-card" data-field="level" data-value="intermediate"><div class="card-title">Intermediate</div><div class="card-subtitle">USTA 3.0-3.5</div></div>
+            <div class="selection-card" data-field="level" data-value="advanced"><div class="card-title">Advanced</div><div class="card-subtitle">USTA 4.0-4.5</div></div>
+            <div class="selection-card" data-field="level" data-value="pro"><div class="card-title">Pro/Elite</div><div class="card-subtitle">USTA 5.0+</div></div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="nextBtn1">Next Step -></button>
+        </div>
+      </div>
+
+      <!-- Step 2: Shot Selection -->
+      <div class="step-content" data-step="2">
+        <h2 class="step-title">Which shot(s) will you analyze?</h2>
+        
+        <div class="selection-grid">
+          <div class="selection-card" data-field="shot" data-value="forehand"><div class="card-title">Forehand</div></div>
+          <div class="selection-card" data-field="shot" data-value="backhand"><div class="card-title">Backhand</div></div>
+          <div class="selection-card" data-field="shot" data-value="serve"><div class="card-title">Serve</div></div>
+          <div class="selection-card" data-field="shot" data-value="volley"><div class="card-title">Volley</div></div>
+          <div class="selection-card" data-field="shot" data-value="slice"><div class="card-title">Slice</div></div>
+          <div class="selection-card" data-field="shot" data-value="drop-shot"><div class="card-title">Drop Shot</div></div>
+          <div class="selection-card" data-field="shot" data-value="lob"><div class="card-title">Lob</div></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn1"><- Back</button>
+          <button class="btn btn-primary" id="nextBtn2">Next Step -></button>
+        </div>
+      </div>
+
+      <!-- Step 3: Upload -->
+      <div class="step-content" data-step="3">
+        <h2 class="step-title">Upload Your Tennis Video</h2>
+        
+        <div class="upload-zone" id="uploadZone">
+          <div style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">VIDEO</div>
+          <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Click to select video</div>
+          <div style="color: var(--gray); font-size: 14px;">Side view | Full body visible | 10-60 seconds</div>
+          <div id="fileName" style="margin-top: 16px; color: var(--neon-green); font-weight: 700;"></div>
+          <input type="file" id="videoInput" accept="video/*" style="display: none;">
+        </div>
+
+        <div class="stats-panel" style="margin-top: 20px;">
+          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; color: var(--neon-green);">
+            Capture Readiness
+          </div>
+          <div style="display: grid; gap: 10px;">
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>Full body stays visible from split-step through follow-through.</span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>Camera is stable on a tripod and high enough to see your movement chain clearly.</span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>Court lines, player shape, and lighting are clean enough for strong AI detection.</span>
+            </label>
+            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+              <input type="checkbox" class="setup-check" checked>
+              <span>This clip focuses on one main stroke goal instead of mixing multiple patterns together.</span>
+            </label>
+          </div>
+          <div style="margin-top: 14px; font-weight: 800; color: var(--electric-cyan);">
+            Setup score: <span id="setupScore">100</span>/100
+          </div>
+          <div id="captureGuidance" class="info-box" style="margin-top: 12px;">
+            Select shot type and session mode to get pre-capture guidance.
+          </div>
+          <div style="margin-top: 16px; display:grid; gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:8px; color:var(--gray);">Session Goal</label>
+              <select id="sessionMode" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--silver); padding:14px; border-radius:12px;">
+                <option value="stroke-tune-up">Stroke tune-up</option>
+                <option value="match-readiness">Match readiness</option>
+                <option value="coach-review">Coach review</option>
+                <option value="injury-safe-rebuild">Injury-safe rebuild</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:8px; color:var(--gray);">What do you want to improve?</label>
+              <input id="sessionGoal" type="text" placeholder="Example: earlier contact point and cleaner hip rotation" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--silver); padding:14px; border-radius:12px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn2">Back</button>
+          <button class="btn btn-primary" id="nextBtn3" disabled>Next Step</button>
+          <button class="btn btn-secondary" id="demoReportBtn">Generate Demo Report</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Analysis -->
+      <div class="step-content" data-step="4">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <div class="ai-status loading" id="aiStatus">
+            <div class="spinner"></div>
+            <span id="statusText">Loading AI...</span>
+          </div>
+        </div>
+
+        <div class="analysis-grid">
+          <div>
+            <div class="canvas-container">
+              <video id="videoElement" muted playsinline></video>
+              <canvas id="poseCanvas"></canvas>
+            </div>
+
+            <div class="btn-group" style="margin-top: 16px; justify-content: flex-start;">
+              <button class="btn btn-primary" id="playBtn" disabled>Play</button>
+              <button class="btn btn-primary" id="pauseBtn" style="display: none;">Pause</button>
+              <button class="btn btn-secondary" id="resetBtn">Reset</button>
+              <button class="btn btn-secondary" id="retryAiBtn">Retry AI Setup</button>
+              <button class="btn btn-primary" id="saveBtn" style="display: none;">Save Analysis</button>
+              <button class="btn btn-primary" id="generateReportBtn" style="display: none;">Generate Report</button>
+            </div>
+          </div>
+
+          <div class="stats-panel">
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; color: var(--neon-green);">
+              Real-Time Analysis
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Frames Analyzed</div>
+              <div class="stat-value" id="framesCount">0</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Landmarks Detected</div>
+              <div class="stat-value" id="landmarksCount">0</div>
+              <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">of 17 keypoints</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">Average Confidence</div>
+              <div class="stat-value" id="confidenceValue">0%</div>
+            </div>
+
+            <div style="margin-top: 24px;">
+              <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--electric-cyan);">
+                Live Angles
+              </div>
+              <div class="angles-grid">
+                <div class="angle-item"><div class="angle-name">Shoulder</div><div class="angle-value" id="angleShoulder">- deg</div></div>
+                <div class="angle-item"><div class="angle-name">Elbow</div><div class="angle-value" id="angleElbow">- deg</div></div>
+                <div class="angle-item"><div class="angle-name">Hip</div><div class="angle-value" id="angleHip">- deg</div></div>
+                <div class="angle-item"><div class="angle-name">Knee</div><div class="angle-value" id="angleKnee">- deg</div></div>
+                <div class="angle-item"><div class="angle-name">Trunk</div><div class="angle-value" id="angleTrunk">- deg</div></div>
+                <div class="angle-item"><div class="angle-name">Wrist</div><div class="angle-value" id="angleWrist">- deg</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn3">Back</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Report -->
+      <div class="step-content" data-step="5">
+        <div id="reportContent"></div>
+
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="backBtn4">Back to Analysis</button>
+          <button class="btn btn-secondary" id="printBtn">Print Report</button>
+          <button class="btn btn-secondary" id="libraryBtn">Open Library</button>
+          <button class="btn btn-secondary" id="dashboardBtn">Open Dashboard</button>
+          <button class="btn btn-primary" id="newAnalysisBtn">New Analysis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    console.log('🎾 SmartSwing AI - MoveNet 17-Point Version');
+    
+    // Global State
+    const playerProfile = {
+      gender: null,
+      age: null,
+      level: null,
+      shots: [],
+      videoFile: null,
+      sessionMode: 'stroke-tune-up',
+      sessionGoal: '',
+      setupScore: 100
+    };
+
+    const store = window.SmartSwingStore;
+    const currentUser = store ? store.getCurrentUser() : null;
+    let cachedPlanState = null;
+
+    let currentStep = 1;
+    let detector = null;
+    let backend = 'unknown';
+    let isAnalyzing = false;
+    let rafId = null;
+    let analysisTimeoutId = null;
+    let lastPersistedSignature = null;
+    let aiInitInFlight = null;
+    let activeVideoUrl = null;
+    let lastFrameAt = 0;
+    let aiInitStage = 'idle';
+    let detectorLabel = 'Not initialized';
+    let lastAnalyzedVideoTime = -1;
+    let lastStableKeypoints = [];
+    let lastMetricKeypoints = [];
+    let lastUiRefreshAt = 0;
+    let lastAngleUiRefreshAt = 0;
+    let lastDrawAt = 0;
+    let videoFrameCallbackId = null;
+    let analysisInputCanvas = null;
+    let analysisInputContext = null;
+    let analysisInFlight = false;
+
+    const AI_SETTINGS = {
+      libraryTimeoutMs: 30000,
+      backendTimeoutMs: 20000,
+      detectorTimeoutMs: 50000,
+      metadataTimeoutMs: 20000,
+      poseFpsCap: 10,
+      fallbackPoseFpsCap: 12,
+      litePoseFpsCap: 10,
+      fullPoseFpsCap: 8,
+      cpuMoveNetFpsCap: 12,
+      maxStoredFrames: 1800,
+      uiRefreshMs: 90,
+      angleUiRefreshMs: 110,
+      drawRefreshMs: 70,
+      minKeypointConfidence: 0.18,
+      smoothingAlpha: 0.68,
+      carryForwardDecay: 0.92,
+      analysisInputMaxSide: 288,
+      minPoseMotionPx: 3.5
+    };
+
+    const analysisData = {
+      frames: [],
+      angles: {
+        shoulder: [],
+        elbow: [],
+        hip: [],
+        knee: [],
+        trunk: [],
+        wrist: []
+      },
+      derivedMetrics: {
+        shoulderTilt: [],
+        hipTilt: [],
+        stanceWidth: [],
+        contactHeight: [],
+        reach: [],
+        balance: [],
+        alignmentGap: [],
+        footworkLoad: []
+      },
+      landmarks: [],
+      confidence: []
+    };
+
+    function withTimeout(promise, timeoutMs, label) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+        })
+      ]);
+    }
+
+    function refreshPlanStrip() {
+      const strip = document.getElementById('planStrip');
+      if (!strip || !store || !currentUser) {
+        if (strip) strip.innerHTML = '<strong>Guest mode:</strong> Sign in to save history and track monthly usage.';
+        return;
+      }
+
+      const plan = store.getCurrentPlan();
+      const usage = store.canGenerateReport();
+      cachedPlanState = usage;
+      const limitLabel = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
+      const remainingLabel = Number.isFinite(usage.remaining) ? usage.remaining : 'Unlimited';
+      const restrictions = [];
+      if (!store.canSaveReport()) restrictions.push('Save disabled on this plan');
+      if (!store.canPrintReport()) restrictions.push('Print/export disabled on this plan');
+
+      strip.innerHTML = `
+        <div><strong>Active plan:</strong> ${plan.name} | <strong>Monthly reports:</strong> ${limitLabel} used | <strong>Remaining:</strong> ${remainingLabel}</div>
+        <div>${restrictions.length ? restrictions.join(' · ') : 'Full report actions enabled.'} <a href="./pricing.html" style="color: var(--electric-cyan); font-weight: 800;">Change plan</a></div>
+        ${usage.allowed ? '' : '<div class="usage-alert">Monthly limit reached. Upgrade your plan to generate more reports.</div>'}
+      `;
+    }
+
+    function applyActionPermissions() {
+      const saveBtn = document.getElementById('saveBtn');
+      const printBtn = document.getElementById('printBtn');
+      if (!store || !currentUser) return;
+
+      const canSave = store.canSaveReport();
+      const canPrint = store.canPrintReport();
+
+      saveBtn.disabled = !canSave;
+      if (!canSave) {
+        saveBtn.title = 'Upgrade plan to enable report saving.';
+        saveBtn.style.opacity = '0.65';
+      } else {
+        saveBtn.title = '';
+        saveBtn.style.opacity = '';
+      }
+
+      printBtn.disabled = !canPrint;
+      if (!canPrint) {
+        printBtn.title = 'Upgrade plan to enable report print/export.';
+        printBtn.style.opacity = '0.65';
+      } else {
+        printBtn.title = '';
+        printBtn.style.opacity = '';
+      }
+    }
+
+    function consumeReportCreditOrAlert(shotType) {
+      if (!store || !currentUser) return true;
+      try {
+        cachedPlanState = store.consumeMonthlyReportCredit({ shotType, source: 'analyzer-report' });
+        refreshPlanStrip();
+        return true;
+      } catch (error) {
+        alert((error.message || 'Monthly report limit reached.') + '\n\nOpen pricing to upgrade and continue.');
+        window.location.href = './pricing.html';
+        return false;
+      }
+    }
+
+    // MoveNet 17 Keypoint Indices
+    const KEYPOINT = {
+      NOSE: 0,
+      LEFT_EYE: 1,
+      RIGHT_EYE: 2,
+      LEFT_EAR: 3,
+      RIGHT_EAR: 4,
+      LEFT_SHOULDER: 5,
+      RIGHT_SHOULDER: 6,
+      LEFT_ELBOW: 7,
+      RIGHT_ELBOW: 8,
+      LEFT_WRIST: 9,
+      RIGHT_WRIST: 10,
+      LEFT_HIP: 11,
+      RIGHT_HIP: 12,
+      LEFT_KNEE: 13,
+      RIGHT_KNEE: 14,
+      LEFT_ANKLE: 15,
+      RIGHT_ANKLE: 16
+    };
+
+    // MoveNet Skeleton Connections
+    const POSE_CONNECTIONS = [
+      [KEYPOINT.LEFT_SHOULDER, KEYPOINT.RIGHT_SHOULDER],
+      [KEYPOINT.LEFT_SHOULDER, KEYPOINT.LEFT_ELBOW],
+      [KEYPOINT.LEFT_ELBOW, KEYPOINT.LEFT_WRIST],
+      [KEYPOINT.RIGHT_SHOULDER, KEYPOINT.RIGHT_ELBOW],
+      [KEYPOINT.RIGHT_ELBOW, KEYPOINT.RIGHT_WRIST],
+      [KEYPOINT.LEFT_SHOULDER, KEYPOINT.LEFT_HIP],
+      [KEYPOINT.RIGHT_SHOULDER, KEYPOINT.RIGHT_HIP],
+      [KEYPOINT.LEFT_HIP, KEYPOINT.RIGHT_HIP],
+      [KEYPOINT.LEFT_HIP, KEYPOINT.LEFT_KNEE],
+      [KEYPOINT.LEFT_KNEE, KEYPOINT.LEFT_ANKLE],
+      [KEYPOINT.RIGHT_HIP, KEYPOINT.RIGHT_KNEE],
+      [KEYPOINT.RIGHT_KNEE, KEYPOINT.RIGHT_ANKLE]
+    ];
+
+    const BLAZEPOSE_TO_MOVENET_INDEX = [
+      0, 2, 5, 7, 8,
+      11, 12, 13, 14, 15, 16,
+      23, 24, 25, 26, 27, 28
+    ];
+
+    // Helpers
+    function kpOk(kp, min = 0.3) {
+      return kp && (kp.score ?? kp.confidence ?? 0) >= min;
+    }
+
+    function calculateAngle(a, b, c) {
+      const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+      let angle = Math.abs((radians * 180) / Math.PI);
+      if (angle > 180) angle = 360 - angle;
+      return Math.round(angle);
+    }
+
+    function midpoint(a, b) {
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+
+    function distance(a, b) {
+      if (!a || !b) return null;
+      return Math.hypot(safeNumber(b.x, 0) - safeNumber(a.x, 0), safeNumber(b.y, 0) - safeNumber(a.y, 0));
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function average(values) {
+      const list = (values || []).filter((value) => Number.isFinite(value));
+      return list.length ? list.reduce((sum, value) => sum + value, 0) / list.length : null;
+    }
+
+    function roundMetric(value, digits = 0) {
+      if (!Number.isFinite(value)) return null;
+      const factor = 10 ** digits;
+      return Math.round(value * factor) / factor;
+    }
+
+    function standardDeviation(values) {
+      const list = (values || []).filter((value) => Number.isFinite(value));
+      if (!list.length) return null;
+      const avg = average(list);
+      const variance = average(list.map((value) => (value - avg) ** 2));
+      return Math.sqrt(variance);
+    }
+
+    function normalizeLevel(value) {
+      const input = String(value || '').toLowerCase();
+      if (input.includes('beginner')) return 'beginner';
+      if (input.includes('advanced')) return 'advanced';
+      if (input.includes('pro')) return 'pro';
+      return 'intermediate';
+    }
+
+    function parseAgeMidpoint(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return null;
+      if (raw.includes('+')) {
+        const base = Number.parseInt(raw, 10);
+        return Number.isFinite(base) ? base + 5 : null;
+      }
+      if (raw.includes('-')) {
+        const [start, end] = raw.split('-').map((part) => Number.parseInt(part, 10));
+        if (Number.isFinite(start) && Number.isFinite(end)) {
+          return (start + end) / 2;
+        }
+      }
+      const direct = Number.parseInt(raw, 10);
+      return Number.isFinite(direct) ? direct : null;
+    }
+
+    function formatMetricName(metric) {
+      return String(metric || '')
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/[-_]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    }
+
+    function calculateLineTilt(a, b) {
+      if (!a || !b) return null;
+      let angle = Math.abs(Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI));
+      if (angle > 90) angle = 180 - angle;
+      return roundMetric(angle);
+    }
+
+    function safeNumber(value, fallback = 0) {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : fallback;
+    }
+
+    function getCanvasDisplaySize() {
+      const canvas = document.getElementById('poseCanvas');
+      if (!canvas) return { width: 1280, height: 720 };
+
+      const width = Math.max(1, Math.round(canvas.clientWidth || 1280));
+      const height = Math.max(1, Math.round(canvas.clientHeight || 720));
+      return { width, height };
+    }
+
+    function syncCanvasToViewport() {
+      const canvas = document.getElementById('poseCanvas');
+      if (!canvas) return;
+      const size = getCanvasDisplaySize();
+      if (canvas.width !== size.width || canvas.height !== size.height) {
+        canvas.width = size.width;
+        canvas.height = size.height;
+      }
+    }
+
+    function getVideoFitTransform(video, canvas) {
+      const sourceWidth = Math.max(1, safeNumber(video?.videoWidth, 0) || safeNumber(canvas?.width, 1280));
+      const sourceHeight = Math.max(1, safeNumber(video?.videoHeight, 0) || safeNumber(canvas?.height, 720));
+      return getSourceFitTransform(sourceWidth, sourceHeight, canvas);
+    }
+
+    function getSourceFitTransform(sourceWidth, sourceHeight, canvas) {
+      const targetWidth = Math.max(1, safeNumber(canvas?.width, 1280));
+      const targetHeight = Math.max(1, safeNumber(canvas?.height, 720));
+      const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
+      const drawWidth = sourceWidth * scale;
+      const drawHeight = sourceHeight * scale;
+      const offsetX = (targetWidth - drawWidth) / 2;
+      const offsetY = (targetHeight - drawHeight) / 2;
+      return { sourceWidth, sourceHeight, scale, offsetX, offsetY };
+    }
+
+    function getDetectorInput(video) {
+      const sourceWidth = Math.max(1, safeNumber(video?.videoWidth, 0) || 1);
+      const sourceHeight = Math.max(1, safeNumber(video?.videoHeight, 0) || 1);
+      const maxSide = AI_SETTINGS.analysisInputMaxSide;
+      const scale = Math.min(1, maxSide / Math.max(sourceWidth, sourceHeight));
+      const width = Math.max(1, Math.round(sourceWidth * scale));
+      const height = Math.max(1, Math.round(sourceHeight * scale));
+
+      if (!analysisInputCanvas) {
+        analysisInputCanvas = document.createElement('canvas');
+        analysisInputContext = analysisInputCanvas.getContext('2d', { willReadFrequently: false, alpha: false });
+      }
+
+      if (analysisInputCanvas.width !== width || analysisInputCanvas.height !== height) {
+        analysisInputCanvas.width = width;
+        analysisInputCanvas.height = height;
+      }
+
+      analysisInputContext.drawImage(video, 0, 0, width, height);
+      return { source: analysisInputCanvas, width, height };
+    }
+
+    function formatAngle(value) {
+      return value != null ? `${value} deg` : '- deg';
+    }
+
+    function cloneKeypoints(keypoints) {
+      return Array.isArray(keypoints) ? keypoints.map((kp) => ({ ...kp })) : [];
+    }
+
+    function computePoseMotion(currentKeypoints) {
+      if (!Array.isArray(currentKeypoints) || currentKeypoints.length === 0) {
+        lastMetricKeypoints = [];
+        return 0;
+      }
+
+      if (!Array.isArray(lastMetricKeypoints) || lastMetricKeypoints.length !== currentKeypoints.length) {
+        lastMetricKeypoints = cloneKeypoints(currentKeypoints);
+        return 0;
+      }
+
+      let totalDistance = 0;
+      let compared = 0;
+      currentKeypoints.forEach((kp, index) => {
+        const prev = lastMetricKeypoints[index];
+        if (!kpOk(kp, AI_SETTINGS.minKeypointConfidence) || !kpOk(prev, AI_SETTINGS.minKeypointConfidence)) {
+          return;
+        }
+
+        totalDistance += Math.hypot(
+          safeNumber(kp.x, 0) - safeNumber(prev.x, 0),
+          safeNumber(kp.y, 0) - safeNumber(prev.y, 0)
+        );
+        compared += 1;
+      });
+
+      lastMetricKeypoints = cloneKeypoints(currentKeypoints);
+      return compared ? totalDistance / compared : 0;
+    }
+
+    function getSmoothedAngle(metricName, immediateValue) {
+      const history = (analysisData.angles[metricName] || []).slice(-4);
+      if (immediateValue != null) {
+        history.push(immediateValue);
+      }
+      if (!history.length) {
+        return null;
+      }
+      return Math.round(history.reduce((sum, value) => sum + value, 0) / history.length);
+    }
+
+    function normalizeKeypointsToMoveNet(rawKeypoints, sourceWidth = 0, sourceHeight = 0) {
+      if (!Array.isArray(rawKeypoints) || rawKeypoints.length === 0) {
+        return [];
+      }
+
+      const toPoint = (kp) => {
+        if (!kp) return { x: 0, y: 0, score: 0 };
+        let x = safeNumber(kp.x, 0);
+        let y = safeNumber(kp.y, 0);
+        if (sourceWidth > 2 && sourceHeight > 2 && x >= 0 && x <= 1.5 && y >= 0 && y <= 1.5) {
+          x *= sourceWidth;
+          y *= sourceHeight;
+        }
+        return {
+          x,
+          y,
+          score: safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0)
+        };
+      };
+
+      if (rawKeypoints.length <= 17) {
+        return rawKeypoints.map((kp) => toPoint(kp));
+      }
+
+      return BLAZEPOSE_TO_MOVENET_INDEX.map((sourceIndex) => toPoint(rawKeypoints[sourceIndex]));
+    }
+
+    function projectKeypointsToCanvas(keypoints, transform) {
+      if (!Array.isArray(keypoints) || keypoints.length === 0) return [];
+      return keypoints.map((kp) => ({
+        ...kp,
+        x: transform.offsetX + (safeNumber(kp.x, 0) * transform.scale),
+        y: transform.offsetY + (safeNumber(kp.y, 0) * transform.scale)
+      }));
+    }
+
+    function stabilizeKeypoints(keypoints) {
+      if (!Array.isArray(keypoints) || keypoints.length === 0) {
+        return lastStableKeypoints.map((kp) => ({ ...kp }));
+      }
+
+      const stabilized = keypoints.map((kp, index) => {
+        const current = {
+          x: safeNumber(kp?.x, 0),
+          y: safeNumber(kp?.y, 0),
+          score: safeNumber(kp?.score ?? kp?.confidence ?? kp?.visibility, 0)
+        };
+        const previous = lastStableKeypoints[index];
+
+        if (!previous) {
+          return current;
+        }
+
+        if (current.score < AI_SETTINGS.minKeypointConfidence) {
+          return {
+            x: previous.x,
+            y: previous.y,
+            score: Math.max(current.score, previous.score * AI_SETTINGS.carryForwardDecay)
+          };
+        }
+
+        return {
+          x: previous.x + ((current.x - previous.x) * AI_SETTINGS.smoothingAlpha),
+          y: previous.y + ((current.y - previous.y) * AI_SETTINGS.smoothingAlpha),
+          score: Math.max(current.score, previous.score * 0.35)
+        };
+      });
+
+      lastStableKeypoints = stabilized.map((kp) => ({ ...kp }));
+      return stabilized;
+    }
+
+    function pushWithCap(arr, value) {
+      arr.push(value);
+      if (arr.length > AI_SETTINGS.maxStoredFrames) {
+        arr.splice(0, arr.length - AI_SETTINGS.maxStoredFrames);
+      }
+    }
+
+    function clearAnalyzerLoop(video) {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (analysisTimeoutId) {
+        clearTimeout(analysisTimeoutId);
+        analysisTimeoutId = null;
+      }
+      if (videoFrameCallbackId != null && video && typeof video.cancelVideoFrameCallback === 'function') {
+        video.cancelVideoFrameCallback(videoFrameCallbackId);
+      }
+      videoFrameCallbackId = null;
+      analysisInFlight = false;
+    }
+
+    function scheduleAnalyzeFrame(video) {
+      if (!isAnalyzing || !video || video.paused || !detector) {
+        rafId = null;
+        analysisTimeoutId = null;
+        videoFrameCallbackId = null;
+        return;
+      }
+
+      if (analysisTimeoutId) {
+        clearTimeout(analysisTimeoutId);
+      }
+
+      const delay = Math.max(16, Math.round(1000 / Math.max(1, AI_SETTINGS.poseFpsCap)));
+      analysisTimeoutId = window.setTimeout(() => {
+        analysisTimeoutId = null;
+        if (!analysisInFlight) {
+          analyzeFrame();
+        }
+      }, delay);
+    }
+
+    // Legacy initializer kept for compatibility debugging.
+    async function initPoseEngineLegacy() {
+      try {
+        await tf.ready();
+        
+        try {
+          await tf.setBackend('webgl');
+          await tf.ready();
+          backend = 'webgl';
+        } catch {
+          await tf.setBackend('cpu');
+          await tf.ready();
+          backend = 'cpu';
+        }
+
+        detector = await poseDetection.createDetector(
+          poseDetection.SupportedModels.MoveNet,
+          {
+            modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+          }
+        );
+
+        console.log('✓ MoveNet initialized:', backend);
+        setStatus('✓ AI Ready (MoveNet)', 'ready');
+        return true;
+      } catch (error) {
+        console.error('Failed to initialize:', error);
+        setStatus('❌ AI Failed', 'error');
+        return false;
+      }
+    }
+
+    function setStatus(text, status = 'loading') {
+      const statusEl = document.getElementById('aiStatus');
+      const textEl = document.getElementById('statusText');
+      
+      statusEl.className = `ai-status ${status}`;
+      textEl.textContent = text;
+      
+      const spinner = statusEl.querySelector('.spinner');
+      if (status === 'loading' && !spinner) {
+        const spinnerEl = document.createElement('div');
+        spinnerEl.className = 'spinner';
+        statusEl.insertBefore(spinnerEl, textEl);
+      } else if (status !== 'loading' && spinner) {
+        spinner.remove();
+      }
+    }
+
+    function loadExternalScriptSafe(url) {
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error(`Timed out loading ${url}`));
+        }, 12000);
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.onload = () => {
+          clearTimeout(timeout);
+          resolve(url);
+        };
+        script.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error(`Failed to load ${url}`));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    async function loadFromMirrorSafe(urls, checkFn) {
+      if (checkFn()) return true;
+      for (const url of urls) {
+        try {
+          await loadExternalScriptSafe(url);
+          if (checkFn()) return true;
+        } catch (_) {
+          // Continue to next mirror.
+        }
+      }
+      return checkFn();
+    }
+
+    async function ensurePoseLibraries() {
+      const hasTf = () => !!window.tf;
+      const hasMediaPipePose = () => !!window.Pose;
+      const hasPose = () => !!window.poseDetection?.SupportedModels;
+
+      const tfLoaded = hasTf() || await loadFromMirrorSafe([
+        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js',
+        'https://unpkg.com/@tensorflow/tfjs@4.11.0/dist/tf.min.js'
+      ], hasTf);
+
+      const mediaPipeLoaded = hasMediaPipePose() || await loadFromMirrorSafe([
+        './assets/vendor/mediapipe/pose/pose.js'
+      ], hasMediaPipePose);
+
+      const poseLoaded = hasPose() || await loadFromMirrorSafe([
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js',
+        'https://unpkg.com/@tensorflow-models/pose-detection@2.1.0/dist/pose-detection.min.js'
+      ], hasPose);
+
+      if (!tfLoaded || !mediaPipeLoaded || !poseLoaded) {
+        throw new Error('Pose libraries unavailable. Check internet or extension blocking.');
+      }
+    }
+
+    // Resilient initialization path with explicit timeouts.
+    async function initPoseEngine() {
+      const playBtn = document.getElementById('playBtn');
+      if (detector) {
+        setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
+        playBtn.disabled = false;
+        return true;
+      }
+
+      if (aiInitInFlight) {
+        return aiInitInFlight;
+      }
+
+      playBtn.disabled = true;
+      aiInitInFlight = (async () => {
+        try {
+          aiInitStage = 'load-libraries';
+          setStatus('Loading AI libraries...', 'loading');
+          await withTimeout(ensurePoseLibraries(), AI_SETTINGS.libraryTimeoutMs, 'AI library loading');
+          setStatus('Creating pose detector...', 'loading');
+          const detectorStrategies = [
+            {
+              id: 'blazepose-mediapipe-lite',
+              label: 'BlazePose Lite (MediaPipe local)',
+              stage: 'detector-blazepose-lite',
+              fpsCap: AI_SETTINGS.litePoseFpsCap,
+              create: () => poseDetection.createDetector(
+                poseDetection.SupportedModels.BlazePose,
+                {
+                  runtime: 'mediapipe',
+                  modelType: 'lite',
+                  enableSmoothing: true,
+                  solutionPath: './assets/vendor/mediapipe/pose'
+                }
+              )
+            },
+            {
+              id: 'blazepose-mediapipe-full',
+              label: 'BlazePose Full (MediaPipe local)',
+              stage: 'detector-blazepose-full',
+              fpsCap: AI_SETTINGS.fullPoseFpsCap,
+              create: () => poseDetection.createDetector(
+                poseDetection.SupportedModels.BlazePose,
+                {
+                  runtime: 'mediapipe',
+                  modelType: 'full',
+                  enableSmoothing: true,
+                  solutionPath: './assets/vendor/mediapipe/pose'
+                }
+              )
+            }
+          ];
+
+          if (window.tf && typeof tf.ready === 'function') {
+            try {
+              aiInitStage = 'tf-ready';
+              await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'TensorFlow ready');
+              aiInitStage = 'backend-cpu';
+              await withTimeout(tf.setBackend('cpu'), AI_SETTINGS.backendTimeoutMs, 'cpu setup');
+              await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'cpu ready');
+              backend = 'cpu';
+              detectorStrategies.push({
+                id: 'movenet-thunder-cpu',
+                label: 'MoveNet Thunder (CPU fallback)',
+                stage: 'detector-movenet-thunder-cpu',
+                fpsCap: AI_SETTINGS.cpuMoveNetFpsCap,
+                create: () => poseDetection.createDetector(
+                  poseDetection.SupportedModels.MoveNet,
+                  { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, enableSmoothing: true }
+                )
+              });
+            } catch (backendError) {
+              console.warn('TensorFlow CPU fallback unavailable:', backendError);
+            }
+          }
+
+          let created = false;
+          let lastDetectorError = null;
+          for (const strategy of detectorStrategies) {
+            try {
+              aiInitStage = strategy.stage;
+              detector = await withTimeout(
+                strategy.create(),
+                AI_SETTINGS.detectorTimeoutMs,
+                'Pose detector creation'
+              );
+              if (detector) {
+                detectorLabel = strategy.label;
+                AI_SETTINGS.poseFpsCap = strategy.fpsCap || AI_SETTINGS.poseFpsCap;
+                created = true;
+                break;
+              }
+            } catch (detectorError) {
+              lastDetectorError = detectorError;
+              console.warn(`Detector strategy failed (${strategy.id}):`, detectorError);
+            }
+          }
+
+          if (!created) {
+            throw lastDetectorError || new Error('Unable to initialize pose detector.');
+          }
+
+          aiInitStage = 'ready';
+          setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
+          playBtn.disabled = false;
+          return true;
+        } catch (error) {
+          console.error('AI initialization failed:', error);
+          const reason = (error && error.message) ? ` ${error.message}` : '';
+          setStatus(`AI failed (${aiInitStage}).${reason} Click Retry AI Setup.`, 'error');
+          playBtn.disabled = true;
+          return false;
+        } finally {
+          if (aiInitStage !== 'ready') {
+            aiInitStage = 'idle';
+          }
+          aiInitInFlight = null;
+        }
+      })();
+
+      return aiInitInFlight;
+    }
+
+    // Compute Angles
+    function computeAngles(keypoints) {
+      const angles = {};
+      
+      // Determine dominant side
+      const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) + 
+                        (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
+                        (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
+      const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
+                       (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
+                       (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+      
+      const isRight = rightScore >= leftScore;
+      const shoulder = keypoints[isRight ? KEYPOINT.RIGHT_SHOULDER : KEYPOINT.LEFT_SHOULDER];
+      const elbow = keypoints[isRight ? KEYPOINT.RIGHT_ELBOW : KEYPOINT.LEFT_ELBOW];
+      const wrist = keypoints[isRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
+      const hip = keypoints[isRight ? KEYPOINT.RIGHT_HIP : KEYPOINT.LEFT_HIP];
+      const knee = keypoints[isRight ? KEYPOINT.RIGHT_KNEE : KEYPOINT.LEFT_KNEE];
+      const ankle = keypoints[isRight ? KEYPOINT.RIGHT_ANKLE : KEYPOINT.LEFT_ANKLE];
+
+      // Elbow angle: shoulder-elbow-wrist
+      if (kpOk(shoulder) && kpOk(elbow) && kpOk(wrist)) {
+        angles.elbow = calculateAngle(shoulder, elbow, wrist);
+      }
+
+      // Shoulder angle: hip-shoulder-elbow
+      if (kpOk(hip) && kpOk(shoulder) && kpOk(elbow)) {
+        angles.shoulder = Math.max(0, 180 - calculateAngle(hip, shoulder, elbow));
+      }
+
+      // Knee angle: hip-knee-ankle
+      if (kpOk(hip) && kpOk(knee) && kpOk(ankle)) {
+        angles.knee = calculateAngle(hip, knee, ankle);
+      }
+
+      // Hip angle: shoulder-hip-knee
+      if (kpOk(shoulder) && kpOk(hip) && kpOk(knee)) {
+        angles.hip = calculateAngle(shoulder, hip, knee);
+      }
+
+      // Trunk angle
+      const leftShoulder = keypoints[KEYPOINT.LEFT_SHOULDER];
+      const rightShoulder = keypoints[KEYPOINT.RIGHT_SHOULDER];
+      const leftHip = keypoints[KEYPOINT.LEFT_HIP];
+      const rightHip = keypoints[KEYPOINT.RIGHT_HIP];
+
+      if (kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(leftHip) && kpOk(rightHip)) {
+        const shoulderMid = midpoint(leftShoulder, rightShoulder);
+        const hipMid = midpoint(leftHip, rightHip);
+        const vertical = { x: hipMid.x, y: hipMid.y - 100 };
+        angles.trunk = calculateAngle(shoulderMid, hipMid, vertical);
+      }
+
+      // Wrist angle is intentionally omitted here because the 17-keypoint model
+      // does not expose hand/finger landmarks, and a fake proxy produced
+      // misleading values close to 180 degrees.
+      angles.wrist = null;
+
+      return angles;
+    }
+
+    function computeDerivedMetrics(keypoints, poseMotion = 0) {
+      const metrics = {
+        shoulderTilt: null,
+        hipTilt: null,
+        stanceWidth: null,
+        contactHeight: null,
+        reach: null,
+        balance: null,
+        alignmentGap: null,
+        footworkLoad: null
+      };
+
+      const leftShoulder = keypoints[KEYPOINT.LEFT_SHOULDER];
+      const rightShoulder = keypoints[KEYPOINT.RIGHT_SHOULDER];
+      const leftHip = keypoints[KEYPOINT.LEFT_HIP];
+      const rightHip = keypoints[KEYPOINT.RIGHT_HIP];
+      const leftAnkle = keypoints[KEYPOINT.LEFT_ANKLE];
+      const rightAnkle = keypoints[KEYPOINT.RIGHT_ANKLE];
+      const nose = keypoints[KEYPOINT.NOSE];
+
+      const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) +
+        (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
+        (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
+      const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
+        (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
+        (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+      const isRight = rightScore >= leftScore;
+      const shoulder = keypoints[isRight ? KEYPOINT.RIGHT_SHOULDER : KEYPOINT.LEFT_SHOULDER];
+      const wrist = keypoints[isRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
+
+      if (kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        metrics.shoulderTilt = calculateLineTilt(leftShoulder, rightShoulder);
+      }
+
+      if (kpOk(leftHip) && kpOk(rightHip)) {
+        metrics.hipTilt = calculateLineTilt(leftHip, rightHip);
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        const shoulderWidth = distance(leftShoulder, rightShoulder);
+        const ankleWidth = distance(leftAnkle, rightAnkle);
+        if (shoulderWidth && ankleWidth) {
+          metrics.stanceWidth = roundMetric((ankleWidth / shoulderWidth) * 100);
+        }
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(wrist)) {
+        const ankleMid = midpoint(leftAnkle, rightAnkle);
+        const shoulderMid = midpoint(leftShoulder, rightShoulder);
+        const usableHeight = Math.max(1, ankleMid.y - shoulderMid.y);
+        metrics.contactHeight = roundMetric(((ankleMid.y - wrist.y) / usableHeight) * 100);
+      }
+
+      if (kpOk(shoulder) && kpOk(wrist) && kpOk(leftShoulder) && kpOk(rightShoulder) && kpOk(leftHip) && kpOk(rightHip)) {
+        const shoulderWidth = distance(leftShoulder, rightShoulder);
+        const torsoHeight = distance(midpoint(leftShoulder, rightShoulder), midpoint(leftHip, rightHip));
+        const scale = Math.max(shoulderWidth || 0, torsoHeight || 0, 1);
+        metrics.reach = roundMetric((distance(shoulder, wrist) / scale) * 100);
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(leftHip) && kpOk(rightHip)) {
+        const ankleMid = midpoint(leftAnkle, rightAnkle);
+        const hipMid = midpoint(leftHip, rightHip);
+        const stance = Math.max(distance(leftAnkle, rightAnkle) || 0, 1);
+        metrics.balance = roundMetric((Math.abs(hipMid.x - ankleMid.x) / stance) * 100);
+      }
+
+      if (metrics.shoulderTilt != null && metrics.hipTilt != null) {
+        metrics.alignmentGap = roundMetric(Math.abs(metrics.shoulderTilt - metrics.hipTilt));
+      }
+
+      if (kpOk(leftAnkle) && kpOk(rightAnkle) && kpOk(nose)) {
+        const ankleMid = midpoint(leftAnkle, rightAnkle);
+        const stance = Math.max(distance(leftAnkle, rightAnkle) || 0, 1);
+        const headOffset = Math.abs(nose.x - ankleMid.x) / stance;
+        metrics.footworkLoad = roundMetric(clamp((poseMotion * 8) + (headOffset * 55), 0, 100));
+      } else {
+        metrics.footworkLoad = roundMetric(clamp(poseMotion * 8, 0, 100));
+      }
+
+      return metrics;
+    }
+
+    // Draw Pose
+    function drawPose(keypoints) {
+      const canvas = document.getElementById('poseCanvas');
+      if (!canvas || !Array.isArray(keypoints)) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw skeleton lines
+      ctx.strokeStyle = 'rgba(57, 255, 20, 0.8)';
+      ctx.lineWidth = Math.max(2, Math.round(canvas.width / 450));
+      
+      POSE_CONNECTIONS.forEach(([i, j]) => {
+        const a = keypoints[i];
+        const b = keypoints[j];
+        
+        if (kpOk(a, AI_SETTINGS.minKeypointConfidence) && kpOk(b, AI_SETTINGS.minKeypointConfidence)) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      });
+
+      // Draw keypoints
+      keypoints.forEach(kp => {
+        if (kpOk(kp, AI_SETTINGS.minKeypointConfidence)) {
+          ctx.fillStyle = 'rgba(57, 255, 20, 0.95)';
+          ctx.beginPath();
+          ctx.arc(kp.x, kp.y, Math.max(3, Math.round(canvas.width / 420)), 0, 2 * Math.PI);
+          ctx.fill();
+
+          ctx.fillStyle = 'white';
+          ctx.beginPath();
+          ctx.arc(kp.x, kp.y, Math.max(1.5, Math.round(canvas.width / 1000)), 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      });
+    }
+
+    // Analysis Loop
+    async function analyzeFrame() {
+      const video = document.getElementById('videoElement');
+      
+      if (!isAnalyzing || video.paused || !detector) {
+        videoFrameCallbackId = null;
+        rafId = null;
+        return;
+      }
+
+      try {
+        syncCanvasToViewport();
+        if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
+          scheduleAnalyzeFrame(video);
+          return;
+        }
+        lastAnalyzedVideoTime = video.currentTime;
+
+        const now = performance.now();
+        const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
+        if (lastFrameAt && now - lastFrameAt < minDelta) {
+          scheduleAnalyzeFrame(video);
+          return;
+        }
+        lastFrameAt = now;
+
+        const poses = await detector.estimatePoses(video);
+        
+        if (poses && poses.length > 0) {
+          const canvas = document.getElementById('poseCanvas');
+          const transform = getVideoFitTransform(video, canvas);
+          const rawMetricKeypoints = normalizeKeypointsToMoveNet(
+            poses[0].keypoints || [],
+            transform.sourceWidth,
+            transform.sourceHeight
+          );
+          const metricKeypoints = stabilizeKeypoints(rawMetricKeypoints);
+          const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
+          const validLandmarks = metricKeypoints.filter(kp => kpOk(kp, AI_SETTINGS.minKeypointConfidence)).length;
+          const confidence = Math.round(
+            (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
+          );
+
+          const angles = computeAngles(metricKeypoints);
+
+          // Store data
+          for (const k in angles) {
+            if (angles[k] != null) {
+              pushWithCap(analysisData.angles[k], angles[k]);
+            }
+          }
+
+          pushWithCap(analysisData.frames, {
+            timestamp: video.currentTime,
+            landmarks: validLandmarks,
+            confidence,
+            angles
+          });
+          pushWithCap(analysisData.landmarks, validLandmarks);
+          pushWithCap(analysisData.confidence, confidence);
+
+          // Update UI
+          const framesCount = analysisData.frames.length;
+          document.getElementById('framesCount').textContent = framesCount;
+          document.getElementById('landmarksCount').textContent = validLandmarks;
+          document.getElementById('confidenceValue').textContent = confidence + '%';
+
+          // Update angle displays
+          document.getElementById('angleShoulder').textContent = angles.shoulder != null ? angles.shoulder + '°' : '-°';
+          document.getElementById('angleElbow').textContent = angles.elbow != null ? angles.elbow + '°' : '-°';
+          document.getElementById('angleHip').textContent = angles.hip != null ? angles.hip + '°' : '-°';
+          document.getElementById('angleKnee').textContent = angles.knee != null ? angles.knee + '°' : '-°';
+          document.getElementById('angleTrunk').textContent = angles.trunk != null ? angles.trunk + '°' : '-°';
+          document.getElementById('angleWrist').textContent = angles.wrist != null ? angles.wrist + '°' : '-°';
+
+          // Show save button after 30 frames
+          if (framesCount >= 30) {
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('generateReportBtn').style.display = 'inline-block';
+          }
+
+          drawPose(drawKeypoints);
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+        isAnalyzing = false;
+        setStatus('AI processing paused due to an error. Retry AI Setup and continue.', 'error');
+      } finally {
+        if (isAnalyzing && !video.paused && detector) {
+          rafId = requestAnimationFrame(analyzeFrame);
+        } else {
+          rafId = null;
+        }
+      }
+    }
+
+    analyzeFrame = async function() {
+      const video = document.getElementById('videoElement');
+
+      if (!isAnalyzing || !video || video.paused || !detector) {
+        videoFrameCallbackId = null;
+        rafId = null;
+        analysisTimeoutId = null;
+        return;
+      }
+
+      if (analysisInFlight) {
+        scheduleAnalyzeFrame(video);
+        return;
+      }
+
+      try {
+        analysisInFlight = true;
+        syncCanvasToViewport();
+        if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
+          scheduleAnalyzeFrame(video);
+          return;
+        }
+        lastAnalyzedVideoTime = video.currentTime;
+
+        const now = performance.now();
+        const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
+        if (lastFrameAt && now - lastFrameAt < minDelta) {
+          scheduleAnalyzeFrame(video);
+          return;
+        }
+        lastFrameAt = now;
+
+        const detectorInput = getDetectorInput(video);
+        const poses = await detector.estimatePoses(detectorInput.source);
+        if (poses && poses.length > 0) {
+          const canvas = document.getElementById('poseCanvas');
+          const transform = getSourceFitTransform(detectorInput.width, detectorInput.height, canvas);
+          const rawMetricKeypoints = normalizeKeypointsToMoveNet(
+            poses[0].keypoints || [],
+            detectorInput.width,
+            detectorInput.height
+          );
+          const poseMotion = computePoseMotion(rawMetricKeypoints);
+          const metricKeypoints = stabilizeKeypoints(rawMetricKeypoints);
+          const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
+          const validLandmarks = metricKeypoints.filter((kp) => kpOk(kp, AI_SETTINGS.minKeypointConfidence)).length;
+          const confidence = Math.round(
+            (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
+          );
+          const angles = computeAngles(metricKeypoints);
+          const derivedMetrics = computeDerivedMetrics(metricKeypoints, poseMotion);
+          const shouldStoreFrame = validLandmarks >= 10 && (
+            analysisData.frames.length < 5 ||
+            poseMotion >= AI_SETTINGS.minPoseMotionPx
+          );
+
+          if (shouldStoreFrame) {
+            for (const k in angles) {
+              if (angles[k] != null) {
+                pushWithCap(analysisData.angles[k], angles[k]);
+              }
+            }
+            for (const k in derivedMetrics) {
+              if (derivedMetrics[k] != null && analysisData.derivedMetrics[k]) {
+                pushWithCap(analysisData.derivedMetrics[k], derivedMetrics[k]);
+              }
+            }
+
+            pushWithCap(analysisData.frames, {
+              timestamp: video.currentTime,
+              landmarks: validLandmarks,
+              confidence,
+              poseMotion,
+              angles,
+              derivedMetrics
+            });
+            pushWithCap(analysisData.landmarks, validLandmarks);
+            pushWithCap(analysisData.confidence, confidence);
+          }
+
+          if (!lastUiRefreshAt || now - lastUiRefreshAt >= AI_SETTINGS.uiRefreshMs) {
+            lastUiRefreshAt = now;
+            document.getElementById('framesCount').textContent = analysisData.frames.length;
+            document.getElementById('landmarksCount').textContent = validLandmarks;
+            document.getElementById('confidenceValue').textContent = confidence + '%';
+          }
+
+          if (!lastAngleUiRefreshAt || now - lastAngleUiRefreshAt >= AI_SETTINGS.angleUiRefreshMs) {
+            lastAngleUiRefreshAt = now;
+            document.getElementById('angleShoulder').textContent = formatAngle(getSmoothedAngle('shoulder', angles.shoulder));
+            document.getElementById('angleElbow').textContent = formatAngle(getSmoothedAngle('elbow', angles.elbow));
+            document.getElementById('angleHip').textContent = formatAngle(getSmoothedAngle('hip', angles.hip));
+            document.getElementById('angleKnee').textContent = formatAngle(getSmoothedAngle('knee', angles.knee));
+            document.getElementById('angleTrunk').textContent = formatAngle(getSmoothedAngle('trunk', angles.trunk));
+            document.getElementById('angleWrist').textContent = formatAngle(getSmoothedAngle('wrist', angles.wrist));
+          }
+
+          if (analysisData.frames.length >= 30) {
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('generateReportBtn').style.display = 'inline-block';
+          }
+
+          if (!lastDrawAt || now - lastDrawAt >= AI_SETTINGS.drawRefreshMs) {
+            lastDrawAt = now;
+            drawPose(drawKeypoints);
+          }
+        }
+      } catch (error) {
+        console.error('Analysis error:', error);
+        isAnalyzing = false;
+        setStatus('AI processing paused due to an error. Retry AI Setup and continue.', 'error');
+      } finally {
+        analysisInFlight = false;
+        if (isAnalyzing && !video.paused && detector) {
+          scheduleAnalyzeFrame(video);
+        } else {
+          videoFrameCallbackId = null;
+          rafId = null;
+          analysisTimeoutId = null;
+        }
+      }
+    };
+
+    // ============================================================================
+    // Professional Benchmarks
+    // ============================================================================
+    const PRO_BENCHMARKS = {
+      forehand: {
+        shoulder: { min: 95, max: 115, optimal: 105 },
+        elbow: { min: 135, max: 160, optimal: 147 },
+        hip: { min: 160, max: 180, optimal: 170 },
+        knee: { min: 145, max: 175, optimal: 165 },
+        trunk: { min: 30, max: 50, optimal: 40 },
+        wrist: { min: 155, max: 175, optimal: 165 }
+      },
+      backhand: {
+        shoulder: { min: 85, max: 105, optimal: 95 },
+        elbow: { min: 130, max: 155, optimal: 142 },
+        hip: { min: 155, max: 175, optimal: 165 },
+        knee: { min: 140, max: 170, optimal: 160 },
+        trunk: { min: 25, max: 45, optimal: 35 },
+        wrist: { min: 150, max: 170, optimal: 160 }
+      },
+      serve: {
+        shoulder: { min: 115, max: 145, optimal: 130 },
+        elbow: { min: 90, max: 120, optimal: 105 },
+        hip: { min: 170, max: 190, optimal: 180 },
+        knee: { min: 130, max: 160, optimal: 145 },
+        trunk: { min: 40, max: 60, optimal: 50 },
+        wrist: { min: 140, max: 160, optimal: 150 }
+      },
+      volley: {
+        shoulder: { min: 80, max: 100, optimal: 90 },
+        elbow: { min: 125, max: 150, optimal: 137 },
+        hip: { min: 165, max: 185, optimal: 175 },
+        knee: { min: 155, max: 180, optimal: 170 },
+        trunk: { min: 20, max: 40, optimal: 30 },
+        wrist: { min: 160, max: 180, optimal: 170 }
+      },
+      slice: {
+        shoulder: { min: 82, max: 104, optimal: 93 },
+        elbow: { min: 124, max: 148, optimal: 136 },
+        hip: { min: 156, max: 178, optimal: 167 },
+        knee: { min: 146, max: 170, optimal: 158 },
+        trunk: { min: 18, max: 38, optimal: 28 },
+        wrist: { min: 142, max: 166, optimal: 154 }
+      },
+      'drop-shot': {
+        shoulder: { min: 76, max: 98, optimal: 87 },
+        elbow: { min: 118, max: 142, optimal: 130 },
+        hip: { min: 160, max: 182, optimal: 171 },
+        knee: { min: 150, max: 174, optimal: 162 },
+        trunk: { min: 16, max: 34, optimal: 25 },
+        wrist: { min: 148, max: 170, optimal: 159 }
+      },
+      lob: {
+        shoulder: { min: 98, max: 122, optimal: 110 },
+        elbow: { min: 122, max: 150, optimal: 136 },
+        hip: { min: 164, max: 186, optimal: 175 },
+        knee: { min: 138, max: 164, optimal: 151 },
+        trunk: { min: 34, max: 56, optimal: 45 },
+        wrist: { min: 138, max: 162, optimal: 150 }
+      }
+    };
+
+    const SHOT_SCORING_MODELS = {
+      forehand: {
+        weights: { shoulder: 18, elbow: 14, hip: 18, knee: 12, trunk: 14, stanceWidth: 7, contactHeight: 7, reach: 5, balance: 5 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 88, max: 150, optimal: 114 },
+          contactHeight: { min: 58, max: 104, optimal: 79 },
+          reach: { min: 82, max: 146, optimal: 112 },
+          balance: { min: 0, max: 26, optimal: 9, lowerIsBetter: true }
+        }
+      },
+      backhand: {
+        weights: { shoulder: 16, elbow: 15, hip: 17, knee: 13, trunk: 14, stanceWidth: 8, contactHeight: 7, reach: 5, balance: 5 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 92, max: 154, optimal: 118 },
+          contactHeight: { min: 55, max: 96, optimal: 74 },
+          reach: { min: 84, max: 138, optimal: 108 },
+          balance: { min: 0, max: 24, optimal: 8, lowerIsBetter: true }
+        }
+      },
+      serve: {
+        weights: { shoulder: 18, elbow: 16, hip: 18, knee: 16, trunk: 16, contactHeight: 8, reach: 4, balance: 4 },
+        derivedBenchmarks: {
+          contactHeight: { min: 105, max: 176, optimal: 138 },
+          reach: { min: 96, max: 170, optimal: 128 },
+          balance: { min: 0, max: 28, optimal: 11, lowerIsBetter: true },
+          stanceWidth: { min: 78, max: 138, optimal: 102 }
+        }
+      },
+      volley: {
+        weights: { shoulder: 15, elbow: 15, hip: 14, knee: 14, trunk: 12, stanceWidth: 10, contactHeight: 8, reach: 6, balance: 6 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 90, max: 160, optimal: 122 },
+          contactHeight: { min: 70, max: 128, optimal: 96 },
+          reach: { min: 76, max: 126, optimal: 98 },
+          balance: { min: 0, max: 20, optimal: 6, lowerIsBetter: true }
+        }
+      },
+      slice: {
+        weights: { shoulder: 16, elbow: 14, hip: 15, knee: 12, trunk: 14, stanceWidth: 9, contactHeight: 8, reach: 6, balance: 6 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 90, max: 152, optimal: 116 },
+          contactHeight: { min: 52, max: 98, optimal: 76 },
+          reach: { min: 82, max: 140, optimal: 109 },
+          balance: { min: 0, max: 24, optimal: 8, lowerIsBetter: true }
+        }
+      },
+      'drop-shot': {
+        weights: { shoulder: 14, elbow: 14, hip: 14, knee: 12, trunk: 12, stanceWidth: 10, contactHeight: 10, reach: 7, balance: 7 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 88, max: 148, optimal: 112 },
+          contactHeight: { min: 54, max: 102, optimal: 78 },
+          reach: { min: 78, max: 130, optimal: 101 },
+          balance: { min: 0, max: 22, optimal: 7, lowerIsBetter: true }
+        }
+      },
+      lob: {
+        weights: { shoulder: 16, elbow: 14, hip: 15, knee: 12, trunk: 15, stanceWidth: 8, contactHeight: 10, reach: 5, balance: 5 },
+        derivedBenchmarks: {
+          stanceWidth: { min: 88, max: 150, optimal: 114 },
+          contactHeight: { min: 92, max: 158, optimal: 126 },
+          reach: { min: 88, max: 150, optimal: 117 },
+          balance: { min: 0, max: 24, optimal: 8, lowerIsBetter: true }
+        }
+      }
+    };
+
+    const PROFILE_SCORE_CURVE = {
+      beginner: { tolerance: 1.45, boost: 7, percentileShift: 9 },
+      intermediate: { tolerance: 1.28, boost: 5, percentileShift: 5 },
+      advanced: { tolerance: 1.12, boost: 3, percentileShift: 2 },
+      pro: { tolerance: 1, boost: 1, percentileShift: 0 }
+    };
+
+    const LEVEL_EXPECTATIONS = {
+      beginner: 0.55,
+      intermediate: 0.75,
+      advanced: 0.9,
+      pro: 1
+    };
+
+    const AGE_ADJUSTMENTS = {
+      under_13: { power: 0.6, flexibility: 1.15, tolerance: 2.0 },
+      '13_17': { power: 0.75, flexibility: 1.1, tolerance: 1.5 },
+      '18_24': { power: 1.0, flexibility: 1.05, tolerance: 1.0 },
+      '25_34': { power: 0.98, flexibility: 1.0, tolerance: 1.0 },
+      '35_44': { power: 0.92, flexibility: 0.95, tolerance: 1.1 },
+      '45_54': { power: 0.85, flexibility: 0.9, tolerance: 1.25 },
+      '55_plus': { power: 0.75, flexibility: 0.85, tolerance: 1.5 }
+    };
+
+    const GENDER_ADJUSTMENTS = {
+      male: { power: 1.0, flexibility: 1.0 },
+      female: { power: 0.85, flexibility: 1.1 },
+      other: { power: 0.92, flexibility: 1.05 },
+      unspecified: { power: 1.0, flexibility: 1.0 }
+    };
+
+    const POWER_METRICS = new Set(['hip', 'knee', 'trunk', 'contactHeight', 'reach']);
+    const FLEX_METRICS = new Set(['shoulder', 'elbow', 'knee', 'hip', 'trunk']);
+
+    const TRACKER_DEFINITIONS = {
+      shoulder: 'Measures unit turn and coil depth. It controls power loading and directional control on contact.',
+      elbow: 'Tracks arm extension efficiency through the hit. It affects racquet head speed and contact stability.',
+      hip: 'Represents lower-body rotation transfer. It is a major driver of kinetic-chain power.',
+      knee: 'Captures leg loading and drive. It influences balance, explosiveness, and timing under pressure.',
+      trunk: 'Shows torso rotation and sequencing. It links lower-body power into upper-body acceleration.',
+      wrist: 'Reflects racquet lag and release timing. It impacts spin potential and directional precision.',
+      shoulderTilt: 'Shows whether your shoulders stay level through the strike window instead of leaking posture early.',
+      hipTilt: 'Measures pelvic stability and helps flag balance losses during loading and recovery.',
+      stanceWidth: 'Tracks base width. Too narrow reduces stability; too wide can slow rotation and recovery.',
+      contactHeight: 'Estimates the strike height window relative to your body. It strongly affects shape, depth, and control.',
+      reach: 'Represents spacing from your body into contact. Clean spacing supports speed and consistency.',
+      balance: 'Measures how centered your body stays over the base. Better balance improves repeatability under pressure.',
+      alignmentGap: 'Compares upper-body and lower-body tilt. Lower gaps usually mean cleaner positioning and transfer.',
+      footworkLoad: 'Captures lower-body activity and repositioning demand through the clip.'
+    };
+
+    const CAPTURE_GUIDE_BY_SHOT = {
+      forehand: 'Capture from side or slight rear angle. Keep split-step, load, and follow-through fully visible.',
+      backhand: 'Capture from open-side baseline angle. Keep contact zone and shoulder line visible.',
+      serve: 'Capture from side-rear view. Include full toss, trophy position, and landing frame.',
+      volley: 'Capture from side-net angle. Keep short backswing and split-step timing in frame.',
+      slice: 'Capture from side angle with stable horizon. Keep racquet path and shoulder level visible.',
+      'drop-shot': 'Capture from side-front angle. Keep grip change, compact prep, and touch release visible.',
+      lob: 'Capture from side-rear angle. Keep loading legs, contact elevation, and finish trajectory visible.'
+    };
+
+    function refreshSetupScore() {
+      const checks = Array.from(document.querySelectorAll('.setup-check'));
+      const checked = checks.filter((input) => input.checked).length;
+      const score = checks.length ? Math.round((checked / checks.length) * 100) : 100;
+      playerProfile.setupScore = score;
+      document.getElementById('setupScore').textContent = score;
+      renderCaptureGuidance();
+    }
+
+    function getBenchmarkForShot(shotType) {
+      return PRO_BENCHMARKS[shotType] || PRO_BENCHMARKS.forehand;
+    }
+
+    function renderCaptureGuidance() {
+      const target = document.getElementById('captureGuidance');
+      if (!target) return;
+      const shot = playerProfile.shots[0] || 'forehand';
+      const mode = playerProfile.sessionMode || 'stroke-tune-up';
+      const score = safeNumber(playerProfile.setupScore, 100);
+      const modeCue = mode === 'coach-review'
+        ? 'State your top question for your coach and keep one stroke priority only.'
+        : mode === 'match-readiness'
+          ? 'Use match-tempo reps with no jump cuts so timing errors are visible.'
+          : mode === 'injury-safe-rebuild'
+            ? 'Use lower-intensity reps and avoid hidden compensations outside the frame.'
+            : 'Use controlled reps first, then live tempo reps in the same camera setup.';
+      const qualityCue = score >= 90
+        ? 'Capture quality is strong for high-confidence tracking.'
+        : score >= 70
+          ? 'Capture quality is usable; improve framing before final scoring.'
+          : 'Capture quality is weak. Fix checklist issues before analyzing to avoid misleading feedback.';
+      target.innerHTML = `
+        <strong>Pre-capture guidance (${shot.replace('-', ' ')}):</strong><br>
+        ${CAPTURE_GUIDE_BY_SHOT[shot] || CAPTURE_GUIDE_BY_SHOT.forehand}<br>
+        ${modeCue}<br>
+        ${qualityCue}
+      `;
+    }
+
+    // ============================================================================
+    // Scoring Functions
+    // ============================================================================
+    function getShotScoringModel(shotType) {
+      return SHOT_SCORING_MODELS[shotType] || SHOT_SCORING_MODELS.forehand;
+    }
+
+    function getProfileContext(profile) {
+      return {
+        level: normalizeLevel(profile?.level || currentUser?.ustaLevel || 'intermediate'),
+        ageMid: parseAgeMidpoint(profile?.age || currentUser?.ageRange || ''),
+        gender: String(profile?.gender || currentUser?.gender || 'unspecified').toLowerCase(),
+        preferredHand: String(currentUser?.preferredHand || 'right').toLowerCase()
+      };
+    }
+
+    function getAgeBucket(ageMid) {
+      if (ageMid == null || !Number.isFinite(ageMid)) return '25_34';
+      if (ageMid < 13) return 'under_13';
+      if (ageMid < 18) return '13_17';
+      if (ageMid < 25) return '18_24';
+      if (ageMid < 35) return '25_34';
+      if (ageMid < 45) return '35_44';
+      if (ageMid < 55) return '45_54';
+      return '55_plus';
+    }
+
+    function getGenderBucket(gender) {
+      const normalized = String(gender || '').toLowerCase();
+      if (normalized === 'female' || normalized === 'woman') return 'female';
+      if (normalized === 'male' || normalized === 'man') return 'male';
+      if (normalized === 'non-binary' || normalized === 'nonbinary' || normalized === 'other') return 'other';
+      return 'unspecified';
+    }
+
+    function getProfileAdjustments(profileContext) {
+      const ageBucket = getAgeBucket(profileContext?.ageMid);
+      const genderBucket = getGenderBucket(profileContext?.gender);
+      return {
+        ageBucket,
+        genderBucket,
+        levelExpectation: LEVEL_EXPECTATIONS[profileContext?.level] || LEVEL_EXPECTATIONS.intermediate,
+        ageAdjustment: AGE_ADJUSTMENTS[ageBucket] || AGE_ADJUSTMENTS['25_34'],
+        genderAdjustment: GENDER_ADJUSTMENTS[genderBucket] || GENDER_ADJUSTMENTS.unspecified
+      };
+    }
+
+    function getProfileToleranceMultiplier(profile, shotType) {
+      const context = getProfileContext(profile);
+      const adjustments = getProfileAdjustments(context);
+      let multiplier = PROFILE_SCORE_CURVE[context.level]?.tolerance || 1.25;
+      multiplier *= adjustments.ageAdjustment.tolerance;
+
+      if (adjustments.genderBucket === 'female') {
+        multiplier *= shotType === 'serve' ? 1.06 : 1.03;
+      } else if (adjustments.genderBucket === 'other') {
+        multiplier *= 1.04;
+      }
+
+      return clamp(multiplier, 1, 3.25);
+    }
+
+    function getMetricExpectationScale(metricName, profileContext) {
+      const adjustments = getProfileAdjustments(profileContext);
+      const expectation = adjustments.levelExpectation;
+      const powerScale = adjustments.ageAdjustment.power * adjustments.genderAdjustment.power;
+      const flexibilityScale = adjustments.ageAdjustment.flexibility * adjustments.genderAdjustment.flexibility;
+
+      if (metricName === 'contactHeight' || metricName === 'reach') {
+        return clamp(0.82 + (expectation * 0.22), 0.86, 1.04);
+      }
+
+      if (POWER_METRICS.has(metricName)) {
+        return clamp(expectation * powerScale, 0.5, 1.02);
+      }
+
+      if (FLEX_METRICS.has(metricName)) {
+        return clamp(expectation * flexibilityScale, 0.52, 1.08);
+      }
+
+      if (metricName === 'stanceWidth') {
+        return clamp(0.92 + (expectation * 0.1), 0.95, 1.03);
+      }
+
+      if (metricName === 'balance' || metricName === 'alignmentGap') {
+        return clamp(1 + ((1 - expectation) * 0.18), 1, 1.12);
+      }
+
+      return clamp(0.88 + (expectation * 0.15), 0.92, 1.04);
+    }
+
+    function getAdjustedBenchmark(metricName, benchmark, profileContext) {
+      if (!benchmark) return null;
+
+      const scale = getMetricExpectationScale(metricName, profileContext);
+      const adjusted = { ...benchmark };
+
+      if (adjusted.lowerIsBetter) {
+        adjusted.min = safeNumber(benchmark.min);
+        adjusted.max = roundMetric(safeNumber(benchmark.max) * clamp(scale, 1, 1.18));
+        adjusted.optimal = roundMetric(safeNumber(benchmark.optimal) * clamp(scale, 1, 1.15));
+        return adjusted;
+      }
+
+      adjusted.min = roundMetric(safeNumber(benchmark.min) * scale);
+      adjusted.max = roundMetric(safeNumber(benchmark.max) * scale);
+      adjusted.optimal = roundMetric(safeNumber(benchmark.optimal) * scale);
+      return adjusted;
+    }
+
+    function getExtendedBenchmarks(shotType) {
+      const model = getShotScoringModel(shotType);
+      return {
+        ...(PRO_BENCHMARKS[shotType] || PRO_BENCHMARKS.forehand),
+        ...(model.derivedBenchmarks || {})
+      };
+    }
+
+    function scoreMetricAgainstBenchmark(metricName, currentValue, benchmark, toleranceMultiplier = 1, shotType = 'forehand', profileContext = null) {
+      const current = safeNumber(currentValue, null);
+      if (current == null || !benchmark) return null;
+
+      const adjustedBenchmark = getAdjustedBenchmark(metricName, benchmark, profileContext);
+      const range = Math.max(1, safeNumber(adjustedBenchmark.max) - safeNumber(adjustedBenchmark.min));
+      const target = safeNumber(adjustedBenchmark.optimal);
+      const deviation = Math.abs(current - target);
+      const softWindow = Math.max(4, range * 0.28 * toleranceMultiplier);
+      const goodWindow = Math.max(8, range * 0.55 * toleranceMultiplier);
+      const fairWindow = Math.max(12, range * 0.95 * toleranceMultiplier);
+
+      let score;
+      if (deviation <= softWindow) score = 100 - ((deviation / softWindow) * 8);
+      else if (deviation <= goodWindow) score = 92 - (((deviation - softWindow) / Math.max(1, goodWindow - softWindow)) * 14);
+      else if (deviation <= fairWindow) score = 78 - (((deviation - goodWindow) / Math.max(1, fairWindow - goodWindow)) * 18);
+      else score = 60 - Math.min(22, ((deviation - fairWindow) / Math.max(1, fairWindow)) * 18);
+
+      const roundedScore = clamp(Math.round(score), 38, 100);
+      let status = 'needs-work';
+      if (deviation <= softWindow) status = 'excellent';
+      else if (deviation <= goodWindow) status = 'good';
+      else if (deviation <= fairWindow) status = 'workable';
+
+      return {
+        metric: metricName,
+        current: roundMetric(current),
+        target,
+        min: adjustedBenchmark.min,
+        max: adjustedBenchmark.max,
+        delta: roundMetric(current - target),
+        deviation: roundMetric(deviation, 1),
+        score: roundedScore,
+        status,
+        category: Object.prototype.hasOwnProperty.call(PRO_BENCHMARKS[shotType] || {}, metricName) ? 'angle' : 'movement'
+      };
+    }
+
+    function getFrameMetric(frame, key) {
+      if (!frame) return null;
+      if (frame.angles && Object.prototype.hasOwnProperty.call(frame.angles, key)) return safeNumber(frame.angles[key], null);
+      if (frame.derivedMetrics && Object.prototype.hasOwnProperty.call(frame.derivedMetrics, key)) return safeNumber(frame.derivedMetrics[key], null);
+      if (Object.prototype.hasOwnProperty.call(frame, key)) return safeNumber(frame[key], null);
+      return null;
+    }
+
+    function averageMetricMapFromFrames(frames, keys) {
+      const summary = {};
+      (keys || []).forEach((key) => {
+        const values = (frames || []).map((frame) => getFrameMetric(frame, key)).filter((value) => Number.isFinite(value));
+        const avg = average(values);
+        if (avg != null) {
+          summary[key] = Math.round(avg);
+        }
+      });
+      return summary;
+    }
+
+    function selectAssessmentFrames(frames, shotType) {
+      const list = Array.isArray(frames) ? frames.filter((frame) => frame?.angles) : [];
+      if (list.length <= 24) return list;
+
+      const scored = list.map((frame, index) => {
+        const poseMotion = safeNumber(frame.poseMotion, 0);
+        const reach = safeNumber(frame.derivedMetrics?.reach, 0);
+        const contactHeight = safeNumber(frame.derivedMetrics?.contactHeight, 0);
+        const footworkLoad = safeNumber(frame.derivedMetrics?.footworkLoad, 0);
+        const trunk = safeNumber(frame.angles?.trunk, 0);
+
+        let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18;
+        if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
+        else activation += reach * 0.25 + contactHeight * 0.18;
+
+        return { frame, index, activation };
+      });
+
+      const takeCount = clamp(Math.round(list.length * 0.38), 18, 72);
+      const selectedIndexes = new Set(
+        scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount).map((item) => item.index)
+      );
+
+      return list.filter((_, index) => selectedIndexes.has(index));
+    }
+
+    function calculateConsistencyScore(frames, shotType, profileContext) {
+      const benchmarks = getExtendedBenchmarks(shotType);
+      const keys = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'stanceWidth', 'contactHeight', 'reach', 'balance'];
+      const scores = keys.map((key) => {
+        const values = (frames || []).map((frame) => getFrameMetric(frame, key)).filter((value) => Number.isFinite(value));
+        const std = standardDeviation(values);
+        if (std == null || !benchmarks[key]) return null;
+        const adjustedBenchmark = getAdjustedBenchmark(key, benchmarks[key], profileContext) || benchmarks[key];
+        const range = Math.max(1, safeNumber(adjustedBenchmark.max) - safeNumber(adjustedBenchmark.min));
+        return clamp(Math.round(100 - ((std / range) * 120)), 48, 100);
+      }).filter((value) => Number.isFinite(value));
+
+      return scores.length ? Math.round(average(scores)) : 70;
+    }
+
+    function calculatePerformanceKpis(focusFrames, avgDerivedMetrics, avgLandmarks, avgConfidence, setupScore, shotType, profileContext) {
+      const model = getShotScoringModel(shotType);
+      const derivedBench = model.derivedBenchmarks || {};
+      const avgPoseMotion = average((focusFrames || []).map((frame) => safeNumber(frame.poseMotion, 0))) || 0;
+      const timingConsistency = calculateConsistencyScore(focusFrames, shotType, profileContext);
+      const movementSpeed = clamp(Math.round(avgPoseMotion * 9), 28, 100);
+      const trackingReliability = clamp(Math.round((avgConfidence * 0.58) + ((avgLandmarks / 17) * 42)), 0, 100);
+      const contactHeightScore = scoreMetricAgainstBenchmark('contactHeight', avgDerivedMetrics.contactHeight, derivedBench.contactHeight, 1, shotType, profileContext)?.score ?? trackingReliability;
+      const spacingScore = scoreMetricAgainstBenchmark('reach', avgDerivedMetrics.reach, derivedBench.reach, 1, shotType, profileContext)?.score ?? 72;
+      const baseScore = scoreMetricAgainstBenchmark('stanceWidth', avgDerivedMetrics.stanceWidth, derivedBench.stanceWidth, 1, shotType, profileContext)?.score ?? 72;
+      const balanceScore = scoreMetricAgainstBenchmark('balance', avgDerivedMetrics.balance, derivedBench.balance, 1, shotType, profileContext)?.score ?? 72;
+      const positioningScore = Math.round(average([baseScore, balanceScore, clamp(100 - safeNumber(avgDerivedMetrics.alignmentGap, 12) * 3, 45, 100)]));
+      const readinessIndex = clamp(Math.round((timingConsistency * 0.42) + (trackingReliability * 0.3) + (safeNumber(setupScore, 100) * 0.28)), 0, 100);
+      const footworkScore = clamp(Math.round(average([
+        baseScore,
+        balanceScore,
+        clamp(100 - Math.abs(safeNumber(avgDerivedMetrics.footworkLoad, 55) - 58), 45, 98)
+      ])), 0, 100);
+
+      return {
+        timingConsistency,
+        movementSpeed,
+        footworkScore,
+        positioningScore,
+        contactHeightScore,
+        spacingScore,
+        trackingReliability,
+        readinessIndex
+      };
+    }
+
+    function getProgressContext(shotType, projectedScore) {
+      if (!store || !currentUser) {
+        return { delta: 0, personalBest: false, recentAverage: null, sameShotCount: 0, scoreBonus: 0, consistencyStreak: false };
+      }
+
+      const sameShot = store.getUserAssessments()
+        .filter((assessment) => assessment.shotType === shotType)
+        .slice(0, 6);
+      if (!sameShot.length) {
+        return { delta: 0, personalBest: true, recentAverage: null, sameShotCount: 0, scoreBonus: 1, consistencyStreak: false };
+      }
+
+      const recentAverage = average(sameShot.slice(0, 3).map((assessment) => safeNumber(assessment.overallScore, 0)));
+      const bestPrevious = Math.max(...sameShot.map((assessment) => safeNumber(assessment.overallScore, 0)));
+      const delta = recentAverage != null ? Math.round(projectedScore - recentAverage) : 0;
+      const personalBest = projectedScore > bestPrevious;
+      const streakScores = sameShot.slice(0, 3).map((assessment) => safeNumber(assessment.overallScore, 0));
+      const consistencyStreak = streakScores.every((score, index, arr) => index === 0 || score >= arr[index - 1] - 2);
+      const scoreBonus = clamp((delta > 0 ? delta * 0.18 : 0) + (personalBest ? 2 : 0) + (consistencyStreak ? 1 : 0), 0, 4);
+
+      return {
+        delta,
+        personalBest,
+        recentAverage: recentAverage != null ? Math.round(recentAverage) : null,
+        sameShotCount: sameShot.length,
+        consistencyStreak,
+        scoreBonus
+      };
+    }
+
+    function getMilestoneSummary(score, level, progressContext) {
+      const thresholds = {
+        beginner: [
+          { id: 'launch', label: 'Launch Pad', min: 60 },
+          { id: 'groove', label: 'Groove Builder', min: 70 },
+          { id: 'pressure', label: 'Pressure Ready', min: 78 },
+          { id: 'match', label: 'Match Builder', min: 86 }
+        ],
+        intermediate: [
+          { id: 'foundation', label: 'Foundation', min: 62 },
+          { id: 'groove', label: 'Groove Builder', min: 72 },
+          { id: 'pressure', label: 'Pressure Ready', min: 80 },
+          { id: 'match', label: 'Competitive Match', min: 88 }
+        ],
+        advanced: [
+          { id: 'competitive', label: 'Competitive Engine', min: 64 },
+          { id: 'pressure', label: 'Pressure Ready', min: 76 },
+          { id: 'match', label: 'Match Weapon', min: 84 },
+          { id: 'elite', label: 'Elite Window', min: 92 }
+        ],
+        pro: [
+          { id: 'tour', label: 'Tour Standard', min: 68 },
+          { id: 'pressure', label: 'Pressure Window', min: 80 },
+          { id: 'match', label: 'Match Weapon', min: 88 },
+          { id: 'elite', label: 'Elite Window', min: 95 }
+        ]
+      }[level] || [];
+
+      const current = [...thresholds].reverse().find((item) => score >= item.min) || thresholds[0];
+      const next = thresholds.find((item) => item.min > score) || null;
+      const gapToNext = next ? Math.max(0, next.min - score) : 0;
+
+      return {
+        current: current?.label || 'Foundation',
+        next: next?.label || 'Peak Band',
+        gapToNext,
+        momentum: progressContext.personalBest ? 'Personal best unlocked' : progressContext.delta > 0 ? 'Trending up' : 'Hold and stabilize',
+        celebration: progressContext.personalBest || progressContext.delta >= 4
+      };
+    }
+
+    function getAchievementSummary(score, performanceKpis, progressContext) {
+      const unlocks = [];
+      if (score >= 95) unlocks.push({ id: 'platinum-technique', icon: 'Diamond', label: 'Platinum Technique', copy: 'Elite execution window unlocked.' });
+      else if (score >= 85) unlocks.push({ id: 'gold-technique', icon: 'Gold', label: 'Gold Technique', copy: 'High-performance mechanics for your profile.' });
+      else if (score >= 75) unlocks.push({ id: 'silver-technique', icon: 'Silver', label: 'Silver Technique', copy: 'Strong repeatable mechanics are showing up.' });
+      else if (score >= 60) unlocks.push({ id: 'bronze-technique', icon: 'Bronze', label: 'Bronze Technique', copy: 'Foundation mechanics are now measurable.' });
+
+      if (safeNumber(performanceKpis?.timingConsistency, 0) >= 82) {
+        unlocks.push({ id: 'timing-engine', icon: 'Tempo', label: 'Timing Engine', copy: 'Your strike window is staying repeatable across live frames.' });
+      }
+
+      if (safeNumber(performanceKpis?.footworkScore, 0) >= 82) {
+        unlocks.push({ id: 'base-control', icon: 'Base', label: 'Base Control', copy: 'Your balance and base width are supporting the shot.' });
+      }
+
+      if (progressContext?.personalBest) {
+        unlocks.push({ id: 'personal-best', icon: 'Peak', label: 'New Peak', copy: 'This session is ahead of your prior best for the same shot.' });
+      } else if (safeNumber(progressContext?.delta, 0) >= 4) {
+        unlocks.push({ id: 'uptrend', icon: 'Rise', label: 'Trend Up', copy: 'You are moving clearly above your recent average.' });
+      }
+
+      return unlocks.slice(0, 4);
+    }
+
+    function calculateScore(avgAngles, avgDerivedMetrics, avgLandmarks, avgConfidence, shotType, profile, focusFrames, setupScore) {
+      const profileContext = getProfileContext(profile);
+      const adjustments = getProfileAdjustments(profileContext);
+      const curve = PROFILE_SCORE_CURVE[profileContext.level] || PROFILE_SCORE_CURVE.intermediate;
+      const toleranceMultiplier = getProfileToleranceMultiplier(profile, shotType);
+      const model = getShotScoringModel(shotType);
+      const angleBenchmarks = getBenchmarkForShot(shotType);
+      const derivedBenchmarks = model.derivedBenchmarks || {};
+      const weights = model.weights || {};
+      const comparisons = [];
+      let weightedTotal = 0;
+      let weightCount = 0;
+
+      Object.entries(weights).forEach(([metric, weight]) => {
+        const current = Object.prototype.hasOwnProperty.call(avgAngles || {}, metric)
+          ? avgAngles[metric]
+          : avgDerivedMetrics?.[metric];
+        const benchmark = angleBenchmarks[metric] || derivedBenchmarks[metric];
+        const comparison = scoreMetricAgainstBenchmark(metric, current, benchmark, toleranceMultiplier, shotType, profileContext);
+        if (!comparison) return;
+        comparisons.push(comparison);
+        weightedTotal += comparison.score * weight;
+        weightCount += weight;
+      });
+
+      const biomechanicsScore = weightCount ? Math.round(weightedTotal / weightCount) : 68;
+      const performanceKpis = calculatePerformanceKpis(
+        focusFrames,
+        avgDerivedMetrics,
+        avgLandmarks,
+        avgConfidence,
+        setupScore,
+        shotType,
+        profileContext
+      );
+      const readinessScore = Math.round((performanceKpis.readinessIndex * 0.45) + (performanceKpis.trackingReliability * 0.25) + (safeNumber(setupScore, 100) * 0.3));
+      const progressContext = getProgressContext(shotType, biomechanicsScore + curve.boost);
+      const levelFloor = { beginner: 66, intermediate: 61, advanced: 58, pro: 55 }[profileContext.level] || 60;
+      const rawScore = Math.round(
+        (biomechanicsScore * 0.62) +
+        (performanceKpis.timingConsistency * 0.14) +
+        (performanceKpis.footworkScore * 0.08) +
+        (performanceKpis.positioningScore * 0.08) +
+        (readinessScore * 0.08)
+      );
+
+      const overallScore = clamp(
+        Math.round(rawScore + curve.boost + progressContext.scoreBonus + (safeNumber(setupScore, 100) >= 90 ? 1 : 0)),
+        levelFloor,
+        99
+      );
+      const milestone = getMilestoneSummary(overallScore, profileContext.level, progressContext);
+      const achievements = getAchievementSummary(overallScore, performanceKpis, progressContext);
+
+      return {
+        overallScore,
+        grade: getGrade(overallScore),
+        percentile: getPercentile(overallScore, profileContext.level),
+        componentScores: {
+          biomechanics: biomechanicsScore,
+          timing: performanceKpis.timingConsistency,
+          footwork: performanceKpis.footworkScore,
+          positioning: performanceKpis.positioningScore,
+          readiness: readinessScore
+        },
+        comparisons: comparisons.sort((a, b) => {
+          const severity = { 'needs-work': 4, workable: 3, good: 2, excellent: 1 };
+          if (severity[a.status] !== severity[b.status]) {
+            return severity[b.status] - severity[a.status];
+          }
+          return Math.abs(b.delta) - Math.abs(a.delta);
+        }),
+        performanceKpis,
+        progressContext,
+        milestone,
+        achievements,
+        scoringMeta: {
+          toleranceMultiplier: roundMetric(toleranceMultiplier, 2),
+          level: profileContext.level,
+          ageMid: profileContext.ageMid,
+          ageBucket: adjustments.ageBucket,
+          gender: profileContext.gender,
+          genderBucket: adjustments.genderBucket,
+          levelExpectation: adjustments.levelExpectation
+        }
+      };
+    }
+
+    function getGrade(score) {
+      if (score == null || isNaN(score)) return 'N/A';
+      if (score >= 95) return 'A+';
+      if (score >= 90) return 'A';
+      if (score >= 85) return 'A-';
+      if (score >= 80) return 'B+';
+      if (score >= 75) return 'B';
+      if (score >= 70) return 'B-';
+      if (score >= 65) return 'C+';
+      if (score >= 60) return 'C';
+      if (score >= 55) return 'C-';
+      return 'D+';
+    }
+
+    function getPercentile(score, level = 'intermediate') {
+      if (score == null || isNaN(score)) return 0;
+      const distributions = {
+        beginner: { mean: 55, stdDev: 12 },
+        intermediate: { mean: 70, stdDev: 10 },
+        advanced: { mean: 82, stdDev: 8 },
+        pro: { mean: 92, stdDev: 5 }
+      };
+      const dist = distributions[level] || distributions.intermediate;
+      const z = (score - dist.mean) / dist.stdDev;
+      const percentile = 50 * (1 + Math.tanh(z / 1.7));
+      return clamp(Math.round(percentile), 1, 99);
+    }
+
+    function formatOrdinal(value) {
+      const num = safeNumber(value, 0);
+      const mod100 = num % 100;
+      if (mod100 >= 11 && mod100 <= 13) return `${num}th`;
+      switch (num % 10) {
+        case 1: return `${num}st`;
+        case 2: return `${num}nd`;
+        case 3: return `${num}rd`;
+        default: return `${num}th`;
+      }
+    }
+
+    // ============================================================================
+    // Session Building
+    // ============================================================================
+    function buildSession() {
+      console.log('🔨 buildSession() called');
+      console.log('   Total frames:', analysisData.frames.length);
+      
+      const shotType = playerProfile.shots[0] || 'forehand';
+      const focusFrames = selectAssessmentFrames(analysisData.frames, shotType);
+      const avgAngles = averageMetricMapFromFrames(focusFrames, Object.keys(analysisData.angles));
+      const avgDerivedMetrics = averageMetricMapFromFrames(focusFrames, Object.keys(analysisData.derivedMetrics));
+
+      const avgLandmarks = analysisData.landmarks.length
+        ? Math.round(analysisData.landmarks.reduce((a, b) => a + b, 0) / analysisData.landmarks.length)
+        : 0;
+
+      const avgConfidence = analysisData.confidence.length
+        ? Math.round(analysisData.confidence.reduce((a, b) => a + b, 0) / analysisData.confidence.length)
+        : 0;
+
+      const bench = getBenchmarkForShot(shotType);
+      const scoreResult = calculateScore(
+        avgAngles,
+        avgDerivedMetrics,
+        avgLandmarks,
+        avgConfidence,
+        shotType,
+        playerProfile,
+        focusFrames,
+        playerProfile.setupScore
+      );
+      const metricComparisons = scoreResult.comparisons;
+      const benchmarkSummary = metricComparisons
+        .slice(0, 3)
+        .map((item) => `${formatMetricName(item.metric)}: ${item.delta > 0 ? '+' : ''}${item.delta}`)
+        .join(' • ');
+      const tailoredDrills = store ? store.buildTailoredDrills({
+        shotType,
+        metricComparisons,
+        level: playerProfile.level,
+        sessionGoal: playerProfile.sessionGoal || '',
+        sessionMode: playerProfile.sessionMode || 'stroke-tune-up'
+      }) : [];
+      const tailoredTactics = store ? store.getTacticRecommendations({
+        shotType,
+        metricComparisons,
+        level: playerProfile.level,
+        sessionGoal: playerProfile.sessionGoal || '',
+        sessionMode: playerProfile.sessionMode || 'stroke-tune-up'
+      }) : [];
+
+      return {
+        profile: playerProfile,
+        summary: {
+          framesAnalyzed: analysisData.frames.length,
+          focusFramesAnalyzed: focusFrames.length,
+          avgLandmarks,
+          avgConfidence,
+          avgAngles,
+          avgDerivedMetrics,
+          score: scoreResult.overallScore,
+          grade: scoreResult.grade,
+          percentile: scoreResult.percentile,
+          shotType,
+          metricComparisons,
+          benchmarkSummary,
+          tailoredDrills,
+          tailoredTactics,
+          componentScores: scoreResult.componentScores,
+          performanceKpis: scoreResult.performanceKpis,
+          progressContext: scoreResult.progressContext,
+          milestone: scoreResult.milestone,
+          achievements: scoreResult.achievements,
+          scoringMeta: scoreResult.scoringMeta,
+          sessionMode: playerProfile.sessionMode,
+          sessionGoal: playerProfile.sessionGoal,
+          setupScore: playerProfile.setupScore
+        },
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    function generateReport(session) {
+      const s = session.summary;
+      const bench = getBenchmarkForShot(s.shotType);
+      const topMetrics = [...(s.metricComparisons || [])].sort((a, b) => a.score - b.score).slice(0, 3);
+      const strengths = [...(s.metricComparisons || [])].sort((a, b) => b.score - a.score).slice(0, 2);
+      const html = `
+        <div class="report-header">
+          <div class="smartswing-score">${s.score}</div>
+          <div class="grade-badge">Grade ${s.grade}</div>
+          <div class="percentile">${formatOrdinal(s.percentile)} percentile within ${s.scoringMeta?.level || session.profile.level} peers | ${session.profile.level} | Age ${session.profile.age} | ${session.profile.gender}</div>
+          <div style="font-size: 14px; color: var(--gray); margin-top: 14px;">Analysis Date: ${new Date(session.timestamp).toLocaleDateString()} | Shot: ${s.shotType} | Capture quality: ${s.setupScore || 100}%</div>
+          <div style="font-size: 16px; margin-top: 12px; color: var(--electric-cyan); font-weight: 800;">Start here: ${topMetrics[0] ? `${formatMetricName(topMetrics[0].metric)} is the biggest gain opportunity in this clip.` : 'This clip is balanced. Keep building repeatability.'}</div>
+        </div>
+        <div class="report-section">
+          <div class="report-section-title">Quick Read</div>
+          <div class="metrics-grid">
+            <div class="metric-card"><div class="metric-title">Overall Score</div><div class="metric-value-large">${s.score}%</div><div class="metric-label">Short answer: how strong this motion looks for your current level.</div></div>
+            <div class="metric-card"><div class="metric-title">Best Strength</div><div class="metric-value-large" style="font-size:30px;">${strengths[0] ? formatMetricName(strengths[0].metric) : 'Balance'}</div><div class="metric-label">${strengths[0] ? `${strengths[0].score}% and helping stroke stability.` : 'Use the next report to confirm a stable strength.'}</div></div>
+            <div class="metric-card"><div class="metric-title">Main Priority</div><div class="metric-value-large" style="font-size:30px;">${topMetrics[0] ? formatMetricName(topMetrics[0].metric) : 'Timing'}</div><div class="metric-label">${topMetrics[0] ? `${topMetrics[0].score}% and most responsible for the current cap on performance.` : 'No major red flag detected.'}</div></div>
+          </div>
+        </div>
+        <div class="report-section"><div class="report-section-title">Biomechanics Analysis</div>${generateBiomechanicsInsights(s.avgAngles, bench, s.shotType, s.metricComparisons)}</div>
+        <div class="report-section"><div class="report-section-title">Angles and What They Mean</div>${generateAngleComparisons(s.avgAngles, bench, s.shotType, s.metricComparisons)}</div>
+        <div class="report-section"><div class="report-section-title">Performance KPIs</div>${generatePerformanceKpisHtml(s)}</div>
+        <div class="report-section"><div class="report-section-title">Movement, Footwork, Positioning, and Height</div>${generateDerivedMetricsHtml(s)}</div>
+        <div class="report-section"><div class="report-section-title">Coach-ready Summary</div>${generateCoachReadySummaryHtml(s)}</div>
+        <div class="report-section"><div class="report-section-title">Tailored Drill Plan</div>${generateTailoredDrillsHtml(s.tailoredDrills || [])}</div>
+        <div class="report-section"><div class="report-section-title">Match Tactics for This Session</div>${generateTacticsHtml(s.tailoredTactics || [])}</div>
+        <div class="report-section">
+          <div class="report-section-title">Next Steps</div>
+          <div style="display:grid; gap:10px;">
+            <div class="metric-row"><div class="metric-row-label"><strong>1. Keep the next capture comparable</strong><div style="font-size:12px; color:var(--gray); margin-top:4px;">Same shot, same angle, same distance from camera.</div></div></div>
+            <div class="metric-row"><div class="metric-row-label"><strong>2. Run the first drill before anything else</strong><div style="font-size:12px; color:var(--gray); margin-top:4px;">Fix the highest-impact mechanical gap before adding more volume.</div></div></div>
+            <div class="metric-row"><div class="metric-row-label"><strong>3. Re-test after the next focused session</strong><div style="font-size:12px; color:var(--gray); margin-top:4px;">SmartSwing will show if the same priority moved in the right direction.</div></div></div>
+          </div>
+        </div>
+      `;
+      document.getElementById('reportContent').innerHTML = html;
+    }
+
+    function buildExpandableInsight(title, score, summary, details, tone = 'cyan') {
+      const borderColor = tone === 'green' ? 'rgba(0, 200, 83, 0.28)' : tone === 'orange' ? 'rgba(255, 109, 0, 0.28)' : 'rgba(0, 229, 255, 0.24)';
+      return `
+        <details style="padding:16px; margin-bottom:12px; background:rgba(10,22,40,0.58); border:1px solid ${borderColor}; border-radius:14px;">
+          <summary style="list-style:none; cursor:pointer; display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+            <div>
+              <div style="font-size:12px; text-transform:uppercase; font-weight:800; letter-spacing:0.06em; color:var(--gray);">Tap to expand</div>
+              <div style="font-size:18px; font-weight:800; margin-top:4px;">${title}</div>
+              <div style="font-size:14px; color:var(--silver); margin-top:8px;">${summary}</div>
+            </div>
+            <div style="min-width:72px; text-align:right; font-size:24px; font-weight:800; color:var(--electric-cyan);">${score}%</div>
+          </summary>
+          <div style="margin-top:14px; font-size:14px; line-height:1.7; color:var(--silver);">${details}</div>
+        </details>
+      `;
+    }
+
+    function generateTailoredDrillsHtml(drills) {
+      if (!drills.length) {
+        return '<div class="info-box">No high-risk deltas detected. Keep using repeatability and pressure drills to maintain form.</div>';
+      }
+
+      const hasLibraryAccess = store && currentUser ? store.canAccessLibrary() : false;
+
+      return drills.slice(0, 3).map((drill, index) => buildExpandableInsight(
+        `${index + 1}. ${drill.title}`,
+        Math.min(100, 72 + (index * 8)),
+        `${drill.prescription || drill.focus || 'Targeted drill prescription'} Expected gain: ${drill.expectedImprovement || 'cleaner repeatability'}.`,
+        `<strong>Targets:</strong> ${drill.targets?.join(' | ') || 'stroke repeatability'}<br><br><strong>Why this fits:</strong> ${drill.whyThisFits || 'It matches the biggest weakness detected in this report.'}<br><br><strong>Coaching cue:</strong> ${drill.cue || 'Keep the cue simple and repeatable.'}<br><br>${drill.videoUrl ? (hasLibraryAccess ? `<strong>Video:</strong> <a href="${drill.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${drill.videoTitle || 'Open drill video'}</a>${drill.channel ? ` (${drill.channel})` : ''}` : '<strong>Upgrade note:</strong> Drill video links are unlocked on Performance and Tournament plans.') : ''}`,
+        'green'
+      )).join('');
+    }
+
+    function generateTacticsHtml(tactics) {
+      if (!tactics.length) {
+        return '<div class="info-box">No tactical recommendations available for this sample. Run another report with match-ready mode enabled.</div>';
+      }
+
+      const hasLibraryAccess = store && currentUser ? store.canAccessLibrary() : false;
+
+      return tactics.slice(0, 3).map((tactic, index) => buildExpandableInsight(
+        `${index + 1}. ${tactic.title}`,
+        Math.min(100, 74 + (index * 7)),
+        `${tactic.message || tactic.summary || 'Tactical pattern for the next session.'}`,
+        `<strong>Tactical focus:</strong> ${tactic.tacticalFocus?.join(' | ') || tactic.situation || 'general'}<br><br><strong>Expected impact:</strong> ${tactic.expectedImprovement ? Object.values(tactic.expectedImprovement).slice(0, 2).join(' | ') : 'Cleaner point construction and fewer low-value decisions.'}<br><br>${tactic.videoUrl ? (hasLibraryAccess ? `<strong>Video:</strong> <a href="${tactic.videoUrl}" target="_blank" rel="noopener" style="color: var(--electric-cyan);">${tactic.channel || 'Open tactic video'}</a>` : '<strong>Upgrade note:</strong> Full tactics video links are unlocked on Performance and Tournament plans.') : ''}`,
+        'cyan'
+      )).join('');
+    }
+
+    function generateMilestoneHtml(summary) {
+      const milestone = summary.milestone || {};
+      const progress = summary.progressContext || {};
+      return `
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-title">Current Band</div>
+            <div class="metric-value-large" style="font-size:36px;">${milestone.current || 'Foundation'}</div>
+            <div class="metric-label">${milestone.momentum || 'Build repeatability'}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Next Band</div>
+            <div class="metric-value-large" style="font-size:36px;">${milestone.next || 'Peak Band'}</div>
+            <div class="metric-label">${milestone.gapToNext || 0} points away</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-title">Progress Delta</div>
+            <div class="metric-value-large" style="font-size:36px;">${progress.delta != null ? `${progress.delta > 0 ? '+' : ''}${progress.delta}` : '0'}</div>
+            <div class="metric-label">${progress.personalBest ? 'New personal best pace' : 'Vs recent same-shot average'}</div>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>Make progress tangible:</strong> Save this report, complete the first drill block, then re-run the same shot from the same camera angle. SmartSwing will measure whether you are closing the ${milestone.gapToNext || 0}-point gap to <strong>${milestone.next || 'the next band'}</strong>.
+        </div>
+      `;
+    }
+
+    function generateAchievementsHtml(summary) {
+      const achievements = summary.achievements || [];
+      if (!achievements.length) {
+        return '<div class="info-box">No achievement unlocked yet. Save this report, repeat the drill block, and re-test the same shot to trigger your next unlock.</div>';
+      }
+
+      return `
+        <div class="metrics-grid">
+          ${achievements.map((item) => `
+            <div class="metric-card">
+              <div class="metric-title">${item.icon}</div>
+              <div class="metric-value-large" style="font-size:32px;">${item.label}</div>
+              <div class="metric-label">${item.copy}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function generatePerformanceKpisHtml(summary) {
+      const kpis = summary.performanceKpis || {};
+      const cards = [
+        ['Timing consistency', kpis.timingConsistency, 'Your strike window looks repeatable. Higher is better because it means cleaner contact happens more often.', 'Why it matters: timing is the difference between a clean hit and a rushed hit. What to do: repeat the same feed and keep one timing cue active until the miss pattern calms down.'],
+        ['Footwork support', kpis.footworkScore, 'Your lower body is either helping the shot or arriving late. Higher is better because it supports balance and spacing.', 'Why it matters: better feet create better contact before the racket even moves. What to do: use split-step and first-move drills before technical stroke work.'],
+        ['Positioning quality', kpis.positioningScore, 'This shows how centered and stable you stay through load, contact, and recovery.', 'Why it matters: better positioning lets you swing without compensating. What to do: rehearse recovery routes and keep the same starting position when re-testing.']
+      ];
+      return cards.map(([label, value, summaryText, detailText]) => buildExpandableInsight(label, Math.min(100, Math.round(value || 0)), summaryText, detailText, 'cyan')).join('');
+    }
+
+    function generateDerivedMetricsHtml(summary) {
+      const metrics = summary.avgDerivedMetrics || {};
+      const cards = [
+        ['Movement', summary.performanceKpis?.movementSpeed, `Movement speed index ${Math.round(summary.performanceKpis?.movementSpeed || 0)}%.`, 'How to read it: this reflects how fast the clip demanded movement. Why it matters: if movement load rises but contact falls apart, the footwork pattern is the real bottleneck.'],
+        ['Footwork', summary.performanceKpis?.footworkScore, `Footwork support is ${Math.round(summary.performanceKpis?.footworkScore || 0)}%.`, `Base width: ${metrics.stanceWidth ?? '-'} | Balance offset: ${metrics.balance ?? '-'} | Footwork load: ${metrics.footworkLoad ?? '-'}. Focus on arriving earlier so the base is set before the swing.`],
+        ['Positioning', summary.performanceKpis?.positioningScore, `Positioning quality is ${Math.round(summary.performanceKpis?.positioningScore || 0)}%.`, `Reach / spacing: ${metrics.reach ?? '-'} | Alignment gap: ${metrics.alignmentGap ?? '-'}. Why it matters: this determines whether you can swing freely or have to compensate.`],
+        ['Contact height', summary.performanceKpis?.contactHeightScore, `Contact height score is ${Math.round(summary.performanceKpis?.contactHeightScore || 0)}%.`, `Contact height index: ${metrics.contactHeight ?? '-'} | Shoulder tilt: ${metrics.shoulderTilt ?? '-'} | Hip tilt: ${metrics.hipTilt ?? '-'}. Use it to judge whether you are meeting the ball in the right strike window.`]
+      ];
+      return cards.map(([label, score, summaryText, detailText]) => buildExpandableInsight(label, Math.min(100, Math.round(score || 0)), summaryText, detailText, 'orange')).join('');
+    }
+
+    function generateTrackerDefinitionsHtml() {
+      const ordered = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'stanceWidth', 'contactHeight', 'reach', 'balance', 'alignmentGap', 'footworkLoad'];
+      return ordered.map((metric) => `
+        <div style="padding: 14px; margin-bottom: 10px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
+          <div style="font-weight: 800; margin-bottom: 6px;">${formatMetricName(metric)}</div>
+          <div style="font-size: 14px; color: var(--silver); line-height: 1.6;">${TRACKER_DEFINITIONS[metric]}</div>
+        </div>
+      `).join('');
+    }
+
+    function generateFairnessExplanationHtml(summary) {
+      const meta = summary.scoringMeta || {};
+      const progress = summary.progressContext || {};
+      return `
+        <div class="info-box">
+          <strong>Why this score is fairer:</strong><br>
+          1. SmartSwing starts from elite biomechanics, then shifts the target window to fit your <strong>${meta.level || 'intermediate'}</strong> level expectation.<br>
+          2. Age bucket <strong>${meta.ageBucket || '25_34'}</strong>${meta.ageMid ? ` (${meta.ageMid})` : ''} and gender context <strong>${meta.genderBucket || meta.gender || 'unspecified'}</strong> adjust power and flexibility expectations before scoring.<br>
+          3. The final score blends biomechanics, timing consistency, footwork, positioning, readiness, and momentum instead of punishing one angle in isolation.<br>
+          4. Progress is rewarded: ${progress.personalBest ? 'this sample is pacing above your previous best for this shot.' : progress.delta > 0 ? `you are ${progress.delta} points above your recent same-shot average.` : 'the model is asking for stability before pushing the next score jump.'}
+        </div>
+      `;
+    }
+
+    function generateCoachReadySummaryHtml(summary) {
+      const ranked = [...(summary.metricComparisons || [])]
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 3);
+      const urgency = summary.performanceKpis?.readinessIndex < 65 ? 'High' : summary.performanceKpis?.readinessIndex < 80 ? 'Medium' : 'Low';
+      const nextSessionFocus = ranked[0]
+        ? `${formatMetricName(ranked[0].metric)} correction and contact timing`
+        : `${summary.shotType} repeatability under pressure`;
+      const accountability = (summary.setupScore || 100) < 80
+        ? 'Capture quality dropped below 80/100. Re-record with corrected setup before coach review.'
+        : 'Capture quality is reliable enough for coach progression checks.';
+
+      const intro = `<div class="metric-card" style="margin-bottom:12px;"><div class="metric-title">Coach snapshot</div><div class="metric-label">Urgency: ${urgency} | Session mode: ${summary.sessionMode || 'stroke-tune-up'} | Player goal: ${summary.sessionGoal || 'General improvement'} | Next coach focus: ${nextSessionFocus}</div><div class="metric-label" style="margin-top:10px;">${accountability}</div></div>`;
+      const priorities = ranked.length ? ranked.map((item, index) => buildExpandableInsight(`Priority ${index + 1}: ${formatMetricName(item.metric)}`, Math.min(100, Math.round(item.score || 0)), `${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees.`, `Why this matters: ${TRACKER_DEFINITIONS[item.metric] || 'This metric drives stroke quality.'}<br><br><strong>How to interpret:</strong> This priority is large enough to change consistency and ball quality, not just aesthetics.<br><br><strong>What to do next:</strong> Use the first drill recommendation, then re-check the same shot from the same camera angle before the next coach review.`, 'green')).join('') : '<div class="metric-card"><div class="metric-label">No high-risk deltas detected in this session.</div></div>';
+      return `${intro}${priorities}`;
+    }
+
+    function generateExecutionPlanHtml(summary) {
+      const ranked = [...(summary.metricComparisons || [])]
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 2);
+      const primary = formatMetricName(ranked[0]?.metric || 'timing');
+      const secondary = formatMetricName(ranked[1]?.metric || 'consistency');
+      const focusDrill = summary.tailoredDrills?.[0]?.title || `${summary.shotType} precision drill`;
+      const supportDrill = summary.tailoredDrills?.[1]?.title || `${summary.shotType} repeatability block`;
+
+      const plan = [
+        {
+          day: 'Day 1',
+          objective: `Baseline reset on ${primary}`,
+          action: `Run 3 controlled sets focused on ${primary}. Execute: ${focusDrill}.`,
+          checkpoint: 'Re-record 1 short clip and confirm cleaner movement pattern.'
+        },
+        {
+          day: 'Day 3',
+          objective: `Add ${secondary} under movement`,
+          action: `Run footwork + stroke block, then 2 pressure sets. Execute: ${supportDrill}.`,
+          checkpoint: 'Compare confidence and angle deltas against Day 1 clip.'
+        },
+        {
+          day: 'Day 5',
+          objective: 'Transfer to match-like tempo',
+          action: `Run point-start drills at game speed. Keep one technical cue active: ${primary}.`,
+          checkpoint: 'Log misses caused by mechanics vs decision errors.'
+        },
+        {
+          day: 'Day 7',
+          objective: 'Verification and coach handoff',
+          action: 'Run full analyzer session and save report.',
+          checkpoint: 'Use coach summary to define next week priority.'
+        }
+      ];
+
+      return `
+        <div style="display:grid; gap:10px;">
+          ${plan.map((item) => `
+            <div style="padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background: rgba(10,22,40,0.56);">
+              <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--electric-cyan); font-weight:800;">${item.day}</div>
+              <div style="font-size:16px; font-weight:800; margin-top:4px;">${item.objective}</div>
+              <div style="font-size:14px; margin-top:6px;"><strong>Action:</strong> ${item.action}</div>
+              <div style="font-size:14px; margin-top:6px;"><strong>Checkpoint:</strong> ${item.checkpoint}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function generateAngleComparisons(avgAngles, bench, shotType) {
+      if (!avgAngles || Object.keys(avgAngles).length === 0) {
+        return '<p>No angle data available. Please ensure your full body is visible in the video.</p>';
+      }
+
+      let html = '';
+      
+      const angleOrder = ['shoulder', 'elbow', 'hip', 'knee', 'trunk', 'wrist'];
+      
+      for (const angleName of angleOrder) {
+        if (avgAngles[angleName] == null) continue;
+        
+        const yourAngle = avgAngles[angleName];
+        const optimal = bench[angleName]?.optimal;
+        const minBench = bench[angleName]?.min;
+        const maxBench = bench[angleName]?.max;
+        
+        if (!optimal) continue;
+        
+        const diff = yourAngle - optimal;
+        const absDiff = Math.abs(diff);
+        
+        let status, statusColor, statusIcon;
+        if (absDiff <= 5) {
+          status = 'Excellent';
+          statusColor = 'var(--neon-green)';
+          statusIcon = '✓';
+        } else if (absDiff <= 10) {
+          status = 'Good';
+          statusColor = 'var(--electric-cyan)';
+          statusIcon = '○';
+        } else {
+          status = 'Needs Work';
+          statusColor = 'var(--warning)';
+          statusIcon = '△';
+        }
+        
+        html += `
+          <div class="metric-row">
+            <div class="metric-row-label">
+              <strong>${angleName.charAt(0).toUpperCase() + angleName.slice(1)}</strong>
+              <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">
+                Pro range: ${minBench}° - ${maxBench}° (optimal: ${optimal}°)
+              </div>
+            </div>
+            <div class="metric-row-value" style="text-align: right;">
+              <div style="font-size: 24px; font-weight: 800;">${yourAngle}°</div>
+              <div style="font-size: 14px; color: ${statusColor}; margin-top: 4px;">
+                ${statusIcon} ${status}
+                ${diff !== 0 ? `<span style="font-size: 12px; margin-left: 8px;">(${diff > 0 ? '+' : ''}${diff}°)</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      return html || '<p>Insufficient angle data for comparison.</p>';
+    }
+
+    function generateAngleComparisons(avgAngles, bench, shotType, metricComparisons = []) {
+      if (!avgAngles || Object.keys(avgAngles).length === 0) {
+        return '<p>No angle data available. Please ensure your full body is visible in the video.</p>';
+      }
+
+      const angleOrder = ['shoulder', 'elbow', 'hip', 'knee', 'trunk'];
+      const cards = angleOrder
+        .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
+        .map((metric) => {
+          const comparison = metricComparisons.find((item) => item.metric === metric) || null;
+          const current = avgAngles[metric];
+          const optimal = comparison?.target ?? bench[metric].optimal;
+          const minRange = comparison?.min ?? bench[metric].min;
+          const maxRange = comparison?.max ?? bench[metric].max;
+          const diff = comparison ? comparison.delta : current - optimal;
+          const score = Math.min(100, Math.max(40, Math.round(comparison?.score ?? (100 - Math.abs(diff)))));
+          const status = comparison?.status || 'workable';
+          const fitLabel = status === 'excellent'
+            ? 'inside the strongest part of the target window'
+            : status === 'good'
+              ? 'close to the target window'
+              : status === 'needs-work'
+                ? 'far enough from target to affect ball quality'
+                : 'playable, but still leaving points on the table';
+          const direction = diff > 0 ? 'above' : diff < 0 ? 'below' : 'on';
+
+          return buildExpandableInsight(
+            `${formatMetricName(metric)}`,
+            score,
+            `${current} deg. Personalized target window ${minRange} to ${maxRange} deg. This sits ${direction} the center target and is ${fitLabel}.`,
+            `<strong>What it means:</strong> ${TRACKER_DEFINITIONS[metric] || 'This angle affects how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> Your average was <strong>${current} deg</strong>, while your current target is <strong>${optimal} deg</strong>. That is a difference of <strong>${diff > 0 ? '+' : ''}${diff} deg</strong>.<br><br><strong>Why it matters:</strong> The farther this drifts from the target window, the more likely you are to compensate with timing, balance, or contact quality.<br><br><strong>Best next move:</strong> Use the first drill recommendation attached to this report and re-test the same shot from the same camera angle.`,
+            'cyan'
+          );
+        });
+
+      return cards.join('') || '<p>Insufficient angle data for comparison.</p>';
+    }
+
+    function generateBiomechanicsInsights(avgAngles, bench, shotType, metricComparisons = []) {
+      const ranked = (metricComparisons && metricComparisons.length
+        ? metricComparisons
+        : ['shoulder', 'elbow', 'hip', 'knee', 'trunk']
+          .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
+          .map((metric) => {
+            const delta = Math.round(avgAngles[metric] - bench[metric].optimal);
+            return {
+              metric,
+              delta,
+              score: Math.max(45, 100 - Math.abs(delta)),
+              status: Math.abs(delta) <= 5 ? 'excellent' : Math.abs(delta) <= 10 ? 'good' : 'needs-work'
+            };
+          }))
+        .sort((a, b) => {
+          const severityA = a.status === 'needs-work' ? 3 : a.status === 'workable' ? 2 : a.status === 'good' ? 1 : 0;
+          const severityB = b.status === 'needs-work' ? 3 : b.status === 'workable' ? 2 : b.status === 'good' ? 1 : 0;
+          if (severityA !== severityB) return severityB - severityA;
+          return Math.abs(b.delta || 0) - Math.abs(a.delta || 0);
+        })
+        .slice(0, 3);
+
+      if (!ranked.length) {
+        return buildExpandableInsight(
+          'Biomechanics snapshot',
+          78,
+          'The current clip shows enough structure to coach from, but more frames from the same setup will make the priorities sharper.',
+          'Why this matters: biomechanics feedback becomes more useful when the camera angle, body visibility, and shot repetition stay consistent across sessions.',
+          'green'
+        );
+      }
+
+      return ranked.map((item, index) => {
+        const current = avgAngles[item.metric];
+        const optimal = bench[item.metric]?.optimal;
+        const trendCopy = item.delta > 0
+          ? `${formatMetricName(item.metric)} is running ahead of target, which can make the stroke leak early or lose shape.`
+          : item.delta < 0
+            ? `${formatMetricName(item.metric)} is coming in below target, which can hold back power and spacing.`
+            : `${formatMetricName(item.metric)} is right on target and is supporting the stroke well.`;
+        return buildExpandableInsight(
+          `Priority ${index + 1}: ${formatMetricName(item.metric)}`,
+          Math.min(100, Math.round(item.score || 0)),
+          `${trendCopy} Current average ${current ?? '-'} deg versus target ${optimal ?? '-'} deg.`,
+          `<strong>Why this matters:</strong> ${TRACKER_DEFINITIONS[item.metric] || 'This metric influences how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> In this ${shotType} sample, the deviation was <strong>${item.delta > 0 ? '+' : ''}${item.delta || 0} deg</strong>. That size is large enough to change contact quality, not just the look of the swing.<br><br><strong>What to do:</strong> Fix this before chasing speed or score. Start with the top drill recommendation, then re-test the same shot and compare the next report side by side.`,
+          'green'
+        );
+      }).join('');
+    }
+
+    function generateBiomechanicsInsightsLegacy(avgAngles, bench, shotType) {
+      const insights = [];
+      
+      // Shoulder analysis
+      if (avgAngles.shoulder != null && bench.shoulder) {
+        const diff = avgAngles.shoulder - bench.shoulder.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Shoulder Rotation',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Your shoulder rotation (${avgAngles.shoulder}°) is optimal for ${shotType}. This indicates good unit turn and preparation.`
+          });
+        } else if (diff > 10) {
+          insights.push({
+            title: 'Shoulder Over-Rotation',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your shoulder is rotating ${diff}° beyond optimal. This may cause inconsistency and loss of control.`
+          });
+        } else if (diff < -10) {
+          insights.push({
+            title: 'Limited Shoulder Turn',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your shoulder rotation is ${Math.abs(diff)}° below optimal. Increasing your turn will generate more power.`
+          });
+        }
+      }
+      
+      // Elbow analysis
+      if (avgAngles.elbow != null && bench.elbow) {
+        const diff = avgAngles.elbow - bench.elbow.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Elbow Position',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Excellent arm extension at contact (${avgAngles.elbow}°). This promotes racquet head speed and control.`
+          });
+        } else if (diff < -10) {
+          insights.push({
+            title: 'Elbow Too Bent',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your elbow is ${Math.abs(diff)}° more bent than optimal. Work on extending through contact for more power.`
+          });
+        }
+      }
+      
+      // Knee analysis
+      if (avgAngles.knee != null && bench.knee) {
+        const diff = avgAngles.knee - bench.knee.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Leg Drive',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Good knee flexion (${avgAngles.knee}°) for explosive leg drive. This generates power from the ground up.`
+          });
+        } else if (diff > 15) {
+          insights.push({
+            title: 'Legs Too Straight',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your knees are too straight (${avgAngles.knee}°). Add more bend for explosive power and better balance.`
+          });
+        } else if (diff < -15) {
+          insights.push({
+            title: 'Excessive Knee Bend',
+            icon: '⚠',
+            color: 'var(--warning)',
+            text: `Your knees are overly bent. Practice driving upward through the ball for more power transfer.`
+          });
+        }
+      }
+      
+      // Trunk analysis
+      if (avgAngles.trunk != null && bench.trunk) {
+        const diff = avgAngles.trunk - bench.trunk.optimal;
+        if (Math.abs(diff) <= 5) {
+          insights.push({
+            title: 'Core Rotation',
+            icon: '✓',
+            color: 'var(--success)',
+            text: `Excellent trunk rotation (${avgAngles.trunk}°). Your core is generating good rotational power.`
+          });
+        }
+      }
+      
+      if (insights.length === 0) {
+        insights.push({
+          title: 'Biomechanics Analysis',
+          icon: '📊',
+          color: 'var(--electric-cyan)',
+          text: 'Your technique shows a mix of strengths and areas for improvement. Focus on the angles marked as "Needs Work" for best results.'
+        });
+      }
+      
+      return insights.map(insight => `
+        <div style="padding: 16px; margin-bottom: 12px; background: rgba(57, 255, 20, 0.05); border-left: 3px solid ${insight.color}; border-radius: 8px;">
+          <div style="font-weight: 700; margin-bottom: 8px; color: ${insight.color};">
+            ${insight.icon} ${insight.title}
+          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: var(--silver);">
+            ${insight.text}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function generateRecommendations(avgAngles, bench, shotType) {
+      const recommendations = [];
+      
+      for (const angleName in avgAngles) {
+        if (!bench[angleName]) continue;
+        
+        const value = avgAngles[angleName];
+        const optimal = bench[angleName].optimal;
+        const diff = value - optimal;
+        
+        if (Math.abs(diff) > 10) {
+          let drill = '';
+          
+          switch(angleName) {
+            case 'shoulder':
+              drill = diff > 0 ? 
+                'Practice compact unit turns. Drill: Shadow swings focusing on controlled rotation, use mirror to check position.' :
+                'Increase shoulder turn. Drill: Medicine ball rotations, practice full coiling with resistance bands.';
+              break;
+            case 'elbow':
+              drill = diff > 0 ?
+                'Control arm extension. Drill: Wall drills focusing on contact point, avoid over-reaching.' :
+                'Extend through contact. Drill: Practice hitting against a wall, focus on arm extension at impact point.';
+              break;
+            case 'hip':
+              drill = diff > 0 ?
+                'Reduce excessive hip rotation. Drill: Split-step drills, practice stable base with controlled rotation.' :
+                'Increase hip rotation. Drill: Medicine ball twists, explosive hip rotation exercises.';
+              break;
+            case 'knee':
+              drill = diff > 0 ?
+                'Add more knee bend. Drill: Squat position practice, explosive leg drive exercises, box jumps.' :
+                'Drive upward through legs. Drill: Vertical jump practice, explosive push-off drills.';
+              break;
+            case 'trunk':
+              drill = diff > 0 ?
+                'Control trunk rotation. Drill: Core stability exercises, practice smooth rotation without over-twisting.' :
+                'Increase core rotation. Drill: Russian twists, medicine ball slams, torso rotation exercises.';
+              break;
+            case 'wrist':
+              drill = 'Practice wrist lag drills. Focus on maintaining proper wrist position through contact.';
+              break;
+          }
+          
+          if (drill) {
+            recommendations.push({
+              angle: angleName.charAt(0).toUpperCase() + angleName.slice(1),
+              current: value,
+              optimal: optimal,
+              diff: diff,
+              drill: drill
+            });
+          }
+        }
+      }
+      
+      if (recommendations.length === 0) {
+        return `
+          <div class="info-box" style="background: rgba(57, 255, 20, 0.1); border-left-color: var(--neon-green);">
+            <strong>Excellent Biomechanics</strong><br>
+            All your angles are within 10deg of professional benchmarks. 
+            Focus on consistency and building muscle memory through repetition.<br><br>
+            <strong>Maintain your form with:</strong><br>
+            - Regular practice sessions<br>
+            - Video analysis every 2-3 weeks<br>
+            - Strength and conditioning work<br>
+            - Match play to test under pressure
+          </div>
+        `;
+      }
+      
+      // Sort by impact (largest deviation first)
+      recommendations.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+      
+      let html = '<div style="font-size: 14px; line-height: 1.8; margin-bottom: 16px;"><strong>Priority Focus Areas (sorted by impact):</strong></div>';
+      
+      recommendations.slice(0, 3).forEach((rec, idx) => {
+        html += `
+          <div style="padding: 16px; margin-bottom: 12px; background: rgba(10, 22, 40, 0.6); border: 1px solid rgba(57, 255, 20, 0.15); border-radius: 12px;">
+            <div style="font-weight: 700; margin-bottom: 8px; color: var(--neon-green);">
+              ${idx + 1}. ${rec.angle}: ${rec.current}deg (Target: ${rec.optimal}deg, Deviation: ${rec.diff > 0 ? '+' : ''}${rec.diff}deg)
+            </div>
+            <div style="font-size: 14px; line-height: 1.6;">
+              <strong>Recommended Drill:</strong> ${rec.drill}
+            </div>
+          </div>
+        `;
+      });
+      
+      if (recommendations.length > 3) {
+        html += `<div style="font-size: 12px; color: var(--gray); margin-top: 12px;">+ ${recommendations.length - 3} more areas identified. Focus on the top 3 first for best results.</div>`;
+      }
+      
+      return html;
+    }
+
+    // UI Event Handlers
+    document.querySelectorAll('.setup-check').forEach(input => {
+      input.addEventListener('change', refreshSetupScore);
+    });
+
+    document.getElementById('sessionMode').addEventListener('change', (event) => {
+      playerProfile.sessionMode = event.target.value;
+      renderCaptureGuidance();
+    });
+
+    document.getElementById('sessionGoal').addEventListener('input', (event) => {
+      playerProfile.sessionGoal = event.target.value;
+    });
+
+    refreshSetupScore();
+    refreshPlanStrip();
+    applyActionPermissions();
+
+    document.querySelectorAll('.selection-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const field = card.dataset.field;
+        const value = card.dataset.value;
+
+        if (field === 'shot') {
+          card.classList.toggle('selected');
+          const index = playerProfile.shots.indexOf(value);
+          if (index === -1) {
+            playerProfile.shots.push(value);
+          } else {
+            playerProfile.shots.splice(index, 1);
+          }
+          renderCaptureGuidance();
+        } else {
+          document.querySelectorAll(`[data-field="${field}"]`).forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          playerProfile[field] = value;
+        }
+      });
+    });
+
+    function setStep(step) {
+      currentStep = step;
+      
+      document.querySelectorAll('.wizard-step').forEach(el => {
+        const stepNum = parseInt(el.dataset.step);
+        el.classList.remove('active', 'completed');
+        if (stepNum === step) el.classList.add('active');
+        if (stepNum < step) el.classList.add('completed');
+        
+        const circle = el.querySelector('.step-circle');
+        circle.textContent = stepNum < step ? 'OK' : stepNum;
+      });
+
+      document.querySelectorAll('.step-content').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.step) === step);
+      });
+    }
+
+    document.getElementById('nextBtn1').addEventListener('click', () => {
+      if (!playerProfile.gender || !playerProfile.age || !playerProfile.level) {
+        alert('Please complete all selections');
+        return;
+      }
+      setStep(2);
+    });
+
+    document.getElementById('backBtn1').addEventListener('click', () => setStep(1));
+
+    document.getElementById('nextBtn2').addEventListener('click', () => {
+      if (playerProfile.shots.length === 0) {
+        alert('Please select at least one shot type');
+        return;
+      }
+      setStep(3);
+    });
+
+    document.getElementById('backBtn2').addEventListener('click', () => setStep(2));
+
+    const uploadZone = document.getElementById('uploadZone');
+    const videoInput = document.getElementById('videoInput');
+    const nextBtn3 = document.getElementById('nextBtn3');
+
+    uploadZone.addEventListener('click', () => videoInput.click());
+
+    videoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        playerProfile.videoFile = file;
+        document.getElementById('fileName').textContent = `OK ${file.name}`;
+        nextBtn3.disabled = false;
+      }
+    });
+
+    document.getElementById('nextBtn3').addEventListener('click', async () => {
+      if (playerProfile.setupScore < 70) {
+        const proceed = window.confirm('Setup score is below 70/100. Continue anyway? Low capture quality can reduce feedback accuracy.');
+        if (!proceed) return;
+      }
+      setStep(4);
+      await startAnalysis();
+    });
+
+    document.getElementById('backBtn3').addEventListener('click', () => setStep(3));
+    document.getElementById('demoReportBtn').addEventListener('click', runDemoReport);
+
+    function applyDemoProfileFromParams(params) {
+      const normalizedShot = String(params.get('shot') || '').trim().toLowerCase();
+      const supportedShots = ['forehand', 'backhand', 'serve', 'volley', 'slice', 'drop-shot', 'lob'];
+      if (supportedShots.includes(normalizedShot)) {
+        playerProfile.shots = [normalizedShot];
+      }
+
+      const level = String(params.get('level') || '').trim().toLowerCase();
+      if (['beginner', 'intermediate', 'advanced', 'pro'].includes(level)) {
+        playerProfile.level = level;
+      }
+
+      const gender = String(params.get('gender') || '').trim().toLowerCase();
+      if (gender) playerProfile.gender = gender;
+
+      const age = String(params.get('age') || '').trim();
+      if (age) playerProfile.age = age;
+
+      const goal = String(params.get('goal') || '').trim();
+      if (goal) playerProfile.sessionGoal = goal;
+
+      const mode = String(params.get('mode') || '').trim();
+      if (mode) playerProfile.sessionMode = mode;
+    }
+
+    function runDemoReport() {
+      if (!playerProfile.gender) playerProfile.gender = 'male';
+      if (!playerProfile.age) playerProfile.age = '21-25';
+      if (!playerProfile.level) playerProfile.level = 'intermediate';
+      if (!playerProfile.shots.length) playerProfile.shots = ['forehand'];
+      if (!playerProfile.sessionGoal) playerProfile.sessionGoal = 'Improve consistency under pressure.';
+      applyDemoProfileFromParams(new URLSearchParams(window.location.search));
+
+      const shotType = playerProfile.shots[0] || 'forehand';
+      const bench = getBenchmarkForShot(shotType);
+      const model = getShotScoringModel(shotType);
+      const metrics = Object.keys(analysisData.angles);
+      const derivedMetricKeys = Object.keys(analysisData.derivedMetrics);
+
+      analysisData.landmarks = Array.from({ length: 90 }, () => 16 + Math.round(Math.random()));
+      analysisData.confidence = Array.from({ length: 90 }, () => 87 + Math.round(Math.random() * 9));
+
+      metrics.forEach((metric) => {
+        const benchmark = bench[metric]?.optimal ?? 150;
+        const drift = metric === 'knee' ? -12 : metric === 'shoulder' ? 9 : metric === 'hip' ? 13 : 4;
+        analysisData.angles[metric] = Array.from({ length: 90 }, (_, i) => {
+          const wave = Math.sin(i / 9) * 2;
+          return Math.round(benchmark + drift + wave);
+        });
+      });
+
+      derivedMetricKeys.forEach((metric) => {
+        const benchmark = model.derivedBenchmarks?.[metric]?.optimal ?? 72;
+        const drift = metric === 'balance' ? 3 : metric === 'footworkLoad' ? -4 : 5;
+        analysisData.derivedMetrics[metric] = Array.from({ length: 90 }, (_, i) => {
+          const wave = Math.cos(i / 8) * 3;
+          return Math.round(benchmark + drift + wave);
+        });
+      });
+
+      analysisData.frames = Array.from({ length: 90 }, (_, index) => {
+        const angles = {};
+        const derivedMetrics = {};
+        metrics.forEach((metric) => {
+          angles[metric] = analysisData.angles[metric][index];
+        });
+        derivedMetricKeys.forEach((metric) => {
+          derivedMetrics[metric] = analysisData.derivedMetrics[metric][index];
+        });
+
+        return {
+          timestamp: index / 30,
+          landmarks: analysisData.landmarks[index],
+          confidence: analysisData.confidence[index],
+          poseMotion: 6 + Math.sin(index / 5) * 2,
+          angles,
+          derivedMetrics
+        };
+      });
+
+      document.getElementById('framesCount').textContent = String(analysisData.frames.length);
+      document.getElementById('landmarksCount').textContent = String(Math.round(analysisData.landmarks.reduce((a, b) => a + b, 0) / analysisData.landmarks.length));
+      document.getElementById('confidenceValue').textContent = `${Math.round(analysisData.confidence.reduce((a, b) => a + b, 0) / analysisData.confidence.length)}%`;
+
+      const angleMap = [
+        ['shoulder', 'angleShoulder'],
+        ['elbow', 'angleElbow'],
+        ['hip', 'angleHip'],
+        ['knee', 'angleKnee'],
+        ['trunk', 'angleTrunk'],
+        ['wrist', 'angleWrist']
+      ];
+
+      angleMap.forEach(([metric, id]) => {
+        const values = analysisData.angles[metric] || [];
+        const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+        document.getElementById(id).textContent = formatAngle(avg);
+      });
+
+      const session = buildSession();
+      const persisted = persistSession(session);
+      if (persisted && store?.uploadSessionArtifacts && playerProfile.videoFile) {
+        store.uploadSessionArtifacts(persisted.id, {
+          videoFile: playerProfile.videoFile
+        }).catch(() => {});
+      }
+      generateReport(session);
+      setStep(5);
+    }
+
+    async function startAnalysis() {
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const file = playerProfile.videoFile;
+
+      // Reset
+      analysisData.frames = [];
+      for (const k in analysisData.angles) {
+        analysisData.angles[k] = [];
+      }
+      for (const k in analysisData.derivedMetrics) {
+        analysisData.derivedMetrics[k] = [];
+      }
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      lastPersistedSignature = null;
+      lastStableKeypoints = [];
+      lastMetricKeypoints = [];
+      lastUiRefreshAt = 0;
+      lastAngleUiRefreshAt = 0;
+      lastDrawAt = 0;
+      clearAnalyzerLoop(video);
+      playBtn.disabled = true;
+      pauseBtn.style.display = 'none';
+      playBtn.style.display = 'inline-block';
+
+      if (!file) {
+        setStatus('No video selected. Upload a clip to start analysis.', 'error');
+        playBtn.disabled = true;
+        return;
+      }
+
+      let metadataResolved = false;
+      const metadataReady = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          video.removeEventListener('loadedmetadata', onLoadedMetadata);
+          video.removeEventListener('error', onError);
+          reject(new Error('Video metadata timeout.'));
+        }, AI_SETTINGS.metadataTimeoutMs);
+
+        const onLoadedMetadata = () => {
+          metadataResolved = true;
+          clearTimeout(timeout);
+          video.removeEventListener('error', onError);
+          resolve();
+        };
+        const onError = () => {
+          clearTimeout(timeout);
+          video.removeEventListener('loadedmetadata', onLoadedMetadata);
+          reject(new Error('Video metadata unavailable.'));
+        };
+        video.addEventListener('loadedmetadata', onLoadedMetadata, { once: true });
+        video.addEventListener('error', onError, { once: true });
+      });
+
+      setStatus('Initializing AI core...', 'loading');
+      const aiInitPromise = initPoseEngine();
+
+      if (activeVideoUrl) {
+        URL.revokeObjectURL(activeVideoUrl);
+      }
+      activeVideoUrl = URL.createObjectURL(file);
+      video.src = activeVideoUrl;
+      video.load();
+
+      try {
+        if (!metadataResolved && video.readyState >= 1) {
+          metadataResolved = true;
+        } else {
+          await metadataReady;
+        }
+      } catch {
+        setStatus('Video failed to load. Re-upload a supported MP4/MOV clip.', 'error');
+        playBtn.disabled = true;
+        return;
+      }
+
+      syncCanvasToViewport();
+      lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
+
+      const aiReady = await aiInitPromise;
+      if (!aiReady) {
+        setStatus('AI failed to initialize. Use Retry AI Setup and try again.', 'error');
+        playBtn.disabled = true;
+      }
+    }
+
+    document.getElementById('playBtn').addEventListener('click', async () => {
+      const video = document.getElementById('videoElement');
+      
+      if (!detector) {
+        alert('AI not ready yet. Click "Retry AI Setup" and try again.');
+        return;
+      }
+
+      try {
+        await video.play();
+      } catch (error) {
+        setStatus('Unable to play video. Re-upload clip and try again.', 'error');
+        return;
+      }
+      isAnalyzing = true;
+      lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
+      lastUiRefreshAt = 0;
+      lastAngleUiRefreshAt = 0;
+      lastDrawAt = 0;
+      lastMetricKeypoints = [];
+      
+      document.getElementById('playBtn').style.display = 'none';
+      document.getElementById('pauseBtn').style.display = 'inline-block';
+      clearAnalyzerLoop(video);
+      
+      analyzeFrame();
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      const video = document.getElementById('videoElement');
+      video.pause();
+      isAnalyzing = false;
+      clearAnalyzerLoop(video);
+      
+      document.getElementById('pauseBtn').style.display = 'none';
+      document.getElementById('playBtn').style.display = 'inline-block';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+      const ctx = canvas.getContext('2d');
+      const playBtn = document.getElementById('playBtn');
+      
+      video.pause();
+      video.currentTime = 0;
+      isAnalyzing = false;
+      clearAnalyzerLoop(video);
+      lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
+      lastStableKeypoints = [];
+      lastMetricKeypoints = [];
+      lastUiRefreshAt = 0;
+      lastAngleUiRefreshAt = 0;
+      lastDrawAt = 0;
+      if (activeVideoUrl) {
+        URL.revokeObjectURL(activeVideoUrl);
+        activeVideoUrl = null;
+      }
+      
+      analysisData.frames = [];
+      for (const k in analysisData.angles) {
+        analysisData.angles[k] = [];
+      }
+      for (const k in analysisData.derivedMetrics) {
+        analysisData.derivedMetrics[k] = [];
+      }
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      lastPersistedSignature = null;
+
+      document.getElementById('framesCount').textContent = '0';
+      document.getElementById('landmarksCount').textContent = '0';
+      document.getElementById('confidenceValue').textContent = '0%';
+      
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
+        document.getElementById(id).textContent = '- deg';
+      });
+
+      document.getElementById('saveBtn').style.display = 'none';
+      document.getElementById('generateReportBtn').style.display = 'none';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      document.getElementById('pauseBtn').style.display = 'none';
+      playBtn.style.display = 'inline-block';
+      playBtn.disabled = true;
+      setStatus('Reset complete. Click Retry AI Setup to reactivate AI.', 'loading');
+    });
+
+    document.getElementById('retryAiBtn').addEventListener('click', async () => {
+      setStatus('Retrying AI setup...', 'loading');
+      const video = document.getElementById('videoElement');
+      clearAnalyzerLoop(video);
+      isAnalyzing = false;
+      try {
+        if (detector && typeof detector.dispose === 'function') {
+          detector.dispose();
+        }
+      } catch (_) {
+        // no-op
+      }
+      detector = null;
+      backend = 'unknown';
+      aiInitInFlight = null;
+      lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
+      lastStableKeypoints = [];
+      lastMetricKeypoints = [];
+      lastUiRefreshAt = 0;
+      lastAngleUiRefreshAt = 0;
+      lastDrawAt = 0;
+      await initPoseEngine();
+    });
+
+    function persistSession(session) {
+      const signature = JSON.stringify({
+        shotType: session.summary.shotType,
+        score: session.summary.score,
+        framesAnalyzed: session.summary.framesAnalyzed,
+        avgAngles: session.summary.avgAngles
+      });
+
+      if (signature === lastPersistedSignature) {
+        return null;
+      }
+
+      lastPersistedSignature = signature;
+      localStorage.setItem('smartswing_last_session', JSON.stringify(session));
+
+      if (!store || !currentUser) {
+        return null;
+      }
+
+      if (!store.canSaveReport()) {
+        return null;
+      }
+
+      return store.saveAssessment({
+        overallScore: session.summary.score,
+        grade: session.summary.grade,
+        percentile: session.summary.percentile,
+        shotType: session.summary.shotType,
+        framesAnalyzed: session.summary.framesAnalyzed,
+        focusFramesAnalyzed: session.summary.focusFramesAnalyzed,
+        avgConfidence: session.summary.avgConfidence,
+        avgLandmarks: session.summary.avgLandmarks,
+        avgAngles: session.summary.avgAngles,
+        avgDerivedMetrics: session.summary.avgDerivedMetrics,
+        metricComparisons: session.summary.metricComparisons,
+        benchmarkSummary: session.summary.benchmarkSummary,
+        tailoredDrills: session.summary.tailoredDrills,
+        tailoredTactics: session.summary.tailoredTactics,
+        componentScores: session.summary.componentScores,
+        performanceKpis: session.summary.performanceKpis,
+        progressContext: session.summary.progressContext,
+        milestone: session.summary.milestone,
+        achievements: session.summary.achievements,
+        scoringMeta: session.summary.scoringMeta,
+        sessionMode: session.summary.sessionMode,
+        sessionGoal: session.summary.sessionGoal,
+        setupScore: session.summary.setupScore,
+        notes: `${session.summary.sessionMode || 'stroke-tune-up'} | ${session.summary.sessionGoal || 'General improvement'} | setup ${session.summary.setupScore || 100}/100`,
+        playerProfile: session.profile
+      });
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      if (store && currentUser && !store.canSaveReport()) {
+        alert('Saving reports is disabled on the Free plan. Upgrade to Player or above to save reports.');
+        window.location.href = './pricing.html';
+        return;
+      }
+      console.log('Save clicked, frames:', analysisData.frames.length);
+      console.log('Angles data:', analysisData.angles);
+      
+      const session = buildSession();
+      const persisted = persistSession(session);
+      
+      alert('Analysis saved.\n\n' +
+            'Frames: ' + analysisData.frames.length + '\n' +
+            'Score: ' + session.summary.score + '\n' +
+            'Grade: ' + session.summary.grade +
+            (currentUser ? '\nDashboard updated.' : '\nSign in to keep a history across sessions.'));
+      refreshPlanStrip();
+    });
+
+    // Generate Report Button
+    document.getElementById('generateReportBtn').addEventListener('click', () => {
+      console.log('🎯 Generate Report button clicked!');
+      console.log('   Frames:', analysisData.frames.length);
+      console.log('   Angle data keys:', Object.keys(analysisData.angles));
+      console.log('   Sample angles:', {
+        shoulder: analysisData.angles.shoulder?.length,
+        elbow: analysisData.angles.elbow?.length
+      });
+      
+      if (analysisData.frames.length < 30) {
+        alert('Analyze at least 30 frames before generating report');
+        return;
+      }
+
+      const targetShot = playerProfile.shots[0] || 'forehand';
+      if (!consumeReportCreditOrAlert(targetShot)) {
+        return;
+      }
+
+      console.log('✅ Building session...');
+      const session = buildSession();
+      console.log('✅ Session built:', session);
+      
+      const persisted = persistSession(session);
+      console.log('✅ Generating report HTML...');
+      
+      generateReport(session);
+      if (persisted && store?.uploadSessionArtifacts) {
+        const reportHtml = document.getElementById('reportContent')?.innerHTML || '';
+        store.uploadSessionArtifacts(persisted.id, {
+          videoFile: playerProfile.videoFile || null,
+          reportHtml
+        }).catch(() => {});
+      }
+      console.log('✅ Switching to step 5...');
+      setStep(5);
+      console.log('✅ Report should be visible now!');
+    });
+
+    // Report Navigation Buttons
+    document.getElementById('backBtn4').addEventListener('click', () => {
+      setStep(4);
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+      if (store && currentUser && !store.canPrintReport()) {
+        alert('Print/export is disabled on the Free plan. Upgrade to Player or above to print reports.');
+        window.location.href = './pricing.html';
+        return;
+      }
+      window.print();
+    });
+
+    document.getElementById('dashboardBtn').addEventListener('click', () => {
+      window.location.href = currentUser ? './dashboard.html' : './login.html?message=Sign%20in%20to%20view%20your%20dashboard&type=success';
+    });
+
+    document.getElementById('libraryBtn').addEventListener('click', () => {
+      window.location.href = './library.html';
+    });
+
+    document.getElementById('newAnalysisBtn').addEventListener('click', () => {
+      // Reset everything
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('poseCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.pause();
+      video.currentTime = 0;
+      isAnalyzing = false;
+      clearAnalyzerLoop(video);
+      lastFrameAt = 0;
+      lastAnalyzedVideoTime = -1;
+      lastStableKeypoints = [];
+      lastUiRefreshAt = 0;
+      if (activeVideoUrl) {
+        URL.revokeObjectURL(activeVideoUrl);
+        activeVideoUrl = null;
+      }
+      
+      analysisData.frames = [];
+      for (const k in analysisData.angles) {
+        analysisData.angles[k] = [];
+      }
+      for (const k in analysisData.derivedMetrics) {
+        analysisData.derivedMetrics[k] = [];
+      }
+      analysisData.landmarks = [];
+      analysisData.confidence = [];
+      lastPersistedSignature = null;
+
+      document.getElementById('framesCount').textContent = '0';
+      document.getElementById('landmarksCount').textContent = '0';
+      document.getElementById('confidenceValue').textContent = '0%';
+      
+      ['angleShoulder', 'angleElbow', 'angleHip', 'angleKnee', 'angleTrunk', 'angleWrist'].forEach(id => {
+        document.getElementById(id).textContent = '- deg';
+      });
+
+      document.getElementById('saveBtn').style.display = 'none';
+      document.getElementById('generateReportBtn').style.display = 'none';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      document.getElementById('pauseBtn').style.display = 'none';
+      document.getElementById('playBtn').style.display = 'inline-block';
+      
+      // Go back to step 1
+      setStep(1);
+    });
+
+    console.log('SmartSwing AI MoveNet loaded ✓');
+    const params = new URLSearchParams(window.location.search);
+    const selfTestMode = params.get('selftest') === '1';
+    const demoMode = params.get('demo') === '1';
+    if (selfTestMode) {
+      requestAnimationFrame(async () => {
+        setStatus('Running AI self-test...', 'loading');
+        const ok = await initPoseEngine();
+        document.body.setAttribute('data-ai-selftest', ok ? 'pass' : 'fail');
+      });
+    }
+    if (demoMode) {
+      requestAnimationFrame(() => {
+        try {
+          runDemoReport();
+        } catch (error) {
+          console.error('Demo report generation failed:', error);
+        }
+      });
+    }
+    if (!selfTestMode && !demoMode) {
+      requestAnimationFrame(() => {
+        initPoseEngine().catch(() => null);
+      });
+    }
+  </script>
+
+  <!-- Scroll reveal + progress bar + nav scroll -->
+  <script>
+  (function(){
+    var bar=document.createElement('div'); bar.className='wt-scroll-progress'; document.body.prepend(bar);
+    var nav=document.querySelector('.wt-nav,nav,header');
+    window.addEventListener('scroll',function(){ var p=window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight); bar.style.transform='scaleX('+p+')'; if(nav)nav.classList.toggle('scrolled',window.scrollY>40); },{passive:true});
+    var io=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('visible');io.unobserve(x.target);}});},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+    document.querySelectorAll('.wt-reveal,.wt-stagger').forEach(function(el){io.observe(el);});
+    document.querySelectorAll('.wt-section-header,.wt-card,.wt-split-copy,.wt-split-img,.wt-metric,.wt-testimonial,.wt-faq-item').forEach(function(el,i){
+      if(!el.classList.contains('wt-reveal')){el.classList.add('wt-reveal');el.style.transitionDelay=(i%5*55)+'ms';}
+      io.observe(el);
+    });
+  })();
+  </script>
+</body>
+</html>
