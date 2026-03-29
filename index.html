@@ -15,10 +15,61 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="SmartSwing AI | AI Tennis Analysis, Drills, and Coach Dashboards">
   <meta name="twitter:description" content="Upload one tennis clip and get AI biomechanics feedback, tactical guidance, and a coach-ready plan.">
+  <meta name="twitter:image" content="https://www.smartswingai.com/assets/avatar/AI%20Breakdown%20side%20by%20side.png">
+  <!-- GEO / LLMO signals -->
+  <meta name="keywords" content="AI tennis analysis, tennis swing analysis, biomechanics feedback, tennis coach app, pickleball analysis, tennis video analysis, tennis improvement, tennis drills, swing coach AI">
+  <meta name="author" content="SmartSwing AI">
+  <meta name="geo.region" content="US">
+  <meta name="geo.placename" content="United States">
+  <!-- hreflang for i18n -->
+  <link rel="alternate" hreflang="en" href="https://www.smartswingai.com/">
+  <link rel="alternate" hreflang="pt-BR" href="https://www.smartswingai.com/?lang=pt-BR">
+  <link rel="alternate" hreflang="es" href="https://www.smartswingai.com/?lang=es">
+  <link rel="alternate" hreflang="de" href="https://www.smartswingai.com/?lang=de">
+  <link rel="alternate" hreflang="fr" href="https://www.smartswingai.com/?lang=fr">
+  <link rel="alternate" hreflang="x-default" href="https://www.smartswingai.com/">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "SmartSwing AI",
+      "url": "https://www.smartswingai.com/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.smartswingai.com/blog.html?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "How does SmartSwing AI analyse my tennis swing?", "acceptedAnswer": { "@type": "Answer", "text": "You upload a video of your swing. Our AI engine uses pose detection and biomechanics models to measure joint angles, racket path, footwork, and timing, then generates a personalised report in under 60 seconds." } },
+        { "@type": "Question", "name": "Do I need any special equipment?", "acceptedAnswer": { "@type": "Answer", "text": "No. Any smartphone video is enough. The analysis runs entirely in the browser using your camera or an uploaded clip." } },
+        { "@type": "Question", "name": "Can coaches use SmartSwing AI with their students?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Coach Dashboard lets you manage multiple players, track progress, assign drills, and share reports — all from one workspace." } },
+        { "@type": "Question", "name": "Does SmartSwing AI work for pickleball?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. SmartSwing AI includes a dedicated pickleball mode with sport-specific biomechanics models and drill recommendations." } }
+      ]
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to analyse your tennis swing with SmartSwing AI",
+      "description": "Upload a video and get AI-powered biomechanics feedback, drills, and a coach-ready report in under 60 seconds.",
+      "step": [
+        { "@type": "HowToStep", "name": "Record your swing", "text": "Record a short video of your tennis or pickleball swing using any smartphone." },
+        { "@type": "HowToStep", "name": "Upload and analyse", "text": "Upload the clip to SmartSwing AI. The AI engine runs pose detection and biomechanics analysis automatically." },
+        { "@type": "HowToStep", "name": "Get your report", "text": "Receive a personalised report with drill recommendations, tactical tips, and a progress dashboard in under 60 seconds." }
+      ]
+    }
+  </script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -75,6 +126,30 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html { scroll-behavior: smooth; }
+
+    /* ── ACCESSIBILITY: Skip nav ── */
+    .skip-nav {
+      position: absolute;
+      top: -100%;
+      left: 16px;
+      z-index: 9999;
+      padding: 10px 20px;
+      background: var(--volt);
+      color: #0a0a0a;
+      font-weight: 700;
+      border-radius: 0 0 8px 8px;
+      font-size: 14px;
+      transition: top 0.2s;
+    }
+    .skip-nav:focus { top: 0; }
+
+    /* ── ACCESSIBILITY: Focus visible ── */
+    :focus-visible {
+      outline: 2px solid var(--volt);
+      outline-offset: 3px;
+    }
+    a:focus:not(:focus-visible),
+    button:focus:not(:focus-visible) { outline: none; }
 
     body {
       font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
@@ -1046,8 +1121,11 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      :root { --section-gap: 80px; }
+      :root { --section-gap: 72px; --page: min(100%, calc(100% - 32px)); }
       .nav-links { display: none; }
+      /* Hide desktop CTA buttons — hamburger drawer provides CTA on mobile */
+      .nav-cta .btn-ghost,
+      .nav-cta .btn-primary { display: none; }
       .hook-grid,
       .showcase-inner,
       .steps-grid,
@@ -1058,13 +1136,39 @@
       .footer-grid { grid-template-columns: 1fr 1fr; }
       .metrics .page { gap: 0; }
       .metric + .metric::before { display: none; }
+      /* Hero strip height on tablet */
+      .hero-img-strip img { height: 360px; }
+      /* Trust bar row wrap */
+      .trust-bar { flex-wrap: wrap; gap: 12px; justify-content: center; }
     }
-    @media (max-width: 560px) {
+    @media (max-width: 640px) {
+      :root { --section-gap: 56px; --page: min(100%, calc(100% - 24px)); }
+      .nav-inner { height: 58px; }
+      /* Hero */
+      .hero { padding-top: calc(58px + 48px); }
+      .hero h1 { font-size: clamp(36px, 11vw, 60px); letter-spacing: -1.5px; }
+      .hero-sub { font-size: 15px; }
+      .hero-actions { flex-direction: column; align-items: stretch; gap: 10px; }
+      .hero-actions a,
+      .hero-actions button { text-align: center; justify-content: center; }
+      /* Ensure buttons are touch-target compliant (44px min) */
+      .btn-primary, .btn-ghost { min-height: 48px; }
+      /* Hero strip */
+      .hero-img-strip { border-radius: 16px 16px 0 0; max-height: 280px; }
+      .hero-img-strip img { height: 280px; }
+      /* Stat chips — horizontal scroll on very small screens */
+      .stat-chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; justify-content: flex-start; padding-bottom: 8px; scrollbar-width: none; }
+      .stat-chips::-webkit-scrollbar { display: none; }
+      .stat-chip { min-width: 110px; flex-shrink: 0; padding: 14px 18px; }
+      /* Bento card */
+      .bento-main-img { min-height: 180px; }
+      /* Footer */
       .footer-grid { grid-template-columns: 1fr; }
-      .hero h1 { letter-spacing: -1px; }
-      .stat-chips { gap: 10px; }
-      .stat-chip { min-width: 100px; padding: 14px 18px; }
       .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+    }
+    @media (max-width: 390px) {
+      .hero h1 { font-size: 32px; }
+      .hero-sub { font-size: 14px; }
     }
 
     /* Image color normalization — reduce blue cast, keep dark/neutral */
@@ -1089,20 +1193,23 @@
 </head>
 <body>
 
+  <!-- Accessibility: skip navigation -->
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
+
   <!-- Scroll progress indicator -->
-  <div class="scroll-progress" id="scrollProgress"></div>
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
   <!-- ── NAV ── -->
-  <nav class="nav" id="mainNav">
+  <nav class="nav" id="mainNav" aria-label="Main navigation">
     <div class="nav-inner page">
-      <a href="./index.html" class="brand">SmartSwing<span class="dot"> AI</span></a>
-      <div class="nav-links">
-        <a href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
-        <a href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
-        <a href="./for-clubs.html" data-i18n="nav.forClubs">For Clubs</a>
-        <a href="./how-it-works.html" data-i18n="nav.howItWorks">How It Works</a>
-        <a href="./pricing.html" data-i18n="nav.pricing">Pricing</a>
-        <a href="./blog.html" data-i18n="nav.blog">Blog</a>
+      <a href="./index.html" class="brand" aria-label="SmartSwing AI — Home">SmartSwing<span class="dot"> AI</span></a>
+      <div class="nav-links" role="list">
+        <a href="./for-players.html" role="listitem" data-i18n="nav.forPlayers">For Players</a>
+        <a href="./for-coaches.html" role="listitem" data-i18n="nav.forCoaches">For Coaches</a>
+        <a href="./for-clubs.html" role="listitem" data-i18n="nav.forClubs">For Clubs</a>
+        <a href="./how-it-works.html" role="listitem" data-i18n="nav.howItWorks">How It Works</a>
+        <a href="./pricing.html" role="listitem" data-i18n="nav.pricing">Pricing</a>
+        <a href="./blog.html" role="listitem" data-i18n="nav.blog">Blog</a>
       </div>
       <div class="nav-cta">
         <a href="./login.html" class="btn-ghost" style="padding:10px 20px;font-size:14px;" data-i18n="nav.signIn">Sign In</a>
@@ -1112,7 +1219,8 @@
   </nav>
 
   <!-- ── HERO ── -->
-  <section class="hero" style="background:#0a0a0a;">
+  <main id="main-content">
+  <section class="hero" style="background:#0a0a0a;" aria-labelledby="hero-heading">
     <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
@@ -1122,7 +1230,7 @@
         AI Analysis Now Live
       </div>
 
-      <h1>Your Swing.<br><span class="volt">Perfected.</span></h1>
+      <h1 id="hero-heading">Your Swing.<br><span class="volt">Perfected.</span></h1>
 
       <p class="hero-sub">Upload one video. Get instant biomechanics feedback, a personalised drill plan, and coach-ready insights — all in under 60 seconds.</p>
 
@@ -1449,8 +1557,10 @@
     </div>
   </section>
 
+  </main><!-- /#main-content -->
+
   <!-- ── FOOTER ── -->
-  <footer class="footer">
+  <footer class="footer" role="contentinfo" aria-label="Site footer">
     <div class="page">
       <div class="footer-grid">
         <div>
@@ -1519,6 +1629,7 @@
   <script src="./site-experience.js"></script>
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
+  <script src="./mobile-nav.js"></script>
 
   <!-- ── SCROLL REVEAL + NAV SCROLL + PROGRESS BAR ── -->
   <script>

@@ -14,6 +14,13 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── ACCESSIBILITY: Skip nav ── */
+.skip-nav { position:absolute; top:-100%; left:16px; z-index:9999; padding:10px 20px; background:#39ff14; color:#0a0a0a; font-weight:700; border-radius:0 0 8px 8px; font-size:14px; text-decoration:none; transition:top 0.2s; }
+.skip-nav:focus { top:0; }
+/* ── ACCESSIBILITY: Focus visible ── */
+:focus-visible { outline:2px solid #39ff14; outline-offset:3px; }
+a:focus:not(:focus-visible), button:focus:not(:focus-visible) { outline:none; }
+
 body {
   font-family: "DM Sans", sans-serif;
   color: var(--text);
@@ -400,4 +407,17 @@ textarea {
     text-align: center;
     padding: 14px 18px;
   }
+}
+
+@media (max-width: 640px) {
+  h1 { font-size: clamp(30px, 10vw, 48px); }
+  h2 { font-size: clamp(20px, 6vw, 28px); }
+  .hero-visual { min-height: 200px; }
+  .cta-actions { flex-direction: column; }
+  .cta-actions a, .btn, .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+}
+
+@media (max-width: 390px) {
+  h1 { font-size: 28px; }
+  .page { width: calc(100% - 16px); }
 }

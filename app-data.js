@@ -3162,6 +3162,7 @@
     sendMessage,
     uploadSessionArtifacts,
     saveContactMessage,
+    getSupabaseClient,
     restoreSupabaseSession,
     getOAuthCallbackUrl,
     getPostAuthDestinationForUser,

@@ -74,13 +74,41 @@
       }
 
       try {
+        // Detect PKCE authorization code from URL (OAuth redirect appends ?code=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const pkceCode = urlParams.get('code');
+
+        if (pkceCode) {
+          statusText.textContent = 'Completing secure OAuth verification…';
+          // Get the initialized Supabase client (triggers detectSessionInUrl auto-exchange)
+          const client = await store.getSupabaseClient();
+          if (client) {
+            // Explicit exchangeCodeForSession as a safety net for PKCE flow
+            const { error: exchangeError } = await client.auth.exchangeCodeForSession(pkceCode);
+            if (exchangeError) {
+              // Non-fatal: detectSessionInUrl may have already handled it
+              console.warn('[auth-callback] exchangeCodeForSession warning:', exchangeError.message);
+            }
+          }
+        }
+
         const user = await store.restoreSupabaseSession();
         if (!user) {
           window.location.href = './login.html?type=error&message=' + encodeURIComponent('OAuth session was not completed. Please try again.');
           return;
         }
         statusBox.querySelector('strong').textContent = 'Authentication complete';
-        statusText.textContent = 'Redirecting to your SmartSwing workspace...';
+        statusText.textContent = 'Redirecting to your SmartSwing workspace…';
+
+        // Fire-and-forget marketing auto-enroll
+        try {
+          fetch('/api/marketing/auto-enroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, email: user.email })
+          }).catch(() => {});
+        } catch (_) {}
+
         const destination = store.getPostAuthDestinationForUser(user);
         setTimeout(() => { window.location.href = destination; }, 450);
       } catch (error) {

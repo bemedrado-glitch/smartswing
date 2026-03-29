@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -214,7 +214,8 @@
   <script src="./analytics.js"></script>
 </head>
 <body>
-  <div class="page">
+  <a href="#contact-main" class="skip-nav">Skip to main content</a>
+  <div id="contact-main" class="page">
     <div class="top">
       <a class="logo" href="./index.html">SmartSwing<span class="dot"> AI</span></a>
       <div class="nav">
@@ -232,7 +233,7 @@
         <div class="badge">Direct contact</div>
         <h1>We're here. Talk to a real person.</h1>
         <p class="muted">
-          Whether you're a player getting started, a coach scaling your roster, or a club exploring a program rollout — we'll respond within one business day.
+          Whether you're a player getting started, a coach scaling your roster, or a club exploring a program rollout â€” we'll respond within one business day.
         </p>
       </div>
       <div class="visual">
@@ -314,6 +315,7 @@
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
+  <script src="./i18n.js"></script>
   <script>
     const store = window.SmartSwingStore;
     const form = document.getElementById('contactForm');
