@@ -63,7 +63,7 @@ SmartSwing AI target personas: recreational tennis players (3.0-4.5 NTRP), tenni
 Current growth stage: early traction, moving to scale. Focus on referral loops, content SEO, and coach/club B2B outreach.`
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

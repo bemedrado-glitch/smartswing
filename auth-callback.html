@@ -100,13 +100,20 @@
         statusBox.querySelector('strong').textContent = 'Authentication complete';
         statusText.textContent = 'Redirecting to your SmartSwing workspace…';
 
-        // Fire-and-forget marketing auto-enroll
+        // Fire-and-forget auto-enroll for new users
         try {
+          const cfg = window.SMARTSWING_CONFIG || window.SMARTSWING_SUPABASE_CONFIG || {};
           fetch('/api/marketing/auto-enroll', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, email: user.email })
-          }).catch(() => {});
+            body: JSON.stringify({
+              email: user?.email || '',
+              name: user?.user_metadata?.full_name || '',
+              user_id: user?.id || '',
+              supabase_url: cfg.url || cfg.supabaseUrl || '',
+              supabase_key: cfg.anonKey || cfg.supabaseAnonKey || ''
+            })
+          }).catch(() => {}); // never block auth flow
         } catch (_) {}
 
         const destination = store.getPostAuthDestinationForUser(user);
