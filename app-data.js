@@ -30,7 +30,7 @@
       name: 'Free',
       monthlyPrice: 0,
       yearlyPrice: 0,
-      monthlyReviews: 1,
+      monthlyReviews: 2,
       canSaveReport: false,
       canPrintReport: false,
       hasDrillLibrary: false,
@@ -1131,7 +1131,8 @@
         fullName: user.fullName || '',
         stripeCustomerId: user.stripeCustomerId || '',
         checkoutId: checkout.id,
-        source: options.source || 'checkout-page'
+        source: options.source || 'checkout-page',
+        couponCode: options.couponCode ? String(options.couponCode).trim().toUpperCase() : ''
       })
     });
 
@@ -1345,37 +1346,9 @@
   }
 
   function startPlanTrial(planId, userId) {
-    const plan = getPlanDefinition(planId);
-    const targetUserId = userId || requireUser().id;
-    const users = getUsers();
-    const idx = users.findIndex((entry) => entry.id === targetUserId);
-    if (idx < 0) throw new Error('User not found for trial update.');
-    const eligibility = getTrialEligibility(targetUserId, plan.id);
-    if (!eligibility.eligible) {
-      throw new Error(eligibility.reason || 'Trial not available for this account.');
-    }
-    const startedAt = nowIso();
-    const trialEndsAt = addDaysIso(14);
-    const trialHistory = [
-      {
-        planId: plan.id,
-        startedAt,
-        endsAt: trialEndsAt
-      },
-      ...getTrialHistory(users[idx])
-    ].slice(0, 10);
-    users[idx] = {
-      ...users[idx],
-      planId: plan.id,
-      trialPlanId: plan.id,
-      trialStartedAt: startedAt,
-      trialEndsAt,
-      trialHistory,
-      subscriptionStatus: plan.id === 'free' ? 'free' : 'trial',
-      updatedAt: nowIso()
-    };
-    persistUsers(users);
-    return getCurrentPlan(targetUserId);
+    // Free trials are no longer available. New accounts receive 2 free lifetime assessments.
+    // To unlock more analyses, choose a paid plan on the pricing page.
+    throw new Error('Free trials are no longer available. Please choose a plan to get started.');
   }
 
   function getMonthlyUsage(userId, monthKey) {
@@ -1399,7 +1372,9 @@
 
   function canGenerateReport(userId) {
     const plan = getCurrentPlan(userId);
-    const usage = getMonthlyUsage(userId);
+    // Free users get a lifetime quota of 2 assessments (not monthly resets)
+    const usageKey = plan.id === 'free' ? 'lifetime-free' : undefined;
+    const usage = getMonthlyUsage(userId, usageKey);
     const limit = plan.monthlyReviews;
     if (!Number.isFinite(limit)) {
       return { allowed: true, remaining: Infinity, used: usage.count, limit, plan };
@@ -1410,11 +1385,18 @@
 
   function consumeMonthlyReportCredit(payload) {
     const user = requireUser();
-    const monthKey = getMonthKey();
+    const plan = getCurrentPlan(user.id);
+    // Free users track against a lifetime key so the quota never resets
+    const monthKey = plan.id === 'free' ? 'lifetime-free' : getMonthKey();
     const check = canGenerateReport(user.id);
     if (!check.allowed) {
       const planLabel = check.plan.name || 'current';
-      throw new Error(`Monthly report limit reached for ${planLabel}. Upgrade your plan to continue.`);
+      const msg = check.plan.id === 'free'
+        ? 'You have used your 2 free analyses. Choose a plan to keep analysing your game.'
+        : `Monthly report limit reached for ${planLabel}. Upgrade your plan to continue.`;
+      const err = new Error(msg);
+      err.redirectToPricing = true;
+      throw err;
     }
 
     const all = getReportUsage();
@@ -1927,14 +1909,7 @@
         const local = createProfile(fullName, email, { ...fields, password: '' });
         local.id = data.user.id;
         local.avatarDataUrl = fields.avatarDataUrl || data.user.user_metadata?.avatar_url || '';
-        if (fields.startTrial && fields.planId && fields.planId !== 'free') {
-          const trialStart = nowIso();
-          local.trialPlanId = fields.planId;
-          local.trialStartedAt = trialStart;
-          local.trialEndsAt = addDaysIso(14);
-          local.trialHistory = [{ planId: fields.planId, startedAt: trialStart, endsAt: local.trialEndsAt }];
-          local.subscriptionStatus = 'trial';
-        }
+        // Free trials removed — new accounts start with 2 lifetime free assessments on the free plan
         upsertLocalUser(local);
         if (!data.session) {
           return { ...local, requiresEmailConfirmation: true };
@@ -1956,14 +1931,7 @@
       throw new Error('An account with this email already exists.');
     }
     const user = createProfile(fullName, email, { ...fields, password });
-    if (fields.startTrial && fields.planId && fields.planId !== 'free') {
-      const trialStart = nowIso();
-      user.trialPlanId = fields.planId;
-      user.trialStartedAt = trialStart;
-      user.trialEndsAt = addDaysIso(14);
-      user.trialHistory = [{ planId: fields.planId, startedAt: trialStart, endsAt: user.trialEndsAt }];
-      user.subscriptionStatus = 'trial';
-    }
+    // Free trials removed — new accounts start with 2 lifetime free assessments on the free plan
     persistUsers([...users, user]);
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
     localStorage.removeItem(KEYS.autoSessionOptOut);

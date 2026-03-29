@@ -922,7 +922,7 @@
       strip.innerHTML = `
         <div><strong>Active plan:</strong> ${plan.name} | <strong>Monthly reports:</strong> ${limitLabel} used | <strong>Remaining:</strong> ${remainingLabel}</div>
         <div>${restrictions.length ? restrictions.join(' · ') : 'Full report actions enabled.'} <a href="./pricing.html" style="color: var(--electric-cyan); font-weight: 800;">Change plan</a></div>
-        ${usage.allowed ? '' : '<div class="usage-alert">Monthly limit reached. Upgrade your plan to generate more reports.</div>'}
+        ${usage.allowed ? '' : `<div class="usage-alert">${usage.plan?.id === 'free' ? 'You have used your 2 free analyses. Choose a plan to keep going.' : 'Monthly limit reached. Upgrade your plan to generate more reports.'}</div>`}
       `;
     }
 

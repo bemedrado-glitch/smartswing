@@ -10,18 +10,74 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #0a0a0a; --bg-soft: #111; --bg-mid: #1a1a1a;
+  --panel: rgba(22,22,26,0.92); --line: rgba(255,255,255,0.1);
+  --text: #f5f5f7; --muted: rgba(255,255,255,0.6);
+  --green: #39ff14; --volt: #39ff14; --gold: #ffd84d;
+  --page: min(1280px, calc(100% - 48px));
+}
+body {
+  background: radial-gradient(circle at top left, rgba(57,255,20,0.05), transparent 24%),
+    linear-gradient(180deg, #050505 0%, #0a0a0a 44%, #111 100%);
+  background-attachment: fixed;
+}
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+  background: rgba(10,10,10,0.88); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.nav-inner { display:flex;align-items:center;justify-content:space-between;height:68px;gap:24px;width:var(--page);margin:0 auto; }
+.brand { font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.3px;text-decoration:none; }
+.brand .dot { color:var(--volt); }
+.nav-links { display:flex;gap:28px; }
+.nav-links a { font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s; }
+.nav-links a:hover { color:var(--text); }
+.nav-cta { display:flex;gap:10px;align-items:center; }
+.btn-primary { display:inline-flex;align-items:center;padding:10px 20px;background:#39ff14;color:#0a0a0a;font-weight:700;font-size:14px;border-radius:12px;border:none;cursor:pointer;text-decoration:none; }
+.btn-ghost { display:inline-flex;align-items:center;padding:10px 20px;background:transparent;color:rgba(255,255,255,0.8);font-weight:600;font-size:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);text-decoration:none; }
+.footer { border-top:1px solid rgba(255,255,255,0.08);padding:60px 0 32px;margin-top:60px; }
+.footer .page { width:var(--page);margin:0 auto; }
+.footer-grid { display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px; }
+.footer-brand { font-size:18px;font-weight:800;color:var(--text);margin-bottom:10px; }
+.footer-brand .dot { color:#39ff14; }
+.footer-tagline { font-size:13px;color:var(--muted);line-height:1.6; }
+.footer-col-title { font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px; }
+.footer-links { list-style:none;display:flex;flex-direction:column;gap:8px; }
+.footer-links a { font-size:14px;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.2s; }
+.footer-links a:hover { color:var(--text); }
+.footer-bottom { display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:24px; }
+.footer-bottom p { font-size:13px;color:var(--muted); }
+.footer-bottom-links { display:flex;gap:20px; }
+.footer-bottom-links a { font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.2s; }
+.skip-nav { position:absolute;top:-100%;left:16px;z-index:9999;padding:10px 20px;background:#39ff14;color:#0a0a0a;font-weight:700;border-radius:0 0 8px 8px;font-size:14px;text-decoration:none;transition:top 0.2s; }
+.skip-nav:focus { top:0; }
+:focus-visible { outline:2px solid #39ff14;outline-offset:3px; }
+@media(max-width:900px){.nav-links,.nav-cta .btn-ghost,.nav-cta .btn-primary{display:none;}}
+@media(max-width:640px){.footer-grid{grid-template-columns:1fr;}.footer-bottom{flex-direction:column;gap:12px;text-align:center;}}
+  </style>
   <link rel="stylesheet" href="./policy-pages.css">
 </head>
 <body>
-  <main class="page">
-    <header class="topbar">
-      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav">
-        <a class="btn" href="./brand-policy.html">Brand Policy</a>
-        <a class="btn" href="./contact.html">Contact Us</a>
-        <a class="btn-primary" href="./user-agreement.html">User Agreement</a>
-      </nav>
-    </header>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+<nav class="nav" id="mainNav" aria-label="Main navigation">
+  <div class="nav-inner page">
+    <a href="./index.html" class="brand" aria-label="SmartSwing AI — Home">SmartSwing<span class="dot"> AI</span></a>
+    <div class="nav-links">
+      <a href="./for-players.html">For Players</a>
+      <a href="./for-coaches.html">For Coaches</a>
+      <a href="./how-it-works.html">How It Works</a>
+      <a href="./pricing.html">Pricing</a>
+      <a href="./blog.html">Blog</a>
+    </div>
+    <div class="nav-cta">
+      <a href="./login.html" class="btn-ghost" style="padding:10px 20px;font-size:14px;">Sign In</a>
+      <a href="./signup.html" class="btn-primary" style="padding:10px 20px;font-size:14px;">Get Started Free</a>
+    </div>
+  </div>
+</nav>
+  <main id="main-content" class="page" style="padding-top:88px">
 
     <section class="hero">
       <article class="panel">
@@ -56,28 +112,45 @@
       </article>
     </section>
 
-    <footer class="legal-footer">
-      <div class="footer-column">
-        <strong>Copyright support</strong>
-        <p>Notices should be specific enough for SmartSwing AI to locate the material in question.</p>
-      </div>
-      <div class="footer-column">
-        <strong>Related pages</strong>
-        <div class="footer-links">
-          <a href="./brand-policy.html">Brand Policy</a>
-          <a href="./user-agreement.html">User Agreement</a>
-          <a href="./privacy-policy.html">Privacy Policy</a>
-        </div>
-      </div>
-      <div class="footer-column">
-        <strong>Contact</strong>
-        <div class="footer-links">
-          <a href="./contact.html">Contact Us</a>
-          <a href="./about.html">About</a>
-          <a href="./accessibility.html">Accessibility</a>
-        </div>
-      </div>
-    </footer>
   </main>
+<footer class="footer" role="contentinfo" aria-label="Site footer">
+  <div class="page">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">SmartSwing<span class="dot"> AI</span></div>
+        <p class="footer-tagline">AI-powered tennis and pickleball analysis for players, coaches, and clubs.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Platform</p>
+        <ul class="footer-links">
+          <li><a href="./for-players.html">For Players</a></li>
+          <li><a href="./for-coaches.html">For Coaches</a></li>
+          <li><a href="./for-clubs.html">For Clubs</a></li>
+          <li><a href="./for-parents.html">For Parents</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Legal</p>
+        <ul class="footer-links">
+          <li><a href="./privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="./user-agreement.html">Terms of Use</a></li>
+          <li><a href="./cookie-policy.html">Cookie Policy</a></li>
+          <li><a href="./accessibility.html">Accessibility</a></li>
+          <li><a href="./refund-policy.html">Refund Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+      </div>
+    </div>
+  </div>
+</footer>
+  <script src="./pwa.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./mobile-nav.js"></script>
 </body>
 </html>

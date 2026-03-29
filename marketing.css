@@ -1632,3 +1632,37 @@
 }
 
 .mkt-mobile-tab__icon { font-size: 18px; }
+
+/* ── PIPELINE VISUALIZATION ── */
+.mkt-pipeline { display:flex; flex-direction:column; gap:0; padding:16px; background:var(--surface-2,#f5f5f7); border-radius:12px; border:1px solid var(--border); }
+.mkt-pipeline-step { display:flex; align-items:center; gap:12px; padding:8px 0; position:relative; }
+.mkt-pipeline-step__connector { width:2px; height:20px; background:var(--border); position:absolute; left:19px; top:-10px; }
+.mkt-pipeline-step__dot { width:20px; height:20px; border-radius:50%; background:#e5e7eb; border:2px solid var(--border); flex-shrink:0; transition:all .2s; }
+.mkt-pipeline-step[data-status="running"] .mkt-pipeline-step__dot { background:#fbbf24; border-color:#f59e0b; animation:wt-volt-pulse 1s infinite; }
+.mkt-pipeline-step[data-status="completed"] .mkt-pipeline-step__dot { background:#39ff14; border-color:#2bcc0f; }
+.mkt-pipeline-step__info { display:flex; align-items:center; gap:8px; flex:1; }
+.mkt-pipeline-step__icon { font-size:14px; }
+.mkt-pipeline-step__agent { font-size:13px; font-weight:700; color:var(--black); text-transform:capitalize; }
+.mkt-pipeline-step__role { font-size:12px; color:var(--muted); }
+.mkt-pipeline-step__status { margin-left:auto; font-size:12px; color:var(--muted); }
+
+/* ── WORKFLOW STEPS in content detail ── */
+.mkt-workflow-step { padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px; }
+.mkt-workflow-step--completed { border-color:#bbf7d0; background:#f0fdf4; }
+.mkt-workflow-step__header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.mkt-workflow-step__num { width:20px; height:20px; border-radius:50%; background:var(--volt); color:#000; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.mkt-workflow-step__agent { font-size:13px; font-weight:700; text-transform:capitalize; }
+.mkt-workflow-step__role { font-size:12px; color:var(--muted); }
+.mkt-workflow-step__output { font-size:12px; color:var(--ink-2,#6e6e73); line-height:1.5; padding-top:4px; border-top:1px solid var(--border); margin-top:6px; white-space:pre-wrap; }
+
+/* ── MODAL LG ── */
+.mkt-modal--lg { max-width: 700px; }
+
+/* ── EXPANDABLE ITEMS ── */
+.mkt-kpi-card { cursor:pointer; transition:box-shadow .15s, transform .15s; }
+.mkt-kpi-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.12); transform:translateY(-2px); }
+.mkt-action-item { border-radius:10px; border:1px solid transparent; transition:border-color .15s, background .15s; }
+.mkt-action-item:hover { background:#f9f9fb; border-color:var(--border); }
+.mkt-action-item.is-expanded { border-color:var(--volt); background:#f9fff4; }
+.mkt-campaign-card { cursor:pointer; }
+.mkt-campaign-card.is-expanded { border-color:var(--volt) !important; }
