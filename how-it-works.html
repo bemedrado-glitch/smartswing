@@ -18,247 +18,941 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "HowTo",
-      "name": "How SmartSwing AI Works",
-      "description": "Capture a tennis video, analyze it, review the focused plan, and track progress.",
-      "totalTime": "PT10M",
-      "step": [
-        { "@type": "HowToStep", "name": "Record the session", "text": "Capture a tennis video with enough context for analysis." },
-        { "@type": "HowToStep", "name": "Run the AI analyzer", "text": "Upload the clip so SmartSwing can turn movement data into readable feedback." },
-        { "@type": "HowToStep", "name": "Get a focused plan", "text": "Review the top priorities, drill recommendations, and tactical adjustments." },
-        { "@type": "HowToStep", "name": "Track, message, and schedule", "text": "Use dashboards and follow-up tools to keep the feedback loop active." }
-      ]
-    }
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How SmartSwing AI Works",
+    "description": "Capture a tennis video, analyze it, review the focused plan, and track progress.",
+    "totalTime": "PT10M",
+    "step": [
+      { "@type": "HowToStep", "name": "Record the session", "text": "Capture a tennis video with enough context for analysis." },
+      { "@type": "HowToStep", "name": "Run the AI analyzer", "text": "Upload the clip so SmartSwing can turn movement data into readable feedback." },
+      { "@type": "HowToStep", "name": "Get a focused plan", "text": "Review the top priorities, drill recommendations, and tactical adjustments." },
+      { "@type": "HowToStep", "name": "Track, message, and schedule", "text": "Use dashboards and follow-up tools to keep the feedback loop active." }
+    ]
+  }
   </script>
   <style>
-    :root{
-      --bg:#0a0a0a;
-      --panel:rgba(28,28,30,.88);
-      --line:rgba(255,255,255,.1);
-      --text:#f5f5f7;
-      --muted:#eef3f7;
-      --volt:#39ff14;
-      --accent:#ffd84d;
-      --dark:#0e1012;
+    :root {
+      --bg: #0a0a0a;
+      --bg-soft: #111;
+      --bg-mid: #1a1a1a;
+      --text: #f5f5f7;
+      --muted: rgba(255,255,255,0.55);
+      --volt: #39ff14;
+      --volt-dark: #2bcc0f;
+      --border: rgba(255,255,255,0.1);
+      --radius: 20px;
+      --radius-sm: 12px;
+      --page: min(1280px, calc(100% - 48px));
+      --section-gap: 100px;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:"DM Sans",sans-serif;
-      color:var(--text);
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #050505, #0a0a0a 50%, #111);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .nav-inner {
+      width: var(--page);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 24px;
+      padding: 14px 0;
+    }
+    .brand {
+      text-decoration: none;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      color: var(--text);
+    }
+    .brand .dot { color: var(--volt); }
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+    }
+    .nav-cta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      cursor: pointer;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-ghost {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+    .btn-volt {
+      background: var(--volt);
+      color: #050505;
+      border: none;
+    }
+    .btn-volt:hover { box-shadow: 0 0 24px rgba(57,255,20,0.4); }
+    .btn-outline {
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: var(--text);
+    }
+    .btn-lg { padding: 14px 26px; font-size: 15px; }
+
+    /* ── PAGE WRAPPER ── */
+    .page { width: var(--page); margin: 0 auto; }
+
+    /* ── EYEBROW ── */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(57,255,20,0.1);
+      border: 1px solid rgba(57,255,20,0.25);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--volt);
+    }
+
+    /* ── SECTION SHARED ── */
+    .section { padding: var(--section-gap) 0; }
+    .section-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 56px;
+    }
+    .section-header h2 {
+      font-size: clamp(30px, 4vw, 50px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      margin: 12px 0 16px;
+    }
+    .section-header p {
+      font-size: 17px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 90px 0 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
       background:
-        radial-gradient(circle at top left, rgba(200,255,0,.1), transparent 24%),
-        radial-gradient(circle at top right, rgba(0,212,170,.12), transparent 22%),
-        linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#101010 100%);
-      min-height:100vh;
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(57,255,20,0.1), transparent),
+        radial-gradient(circle at 20% 80%, rgba(0,212,170,0.07), transparent 40%);
+      pointer-events: none;
     }
-    .page{width:min(1240px,calc(100% - 40px));margin:0 auto;padding:24px 0 64px}
-    .top{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;margin-bottom:22px}
-    .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
-    .brand span{color:var(--volt)}
-    .nav{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
-    .btn,.btn-primary{
-      text-decoration:none;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;
-      transition:transform .18s ease
+    .hero-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
     }
-    .btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
-    .btn-primary{background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark);border:1px solid rgba(57,255,20,.35)}
-    .btn:hover,.btn-primary:hover{transform:translateY(-2px)}
-    .hero,.step,.cta{display:grid;gap:18px}
-    .hero{grid-template-columns:1.02fr .98fr;margin-bottom:18px}
-    .panel,.step,.cta{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:28px;
-      overflow:hidden;
-      transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    .hero-inner .eyebrow { margin-bottom: 20px; }
+    .hero-inner h1 {
+      font-size: clamp(40px, 6vw, 76px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin-bottom: 22px;
     }
-    .panel:hover,.step:hover,.cta:hover{transform:translateY(-4px);border-color:rgba(57,255,20,.3);box-shadow:0 18px 50px rgba(0,0,0,.3)}
-    .hero-copy{padding:30px}
-    .eyebrow,.label{
-      display:inline-flex;align-items:center;border-radius:999px;padding:8px 12px;font-size:12px;
-      font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,216,77,.12);
-      color:var(--accent);border:1px solid rgba(255,216,77,.22)
+    .hero-inner h1 em { font-style: normal; color: var(--volt); }
+    .hero-lead {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--muted);
+      max-width: 58ch;
+      margin: 0 auto 36px;
+      line-height: 1.65;
     }
-    h1{font-size:clamp(42px,6vw,76px);line-height:.95;letter-spacing:-.06em;margin:16px 0 14px;max-width:10ch}
-    h2{font-size:clamp(28px,4vw,44px);line-height:1;letter-spacing:-.05em}
-    h3{font-size:28px;letter-spacing:-.04em;color:var(--volt)}
-    p{line-height:1.7}
-    .muted{color:var(--muted)}
-    .hero-visual{
-      min-height:420px;
-      background:
-        linear-gradient(180deg,rgba(10,10,10,.18),rgba(10,10,10,.82)),
-        url('./assets/uiux/Smart 3.png') center/cover;
-      position:relative;
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-    .hero-note{
-      position:absolute;left:18px;right:18px;bottom:18px;padding:18px;border-radius:22px;
-      background:rgba(9,12,13,.84);border:1px solid rgba(255,255,255,.08)
+    .hero-strip {
+      margin-top: 56px;
+      height: 440px;
+      border-radius: 28px 28px 0 0;
+      overflow: hidden;
+      position: relative;
     }
-    .flow{display:grid;gap:18px}
-    .step{grid-template-columns:.9fr 1.1fr;align-items:stretch}
-    .step.reverse{grid-template-columns:1.1fr .9fr}
-    .step-media{min-height:260px;background-size:cover;background-position:center}
-    .step-copy{padding:24px;display:grid;align-content:center;gap:12px}
-    .step-number{font-family:"JetBrains Mono",monospace;color:var(--accent);font-size:30px}
-    .mini-list{display:grid;gap:10px;margin-top:4px}
-    .mini-item{border:1px solid var(--line);border-radius:15px;padding:12px;background:rgba(255,255,255,.03);color:var(--muted)}
-    .cta{grid-template-columns:1.04fr .96fr;align-items:center;padding:28px;margin-top:18px}
-    .actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
-    .footer{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:16px;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08)}
-    .footer-col{display:grid;gap:12px}
-    .footer-col strong{color:var(--text)}
-    .footer-links{display:flex;flex-wrap:wrap;gap:10px}
-    .footer-links a{text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.03);color:var(--muted);font-weight:700}
-    @media (max-width:1024px){
-      .hero,.step,.step.reverse,.cta,.footer{grid-template-columns:1fr}
-      .actions{justify-content:flex-start}
+    .hero-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
     }
-    @media (max-width:760px){
-      .page{width:min(100%,calc(100% - 24px))}
-      .top{grid-template-columns:1fr}
-      .nav{justify-content:flex-start}
+    .hero-strip::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, #050505 100%);
+    }
+
+    /* ── OUTCOME CHIPS ── */
+    .outcome-chips {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 32px 0 64px;
+      position: relative;
+      z-index: 2;
+      margin-top: -16px;
+    }
+    .outcome-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 11px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .outcome-chip:hover {
+      border-color: rgba(57,255,20,0.3);
+      color: var(--text);
+    }
+    .outcome-chip .icon { font-size: 15px; }
+
+    /* ── STEPS FLOW ── */
+    .steps-flow {
+      display: grid;
+      gap: 80px;
+      padding-top: 0;
+    }
+    .step-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .step-row.flip { direction: rtl; }
+    .step-row.flip > * { direction: ltr; }
+    .step-media {
+      border-radius: var(--radius);
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      border: 1px solid var(--border);
+    }
+    .step-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .step-media:hover img { transform: scale(1.04); }
+    .step-copy { display: grid; gap: 0; align-content: center; }
+    .step-number {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--volt-dark);
+      margin-bottom: 14px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .step-copy h2 {
+      font-size: clamp(26px, 3vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+      margin-bottom: 16px;
+    }
+    .step-copy p {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .step-items {
+      list-style: none;
+      margin-top: 24px;
+      display: grid;
+      gap: 10px;
+    }
+    .step-items li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .step-items li::before {
+      content: '';
+      display: block;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--volt);
+      flex: none;
+      margin-top: 1px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10l4 4 6-6' stroke='%23050505' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: cover;
+    }
+
+    /* ── STEP CONNECTOR ── */
+    .step-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+    }
+    .step-connector::before,
+    .step-connector::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── METRICS BAR ── */
+    .metrics-bar {
+      background: #050505;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 64px 0;
+    }
+    .metrics-inner {
+      width: var(--page);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      text-align: center;
+    }
+    .metric strong {
+      display: block;
+      font-size: clamp(42px, 5vw, 64px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: var(--volt);
+      line-height: 1;
+    }
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ── OUTCOMES GRID ── */
+    .outcomes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .outcome-card {
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .outcome-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(57,255,20,0.25);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .outcome-card-icon {
+      font-size: 30px;
+      margin-bottom: 16px;
+    }
+    .outcome-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .outcome-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── WHO IT'S FOR ── */
+    .who-section {
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: var(--section-gap) 0;
+    }
+    .who-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .who-card {
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .who-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(57,255,20,0.25);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.4);
+    }
+    .who-card-img {
+      height: 200px;
+      overflow: hidden;
+    }
+    .who-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .who-card:hover .who-card-img img { transform: scale(1.05); }
+    .who-card-body { padding: 24px; }
+    .who-card-body h3 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .who-card-body p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── CTA PANEL ── */
+    .cta-panel {
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 72px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(57,255,20,0.12), transparent);
+      pointer-events: none;
+    }
+    .cta-panel .eyebrow { margin-bottom: 18px; }
+    .cta-panel h2 {
+      font-size: clamp(34px, 5vw, 64px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      color: #fff;
+      max-width: 20ch;
+      margin: 0 auto 18px;
+    }
+    .cta-panel p {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 44ch;
+      margin: 0 auto 36px;
+      line-height: 1.65;
+    }
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #050505;
+      border-top: 1px solid var(--border);
+      padding: 64px 0 32px;
+    }
+    .footer-grid {
+      width: var(--page);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .footer-brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--volt);
+      margin-bottom: 12px;
+    }
+    .footer-tagline {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 28ch;
+    }
+    .footer-col h4 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .footer-col ul { list-style: none; display: grid; gap: 10px; }
+    .footer-col ul a {
+      text-decoration: none;
+      font-size: 14px;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .footer-col ul a:hover { color: var(--volt); }
+    .footer-bottom {
+      width: var(--page);
+      margin: 28px auto 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+    }
+    .footer-bottom-links {
+      display: flex;
+      gap: 20px;
+    }
+    .footer-bottom-links a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.3);
+      transition: color 0.2s;
+    }
+    .footer-bottom-links a:hover { color: var(--text); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .step-row, .step-row.flip { grid-template-columns: 1fr; direction: ltr; gap: 36px; }
+      .outcomes-grid { grid-template-columns: 1fr 1fr; }
+      .who-grid { grid-template-columns: 1fr 1fr; }
+      .metrics-inner { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .hero-strip { height: 280px; }
+      .outcome-chips { gap: 8px; padding: 24px 0 48px; }
+      .outcomes-grid { grid-template-columns: 1fr; }
+      .who-grid { grid-template-columns: 1fr; }
+      .metrics-inner { gap: 24px; }
+      .cta-panel { padding: 48px 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    /* Image color normalization — reduce blue cast, keep dark/neutral */
+    .hero-strip img,
+    .step-img img,
+    .step-media img,
+    .bento-main-img,
+    .bento-card img,
+    .hook-img img,
+    .showcase-img img,
+    .split-img img,
+    img[src*="redesign"] {
+      filter: saturate(0.75) brightness(0.88);
+      transition: filter 0.4s ease, transform 0.4s ease;
+    }
+    .step-card:hover .step-img img,
+    .step-row:hover .step-media img {
+      filter: saturate(0.85) brightness(0.92);
+      transform: scale(1.04);
     }
   </style>
-  <script src="./analytics.js"></script>
 </head>
 <body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="./index.html" class="brand">SmartSwing<span class="dot"> AI</span></a>
+      <div class="nav-links">
+        <a href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
+        <a href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
+        <a href="./for-clubs.html" data-i18n="nav.forClubs">For Clubs</a>
+        <a href="./how-it-works.html" class="active" data-i18n="nav.howItWorks">How It Works</a>
+        <a href="./pricing.html" data-i18n="nav.pricing">Pricing</a>
+        <a href="./blog.html" data-i18n="nav.blog">Blog</a>
+      </div>
+      <div class="nav-cta">
+        <a href="./login.html" class="btn btn-ghost" data-i18n="nav.signIn">Sign In</a>
+        <a href="./signup.html" class="btn btn-volt" data-i18n="nav.getStarted">Get Started Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="page">
+      <div class="hero-inner reveal">
+        <span class="eyebrow">Capture. Analyze. Correct. Track.</span>
+        <h1>From one video to your<br><em style="color:#39ff14">next breakthrough</em> — in 60 seconds.</h1>
+        <p class="hero-lead">Most players finish a practice session without knowing what went wrong. SmartSwing closes that gap in 60 seconds — so every rep after this one is smarter than the last.</p>
+        <div class="hero-actions">
+          <a href="./analyze.html" class="btn btn-volt btn-lg">Open Analyzer &#8594;</a>
+          <a href="./pricing.html" class="btn btn-ghost btn-lg">Compare Plans</a>
+        </div>
+      </div>
+      <div class="hero-strip reveal">
+        <img src="./assets/redesign/record-game.png" alt="SmartSwing AI tennis analysis capture in action" loading="eager">
+      </div>
+    </div>
+  </section>
+
+  <!-- OUTCOME CHIPS -->
   <div class="page">
-    <header class="top">
-      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav" id="mainNav">
-        <a class="btn" href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
-        <a class="btn" href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
-        <a class="btn" href="./for-clubs.html" data-i18n="nav.forClubs">For Clubs</a>
-        <a class="btn" href="./blog.html" data-i18n="nav.blog">Blog</a>
-        <a class="btn" href="./pricing.html" data-i18n="nav.pricing">Pricing</a>
-        <a class="btn" href="./login.html" data-i18n="nav.signIn">Sign In</a>
-        <a class="btn-primary" href="./analyze.html" data-i18n="nav.startFree">Start Free Analysis</a>
-      </nav>
-    </header>
-
-    <section class="hero">
-      <article class="panel hero-copy">
-        <div class="eyebrow" data-i18n="howItWorksPage.eyebrow">Capture. Analyze. Correct. Track.</div>
-        <h1 data-i18n="howItWorksPage.heading">From one video to your next breakthrough — in 60 seconds.</h1>
-        <p class="muted" data-i18n="howItWorksPage.body">Most players finish a practice session without knowing what went wrong. SmartSwing closes that gap in 60 seconds — so every rep after this one is smarter than the last.</p>
-      </article>
-      <article class="panel hero-visual">
-        <div class="hero-note">
-          <div class="label" data-i18n="howItWorksPage.outcomeLabel">Outcome</div>
-          <h3 style="margin-top:14px" data-i18n="howItWorksPage.outcomeH3">Speed to correction is the product.</h3>
-          <p class="muted" style="margin-top:10px" data-i18n="howItWorksPage.outcomeBody">Every surface should help the player understand what happened, why it matters, and what to do next.</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="flow">
-      <article class="step">
-        <div class="step-media" style="background-image:url('./assets/uiux/Smart 2.png');"></div>
-        <div class="step-copy">
-          <div class="step-number" data-i18n="howItWorksPage.step1Num">01</div>
-          <h2 data-i18n="howItWorksPage.step1Heading">Capture the right angle and context</h2>
-          <p class="muted" data-i18n="howItWorksPage.step1Body">Film from behind the baseline or fence. SmartSwing guides you on angle quality before analysis even starts — so the report is based on clean signal, not guesswork.</p>
-          <div class="mini-list">
-            <div class="mini-item" data-i18n="howItWorksPage.step1i1">Pre-capture guidance improves input quality before the upload starts.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step1i2">Shot and session intent define the benchmark and feedback frame.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step1i3">Profile details keep the scoring fair by level and player context.</div>
-          </div>
-        </div>
-      </article>
-
-      <article class="step reverse">
-        <div class="step-copy">
-          <div class="step-number" data-i18n="howItWorksPage.step2Num">02</div>
-          <h2 data-i18n="howItWorksPage.step2Heading">Get your personalized biomechanics report</h2>
-          <p class="muted" data-i18n="howItWorksPage.step2Body">The AI tracks 33 body landmarks, calculates the tennis-specific metrics that matter most, and compares your stroke to level-adjusted benchmarks — not pro-only standards that don't apply to your game.</p>
-          <div class="mini-list">
-            <div class="mini-item" data-i18n="howItWorksPage.step2i1">Biomechanics, movement, positioning, timing, and contact behavior are assessed together.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step2i2">The report emphasizes top priorities instead of overwhelming low-value detail.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step2i3">Expandable cards explain what a metric means and how to interpret it.</div>
-          </div>
-        </div>
-        <div class="step-media" style="background-image:url('./assets/avatar/AI Breakdown side by side.png');"></div>
-      </article>
-
-      <article class="step">
-        <div class="step-media" style="background-image:url('./assets/uiux/Smart 10.png');"></div>
-        <div class="step-copy">
-          <div class="step-number" data-i18n="howItWorksPage.step3Num">03</div>
-          <h2 data-i18n="howItWorksPage.step3Heading">Train with a plan built around YOUR game</h2>
-          <p class="muted" data-i18n="howItWorksPage.step3Body">Every report surfaces your top 3 priorities with matching drill videos. Not generic advice — specific prescriptions for your specific movement issues.</p>
-          <div class="mini-list">
-            <div class="mini-item" data-i18n="howItWorksPage.step3i1">Top 3 drill recommendations tied directly to the main weaknesses.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step3i2">Top 3 tactical recommendations based on the player's current profile.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step3i3">Coach-ready summary keeps the teaching conversation fast and useful.</div>
-          </div>
-        </div>
-      </article>
-
-      <article class="step reverse">
-        <div class="step-copy">
-          <div class="step-number" data-i18n="howItWorksPage.step4Num">04</div>
-          <h2 data-i18n="howItWorksPage.step4Heading">Track every rep. See yourself improve.</h2>
-          <p class="muted" data-i18n="howItWorksPage.step4Body">Your progress dashboard shows exactly how each metric moves over time. Coaches can assign drills, add notes, and track follow-through — all in one place.</p>
-          <div class="mini-list">
-            <div class="mini-item" data-i18n="howItWorksPage.step4i1">Player and coach views are separated into clean tabs by task.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step4i2">Plan limits, trials, and privacy rules are enforced before save, export, and messaging actions.</div>
-            <div class="mini-item" data-i18n="howItWorksPage.step4i3">Players and coaches stay in their own scoped views so communication and next actions remain easy to follow.</div>
-          </div>
-        </div>
-        <div class="step-media" style="background-image:url('./assets/avatar/Coach Ace 16_9.png');"></div>
-      </article>
-    </section>
-
-    <section class="cta">
-      <div>
-        <div class="eyebrow" data-i18n="howItWorksPage.ctaEyebrow">Run it now</div>
-        <h2 style="margin-top:16px;max-width:11ch" data-i18n="howItWorksPage.ctaHeading">See your game the way a biomechanics coach sees it.</h2>
-      </div>
-      <div class="actions">
-        <a class="btn-primary" href="./analyze.html" data-i18n="howItWorksPage.ctaPrimary">Open Analyzer</a>
-        <a class="btn" href="./pricing.html" data-i18n="howItWorksPage.ctaSecondary">Compare Plans</a>
-        <a class="btn" href="./contact.html" data-i18n="howItWorksPage.ctaContact">Talk to Us</a>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <div class="footer-col">
-        <strong>SmartSwing AI</strong>
-        <div data-i18n="howItWorksPage.footerTagline">Workflow overview from capture to analysis, drills, tactics, and follow-through.</div>
-        <div style="font-size:13px;color:var(--muted)" data-i18n="footer.copyright">&copy; 2026 SmartSwing AI</div>
-      </div>
-      <div class="footer-col">
-        <strong data-i18n="footer.col.pathways">Pathways</strong>
-        <div class="footer-links">
-          <a href="./for-players.html" data-i18n="footer.links.forPlayers">For Players</a>
-          <a href="./for-coaches.html" data-i18n="footer.links.forCoaches">For Coaches</a>
-          <a href="./for-clubs.html" data-i18n="footer.links.forClubs">For Clubs</a>
-          <a href="./for-parents.html" data-i18n="footer.links.forParents">For Parents</a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <strong data-i18n="footer.col.resources">Resources</strong>
-        <div class="footer-links">
-          <a href="./blog.html" data-i18n="footer.links.blog">Blog</a>
-          <a href="./library.html" data-i18n="footer.links.drillsLibrary">Library</a>
-          <a href="./contact.html" data-i18n="footer.links.contact">Contact</a>
-          <a href="./refund-policy.html" data-i18n="footer.links.refundPolicy">Refund Policy</a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <strong data-i18n="footer.col.community">Community</strong>
-        <div class="footer-links">
-          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
-          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
-          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
-        </div>
-      </div>
-    </footer>
+    <div class="outcome-chips reveal">
+      <div class="outcome-chip"><span class="icon">&#9889;</span>60-second analysis</div>
+      <div class="outcome-chip"><span class="icon">&#127919;</span>33 body landmarks tracked</div>
+      <div class="outcome-chip"><span class="icon">&#128202;</span>Level-adjusted benchmarks</div>
+      <div class="outcome-chip"><span class="icon">&#127947;</span>Personalised drill plan</div>
+      <div class="outcome-chip"><span class="icon">&#129309;</span>Coach-ready summary</div>
+    </div>
   </div>
+
+  <!-- STEPS FLOW -->
+  <section class="section" style="padding-top:0;">
+    <div class="page">
+      <div class="steps-flow">
+
+        <!-- STEP 01: CAPTURE -->
+        <div class="step-row reveal">
+          <div class="step-media">
+            <img src="./assets/redesign/record-game.png" alt="Capture your tennis swing from behind the baseline" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 01 &mdash; Capture</div>
+            <h2>Capture the right angle and context</h2>
+            <p>Film from behind the baseline or fence. SmartSwing guides you on angle quality before analysis even starts — so the report is based on clean signal, not guesswork.</p>
+            <ul class="step-items">
+              <li>Pre-capture guidance improves input quality before the upload starts.</li>
+              <li>Shot and session intent define the benchmark and feedback frame.</li>
+              <li>Profile details keep the scoring fair by level and player context.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step-connector reveal">Then &#8594;</div>
+
+        <!-- STEP 02: ANALYZE -->
+        <div class="step-row flip reveal">
+          <div class="step-media">
+            <img src="./assets/redesign/ai-breakdown.png" alt="AI biomechanics report showing swing analysis" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 02 &mdash; Analyze</div>
+            <h2>Get your personalised biomechanics report</h2>
+            <p>The AI tracks 33 body landmarks, calculates tennis-specific metrics, and compares your stroke to level-adjusted benchmarks — not pro-only standards that don't apply to your game.</p>
+            <ul class="step-items">
+              <li>Biomechanics, movement, positioning, timing, and contact behaviour assessed together.</li>
+              <li>The report emphasises top priorities instead of overwhelming low-value detail.</li>
+              <li>Expandable cards explain what a metric means and how to interpret it.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step-connector reveal">Then &#8594;</div>
+
+        <!-- STEP 03: TRAIN -->
+        <div class="step-row reveal">
+          <div class="step-media">
+            <img src="./assets/redesign/personalized.png" alt="Personalised drill plan based on your swing analysis" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 03 &mdash; Train</div>
+            <h2>Train with a plan built around YOUR game</h2>
+            <p>Every report surfaces your top 3 priorities with matching drill videos. Not generic advice — specific prescriptions for your specific movement issues.</p>
+            <ul class="step-items">
+              <li>Top 3 drill recommendations tied directly to the main weaknesses.</li>
+              <li>Top 3 tactical recommendations based on the player's current profile.</li>
+              <li>Coach-ready summary keeps the teaching conversation fast and useful.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step-connector reveal">Then &#8594;</div>
+
+        <!-- STEP 04: TRACK -->
+        <div class="step-row flip reveal">
+          <div class="step-media">
+            <img src="./assets/redesign/swing-analysis.png" alt="Progress dashboard tracking improvement over time" loading="lazy">
+          </div>
+          <div class="step-copy">
+            <div class="step-number">Step 04 &mdash; Track</div>
+            <h2>Track every rep. See yourself improve.</h2>
+            <p>Your progress dashboard shows exactly how each metric moves over time. Coaches can assign drills, add notes, and track follow-through — all in one place.</p>
+            <ul class="step-items">
+              <li>Player and coach views are separated into clean tabs by task.</li>
+              <li>Plan limits, trials, and privacy rules are enforced before save, export, and messaging actions.</li>
+              <li>Players and coaches stay in scoped views so communication and next actions remain easy.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- METRICS BAR -->
+  <div class="metrics-bar">
+    <div class="metrics-inner">
+      <div class="metric reveal"><strong>60s</strong><span>Time to first insight</span></div>
+      <div class="metric reveal"><strong>33</strong><span>Body landmarks tracked</span></div>
+      <div class="metric reveal"><strong>94%</strong><span>Biomechanics accuracy</span></div>
+      <div class="metric reveal"><strong>10k+</strong><span>Swings analysed</span></div>
+    </div>
+  </div>
+
+  <!-- OUTCOMES GRID -->
+  <section class="section">
+    <div class="page">
+      <div class="section-header reveal">
+        <span class="eyebrow">What you get</span>
+        <h2>Speed to correction is the product</h2>
+        <p>Every surface helps the player understand what happened, why it matters, and what to do next.</p>
+      </div>
+      <div class="outcomes-grid">
+        <div class="outcome-card reveal">
+          <div class="outcome-card-icon">&#127934;</div>
+          <h3>Instant Biomechanics Report</h3>
+          <p>Clear scores for stance, contact, rotation, balance, and racket path — all ranked by priority and explained in plain language.</p>
+        </div>
+        <div class="outcome-card reveal">
+          <div class="outcome-card-icon">&#128203;</div>
+          <h3>Personalised Drill Plan</h3>
+          <p>Top 3 drill recommendations matched directly to your weaknesses — with video walkthroughs so you know exactly how to fix them.</p>
+        </div>
+        <div class="outcome-card reveal">
+          <div class="outcome-card-icon">&#9823;&#65039;</div>
+          <h3>Tactical Adjustments</h3>
+          <p>Game-style recommendations based on your profile. Not generic patterns — specific adjustments for your level and playing style.</p>
+        </div>
+        <div class="outcome-card reveal">
+          <div class="outcome-card-icon">&#128200;</div>
+          <h3>Progress Dashboard</h3>
+          <p>Track every metric over time and see which areas are improving. No more guessing whether the work is paying off.</p>
+        </div>
+        <div class="outcome-card reveal">
+          <div class="outcome-card-icon">&#129309;</div>
+          <h3>Coach-Ready Summary</h3>
+          <p>Share a concise report with your coach before your next lesson. No more spending paid hours on diagnosis — start with corrections.</p>
+        </div>
+        <div class="outcome-card reveal">
+          <div class="outcome-card-icon">&#128257;</div>
+          <h3>Continuous Feedback Loop</h3>
+          <p>Analyse as often as you practice. Every session adds to your history. The system learns your game as you improve.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO IT'S FOR -->
+  <section class="who-section">
+    <div class="page">
+      <div class="section-header reveal">
+        <span class="eyebrow">Who It's For</span>
+        <h2>Built for every level of the game</h2>
+        <p>Whether you're a weekend player, competitive club member, or professional coach — SmartSwing fits into your workflow.</p>
+      </div>
+      <div class="who-grid">
+        <div class="who-card reveal">
+          <div class="who-card-img">
+            <img src="./assets/redesign/ai-assessment.png" alt="Tennis player receiving AI analysis feedback" loading="lazy">
+          </div>
+          <div class="who-card-body">
+            <h3>Players</h3>
+            <p>Stop relying on feel alone. Get data-backed feedback on every practice session and train with intention between lessons.</p>
+          </div>
+        </div>
+        <div class="who-card reveal">
+          <div class="who-card-img">
+            <img src="./assets/redesign/personalized.png" alt="Tennis coach reviewing player analysis report" loading="lazy">
+          </div>
+          <div class="who-card-body">
+            <h3>Coaches</h3>
+            <p>Walk into every lesson with a full biomechanics brief. Spend teaching time on corrections, not diagnostics. Scale your impact.</p>
+          </div>
+        </div>
+        <div class="who-card reveal">
+          <div class="who-card-img">
+            <img src="./assets/redesign/woman-analysis.png" alt="Pickleball player using SmartSwing analysis" loading="lazy">
+          </div>
+          <div class="who-card-body">
+            <h3>Pickleball Players</h3>
+            <p>SmartSwing works for pickleball too. Same AI engine, same biomechanics depth — optimised for dink, drive, and overhead shots.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIG CTA PANEL -->
+  <section class="section page">
+    <div class="cta-panel reveal">
+      <span class="eyebrow">Run it now</span>
+      <h2>See your game the way a biomechanics coach sees it.</h2>
+      <p>One video. 60 seconds. A clear action plan for your next session. No credit card required for the free plan.</p>
+      <div class="cta-actions">
+        <a href="./analyze.html" class="btn btn-volt btn-lg">Open Analyzer &#8594;</a>
+        <a href="./pricing.html" class="btn btn-outline btn-lg">Compare Plans</a>
+        <a href="./contact.html" class="btn btn-outline btn-lg">Talk to Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand" data-i18n="footer.brand">SmartSwing<span class="dot"> AI</span></div>
+        <p class="footer-tagline" data-i18n="footer.tagline">Workflow overview from capture to analysis, drills, tactics, and follow-through.</p>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer.pathways">Pathways</h4>
+        <ul>
+          <li><a href="./for-players.html" data-i18n="footer.forPlayers">For Players</a></li>
+          <li><a href="./for-coaches.html" data-i18n="footer.forCoaches">For Coaches</a></li>
+          <li><a href="./for-clubs.html" data-i18n="footer.forClubs">For Clubs</a></li>
+          <li><a href="./for-parents.html" data-i18n="footer.forParents">For Parents</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer.resources">Resources</h4>
+        <ul>
+          <li><a href="./blog.html" data-i18n="footer.blog">Blog</a></li>
+          <li><a href="./library.html" data-i18n="footer.drillLibrary">Drill Library</a></li>
+          <li><a href="./contact.html" data-i18n="footer.contact">Contact</a></li>
+          <li><a href="./refund-policy.html" data-i18n="footer.refundPolicy">Refund Policy</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="footer.community">Community</h4>
+        <ul>
+          <li><a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a></li>
+          <li><a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 SmartSwing AI. All rights reserved.</p>
+      <div class="footer-bottom-links">
+        <a href="./privacy-policy.html">Privacy</a>
+        <a href="./user-agreement.html">Terms</a>
+        <a href="./cookie-policy.html">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
+  <script>
+  (function () {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function (el, i) {
+      el.style.transitionDelay = (i % 6 * 60) + 'ms';
+      io.observe(el);
+    });
+    // Auto-add reveal to key cards
+    document.querySelectorAll('.outcome-card, .who-card, .metric').forEach(function (el, i) {
+      if (!el.classList.contains('reveal')) {
+        el.classList.add('reveal');
+        el.style.transitionDelay = (i % 5 * 70) + 'ms';
+        io.observe(el);
+      }
+    });
+  })();
+  </script>
 </body>
 </html>
