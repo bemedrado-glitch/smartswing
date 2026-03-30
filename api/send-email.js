@@ -21,6 +21,7 @@
  */
 
 const { renderTemplate } = require('./_lib/email-templates');
+const { syncResendContact } = require('./_lib/resend-common');
 
 const RESEND_API = 'https://api.resend.com/emails';
 const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'paywall_followup_3d', 'paywall_followup_7d', 'referral_bonus', 'payment_success', 'win_back_7d', 'win_back_21d'];
@@ -146,6 +147,13 @@ module.exports = async (req, res) => {
   try {
     const result = await sendViaResend({ apiKey, from, to: recipientEmail, subject, html });
     console.log(`[send-email] Sent "${type}" to ${recipientEmail} (id: ${result?.id || 'unknown'})`);
+
+    // Sync contact to Resend audience on first meaningful touchpoint (fire-and-forget)
+    if (type === 'welcome') {
+      const firstName = String(data.firstName || '').trim();
+      syncResendContact({ email: recipientEmail, firstName }).catch(() => {});
+    }
+
     return json(res, 200, { sent: true, id: result?.id || null, type });
   } catch (err) {
     // Log but don't expose full error to client
