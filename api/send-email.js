@@ -8,8 +8,8 @@
  * Requires RESEND_API_KEY environment variable.
  *
  * From address: configure RESEND_FROM_ADDRESS in Vercel env vars.
- * Default: "SmartSwing AI <noreply@smartswingai.com>"
- * Note: the sender domain must be verified in Resend dashboard first.
+ * Default: "SmartSwing AI <noreply@mail.smartswingai.com>"
+ * Note: the sender domain (mail.smartswingai.com) must be verified in Resend dashboard first.
  *
  * Event types:
  *   welcome           — sent after account creation
@@ -141,7 +141,7 @@ module.exports = async (req, res) => {
   }
 
   // ── Send via Resend ──────────────────────────────────────────────────────
-  const from = String(process.env.RESEND_FROM_ADDRESS || '').trim() || 'SmartSwing AI <noreply@smartswingai.com>';
+  const from = String(process.env.RESEND_FROM_ADDRESS || '').trim() || 'SmartSwing AI <noreply@mail.smartswingai.com>';
 
   try {
     const result = await sendViaResend({ apiKey, from, to: recipientEmail, subject, html });

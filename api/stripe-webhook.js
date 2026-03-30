@@ -18,7 +18,7 @@ async function maybeSendEmail(type, data) {
   if (!apiKey || !data?.email) return;
   try {
     const { subject, html } = renderTemplate(type, data);
-    const from = String(process.env.RESEND_FROM_ADDRESS || '').trim() || 'SmartSwing AI <noreply@smartswingai.com>';
+    const from = String(process.env.RESEND_FROM_ADDRESS || '').trim() || 'SmartSwing AI <noreply@mail.smartswingai.com>';
     const res = await fetch(RESEND_API, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
