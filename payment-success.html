@@ -39,7 +39,7 @@
   <div class="page">
     <header class="top">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <a class="btn" href="./pricing.html">Back to pricing</a>
+      <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
     </header>
 
     <section class="panel">
@@ -49,7 +49,7 @@
       <div class="stack" id="details"></div>
       <div class="actions">
         <a class="btn-primary" id="primaryAction" href="./dashboard.html">Open dashboard</a>
-        <a class="btn" href="./checkout.html">Return to checkout</a>
+        <a class="btn" id="checkoutAction" href="./checkout.html">Return to checkout</a>
         <a class="btn" href="./contact.html">Contact support</a>
       </div>
     </section>
@@ -65,12 +65,35 @@
     const status = params.get('status') || 'returned';
     const requestedPlanId = params.get('plan') || '';
     const sessionId = params.get('session_id') || '';
+    const product = (params.get('product') || '').toLowerCase();
+    const isSmartFlip = product === 'smartflip';
     const pending = store.getPendingExternalCheckout();
     const currentUser = store.getCurrentUser();
     const currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
     const requestedPlan = requestedPlanId ? store.getPlanDefinition(requestedPlanId) : null;
     const details = [];
     const primaryAction = document.getElementById('primaryAction');
+    const checkoutAction = document.getElementById('checkoutAction');
+    const pricingLink = document.getElementById('pricingLink');
+    const brandLink = document.querySelector('.brand');
+    const summaryLabel = isSmartFlip ? 'SmartFlip' : 'SmartSwing';
+
+    if (isSmartFlip) {
+      document.title = 'SmartFlip AI | Payment Status';
+      brandLink.href = './smartflip.html';
+      brandLink.innerHTML = 'Smart<span>Flip</span> AI';
+      pricingLink.href = './smartflip-app.html#pricing';
+      pricingLink.textContent = 'Back to SmartFlip pricing';
+      primaryAction.href = './smartflip-dashboard.html';
+      if (pending?.planId) {
+        const interval = pending.billingInterval || 'monthly';
+        const checkoutBase = pending.checkoutPath || './smartflip-checkout.html';
+        checkoutAction.href = `${checkoutBase}?plan=${encodeURIComponent(pending.planId)}${pending.planId !== 'free' ? `&interval=${encodeURIComponent(interval)}` : ''}`;
+      } else {
+        checkoutAction.href = './smartflip-checkout.html';
+      }
+      checkoutAction.textContent = 'Return to SmartFlip checkout';
+    }
 
     function setPrimaryDestination(href, label) {
       primaryAction.href = href;
@@ -93,7 +116,7 @@
         titleEl.textContent = 'Stripe checkout still needs server configuration';
         summaryEl.textContent = 'The app is wired for Stripe, but one or more Stripe keys or price ids are still missing in the server environment.';
         pushCard('What is missing', 'Add STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and the Stripe price ids in Vercel before sending customers into paid checkout.', 'warn');
-        pushCard('What is safe today', 'Free access, plan guardrails, report limits, and dashboard access still work. Paid activation is intentionally blocked rather than faked.', 'ok');
+        pushCard('What is safe today', `Free access, plan guardrails, report limits, and dashboard access still work in ${summaryLabel}. Paid activation is intentionally blocked rather than faked.`, 'ok');
         render();
         return;
       }
@@ -133,7 +156,7 @@
           const updatedUser = store.applyBillingActivation(currentUser.id, verification);
           store.clearPendingExternalCheckout();
           titleEl.textContent = `${store.getPlanDefinition(verification.planId).name} is active`;
-          summaryEl.textContent = 'Stripe payment was verified and the new plan is now active on this account.';
+          summaryEl.textContent = `Stripe payment was verified and the new plan is now active on this ${summaryLabel} account.`;
           pushCard('Plan unlocked', `${store.getPlanDefinition(verification.planId).name} is active with subscription status ${verification.subscriptionStatus || 'active'}.`, 'ok');
           if (verification.billingPeriodEnd) {
             pushCard('Current billing period', `Paid access is active through ${new Date(verification.billingPeriodEnd).toLocaleString()}.`, '');
@@ -150,12 +173,14 @@
             setTimeout(() => {
               window.location.href = onboardingRoute;
             }, 1200);
+          } else if (isSmartFlip) {
+            setPrimaryDestination('./smartflip-dashboard.html', 'Open SmartFlip dashboard');
           }
         } else {
           titleEl.textContent = 'Stripe payment verified';
           summaryEl.textContent = 'The payment is valid, but the current browser session does not match the billing session user, so no local plan change was applied here.';
           pushCard('Verified plan', `${store.getPlanDefinition(verification.planId).name} was confirmed by Stripe.`, 'ok');
-          pushCard('What to do next', 'Sign into the same SmartSwing account used for checkout and reload this page if the dashboard does not reflect the upgrade yet.', 'warn');
+          pushCard('What to do next', `Sign into the same ${summaryLabel} account used for checkout and reload this page if the dashboard does not reflect the upgrade yet.`, 'warn');
         }
 
         pushCard('Billing provider', 'Stripe Checkout', '');

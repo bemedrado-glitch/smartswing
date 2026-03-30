@@ -775,10 +775,13 @@
   function setCheckoutIntent(intent = {}) {
     const planId = String(intent.planId || '').toLowerCase();
     if (!PLAN_DEFINITIONS[planId]) return null;
+    const existingIntent = getCheckoutIntent();
     return write(KEYS.checkoutIntent, {
       planId,
       billingInterval: normalizeBillingInterval(intent.billingInterval || intent.interval || 'monthly'),
       source: intent.source || window.location.pathname || '',
+      cartPath: intent.cartPath || existingIntent?.cartPath || '',
+      checkoutPath: intent.checkoutPath || existingIntent?.checkoutPath || '',
       createdAt: intent.createdAt || nowIso()
     });
   }
@@ -797,7 +800,8 @@
     if (intent.planId !== 'free') {
       params.set('interval', normalizeBillingInterval(intent.billingInterval || 'monthly'));
     }
-    return `${getAppBaseUrl()}cart.html?${params.toString()}`;
+    const cartPath = String(intent.cartPath || 'cart.html').replace(/^\.\//, '');
+    return `${getAppBaseUrl()}${cartPath}?${params.toString()}`;
   }
 
   function isOnboardingRequired(userId) {
@@ -1703,6 +1707,10 @@
           remoteId: row.id,
           userId: row.user_id,
           analyzedAt: row.analyzed_at || row.created_at || nowIso(),
+          sport: row.sport || 'tennis',
+          discipline: row.discipline || null,
+          apparatus: row.apparatus || null,
+          exerciseType: row.exercise_type || row.shot_type || null,
           overallScore: safeNumber(row.overall_score),
           grade: row.grade || 'N/A',
           percentile: safeNumber(row.percentile),
@@ -1711,9 +1719,19 @@
           avgConfidence: safeNumber(row.avg_confidence),
           avgLandmarks: safeNumber(row.avg_landmarks),
           avgAngles: row.avg_angles || {},
+          avgDerivedMetrics: row.avg_derived_metrics || {},
           benchmarkSummary: row.benchmark_summary || '',
           metricComparisons: row.metric_comparisons || [],
           tailoredDrills: row.tailored_drills || [],
+          tailoredTactics: row.tailored_tactics || [],
+          componentScores: row.component_scores || {},
+          performanceKpis: row.performance_kpis || {},
+          progressContext: row.progress_context || {},
+          milestone: row.milestone || null,
+          achievements: row.achievements || [],
+          projectedTenScore: safeNumber(row.projected_ten_score),
+          scoringMeta: row.scoring_meta || {},
+          playerProfile: row.player_profile || {},
           sessionMode: row.session_mode || 'stroke-tune-up',
           sessionGoal: row.session_goal || '',
           setupScore: safeNumber(row.setup_score, 100),
@@ -2534,6 +2552,10 @@
     const { data, error } = await client.from('assessments').upsert({
       external_id: assessment.externalId,
       user_id: assessment.userId,
+      sport: assessment.sport || 'tennis',
+      discipline: assessment.discipline || null,
+      apparatus: assessment.apparatus || null,
+      exercise_type: assessment.exerciseType || assessment.shotType,
       shot_type: assessment.shotType,
       overall_score: assessment.overallScore,
       grade: assessment.grade,
@@ -2542,9 +2564,19 @@
       avg_confidence: assessment.avgConfidence,
       avg_landmarks: assessment.avgLandmarks,
       avg_angles: assessment.avgAngles || {},
+      avg_derived_metrics: assessment.avgDerivedMetrics || {},
       metric_comparisons: assessment.metricComparisons || [],
       benchmark_summary: assessment.benchmarkSummary || null,
       tailored_drills: assessment.tailoredDrills || [],
+      tailored_tactics: assessment.tailoredTactics || [],
+      component_scores: assessment.componentScores || {},
+      performance_kpis: assessment.performanceKpis || {},
+      progress_context: assessment.progressContext || {},
+      milestone: assessment.milestone || {},
+      achievements: assessment.achievements || [],
+      projected_ten_score: assessment.projectedTenScore || null,
+      scoring_meta: assessment.scoringMeta || {},
+      player_profile: assessment.playerProfile || {},
       session_mode: assessment.sessionMode || null,
       session_goal: assessment.sessionGoal || null,
       setup_score: assessment.setupScore || null,
@@ -2618,6 +2650,10 @@
       externalId: uid('assessment_ext'),
       userId: user.id,
       analyzedAt: nowIso(),
+      sport: payload.sport || payload.playerProfile?.sport || 'tennis',
+      discipline: payload.discipline || payload.playerProfile?.division || null,
+      apparatus: payload.apparatus || payload.playerProfile?.apparatus || null,
+      exerciseType: payload.exerciseType || payload.shotType || null,
       overallScore: safeNumber(payload.overallScore),
       grade: payload.grade || 'N/A',
       percentile: safeNumber(payload.percentile),
@@ -2637,6 +2673,7 @@
       progressContext: payload.progressContext || {},
       milestone: payload.milestone || null,
       achievements: payload.achievements || [],
+      projectedTenScore: safeNumber(payload.projectedTenScore, payload.gradeTenProjection),
       scoringMeta: payload.scoringMeta || {},
       sessionMode: payload.sessionMode || 'stroke-tune-up',
       sessionGoal: payload.sessionGoal || '',

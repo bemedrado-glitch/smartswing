@@ -32,18 +32,18 @@
 <body>
   <div class="page">
     <header class="top">
-      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <a class="btn" href="./pricing.html">Back to pricing</a>
+      <a class="brand" id="brandLink" href="./index.html">Smart<span>Swing</span> AI</a>
+      <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
     </header>
 
     <section class="panel">
       <div class="eyebrow">Checkout cancelled</div>
       <h1>No changes were made to your plan.</h1>
-      <p class="muted">Your current SmartSwing access stays exactly as it was. If you canceled Stripe Checkout, no subscription was created and you can return anytime when you are ready.</p>
+      <p class="muted" id="cancelSummary">Your current SmartSwing access stays exactly as it was. If you canceled Stripe Checkout, no subscription was created and you can return anytime when you are ready.</p>
       <div class="actions">
-        <a class="btn-primary" href="./checkout.html">Return to checkout</a>
-        <a class="btn" href="./pricing.html">Compare plans again</a>
-        <a class="btn" href="./dashboard.html">Open dashboard</a>
+        <a class="btn-primary" id="checkoutLink" href="./checkout.html">Return to checkout</a>
+        <a class="btn" id="compareLink" href="./pricing.html">Compare plans again</a>
+        <a class="btn" id="dashboardLink" href="./dashboard.html">Open dashboard</a>
       </div>
     </section>
   </div>
@@ -52,11 +52,36 @@
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const product = (params.get('product') || '').toLowerCase();
+    const isSmartFlip = product === 'smartflip';
+    const brandLink = document.getElementById('brandLink');
+    const pricingLink = document.getElementById('pricingLink');
+    const checkoutLink = document.getElementById('checkoutLink');
+    const compareLink = document.getElementById('compareLink');
+    const dashboardLink = document.getElementById('dashboardLink');
+    const cancelSummary = document.getElementById('cancelSummary');
+
+    if (isSmartFlip) {
+      document.title = 'SmartFlip AI | Checkout Cancelled';
+      brandLink.href = './smartflip.html';
+      brandLink.innerHTML = 'Smart<span>Flip</span> AI';
+      pricingLink.href = './smartflip-app.html#pricing';
+      pricingLink.textContent = 'Back to SmartFlip pricing';
+      compareLink.href = './smartflip-app.html#pricing';
+      dashboardLink.href = './smartflip-dashboard.html';
+      dashboardLink.textContent = 'Open SmartFlip dashboard';
+      cancelSummary.textContent = 'Your current SmartFlip access stays exactly as it was. If you canceled Stripe Checkout, no subscription was created and you can return anytime when you are ready.';
+    }
+
     if (window.SmartSwingStore?.getPendingExternalCheckout) {
       const pending = window.SmartSwingStore.getPendingExternalCheckout();
       if (pending?.planId) {
         const interval = pending.billingInterval || 'monthly';
-        document.querySelector('.btn-primary').href = `./checkout.html?plan=${encodeURIComponent(pending.planId)}${pending.planId !== 'free' ? `&interval=${encodeURIComponent(interval)}` : ''}`;
+        const checkoutBase = pending.checkoutPath || (isSmartFlip ? './smartflip-checkout.html' : './checkout.html');
+        const compareBase = isSmartFlip ? './smartflip-app.html#pricing' : './pricing.html';
+        checkoutLink.href = `${checkoutBase}?plan=${encodeURIComponent(pending.planId)}${pending.planId !== 'free' ? `&interval=${encodeURIComponent(interval)}` : ''}`;
+        compareLink.href = compareBase;
       }
     }
     if (window.SmartSwingStore?.clearPendingExternalCheckout) {
