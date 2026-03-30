@@ -23,7 +23,7 @@
 const { renderTemplate } = require('./_lib/email-templates');
 
 const RESEND_API = 'https://api.resend.com/emails';
-const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'payment_success', 'win_back_7d', 'win_back_21d'];
+const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'paywall_followup_3d', 'paywall_followup_7d', 'referral_bonus', 'payment_success', 'win_back_7d', 'win_back_21d'];
 const MAX_BODY_BYTES = 8 * 1024; // 8 KB — well above any realistic payload
 
 function json(res, status, payload) {

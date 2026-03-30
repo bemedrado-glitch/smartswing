@@ -331,6 +331,20 @@
       margin-top: 18px;
       font-size: 14px;
     }
+
+    .referral-banner {
+      display: none;
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: rgba(57, 255, 20, 0.1);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+      color: #dfffd8;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .referral-banner strong { color: var(--neon-green); }
+    .referral-banner .ref-icon { font-size: 20px; margin-right: 8px; vertical-align: middle; }
   </style>
   <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
@@ -348,6 +362,10 @@
         <a class="active" href="./signup.html">Create account</a>
       </div>
 
+      <div id="referralBanner" class="referral-banner" role="status" aria-live="polite">
+        <span class="ref-icon">🎾</span>
+        <strong>A friend invited you!</strong> Sign up now and get <strong>2 free analyses</strong> to analyse your swing. Your friend will also earn +2 bonus analyses when you complete your first.
+      </div>
       <div id="alertBox" class="alert" role="status" aria-live="polite"></div>
 
       <div class="oauth-stack">
@@ -809,6 +827,25 @@
     });
 
     bootstrapAuth();
+
+    // ── Referral capture ────────────────────────────────────────────────────────
+    (function captureReferral() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const refCode = (params.get('ref') || '').trim().toUpperCase();
+        if (!refCode) return;
+        // Store the pending referral via app-data
+        const storeReady = () => {
+          const s = window.SmartSwingStore;
+          if (!s || !s.setPendingReferral) { setTimeout(storeReady, 120); return; }
+          s.setPendingReferral(refCode);
+        };
+        storeReady();
+        // Show banner
+        const banner = document.getElementById('referralBanner');
+        if (banner) banner.style.display = 'block';
+      } catch (_) {}
+    })();
   </script>
 </body>
 </html>

@@ -111,7 +111,7 @@ module.exports = async (req, res) => {
     return json(res, 200, { skipped: true, reason: 'Email service not configured.' });
   }
 
-  const results = { win_back_7d: { sent: 0, errors: 0 }, win_back_21d: { sent: 0, errors: 0 } };
+  const results = { win_back_7d: { sent: 0, errors: 0 }, win_back_21d: { sent: 0, errors: 0 }, paywall_followup_3d: { sent: 0, errors: 0 }, paywall_followup_7d: { sent: 0, errors: 0 } };
 
   try {
     // ── 7-day win-back: signed up 7 days ago, 0 assessments ────────────────
@@ -138,6 +138,48 @@ module.exports = async (req, res) => {
       } catch (err) {
         results.win_back_7d.errors++;
         console.warn('[cron-win-back] win_back_7d user error:', profile.id, err?.message);
+      }
+    }
+
+    // ── Paywall follow-up 3d: hit paywall 3 days ago, still on free ────────
+    const results_p3 = { sent: 0, errors: 0 };
+    results.paywall_followup_3d = results_p3;
+    const range3d = dayRange(3);
+    const paywallProfiles3 = await supabaseQuery(
+      `profiles?select=id,email,full_name,subscription_tier` +
+      `&paywall_hit_at=gte.${range3d.start}` +
+      `&paywall_hit_at=lte.${range3d.end}` +
+      `&subscription_tier=eq.free`
+    );
+    for (const profile of (paywallProfiles3 || [])) {
+      try {
+        const firstName = (profile.full_name || '').split(' ')[0] || 'there';
+        const sent = await sendEmail('paywall_followup_3d', { firstName, email: profile.email });
+        if (sent) results_p3.sent++;
+      } catch (err) {
+        results_p3.errors++;
+        console.warn('[cron-win-back] paywall_followup_3d error:', profile.id, err?.message);
+      }
+    }
+
+    // ── Paywall follow-up 7d: hit paywall 7 days ago, still on free ────────
+    const results_p7 = { sent: 0, errors: 0 };
+    results.paywall_followup_7d = results_p7;
+    const range7d_paywall = dayRange(7);
+    const paywallProfiles7 = await supabaseQuery(
+      `profiles?select=id,email,full_name,subscription_tier` +
+      `&paywall_hit_at=gte.${range7d_paywall.start}` +
+      `&paywall_hit_at=lte.${range7d_paywall.end}` +
+      `&subscription_tier=eq.free`
+    );
+    for (const profile of (paywallProfiles7 || [])) {
+      try {
+        const firstName = (profile.full_name || '').split(' ')[0] || 'there';
+        const sent = await sendEmail('paywall_followup_7d', { firstName, email: profile.email });
+        if (sent) results_p7.sent++;
+      } catch (err) {
+        results_p7.errors++;
+        console.warn('[cron-win-back] paywall_followup_7d error:', profile.id, err?.message);
       }
     }
 

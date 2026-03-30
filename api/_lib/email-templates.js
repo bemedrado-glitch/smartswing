@@ -321,11 +321,125 @@ function winBack21d({ firstName = 'there' } = {}) {
   };
 }
 
-// ─── Exports ─────────────────────────────────────────────────────────────────
+// ── Template: paywall_followup_3d ────────────────────────────────────────────
+function paywallFollowup3d({ firstName = 'there' } = {}) {
+  return {
+    subject: `${firstName}, here's exactly what you're missing on SmartSwing`,
+    html: base({
+      preheader: '3 days ago you ran out of free analyses. Here\'s what unlocks on the $9.99 plan.',
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.muted};margin:0 0 12px 0;">3 days ago</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">You hit your free analysis limit, ${firstName}.</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          Since then, your technique has had 3 days to ingrain — good or bad. Here's what you'd unlock on the <strong style="color:${C.text};">Player plan at $9.99/month</strong>:
+        </p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;border:1px solid ${C.border};border-radius:14px;overflow:hidden;">
+          ${[
+            ['10 analyses per month', 'vs 2 lifetime on Free', C.volt],
+            ['Save & export reports', 'Build your improvement history', C.volt],
+            ['Print coach-ready PDFs', 'Share with your instructor', C.volt],
+            ['Progress timeline', 'See your SmartSwing Score over time', C.volt],
+          ].map(([feature, sub, color]) => `
+          <tr>
+            <td style="padding:12px 16px;border-bottom:1px solid ${C.border};">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                <td style="width:20px;padding-right:10px;vertical-align:top;">
+                  <span style="color:${color};font-size:14px;font-weight:800;">✓</span>
+                </td>
+                <td>
+                  <div style="font-size:14px;font-weight:700;color:${C.text};">${feature}</div>
+                  <div style="font-size:12px;color:${C.muted};margin-top:2px;">${sub}</div>
+                </td>
+              </tr></table>
+            </td>
+          </tr>`).join('')}
+          <tr><td style="padding:12px 16px;"><span style="font-size:13px;color:${C.muted};">Cancel anytime · 30-day money-back guarantee</span></td></tr>
+        </table>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">
+          <tr><td>${btn('Unlock Player Plan — $9.99/mo →', APP_URL + '/pricing.html')}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          Or refer a friend and get <strong style="color:${C.text};">+2 free analyses</strong> — no credit card needed.<br>
+          <a href="${APP_URL}/refer-friends.html" style="color:${C.volt};text-decoration:none;font-weight:700;">Get your referral link →</a>
+        </p>
+      `
+    })
+  };
+}
+
+// ── Template: paywall_followup_7d ────────────────────────────────────────────
+function paywallFollowup7d({ firstName = 'there' } = {}) {
+  return {
+    subject: 'Last chance: 20% off SmartSwing for the next 48 hours',
+    html: base({
+      preheader: 'A week without AI feedback. Your technique habits are setting in. Here\'s 20% off to fix that.',
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.gold};margin:0 0 12px 0;">One week later</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">A week without feedback, ${firstName}.</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 20px 0;">
+          Research shows that without corrective feedback, players reinforce existing mechanics — both good and bad — after just 4–6 practice sessions. You've likely had several since your last analysis.
+        </p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;background:rgba(255,216,77,0.06);border:1px solid rgba(255,216,77,0.22);border-radius:14px;padding:20px;">
+          <tr>
+            <td style="text-align:center;">
+              <div style="font-size:13px;color:${C.muted};margin-bottom:8px;">Your 48-hour discount</div>
+              <div style="font-size:36px;font-weight:900;color:${C.gold};letter-spacing:2px;font-family:monospace;">SWING20</div>
+              <div style="font-size:13px;color:${C.muted};margin-top:8px;">20% off your first month · Any plan · Expires in 48 hours</div>
+            </td>
+          </tr>
+        </table>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">
+          <tr><td>${btn('Use SWING20 — Get 20% Off →', APP_URL + '/pricing.html')}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          Player plan from <strong style="color:${C.text};">$7.99/mo</strong> with this code.<br>
+          Or <a href="${APP_URL}/refer-friends.html" style="color:${C.volt};text-decoration:none;font-weight:700;">refer a friend</a> for 2 more free analyses instead.
+        </p>
+      `
+    })
+  };
+}
+
+// ── Template: referral_bonus (notify referrer when friend completes first analysis) ──
+function referralBonus({ firstName = 'there', bonusCount = 2 } = {}) {
+  return {
+    subject: `+${bonusCount} free analyses added — your referral worked!`,
+    html: base({
+      preheader: `A friend you referred just completed their first analysis. You've earned ${bonusCount} more free analyses.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">Referral bonus</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">+${bonusCount} analyses added, ${firstName}! 🎾</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          A friend you referred just completed their first SmartSwing analysis. As a thank you, we've added <strong style="color:${C.text};">${bonusCount} more free analyses</strong> to your account — no credit card needed.
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">
+          <tr><td>${btn('Use My Bonus Analyses →', APP_URL + '/analyze.html')}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          Keep referring — each friend who completes their first analysis earns you <strong style="color:${C.text};">+2 more analyses</strong>.<br>
+          <a href="${APP_URL}/refer-friends.html" style="color:${C.volt};text-decoration:none;font-weight:700;">Share your referral link →</a>
+        </p>
+      `
+    })
+  };
+}
+
+// ── Exports ─────────────────────────────────────────────────────────────────
 const TEMPLATES = {
   welcome,
   analysis_warning: analysisWarning,
   paywall_hit: paywallHit,
+  paywall_followup_3d: paywallFollowup3d,
+  paywall_followup_7d: paywallFollowup7d,
+  referral_bonus: referralBonus,
   payment_success: paymentSuccess,
   win_back_7d: winBack7d,
   win_back_21d: winBack21d
