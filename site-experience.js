@@ -1,1 +1,92 @@
-!function(){const t="smartswing_cookie_preferences_v1";function e(e){const n={necessary:!0,analytics:Boolean(e.analytics),personalization:Boolean(e.personalization),marketing:Boolean(e.marketing),savedAt:(new Date).toISOString()};localStorage.setItem(t,JSON.stringify(n)),window.dispatchEvent(new CustomEvent("smartswing:cookies-updated",{detail:n}))}function n(){!function(){const t=window.SmartSwingStore;document.querySelectorAll("[data-plan-select]").forEach(e=>{e.addEventListener("click",n=>{const a=String(e.dataset.planSelect||"").toLowerCase();if(!a)return;const o=e.dataset.billingInterval||"monthly";t?.setCheckoutIntent&&t.setCheckoutIntent({planId:a,billingInterval:o,source:window.location.pathname||""});const i=t?.getCurrentUser?.()&&t?.getCheckoutIntentDestination?t.getCheckoutIntentDestination():e.getAttribute("href");i&&(n.preventDefault(),window.location.href=i)})})}(),function(){const n=document.querySelector("[data-cookie-banner]");if(!n)return;if(localStorage.getItem(t))return void(n.hidden=!0);n.hidden=!1;const a=n.querySelector('[data-cookie-action="accept"]'),o=n.querySelector('[data-cookie-action="essential"]');a&&a.addEventListener("click",()=>{e({analytics:!0,personalization:!0,marketing:!0}),n.hidden=!0}),o&&o.addEventListener("click",()=>{e({analytics:!1,personalization:!1,marketing:!1}),n.hidden=!0})}(),function(){const t=window.SmartSwingStore,e=t?.getCheckoutIntent?.();e?.planId&&document.querySelectorAll("[data-preserve-intent]").forEach(t=>{const n=new URL(t.getAttribute("href"),window.location.href);n.searchParams.set("plan",e.planId),"free"!==e.planId&&n.searchParams.set("interval",e.billingInterval||"monthly"),t.setAttribute("href",`${n.pathname.split("/").pop()}${n.search}`)})}()}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",n):n()}();
+(function () {
+  const COOKIE_KEY = 'smartswing_cookie_preferences_v1';
+
+  function initPlanSelection() {
+    const store = window.SmartSwingStore;
+    document.querySelectorAll('[data-plan-select]').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const planId = String(link.dataset.planSelect || '').toLowerCase();
+        if (!planId) return;
+        const billingInterval = link.dataset.billingInterval || 'monthly';
+        if (store?.setCheckoutIntent) {
+          store.setCheckoutIntent({
+            planId,
+            billingInterval,
+            source: window.location.pathname || ''
+          });
+        }
+        const destination = store?.getCurrentUser?.() && store?.getCheckoutIntentDestination
+          ? store.getCheckoutIntentDestination()
+          : link.getAttribute('href');
+        if (!destination) return;
+        event.preventDefault();
+        window.location.href = destination;
+      });
+    });
+  }
+
+  function saveCookiePreferences(preferences) {
+    const payload = {
+      necessary: true,
+      analytics: Boolean(preferences.analytics),
+      personalization: Boolean(preferences.personalization),
+      marketing: Boolean(preferences.marketing),
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(COOKIE_KEY, JSON.stringify(payload));
+    window.dispatchEvent(new CustomEvent('smartswing:cookies-updated', { detail: payload }));
+  }
+
+  function initCookieBanner() {
+    const banner = document.querySelector('[data-cookie-banner]');
+    if (!banner) return;
+    if (localStorage.getItem(COOKIE_KEY)) {
+      banner.hidden = true;
+      return;
+    }
+
+    banner.hidden = false;
+    const acceptBtn = banner.querySelector('[data-cookie-action="accept"]');
+    const essentialBtn = banner.querySelector('[data-cookie-action="essential"]');
+
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', () => {
+        saveCookiePreferences({ analytics: true, personalization: true, marketing: true });
+        banner.hidden = true;
+      });
+    }
+
+    if (essentialBtn) {
+      essentialBtn.addEventListener('click', () => {
+        saveCookiePreferences({ analytics: false, personalization: false, marketing: false });
+        banner.hidden = true;
+      });
+    }
+  }
+
+  function preservePlanIntentLinks() {
+    const store = window.SmartSwingStore;
+    const intent = store?.getCheckoutIntent?.();
+    if (!intent?.planId) return;
+    document.querySelectorAll('[data-preserve-intent]').forEach((link) => {
+      const url = new URL(link.getAttribute('href'), window.location.href);
+      url.searchParams.set('plan', intent.planId);
+      if (intent.planId !== 'free') {
+        url.searchParams.set('interval', intent.billingInterval || 'monthly');
+      }
+      link.setAttribute('href', `${url.pathname.split('/').pop()}${url.search}`);
+    });
+  }
+
+  function init() {
+    initPlanSelection();
+    initCookieBanner();
+    preservePlanIntentLinks();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

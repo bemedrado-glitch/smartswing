@@ -1,1 +1,34 @@
-!function(){if("serviceWorker"in navigator){var e=!1;window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js").then(function(e){e.update().catch(function(){}),e.waiting&&e.waiting.postMessage({type:"SKIP_WAITING"}),e.addEventListener("updatefound",function(){var n=e.installing;n&&n.addEventListener("statechange",function(){"installed"===n.state&&navigator.serviceWorker.controller&&n.postMessage({type:"SKIP_WAITING"})})})}).catch(function(e){console.warn("SmartSwing service worker registration failed:",e)})}),navigator.serviceWorker.addEventListener("controllerchange",function(){e||(e=!0,window.location.reload())})}}();
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  var reloaded = false;
+
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').then(function (registration) {
+      registration.update().catch(function () {});
+
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+
+      registration.addEventListener('updatefound', function () {
+        var worker = registration.installing;
+        if (!worker) return;
+
+        worker.addEventListener('statechange', function () {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            worker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(function (error) {
+      console.warn('SmartSwing service worker registration failed:', error);
+    });
+  });
+
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (reloaded) return;
+    reloaded = true;
+    window.location.reload();
+  });
+})();

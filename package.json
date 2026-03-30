@@ -32,5 +32,9 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "stripe": "^20.4.1"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5",
+    "terser": "^5.46.1"
   }
 }
