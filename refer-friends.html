@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI Referral Program</title>
-  <meta name="description" content="Join the SmartSwing AI referral program interest list for player, coach, and ambassador invites.">
+  <title>Refer Friends — SmartSwing AI</title>
+  <meta name="description" content="Share your unique referral link. Every friend who completes their first analysis earns you +2 more free analyses.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://www.smartswingai.com/refer-friends.html">
-  <meta property="og:title" content="SmartSwing AI Referral Program">
-  <meta property="og:description" content="Refer players, coaches, and families to SmartSwing AI and join the referral-program interest list.">
+  <meta property="og:title" content="Refer Friends — SmartSwing AI">
+  <meta property="og:description" content="Share your unique referral link. Every friend who completes their first analysis earns you +2 more free analyses.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.smartswingai.com/refer-friends.html">
   <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/Persona%202%20Tennis.png">
@@ -17,66 +17,691 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./growth-pages.css">
   <script src="./analytics.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: rgba(22,22,26,.94);
+      --border: rgba(255,255,255,.08);
+      --neon-green: #39ff14;
+      --gold: #ffd84d;
+      --teal: #00d4aa;
+      --text: #e8e8e8;
+      --muted: rgba(232,232,232,.5);
+      --radius: 20px;
+      --radius-sm: 12px;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* ── NAV ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .brand {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -.02em;
+    }
+
+    .brand span {
+      color: var(--neon-green);
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--neon-green);
+      color: #0a0a0a;
+      font-weight: 700;
+      font-size: .875rem;
+      padding: 10px 20px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+
+    .btn-cta:hover { opacity: .88; }
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+    }
+
+    .panel + .panel,
+    .panel + .stats-row,
+    .stats-row + .panel,
+    .panel + .steps-row,
+    .steps-row + .panel {
+      margin-top: 20px;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -.03em;
+      margin-bottom: 10px;
+    }
+
+    .page-header h1 .accent { color: var(--neon-green); }
+
+    .page-header p {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 580px;
+    }
+
+    /* ── REFERRAL LINK CARD ── */
+    .ref-link-label {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .ref-link-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .ref-link-input {
+      flex: 1;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', monospace;
+      font-size: .875rem;
+      padding: 12px 16px;
+      outline: none;
+      min-width: 0;
+    }
+
+    .ref-link-input:focus {
+      border-color: rgba(57,255,20,.35);
+    }
+
+    .ref-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-copy, .btn-share {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .875rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 12px 18px;
+      transition: opacity .15s, transform .1s;
+      white-space: nowrap;
+    }
+
+    .btn-copy {
+      background: var(--neon-green);
+      color: #0a0a0a;
+    }
+
+    .btn-share {
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-copy:hover, .btn-share:hover { opacity: .85; transform: translateY(-1px); }
+    .btn-copy:active, .btn-share:active { transform: translateY(0); }
+
+    .ref-code-display {
+      margin-top: 12px;
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .ref-code-display strong {
+      color: var(--text);
+      font-family: monospace;
+      background: rgba(255,255,255,.06);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-value.green { color: var(--neon-green); }
+    .stat-value.gold  { color: var(--gold); }
+    .stat-value.teal  { color: var(--teal); }
+
+    .stat-label {
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .step-icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .step-num {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--neon-green);
+      margin-bottom: 4px;
+    }
+
+    .step-card h3 {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .step-card p {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── REFERRAL HISTORY ── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .875rem;
+    }
+
+    .ref-table th {
+      text-align: left;
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      padding: 0 12px 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ref-table td {
+      padding: 14px 12px 14px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .ref-table tr:last-child td { border-bottom: none; }
+
+    .badge-green {
+      display: inline-block;
+      background: rgba(57,255,20,.12);
+      color: var(--neon-green);
+      font-size: .75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .badge-muted {
+      display: inline-block;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: .75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .empty-state-icon {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 10px;
+      opacity: .4;
+    }
+
+    /* ── CTA ROW ── */
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--neon-green);
+      color: #0a0a0a;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      padding: 14px 28px;
+      border-radius: 100px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .btn-primary:hover { opacity: .88; }
+
+    .btn-secondary-link {
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .btn-secondary-link:hover { color: var(--text); }
+
+    /* ── LOGGED-OUT HERO ── */
+    .hero-logged-out {
+      text-align: center;
+      padding: 60px 20px 48px;
+    }
+
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--neon-green);
+      background: rgba(57,255,20,.1);
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+
+    .hero-logged-out h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .hero-logged-out h1 .accent { color: var(--neon-green); }
+
+    .hero-logged-out p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 500px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-cta-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: .95rem;
+      padding: 13px 26px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: border-color .15s, color .15s;
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(255,255,255,.25);
+      color: #fff;
+    }
+
+    .perks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 48px;
+    }
+
+    .perk-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: left;
+    }
+
+    .perk-card .perk-icon {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .perk-card h3 {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .perk-card p {
+      font-size: .84rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── FOOTER ── */
+    .legal-footer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: .85rem;
+    }
+
+    .footer-column strong {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .footer-column p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+
+    .footer-links a:hover { color: var(--text); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .steps-row { grid-template-columns: 1fr; }
+      .ref-link-row { flex-direction: column; }
+      .ref-btn-group { flex-direction: row; }
+      .topbar { gap: 12px; }
+    }
+
+    @media (max-width: 480px) {
+      .panel { padding: 22px 18px; }
+      .ref-btn-group { flex-wrap: wrap; }
+      .btn-copy, .btn-share { flex: 1; justify-content: center; }
+    }
+  </style>
 </head>
 <body>
   <main class="page">
+
+    <!-- NAV (shared) -->
     <header class="topbar">
       <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
-      <nav class="nav">
-        <a class="btn" href="./for-players.html">For Players</a>
-        <a class="btn" href="./for-coaches.html">For Coaches</a>
-        <a class="btn" href="./pricing.html">Pricing</a>
-        <a class="btn" href="./contact.html">Contact</a>
-        <a class="btn-primary" href="./analyze.html">Start Free Analysis</a>
-      </nav>
+      <a class="btn-cta" href="./analyze.html">
+        Start Analysis
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M3 7h8M7.5 3.5 11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
     </header>
 
-    <section class="hero">
-      <article class="panel">
-        <div class="eyebrow">Referral Program</div>
-        <h1>Share SmartSwing with players and coaches who will actually use it.</h1>
-        <p>The referral program is being rebuilt on the new site. If you want early access as a player, coach, club, or ambassador, leave your details and we will reach out when the live program is ready.</p>
-        <div class="mini-list" style="margin-top:18px">
-          <div>Best fit for coaches, academies, and competitive players with active tennis networks.</div>
-          <div>Referral incentives will prioritize real usage, not low-quality signups.</div>
-          <div>Early interest helps shape the live program structure.</div>
+    <!-- ════════════════════════════════════════
+         LOGGED-OUT VIEW
+    ════════════════════════════════════════ -->
+    <div id="loggedOut" style="display:none">
+      <section class="hero-logged-out">
+        <span class="hero-eyebrow">Referral Program</span>
+        <h1>Earn Free Analyses by<br><span class="accent">Referring Friends</span></h1>
+        <p>Share SmartSwing AI with players, coaches, and families you know. Every friend who completes their first analysis earns you both <strong>+2 free analyses</strong> — instantly.</p>
+        <div class="hero-cta-row">
+          <a class="btn-primary" href="./signup.html">Create Free Account →</a>
+          <a class="btn-outline" href="./login.html">Sign In</a>
         </div>
-      </article>
-      <article class="panel section-stack">
-        <div>
-          <h2>Request invite</h2>
-          <form id="referralForm">
-            <label for="referralName">Name
-              <input id="referralName" type="text" required placeholder="Your name">
-            </label>
-            <label for="referralEmail">Email
-              <input id="referralEmail" type="email" required placeholder="you@example.com">
-            </label>
-            <label for="referralRole">Role
-              <select id="referralRole" required>
-                <option value="">Select role</option>
-                <option value="player">Player</option>
-                <option value="coach">Coach</option>
-                <option value="club">Club or academy</option>
-                <option value="partner">Partner or ambassador</option>
-              </select>
-            </label>
-            <label for="referralMessage">How would you use the program?
-              <textarea id="referralMessage" placeholder="Tell us who you would refer and why the program matters."></textarea>
-            </label>
-            <button class="btn-primary" type="submit">Request Referral Access</button>
-          </form>
-          <div id="referralNotice" class="notice">Referral interest is stored in this browser first and can sync to SmartSwing support when cloud contact sync is active for your session.</div>
-        </div>
-      </article>
-    </section>
+      </section>
 
+      <div class="perks-grid">
+        <div class="perk-card">
+          <span class="perk-icon">🔗</span>
+          <h3>Your Unique Link</h3>
+          <p>Sign up and instantly get a personal referral link to share anywhere — text, email, or social.</p>
+        </div>
+        <div class="perk-card">
+          <span class="perk-icon">🎾</span>
+          <h3>Friend Completes Analysis</h3>
+          <p>When your friend signs up and runs their first AI swing analysis, the reward triggers automatically.</p>
+        </div>
+        <div class="perk-card">
+          <span class="perk-icon" style="color: var(--neon-green);">✅</span>
+          <h3>+2 Free Analyses Each</h3>
+          <p>You and your friend both receive two additional free analyses — no codes, no hoops, no delays.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         LOGGED-IN DASHBOARD
+    ════════════════════════════════════════ -->
+    <div id="loggedIn" style="display:none">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <h1>Refer Friends, Get <span class="accent">Free Analyses</span></h1>
+        <p>Share your unique link. Every friend who completes their first analysis earns you +2 more free analyses.</p>
+      </div>
+
+      <!-- Referral link card -->
+      <div class="panel">
+        <div class="ref-link-label">Your Referral Link</div>
+        <div class="ref-link-row">
+          <input
+            id="refLinkInput"
+            class="ref-link-input"
+            type="text"
+            readonly
+            value="https://www.smartswingai.com/signup.html?ref=…"
+            aria-label="Your referral link"
+          >
+          <div class="ref-btn-group">
+            <button id="copyRefBtn" class="btn-copy" onclick="copyRefLink()" aria-label="Copy referral link">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M3 10V3a1 1 0 0 1 1-1h7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+              Copy Link
+            </button>
+            <button class="btn-share" onclick="shareRefLink()" aria-label="Share referral link">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <circle cx="12" cy="3" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="12" cy="12" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                <circle cx="3" cy="7.5" r="1.5" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M10.5 3.75 4.5 6.75M10.5 11.25 4.5 8.25" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+              Share →
+            </button>
+          </div>
+        </div>
+        <div class="ref-code-display">
+          Referral code: <strong id="refCodeDisplay">—</strong>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div id="statBonus" class="stat-value green">0</div>
+          <div class="stat-label">Bonus Analyses</div>
+        </div>
+        <div class="stat-card">
+          <div id="statReferrals" class="stat-value gold">0</div>
+          <div class="stat-label">Friends Referred</div>
+        </div>
+        <div class="stat-card">
+          <div id="statUsed" class="stat-value teal">—</div>
+          <div class="stat-label">Analyses Used</div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="steps-row">
+        <div class="step-card">
+          <span class="step-icon">🔗</span>
+          <div class="step-num">Step 1</div>
+          <h3>Share your unique link</h3>
+          <p>Copy or share your personal referral link with players, coaches, or anyone in your network.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-icon">🎾</span>
+          <div class="step-num">Step 2</div>
+          <h3>Friend signs up and analyzes</h3>
+          <p>Your friend creates a free account using your link and completes their first AI swing analysis.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-icon">✅</span>
+          <div class="step-num">Step 3</div>
+          <h3>You both get +2 free analyses</h3>
+          <p>Bonus analyses are credited instantly to both accounts — no waiting, no manual approval.</p>
+        </div>
+      </div>
+
+      <!-- Referral history -->
+      <div class="panel" style="margin-top:20px">
+        <div class="section-title">Referral History</div>
+
+        <div id="refHistoryEmpty" class="empty-state" style="display:none">
+          <span class="empty-state-icon">📭</span>
+          No referrals yet — share your link to get started!
+        </div>
+
+        <table id="refHistoryTable" class="ref-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Referred User</th>
+              <th>Status</th>
+              <th>Bonus</th>
+            </tr>
+          </thead>
+          <tbody id="refHistoryBody"></tbody>
+        </table>
+      </div>
+
+      <!-- CTA row -->
+      <div class="cta-row">
+        <a class="btn-primary" href="./analyze.html">Analyze Your Swing →</a>
+        <a class="btn-secondary-link" href="./pricing.html">View Pricing Plans</a>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
     <footer class="legal-footer">
       <div class="footer-column">
         <strong>SmartSwing AI</strong>
-        <p>Referral-program interest for coaches, ambassadors, players, and clubs.</p>
+        <p>AI-powered tennis and pickleball swing analysis for players and coaches at every level.</p>
       </div>
       <div class="footer-column">
         <strong>Explore</strong>
@@ -97,40 +722,103 @@
         </div>
       </div>
     </footer>
+
   </main>
 
   <script src="./public-app-config.js"></script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
-  <script src="./growth-forms.js"></script>
   <script src="./pwa.js"></script>
   <script>
-    const form = document.getElementById('referralForm');
-    const notice = document.getElementById('referralNotice');
+    (function() {
+      function init() {
+        var store = window.SmartSwingStore;
+        if (!store) { setTimeout(init, 100); return; }
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const result = await window.SmartSwingGrowth.submitLead({
-        name: document.getElementById('referralName').value,
-        email: document.getElementById('referralEmail').value,
-        topic: 'referral-program',
-        offer: 'Referral program interest',
-        message: `Role: ${document.getElementById('referralRole').value}\n${document.getElementById('referralMessage').value}`,
-        source: '/refer-friends.html'
-      });
+        var user = store.getCurrentUser ? store.getCurrentUser() : null;
 
-      if (!result.ok) {
-        notice.className = 'notice warn';
-        notice.textContent = 'Please complete your name and email before requesting referral access.';
-        return;
+        if (user) {
+          document.getElementById('loggedOut').style.display = 'none';
+          document.getElementById('loggedIn').style.display = 'block';
+
+          var stats = store.getReferralStats
+            ? store.getReferralStats(user.id)
+            : { code: '', referralLink: '', bonusCount: 0, referrals: [] };
+
+          // Populate referral link
+          var link = stats.referralLink || ('https://www.smartswingai.com/signup.html?ref=' + (stats.code || ''));
+          document.getElementById('refLinkInput').value = link;
+          document.getElementById('refCodeDisplay').textContent = stats.code || '—';
+
+          // Stats
+          document.getElementById('statBonus').textContent = stats.bonusCount || 0;
+          document.getElementById('statReferrals').textContent = (stats.referrals || []).filter(function(r) { return r.completedAt; }).length;
+
+          // Plan usage
+          var planState = store.getUserPlanState ? store.getUserPlanState(user.id) : null;
+          document.getElementById('statUsed').textContent = planState ? planState.used : '—';
+
+          // Referral history
+          var tbody = document.getElementById('refHistoryBody');
+          var referrals = stats.referrals || [];
+          if (referrals.length === 0) {
+            document.getElementById('refHistoryEmpty').style.display = 'block';
+            document.getElementById('refHistoryTable').style.display = 'none';
+          } else {
+            document.getElementById('refHistoryEmpty').style.display = 'none';
+            document.getElementById('refHistoryTable').style.display = 'table';
+            tbody.innerHTML = referrals.map(function(r) {
+              return '<tr>' +
+                '<td>' + (r.completedAt ? new Date(r.completedAt).toLocaleDateString() : '—') + '</td>' +
+                '<td>' + (r.referredUserId ? r.referredUserId.slice(0, 8) + '...' : 'Pending') + '</td>' +
+                '<td>' + (r.completedAt ? '<span class="badge-green">Completed</span>' : '<span class="badge-muted">Pending</span>') + '</td>' +
+                '<td>' + (r.bonusGranted ? '+2' : '—') + '</td>' +
+                '</tr>';
+            }).join('');
+          }
+        } else {
+          document.getElementById('loggedOut').style.display = 'block';
+          document.getElementById('loggedIn').style.display = 'none';
+        }
       }
 
-      form.reset();
-      notice.className = 'notice success';
-      notice.textContent = result.synced
-        ? 'Referral-program interest captured and synced to SmartSwing support.'
-        : `Referral-program interest saved locally at ${new Date(result.savedAt).toLocaleString()}.`;
-    });
+      window.copyRefLink = function() {
+        var val = document.getElementById('refLinkInput').value;
+        if (!val) return;
+        var btn = document.getElementById('copyRefBtn');
+        var orig = btn.textContent.trim();
+        navigator.clipboard.writeText(val).then(function() {
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = orig; }, 2000);
+        }).catch(function() {
+          try {
+            document.getElementById('refLinkInput').select();
+            document.execCommand('copy');
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 2000);
+          } catch(e) {}
+        });
+      };
+
+      window.shareRefLink = function() {
+        var val = document.getElementById('refLinkInput').value;
+        if (navigator.share) {
+          navigator.share({
+            title: 'SmartSwing AI',
+            text: 'Get AI tennis coaching — use my referral link for 2 free analyses!',
+            url: val
+          }).catch(function() {});
+        } else {
+          window.copyRefLink();
+        }
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
   </script>
 </body>
 </html>

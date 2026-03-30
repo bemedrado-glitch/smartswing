@@ -9,6 +9,29 @@ const {
   toIsoFromUnix,
   upsertSupabaseSubscription
 } = require('./_lib/stripe-common');
+const { renderTemplate } = require('./_lib/email-templates');
+
+const RESEND_API = 'https://api.resend.com/emails';
+
+async function maybeSendEmail(type, data) {
+  const apiKey = String(process.env.RESEND_API_KEY || '').trim();
+  if (!apiKey || !data?.email) return;
+  try {
+    const { subject, html } = renderTemplate(type, data);
+    const from = String(process.env.RESEND_FROM_ADDRESS || '').trim() || 'SmartSwing AI <noreply@smartswingai.com>';
+    const res = await fetch(RESEND_API, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to: data.email, subject, html })
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      console.warn(`[stripe-webhook] Resend ${type} failed (${res.status}):`, text.slice(0, 200));
+    }
+  } catch (err) {
+    console.warn('[stripe-webhook] Email send error (non-critical):', err?.message || err);
+  }
+}
 
 function mapSubscriptionStatusToPlanId(subscriptionStatus, requestedPlanId) {
   const normalized = String(subscriptionStatus || '').toLowerCase();
@@ -89,6 +112,20 @@ module.exports = async (req, res) => {
               payment_status: session.payment_status || null
             }
           });
+
+          // Payment confirmation email — fire-and-forget
+          if (session.payment_status === 'paid') {
+            const customerEmail = String(session.metadata?.email || session.customer_email || '').trim().toLowerCase();
+            const fullName = String(session.metadata?.fullName || '').trim();
+            const firstName = fullName.split(' ')[0] || 'there';
+            const planLabel = { starter: 'Player', pro: 'Performance', elite: 'Tournament', coach: 'Coach' }[planId] || planId;
+            await maybeSendEmail('payment_success', {
+              firstName,
+              email: customerEmail,
+              planName: planLabel,
+              billingInterval
+            });
+          }
         }
         break;
       }

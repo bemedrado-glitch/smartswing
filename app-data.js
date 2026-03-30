@@ -13,7 +13,10 @@
     lastSession: 'smartswing_last_session',
     supabaseConfig: 'smartswing_supabase_config',
     autoSessionOptOut: 'smartswing_auto_session_opt_out',
-    paymentCheckoutState: 'smartswing_payment_checkout_state'
+    paymentCheckoutState: 'smartswing_payment_checkout_state',
+    referralBonus: 'smartswing_referral_bonus',      // { [userId]: bonusCount }
+    referrals: 'smartswing_referrals',               // [{ id, referrerCode, referredUserId, completedAt }]
+    pendingReferral: 'smartswing_pending_referral'   // { code } — stored from ?ref= URL param before signup
   };
 
   const DEFAULT_COACHES = [
@@ -768,6 +771,150 @@
     return `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, '')}`;
   }
 
+  /**
+   * Fire-and-forget transactional email via /api/send-email.
+   * Never throws — email failures must not break the user flow.
+   * @param {string} type  — welcome | analysis_warning | paywall_hit | payment_success | win_back_7d | win_back_21d
+   * @param {object} data  — { firstName, email, planName, billingInterval, … }
+   */
+  function fireEmailEvent(type, data = {}) {
+    try {
+      const endpoint = `${getAppBaseUrl()}api/send-email`;
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, data })
+      }).catch((err) => {
+        console.warn('[SmartSwing] Email event failed (non-critical):', type, err?.message || err);
+      });
+    } catch (err) {
+      console.warn('[SmartSwing] fireEmailEvent error (non-critical):', err?.message || err);
+    }
+  }
+
+  // ── Referral System ───────────────────────────────────────────────────────
+
+  /**
+   * Generates a deterministic 7-char alphanumeric code from a user ID.
+   * Uses djb2 hash. Characters chosen to avoid 0/O/I/1 confusion.
+   */
+  function generateReferralCode(userId) {
+    const seed = String(userId || '').replace(/-/g, '');
+    let h = 5381;
+    for (let i = 0; i < seed.length; i++) {
+      h = (((h << 5) + h) ^ seed.charCodeAt(i)) >>> 0;
+    }
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    let n = h || 1;
+    for (let i = 0; i < 7; i++) {
+      code += chars[n % chars.length];
+      n = Math.floor(n / chars.length) || 1;
+    }
+    return code;
+  }
+
+  /** Returns the user's referral code, generating one if not stored yet. */
+  function getUserReferralCode(userId) {
+    const id = userId || getCurrentUser()?.id;
+    if (!id) return '';
+    const users = getUsers();
+    const user = users.find((u) => u.id === id);
+    if (!user) return generateReferralCode(id);
+    if (!user.referralCode) {
+      user.referralCode = generateReferralCode(id);
+      persistUsers(users);
+    }
+    return user.referralCode;
+  }
+
+  /** Returns { code, referralLink, bonusCount, referrals[] } for a user. */
+  function getReferralStats(userId) {
+    const id = userId || getCurrentUser()?.id;
+    if (!id) return { code: '', referralLink: '', bonusCount: 0, referrals: [] };
+    const code = getUserReferralCode(id);
+    const bonusMap = read(KEYS.referralBonus, {});
+    const bonusCount = safeNumber(bonusMap[id]);
+    const allReferrals = read(KEYS.referrals, []);
+    const referrals = allReferrals.filter((r) => r.referrerCode === code);
+    let referralLink = '';
+    try {
+      referralLink = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, '')}signup.html?ref=${code}`;
+    } catch (_) {}
+    return { code, referralLink, bonusCount, referrals };
+  }
+
+  /** Stores a pending referral code from the ?ref= URL param (before signup). */
+  function setPendingReferral(code) {
+    const clean = String(code || '').trim().toUpperCase();
+    if (!clean || !/^[A-Z0-9]{5,8}$/.test(clean)) return false;
+    write(KEYS.pendingReferral, { code: clean, storedAt: nowIso() });
+    return true;
+  }
+
+  /** Returns the pending referral code stored before signup, or null. */
+  function getPendingReferral() {
+    return read(KEYS.pendingReferral, null);
+  }
+
+  /**
+   * Applies a +2 referral bonus to the owner of referrerCode.
+   * Records the referral in the referrals list.
+   * Called when a referred user completes their FIRST analysis.
+   */
+  function applyReferralBonus(referrerCode, referredUserId) {
+    if (!referrerCode) return false;
+    const users = getUsers();
+    // Find referrer by their stored code
+    const referrer = users.find((u) => (u.referralCode || generateReferralCode(u.id)) === referrerCode);
+    if (!referrer) return false;
+    // Avoid double-applying for the same referred user
+    const existing = read(KEYS.referrals, []);
+    if (existing.some((r) => r.referredUserId === referredUserId && r.referrerCode === referrerCode)) {
+      return false; // already credited
+    }
+    // Award bonus
+    const bonusMap = read(KEYS.referralBonus, {});
+    bonusMap[referrer.id] = (bonusMap[referrer.id] || 0) + 2;
+    write(KEYS.referralBonus, bonusMap);
+    // Record referral
+    existing.push({
+      id: uid('ref'),
+      referrerCode,
+      referrerId: referrer.id,
+      referredUserId: referredUserId || '',
+      completedAt: nowIso(),
+      bonusGranted: 2
+    });
+    write(KEYS.referrals, existing);
+    // Clear pending referral
+    localStorage.removeItem(KEYS.pendingReferral);
+    // Fire email event to notify referrer (fire-and-forget)
+    fireEmailEvent('referral_bonus', {
+      firstName: (referrer.fullName || '').split(' ')[0] || 'there',
+      email: referrer.email,
+      bonusCount: 2
+    });
+    return true;
+  }
+
+  /**
+   * Records the paywall hit timestamp in Supabase (fire-and-forget).
+   * Enables the 3-day and 7-day email follow-up sequences.
+   */
+  async function recordPaywallHit(userId) {
+    if (!isSupabaseConfigured()) return;
+    try {
+      const client = await getSupabaseClient();
+      if (!client) return;
+      await client.from('profiles')
+        .update({ paywall_hit_at: new Date().toISOString() })
+        .eq('id', userId);
+    } catch (_) {
+      // non-critical — never block the user flow
+    }
+  }
+
   function getOAuthCallbackUrl() {
     return `${getAppBaseUrl()}auth-callback.html`;
   }
@@ -1376,10 +1523,19 @@
 
   function canGenerateReport(userId) {
     const plan = getCurrentPlan(userId);
-    // Free users get a lifetime quota of 2 assessments (not monthly resets)
+    // Free users get a lifetime quota (not monthly resets)
     const usageKey = plan.id === 'free' ? 'lifetime-free' : undefined;
     const usage = getMonthlyUsage(userId, usageKey);
-    const limit = plan.monthlyReviews;
+    let limit = plan.monthlyReviews;
+
+    // Add referral bonuses on top of base free plan limit
+    if (plan.id === 'free' && Number.isFinite(limit)) {
+      const resolvedId = userId || getCurrentUser()?.id;
+      const bonusMap = read(KEYS.referralBonus, {});
+      const bonus = safeNumber(bonusMap[resolvedId]);
+      limit = limit + bonus;
+    }
+
     if (!Number.isFinite(limit)) {
       return { allowed: true, remaining: Infinity, used: usage.count, limit, plan };
     }
@@ -1395,11 +1551,25 @@
     const check = canGenerateReport(user.id);
     if (!check.allowed) {
       const planLabel = check.plan.name || 'current';
+      const totalLimit = check.limit; // includes referral bonus
+      const bonusMap = read(KEYS.referralBonus, {});
+      const bonusCount = safeNumber(bonusMap[user.id]);
       const msg = check.plan.id === 'free'
-        ? 'You have used your 2 free analyses. Choose a plan to keep analysing your game.'
+        ? `You have used all ${totalLimit} of your free analyses${bonusCount > 0 ? ` (including ${bonusCount} referral bonus)` : ''}. Choose a plan to keep analysing your game.`
         : `Monthly report limit reached for ${planLabel}. Upgrade your plan to continue.`;
       const err = new Error(msg);
       err.redirectToPricing = true;
+      err.paywallData = {
+        plan: plan.id,
+        used: check.used,
+        limit: totalLimit,
+        bonusCount,
+        referralCode: getUserReferralCode(user.id)
+      };
+      // Record paywall hit for email sequence (fire-and-forget, async)
+      if (plan.id === 'free') {
+        recordPaywallHit(user.id).catch(() => {});
+      }
       throw err;
     }
 
@@ -1429,7 +1599,32 @@
     }
 
     persistReportUsage(all);
-    return canGenerateReport(user.id);
+
+    // On FIRST ever analysis: apply pending referral bonus to the referrer
+    const prevCount = idx >= 0 ? safeNumber(all[idx].count) - 1 : 0;
+    if (prevCount === 0) {
+      const pending = getPendingReferral();
+      if (pending?.code) {
+        applyReferralBonus(pending.code, user.id);
+      }
+    }
+
+    const afterState = canGenerateReport(user.id);
+
+    // Trigger email events based on remaining free analyses (fire-and-forget)
+    if (plan.id === 'free') {
+      const firstName = (user.fullName || '').split(' ')[0] || 'there';
+      const email = user.email || '';
+      if (email) {
+        if (afterState.remaining === 1) {
+          fireEmailEvent('analysis_warning', { firstName, email });
+        } else if (afterState.remaining === 0) {
+          fireEmailEvent('paywall_hit', { firstName, email });
+        }
+      }
+    }
+
+    return afterState;
   }
 
   function canSaveReport(userId) {
@@ -1936,6 +2131,8 @@
         localStorage.removeItem(KEYS.autoSessionOptOut);
         await ensureRemoteProfile(local);
         await pullRemoteState(local.id);
+        // Welcome email — fire-and-forget, non-blocking
+        fireEmailEvent('welcome', { firstName: (local.fullName || '').split(' ')[0] || 'there', email: local.email });
         return { ...local, requiresEmailConfirmation: false };
       }
     }
@@ -1953,6 +2150,8 @@
     persistUsers([...users, user]);
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
     localStorage.removeItem(KEYS.autoSessionOptOut);
+    // Welcome email — fire-and-forget, non-blocking
+    fireEmailEvent('welcome', { firstName: (user.fullName || '').split(' ')[0] || 'there', email: user.email });
     return user;
   }
 
@@ -3130,6 +3329,11 @@
     getMonthlyUsage,
     canGenerateReport,
     consumeMonthlyReportCredit,
+    getReferralStats,
+    getUserReferralCode,
+    setPendingReferral,
+    getPendingReferral,
+    applyReferralBonus,
     canSaveReport,
     canPrintReport,
     canAccessLibrary,

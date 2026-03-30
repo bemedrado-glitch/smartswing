@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI — Shared Biomechanics Report</title>
+  <meta name="description" content="AI-powered tennis biomechanics analysis shared via SmartSwing AI.">
+  <meta name="robots" content="noindex,nofollow">
+  <!-- Open Graph for coach preview in iMessage / WhatsApp / Slack -->
+  <meta property="og:title" content="SmartSwing AI — Biomechanics Report">
+  <meta property="og:description" content="View this player's AI-generated swing analysis and drill recommendations.">
+  <meta property="og:image" content="./assets/og-report.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: rgba(22,22,26,.94);
+      --line: rgba(255,255,255,.12);
+      --text: #f5f7fa;
+      --muted: #9aa5b4;
+      --green: #39ff14;
+      --volt: #39ff14;
+      --gold: #ffd84d;
+      --teal: #00d4aa;
+      --red: #ff5252;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,.1), transparent 22%),
+        radial-gradient(circle at top right, rgba(255,216,77,.1), transparent 18%),
+        linear-gradient(180deg, #050505 0%, #0a0a0a 60%, #111 100%);
+      min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    .page { max-width: 760px; margin: 0 auto; padding: 32px 16px 80px; }
+
+    /* Nav */
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .brand { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    .brand .dot { color: var(--volt); }
+    .try-btn { display: inline-flex; align-items: center; padding: 10px 20px; background: var(--volt); color: #0a0a0a; font-size: 14px; font-weight: 700; border-radius: 12px; text-decoration: none; }
+
+    /* Error / loading */
+    .state-card { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 48px 32px; text-align: center; }
+    .state-card h2 { font-size: 22px; margin-bottom: 12px; }
+    .state-card p { color: var(--muted); line-height: 1.6; }
+
+    /* Report header */
+    .report-header { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 32px; margin-bottom: 16px; text-align: center; }
+    .score-ring { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--volt); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 16px; background: rgba(57,255,20,.06); }
+    .score-ring .score-val { font-size: 42px; font-weight: 900; line-height: 1; letter-spacing: -2px; color: var(--volt); }
+    .score-ring .score-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 2px; }
+    .grade-chip { display: inline-block; padding: 6px 18px; border-radius: 999px; background: rgba(57,255,20,.12); border: 1px solid rgba(57,255,20,.28); color: var(--volt); font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px; }
+    .report-header h1 { font-size: clamp(22px,4vw,32px); letter-spacing: -0.5px; margin-bottom: 8px; }
+    .report-meta { font-size: 13px; color: var(--muted); line-height: 1.7; }
+    .report-meta strong { color: var(--text); }
+
+    /* Sections */
+    .section { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 12px; }
+    .section-title { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+    /* Metric bars */
+    .metric-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .metric-row:last-child { margin-bottom: 0; }
+    .metric-name { font-size: 13px; font-weight: 600; min-width: 140px; color: var(--text); }
+    .metric-bar-wrap { flex: 1; height: 8px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+    .metric-bar-fill { height: 100%; border-radius: 999px; transition: width .6s ease; }
+    .metric-score { font-size: 13px; font-weight: 800; min-width: 40px; text-align: right; }
+
+    /* KPI grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .kpi-card { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; }
+    .kpi-val { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: var(--gold); }
+    .kpi-label { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+    /* Drills */
+    .drill-item { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .drill-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .drill-num { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--volt); margin-bottom: 4px; }
+    .drill-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .drill-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* Coach summary */
+    .coach-quote { border-left: 3px solid var(--teal); padding-left: 16px; font-size: 14px; color: var(--muted); line-height: 1.75; font-style: italic; }
+
+    /* CTA */
+    .cta-section { background: linear-gradient(135deg, rgba(57,255,20,.08), rgba(0,212,170,.06)); border: 1px solid rgba(57,255,20,.2); border-radius: 20px; padding: 32px; margin-top: 24px; text-align: center; }
+    .cta-section h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .cta-section p { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+    .cta-section .cta-btn { display: inline-flex; align-items: center; padding: 14px 28px; background: var(--volt); color: #0a0a0a; font-size: 15px; font-weight: 800; border-radius: 14px; text-decoration: none; }
+    .cta-section .cta-sub { font-size: 12px; color: var(--muted); margin-top: 12px; }
+
+    /* Watermark bar */
+    .watermark { text-align: center; font-size: 12px; color: rgba(255,255,255,.3); padding: 24px 0 0; }
+    .watermark a { color: rgba(255,255,255,.5); text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .metric-name { min-width: 100px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <nav class="top-bar">
+    <a class="brand" href="./index.html">SmartSwing<span class="dot">.</span>AI</a>
+    <a class="try-btn" href="./signup.html">Try Free →</a>
+  </nav>
+
+  <div id="root"></div>
+
+</div>
+
+<script>
+(function () {
+  const root = document.getElementById('root');
+
+  // ── Parse payload from URL ─────────────────────────────────────────────
+  function parseReportData() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const raw = params.get('r');
+      if (!raw) return null;
+      const json = decodeURIComponent(escape(atob(raw)));
+      return JSON.parse(json);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  const data = parseReportData();
+
+  if (!data) {
+    root.innerHTML = `
+      <div class="state-card">
+        <h2>Report not found</h2>
+        <p>This link may be invalid or expired. Ask the player to generate a new share link from their SmartSwing report.</p>
+        <br>
+        <a href="./index.html" style="color:var(--volt);font-weight:700;">← Back to SmartSwing AI</a>
+      </div>`;
+    return;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────
+  function cap(str) {
+    return String(str || '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+  }
+
+  function scoreColor(score) {
+    if (score >= 75) return '#39ff14';
+    if (score >= 55) return '#ffd84d';
+    return '#ff5252';
+  }
+
+  function formatDate(iso) {
+    try { return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }); }
+    catch (_) { return iso || ''; }
+  }
+
+  const metrics = data.m || [];
+  const kpis = data.k || [0, 0, 0];
+  const drills = data.dr || [];
+  const shotLabel = cap(data.t || 'forehand');
+  const levelLabel = cap(data.p || 'intermediate');
+  const scoreVal = data.s || 0;
+  const grade = data.g || 'B';
+  const playerName = data.n ? `${data.n}'s` : "Player's";
+
+  // ── Score grade band ───────────────────────────────────────────────────
+  function gradeBand(s) {
+    if (s >= 90) return { label: 'Elite', color: '#39ff14' };
+    if (s >= 75) return { label: 'Strong', color: '#39ff14' };
+    if (s >= 60) return { label: 'Developing', color: '#ffd84d' };
+    return { label: 'Building', color: '#ff5252' };
+  }
+  const band = gradeBand(scoreVal);
+
+  // ── Render ─────────────────────────────────────────────────────────────
+  root.innerHTML = `
+
+    <!-- Report header -->
+    <div class="report-header">
+      <div class="score-ring" style="border-color:${band.color}; background:${band.color}18;">
+        <div class="score-val" style="color:${band.color};">${scoreVal}</div>
+        <div class="score-lbl">Score</div>
+      </div>
+      <div class="grade-chip" style="color:${band.color}; background:${band.color}18; border-color:${band.color}44;">
+        Grade ${grade} · ${band.label}
+      </div>
+      <h1>${playerName} ${shotLabel} Analysis</h1>
+      <p class="report-meta">
+        <strong>${levelLabel}</strong> · Age ${data.a || '—'} · ${formatDate(data.d)}<br>
+        <span style="font-size:11px; margin-top:4px; display:block;">AI-generated biomechanics report via SmartSwing AI</span>
+      </p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="section">
+      <div class="section-title">Performance KPIs</div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-val" style="color:${scoreColor(kpis[0])};">${kpis[0]}%</div>
+          <div class="kpi-label">Timing Consistency</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" style="color:${scoreColor(kpis[1])};">${kpis[1]}%</div>
+          <div class="kpi-label">Footwork Support</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" style="color:${scoreColor(kpis[2])};">${kpis[2]}%</div>
+          <div class="kpi-label">Positioning Quality</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Biomechanics metrics -->
+    ${metrics.length ? `
+    <div class="section">
+      <div class="section-title">Biomechanics Breakdown</div>
+      ${metrics.map(([name, score]) => {
+        const c = scoreColor(score);
+        return `
+        <div class="metric-row">
+          <span class="metric-name">${cap(name)}</span>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:${score}%; background:${c};"></div></div>
+          <span class="metric-score" style="color:${c};">${score}%</span>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <!-- Drill plan -->
+    ${drills.length ? `
+    <div class="section">
+      <div class="section-title">Tailored Drill Plan</div>
+      ${drills.map(([title, desc], i) => `
+      <div class="drill-item">
+        <div class="drill-num">Drill ${i + 1}</div>
+        <div class="drill-title">${title || 'Drill recommendation'}</div>
+        ${desc ? `<div class="drill-desc">${desc}</div>` : ''}
+      </div>`).join('')}
+    </div>` : ''}
+
+    <!-- Coach summary -->
+    ${data.cs ? `
+    <div class="section">
+      <div class="section-title">AI Coach Summary</div>
+      <p class="coach-quote">"${data.cs}"</p>
+    </div>` : ''}
+
+    <!-- CTA -->
+    <div class="cta-section">
+      <h2>Want AI analysis of your own swing?</h2>
+      <p>SmartSwing AI analyses your biomechanics frame-by-frame and gives you a personalised drill plan in under 60 seconds. No app download. Works on any phone.</p>
+      <a class="cta-btn" href="./signup.html">Get 2 Free Analyses →</a>
+      <p class="cta-sub">No credit card required · 2 free lifetime analyses included</p>
+    </div>
+
+    <!-- Watermark -->
+    <div class="watermark">
+      Shared via <a href="./index.html">SmartSwing AI</a> · This report was generated by AI analysis and is for training purposes only.
+    </div>
+  `;
+
+  // Update page title and meta with player name + score
+  document.title = `${playerName} ${shotLabel} Report — SmartSwing AI`;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.content = `${playerName} ${shotLabel} biomechanics score: ${scoreVal}/100 (Grade ${grade}). AI-generated swing analysis via SmartSwing AI.`;
+
+})();
+</script>
+</body>
+</html>
