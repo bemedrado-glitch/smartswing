@@ -29,9 +29,11 @@
   <link rel="alternate" hreflang="fr" href="https://www.smartswingai.com/?lang=fr">
   <link rel="alternate" hreflang="x-default" href="https://www.smartswingai.com/">
   <link rel="manifest" href="./manifest.json">
+  <link rel="preload" href="./assets/redesign/hero.jpg" as="image" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"></noscript>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -1246,7 +1248,7 @@
     </div>
 
     <div class="hero-img-strip page">
-      <img src="./assets/redesign/hero.jpg" alt="Transform your tennis and pickleball game with SmartSwing AI" loading="eager" width="1280" height="520">
+      <img src="./assets/redesign/hero.jpg" alt="Transform your tennis and pickleball game with SmartSwing AI" loading="eager" fetchpriority="high" width="1280" height="520" decoding="async">
     </div>
 
     <div class="page">
