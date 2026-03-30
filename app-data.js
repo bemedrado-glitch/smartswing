@@ -3386,3 +3386,62 @@
     write
   };
 })();
+
+/* ── PostHog Analytics Bootstrap ─────────────────────────────────────────────
+ * Reads POSTHOG_KEY from window.SMARTSWING_ANALYTICS_CONFIG (set by
+ * /api/runtime-config.js). Only activates when:
+ *   1. A key is present
+ *   2. User has accepted analytics cookies (or no preference set yet)
+ * Listens for the smartswing:cookies-updated event to init/opt-out at runtime.
+ * ─────────────────────────────────────────────────────────────────────────── */
+(function () {
+  var COOKIE_KEY = 'smartswing_cookie_preferences_v1';
+
+  function getAnalyticsConsent() {
+    try {
+      var prefs = JSON.parse(localStorage.getItem(COOKIE_KEY) || 'null');
+      if (!prefs) return true; // no preference yet — allow (banner will appear)
+      return prefs.analytics !== false;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function bootPostHog(key) {
+    if (!key || window.__smartswingPhBooted) return;
+    if (!getAnalyticsConsent()) return;
+    window.__smartswingPhBooted = true;
+
+    // PostHog snippet (minified loader from posthog.com/docs)
+    /* eslint-disable */
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(s&&s.bootstrap&&u.init(s.bootstrap.distinctID,{config:s.bootstrap.featureFlags,onFeatureFlags:s.bootstrap.onFeatureFlags}),(a=a||"posthog")!=="posthog"&&(u=e[a]=[]),u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=u.people.toString,o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId setPersonProperties".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||(window.posthog={}));
+    /* eslint-enable */
+
+    window.posthog.init(key, {
+      api_host: 'https://us.i.posthog.com',
+      person_profiles: 'identified_only',
+      capture_pageview: true,
+      capture_pageleave: true
+    });
+  }
+
+  function tryBoot() {
+    var key = ((window.SMARTSWING_ANALYTICS_CONFIG || {}).posthogKey || '').trim();
+    bootPostHog(key);
+  }
+
+  // Boot immediately (runtime-config.js runs before app-data.js)
+  tryBoot();
+
+  // Re-evaluate when user makes cookie choice
+  window.addEventListener('smartswing:cookies-updated', function (e) {
+    if (e && e.detail && e.detail.analytics === false) {
+      // User opted out — tell PostHog to stop capturing
+      if (window.posthog && typeof window.posthog.opt_out_capturing === 'function') {
+        window.posthog.opt_out_capturing();
+      }
+    } else {
+      tryBoot();
+    }
+  });
+})();

@@ -10,6 +10,8 @@ module.exports = async (_req, res) => {
   const oauthAppleEnabled = String(process.env.NEXT_PUBLIC_OAUTH_APPLE_ENABLED || '').trim().toLowerCase() === 'true';
   const oauthFacebookEnabled = String(process.env.NEXT_PUBLIC_OAUTH_FACEBOOK_ENABLED || '').trim().toLowerCase() === 'true';
 
+  const posthogKey = String(process.env.POSTHOG_KEY || '').trim();
+
   const payload = `
 window.SMARTSWING_SUPABASE_CONFIG = Object.assign({}, window.SMARTSWING_SUPABASE_CONFIG || {}, {
   url: ${JSON.stringify(supabaseUrl)},
@@ -26,6 +28,9 @@ window.SMARTSWING_AUTH_CONFIG = Object.assign({}, window.SMARTSWING_AUTH_CONFIG 
   googleEnabled: ${oauthGoogleEnabled},
   appleEnabled: ${oauthAppleEnabled},
   facebookEnabled: ${oauthFacebookEnabled}
+});
+window.SMARTSWING_ANALYTICS_CONFIG = Object.assign({}, window.SMARTSWING_ANALYTICS_CONFIG || {}, {
+  posthogKey: ${JSON.stringify(posthogKey)}
 });
 `;
 
