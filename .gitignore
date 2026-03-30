@@ -34,3 +34,14 @@ Thumbs.db
 # Local headless browser artifacts
 tests/edge-profile-main/
 tests/edge-profile-batch/
+
+# SmartFlip worktree artifacts (separate product — not part of SmartSwing repo)
+smartflip*.html
+smartflip-config.js
+SMARTFLIP-BRAND-GUIDE.md
+assets/smartflip/
+deploy/smartflip-vercel/
+supabase/migrations/*_smartflip_*.sql
+tests/run-smartflip-tests.ps1
+tests/smartflip-*.test.js
+fix-encoding.js
