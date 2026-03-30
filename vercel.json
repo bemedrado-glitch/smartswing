@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "crons": [
+    {
+      "path": "/api/cron-win-back",
+      "schedule": "0 10 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/contact-8",

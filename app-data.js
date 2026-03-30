@@ -768,6 +768,27 @@
     return `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, '')}`;
   }
 
+  /**
+   * Fire-and-forget transactional email via /api/send-email.
+   * Never throws — email failures must not break the user flow.
+   * @param {string} type  — welcome | analysis_warning | paywall_hit | payment_success | win_back_7d | win_back_21d
+   * @param {object} data  — { firstName, email, planName, billingInterval, … }
+   */
+  function fireEmailEvent(type, data = {}) {
+    try {
+      const endpoint = `${getAppBaseUrl()}api/send-email`;
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, data })
+      }).catch((err) => {
+        console.warn('[SmartSwing] Email event failed (non-critical):', type, err?.message || err);
+      });
+    } catch (err) {
+      console.warn('[SmartSwing] fireEmailEvent error (non-critical):', err?.message || err);
+    }
+  }
+
   function getOAuthCallbackUrl() {
     return `${getAppBaseUrl()}auth-callback.html`;
   }
@@ -1425,7 +1446,22 @@
     }
 
     persistReportUsage(all);
-    return canGenerateReport(user.id);
+    const afterState = canGenerateReport(user.id);
+
+    // Trigger email events based on remaining free analyses (fire-and-forget)
+    if (plan.id === 'free') {
+      const firstName = (user.fullName || '').split(' ')[0] || 'there';
+      const email = user.email || '';
+      if (email) {
+        if (afterState.remaining === 1) {
+          fireEmailEvent('analysis_warning', { firstName, email });
+        } else if (afterState.remaining === 0) {
+          fireEmailEvent('paywall_hit', { firstName, email });
+        }
+      }
+    }
+
+    return afterState;
   }
 
   function canSaveReport(userId) {
@@ -1918,6 +1954,8 @@
         localStorage.removeItem(KEYS.autoSessionOptOut);
         await ensureRemoteProfile(local);
         await pullRemoteState(local.id);
+        // Welcome email — fire-and-forget, non-blocking
+        fireEmailEvent('welcome', { firstName: (local.fullName || '').split(' ')[0] || 'there', email: local.email });
         return { ...local, requiresEmailConfirmation: false };
       }
     }
@@ -1935,6 +1973,8 @@
     persistUsers([...users, user]);
     write(KEYS.session, { userId: user.id, loggedInAt: nowIso() });
     localStorage.removeItem(KEYS.autoSessionOptOut);
+    // Welcome email — fire-and-forget, non-blocking
+    fireEmailEvent('welcome', { firstName: (user.fullName || '').split(' ')[0] || 'there', email: user.email });
     return user;
   }
 
