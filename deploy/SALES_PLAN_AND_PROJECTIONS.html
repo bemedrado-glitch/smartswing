@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartSwing AI — Sales Plan & 5-Year Projections</title>
+<style>
+  :root {
+    --bg:#0a0a0a; --panel:rgba(22,22,26,.95); --line:rgba(255,255,255,.1);
+    --text:#f5f7fa; --muted:#8899aa; --volt:#39ff14; --gold:#ffd84d;
+    --red:#ff4d4d; --blue:#60a5fa; --purple:#a78bfa; --teal:#2dd4bf;
+    --page:min(1160px,calc(100% - 40px));
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"DM Sans",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+  .wrap{width:var(--page);margin:0 auto;padding:48px 0 80px}
+  /* ── HEADER ── */
+  .report-header{border-bottom:1px solid var(--line);padding-bottom:32px;margin-bottom:40px}
+  .report-header .eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--volt);margin-bottom:12px}
+  .report-header h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.05;margin-bottom:16px}
+  .report-header h1 span{color:var(--volt)}
+  .meta-row{display:flex;gap:24px;flex-wrap:wrap}
+  .meta-pill{font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  /* ── SECTIONS ── */
+  section{margin-bottom:56px}
+  h2{font-size:1.6rem;font-weight:800;letter-spacing:-.03em;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  h2 .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:6px;vertical-align:middle;margin-left:10px}
+  h2 .critical{background:rgba(255,77,77,.15);color:var(--red);border:1px solid rgba(255,77,77,.3)}
+  h2 .urgent{background:rgba(255,213,77,.12);color:var(--gold);border:1px solid rgba(255,213,77,.28)}
+  h2 .growth{background:rgba(57,255,20,.1);color:var(--volt);border:1px solid rgba(57,255,20,.25)}
+  h3{font-size:1.1rem;font-weight:700;letter-spacing:-.02em;margin:24px 0 10px;color:var(--text)}
+  p{color:rgba(255,255,255,.78);margin-bottom:12px;font-size:.97rem}
+  ul,ol{margin:0 0 14px 20px;color:rgba(255,255,255,.78);font-size:.95rem}
+  li{margin-bottom:7px}
+  strong{color:var(--text);font-weight:700}
+  /* ── CALLOUT BOXES ── */
+  .callout{border-radius:16px;padding:20px 22px;margin:20px 0}
+  .callout.warn{background:rgba(255,213,77,.07);border:1px solid rgba(255,213,77,.25)}
+  .callout.success{background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.2)}
+  .callout.info{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.22)}
+  .callout.danger{background:rgba(255,77,77,.07);border:1px solid rgba(255,77,77,.25)}
+  .callout .callout-title{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .callout.warn .callout-title{color:var(--gold)}
+  .callout.success .callout-title{color:var(--volt)}
+  .callout.info .callout-title{color:var(--blue)}
+  .callout.danger .callout-title{color:var(--red)}
+  /* ── STAT GRID ── */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:20px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center}
+  .stat .num{font-size:2rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+  .stat .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:6px}
+  .stat.volt .num{color:var(--volt)} .stat.gold .num{color:var(--gold)} .stat.blue .num{color:var(--blue)} .stat.purple .num{color:var(--purple)} .stat.teal .num{color:var(--teal)} .stat.red .num{color:var(--red)}
+  /* ── TABLES ── */
+  .table-wrap{overflow-x:auto;margin:20px 0}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  thead tr{background:rgba(255,255,255,.05)}
+  th{text-align:left;padding:10px 14px;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--line)}
+  td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.82)}
+  tr:last-child td{border-bottom:none}
+  .td-green{color:var(--volt);font-weight:700} .td-gold{color:var(--gold);font-weight:700} .td-blue{color:var(--blue);font-weight:700} .td-muted{color:var(--muted)} .td-red{color:var(--red)}
+  /* ── TIMELINE ── */
+  .timeline{display:grid;gap:0;margin:20px 0;position:relative}
+  .tl-item{display:grid;grid-template-columns:120px 1fr;gap:20px;padding:0 0 32px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-left{text-align:right;padding-top:4px}
+  .tl-phase{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--volt)}
+  .tl-date{font-size:.8rem;color:var(--muted);margin-top:2px}
+  .tl-right{border-left:2px solid rgba(57,255,20,.25);padding-left:20px;position:relative}
+  .tl-right::before{content:'';position:absolute;left:-5px;top:8px;width:8px;height:8px;background:var(--volt);border-radius:50%}
+  .tl-right h4{font-size:1rem;font-weight:700;margin-bottom:8px}
+  .tl-right ul{margin-left:16px}
+  /* ── PRICING CARDS ── */
+  .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0}
+  .price-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;position:relative}
+  .price-card.featured{border-color:rgba(57,255,20,.45);box-shadow:0 0 40px rgba(57,255,20,.08)}
+  .price-card .popular-tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--volt);color:#0a0a0a;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:999px;white-space:nowrap}
+  .price-card .plan-name{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+  .price-card .plan-price{font-size:2.2rem;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:4px}
+  .price-card .plan-price span{font-size:.9rem;font-weight:400;color:var(--muted)}
+  .price-card .plan-yearly{font-size:.8rem;color:var(--volt);margin-bottom:14px}
+  .price-card .plan-desc{font-size:.85rem;color:rgba(255,255,255,.65);margin-bottom:14px;line-height:1.5}
+  .price-card .plan-features{list-style:none;margin:0;display:grid;gap:6px}
+  .price-card .plan-features li{font-size:.83rem;color:rgba(255,255,255,.75);padding-left:18px;position:relative}
+  .price-card .plan-features li::before{content:'✓';position:absolute;left:0;color:var(--volt);font-weight:800}
+  .price-card .plan-features li.no::before{content:'✗';color:rgba(255,255,255,.25)}
+  .price-card .plan-features li.no{color:rgba(255,255,255,.3)}
+  /* ── PROJECTION TABLE ── */
+  .proj-table th.year{color:var(--volt)}
+  .highlight-row td{background:rgba(57,255,20,.05)}
+  /* ── CHANNEL CARDS ── */
+  .channel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:20px 0}
+  .channel-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .channel-card .ch-name{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+  .channel-card .ch-cac{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+  .channel-card .ch-note{font-size:.82rem;color:var(--muted)}
+  .channel-card .priority-tag{display:inline-block;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:4px;margin-top:8px}
+  .p1{background:rgba(57,255,20,.12);color:var(--volt)} .p2{background:rgba(255,213,77,.12);color:var(--gold)} .p3{background:rgba(96,165,250,.12);color:var(--blue)}
+  /* ── MISSING FEATURES ── */
+  .feature-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+  .feature-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .feature-item .fi-tag{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;padding:2px 8px;border-radius:4px;display:inline-block}
+  .fi-critical{background:rgba(255,77,77,.15);color:var(--red)}
+  .fi-high{background:rgba(255,213,77,.12);color:var(--gold)}
+  .fi-growth{background:rgba(57,255,20,.1);color:var(--volt)}
+  .fi-b2b{background:rgba(96,165,250,.1);color:var(--blue)}
+  .feature-item h4{font-size:.9rem;font-weight:700;margin-bottom:4px}
+  .feature-item p{font-size:.82rem;color:var(--muted);margin:0}
+  @media(max-width:700px){
+    .feature-list,.stat-grid,.price-grid{grid-template-columns:1fr}
+    .tl-item{grid-template-columns:1fr}
+    .tl-left{text-align:left}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- HEADER -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<header class="report-header">
+  <div class="eyebrow">Confidential — Internal Document</div>
+  <h1>SmartSwing <span>AI</span><br>Sales Plan &amp; 5-Year Projections</h1>
+  <div class="meta-row">
+    <span class="meta-pill">Prepared: March 2026</span>
+    <span class="meta-pill">Analyst: Claude Sonnet 4.6</span>
+    <span class="meta-pill">Market: Tennis + Pickleball / Global</span>
+    <span class="meta-pill">Benchmark: SwingVision, Coach's Eye</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 1. EXECUTIVE SUMMARY -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>1. Executive Summary <span class="tag growth">Strategic Overview</span></h2>
+
+  <div class="callout success">
+    <div class="callout-title">The Core Opportunity</div>
+    <p style="margin:0">The global tennis market is worth <strong>$8.4B in 2025, growing to $16B by 2035</strong>. Pickleball alone has <strong>25M+ active US players</strong> and is the fastest-growing sport in America. The leading competitor (SwingVision) has only reached <strong>20,000 paying subscribers and $4M ARR</strong> despite being a mobile-app-first product. SmartSwing AI is web-first — zero download friction — giving it a structural conversion advantage. This market is large, underpenetrated, and growing. The window to establish market leadership is now.</p>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat volt"><div class="num">$8.4B</div><div class="lbl">Tennis Market 2025</div></div>
+    <div class="stat gold"><div class="num">25M+</div><div class="lbl">US Pickleball Players</div></div>
+    <div class="stat blue"><div class="num">$4M</div><div class="lbl">Competitor ARR (SwingVision)</div></div>
+    <div class="stat teal"><div class="num">20K</div><div class="lbl">Competitor Paying Users</div></div>
+    <div class="stat purple"><div class="num">6.74%</div><div class="lbl">Market CAGR to 2035</div></div>
+    <div class="stat volt"><div class="num">0</div><div class="lbl">Downloads Required</div></div>
+  </div>
+
+  <h3>SmartSwing AI vs. the Primary Competitor</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Factor</th><th>SwingVision (Competitor)</th><th>SmartSwing AI (Us)</th><th>Winner</th></tr></thead>
+      <tbody>
+        <tr><td>Platform</td><td>iOS app only</td><td>Web browser (any device)</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Download required</td><td>Yes — App Store</td><td>No — open URL</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Analysis type</td><td>Live on-court recording</td><td>Upload any video</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Biomechanics depth</td><td>Stats, scoring, line calls</td><td>14-point biomechanics AI</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Sports supported</td><td>Tennis + Pickleball</td><td>Tennis + Pickleball</td><td class="td-muted">Tie</td></tr>
+        <tr><td>Coach B2B dashboard</td><td>Basic</td><td>Full multi-athlete roster</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Entry price</td><td>$99.99/yr (Semi-Pro)</td><td>$9.99/mo ($120/yr)</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Free tier</td><td>Very limited recording</td><td>2 full lifetime analyses</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Drill recommendations</td><td>General tips</td><td>AI-matched drill library</td><td class="td-green">SmartSwing ✓</td></tr>
+        <tr><td>Revenue (2024)</td><td>$2.75M</td><td>Pre-revenue (launch phase)</td><td class="td-gold">SwingVision (for now)</td></tr>
+        <tr><td>Subscribers</td><td>20,000+</td><td>0 (pre-launch)</td><td class="td-gold">SwingVision (for now)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">Key Insight</div>
+    <p style="margin:0">SwingVision reached $4M ARR with an iOS-only app. SmartSwing AI works on any phone, tablet, or computer with zero download. In a market where <strong>friction is the #1 drop-off cause</strong>, this is a decisive structural advantage. SwingVision's ceiling is iPhone users who'll install an app. SmartSwing's ceiling is anyone with a phone and an internet connection.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 2. PRICING MODEL (RECOMMENDED) -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>2. Recommended Pricing Model <span class="tag urgent">Review Required</span></h2>
+
+  <p>Current pricing is competitive. The recommendations below refine positioning, naming, and the annual discount to maximise LTV while keeping the entry point lower than SwingVision.</p>
+
+  <div class="price-grid">
+
+    <div class="price-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">$0 <span>/mo</span></div>
+      <div class="plan-yearly" style="color:var(--muted)">No card required</div>
+      <div class="plan-desc">2 lifetime biomechanics analyses. The hook — get them to see the value before asking for payment.</div>
+      <ul class="plan-features">
+        <li>2 full AI analyses (lifetime)</li>
+        <li>Shot breakdown report</li>
+        <li>3 drill recommendations</li>
+        <li class="no">Save / export reports</li>
+        <li class="no">Progress tracking</li>
+        <li class="no">Coach sharing</li>
+      </ul>
+    </div>
+
+    <div class="price-card">
+      <div class="plan-name">Player</div>
+      <div class="plan-price">$9.99 <span>/mo</span></div>
+      <div class="plan-yearly">or $89/yr — save 26%</div>
+      <div class="plan-desc">For recreational and club players who want consistent improvement without breaking the bank.</div>
+      <ul class="plan-features">
+        <li>10 analyses / month</li>
+        <li>Full drill + tactic library</li>
+        <li>Save &amp; export reports</li>
+        <li>30-day video history</li>
+        <li>Progress tracking</li>
+        <li class="no">Coach dashboard</li>
+      </ul>
+    </div>
+
+    <div class="price-card featured">
+      <div class="popular-tag">Most Popular</div>
+      <div class="plan-name">Performance</div>
+      <div class="plan-price">$19.99 <span>/mo</span></div>
+      <div class="plan-yearly">or $179/yr — save 25%</div>
+      <div class="plan-desc">For serious players and coaches who want unlimited analysis and team features.</div>
+      <ul class="plan-features">
+        <li>Unlimited analyses</li>
+        <li>All Player features</li>
+        <li>Share reports with coaches</li>
+        <li>Comparison view</li>
+        <li>Priority support</li>
+        <li>Coach connect (1 coach)</li>
+      </ul>
+    </div>
+
+    <div class="price-card">
+      <div class="plan-name">Coach / Academy</div>
+      <div class="plan-price">$49.99 <span>/mo</span></div>
+      <div class="plan-yearly">or $449/yr — save 25%</div>
+      <div class="plan-desc">For coaches and small academies managing multiple players. White-label reports. Full B2B dashboard.</div>
+      <ul class="plan-features">
+        <li>Everything in Performance</li>
+        <li>Up to 20 player accounts</li>
+        <li>Coach command dashboard</li>
+        <li>White-label PDF reports</li>
+        <li>Bulk analysis queue</li>
+        <li>Dedicated support</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <h3>B2B / Club Pricing (New — Not Yet Live)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tier</th><th>Size</th><th>Price</th><th>Annual</th><th>Revenue / Account</th></tr></thead>
+      <tbody>
+        <tr><td>Club Starter</td><td>Up to 30 members</td><td>$199/mo</td><td>$1,788/yr</td><td class="td-green">$1,788</td></tr>
+        <tr><td>Club Pro</td><td>Up to 100 members</td><td>$399/mo</td><td>$3,588/yr</td><td class="td-green">$3,588</td></tr>
+        <tr><td>Academy</td><td>Up to 300 members</td><td>$699/mo</td><td>$6,288/yr</td><td class="td-gold">$6,288</td></tr>
+        <tr><td>Enterprise</td><td>Unlimited</td><td>Custom</td><td>Custom</td><td class="td-gold">$12,000+</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Pricing Recommendation</div>
+    <p style="margin:0">A single B2B Club Pro account ($399/mo) equals <strong>40 Player plan subscriptions</strong>. Clubs have budget authority, multi-year retention, and referral networks. <strong>5 Club Pro accounts = $24K ARR with zero churn risk.</strong> B2B outreach to tennis clubs should begin in Month 3.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 3. PLATFORM GAPS — WHAT'S MISSING -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>3. Platform Gaps — What Needs to Be Built <span class="tag critical">Action Required</span></h2>
+
+  <p>Based on a full audit of the platform vs. competitive standards and conversion requirements. Items marked <strong>CRITICAL</strong> block revenue. Items marked <strong>HIGH</strong> reduce churn. Items marked <strong>GROWTH</strong> accelerate expansion.</p>
+
+  <div class="feature-list">
+
+    <div class="feature-item">
+      <span class="fi-tag fi-critical">Critical — Pre-Launch</span>
+      <h4>Email Onboarding Sequence</h4>
+      <p>No automated emails after signup. Users sign up, hit the paywall, and leave forever. Need: welcome email, "1 analysis remaining" trigger, "your free analyses expired" re-engagement, and upgrade CTA series.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-critical">Critical — Pre-Launch</span>
+      <h4>Mobile In-Browser Camera Capture</h4>
+      <p>Currently upload-only. 85% of users are on mobile. Users need to point and record directly from the browser without switching apps. Web Camera API supports this — needs implementation.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-critical">Critical — Pre-Launch</span>
+      <h4>Shareable Report Link</h4>
+      <p>Users can't share their biomechanics report with their coach via a link. This is the #1 B2B viral mechanism. A coach who receives a shared report becomes a discovery channel for 20+ new users.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-critical">Critical — Pre-Launch</span>
+      <h4>Progress Timeline View</h4>
+      <p>No way to compare analyses across sessions. "See how far you've come" is the strongest retention hook in all of fitness SaaS. Users need a timeline of their SmartSwing Score over weeks and months.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-high">High — Month 1–3</span>
+      <h4>Referral Program</h4>
+      <p>"Give 2 free analyses, get 2 free analyses." Referral programs in sports coaching apps cut CAC by 35%. This is especially powerful in tennis clubs where players know each other personally.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-high">High — Month 1–3</span>
+      <h4>Before / After Comparison View</h4>
+      <p>Side-by-side video and metrics comparison between two analyses. The strongest upgrade driver: users want to see their improvement on the paid plan, not just in their memory.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-high">High — Month 1–3</span>
+      <h4>Stripe Billing Portal</h4>
+      <p>Users need self-service to manage, pause, or cancel their subscription from their account settings. Missing billing portal creates support tickets and increases involuntary churn.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-high">High — Month 1–3</span>
+      <h4>Demo Video on Homepage</h4>
+      <p>No product walkthrough video on index.html. A 90-second demo video on the homepage increases trial sign-up conversion by 25–40%. This is the highest ROI single asset to create.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-b2b">B2B — Month 3–6</span>
+      <h4>Club / Academy Bulk Portal</h4>
+      <p>Clubs need a single dashboard to manage all their members, assign drills, and review progress. This unlocks the $199–$699/mo B2B plans. Without it, clubs can't justify the premium.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-b2b">B2B — Month 3–6</span>
+      <h4>White-Label Coach Reports</h4>
+      <p>Coaches on the Academy plan need reports with their logo and branding to share with students and parents. This is a strong retention lock-in — coaches build their practice around it.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-growth">Growth — Month 6–12</span>
+      <h4>Shareable Score Cards (Social)</h4>
+      <p>An Instagram/TikTok-ready image showing SmartSwing Score and top 3 improvements. Shareable cards create organic viral growth. Duolingo's streak cards drove 30% of their organic installs.</p>
+    </div>
+
+    <div class="feature-item">
+      <span class="fi-tag fi-growth">Growth — Month 6–12</span>
+      <h4>Coach Marketplace</h4>
+      <p>Players want to be matched with USPTA/PTR coaches. Coaches want to find students. A marketplace creates a new revenue line (10–15% commission) and makes SmartSwing the hub of the player-coach relationship.</p>
+    </div>
+
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-title">Revenue Blocker</div>
+    <p style="margin:0">The absence of email automation is the single most expensive gap on the platform. <strong>Every user who signs up, completes their 2 free analyses, and hits the paywall without receiving a follow-up email is lost revenue.</strong> Industry benchmarks show 6–8% of free users who receive a targeted upgrade email convert to paid, vs. 1–2% who don't. With 1,000 free users, that's the difference between 60–80 paying customers and 10–20. This must be the first engineering priority after launch.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 4. CONVERSION FUNNEL MODEL -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>4. Conversion Funnel &amp; Unit Economics <span class="tag growth">Financial Model</span></h2>
+
+  <h3>The Conversion Funnel (per 1,000 Website Visitors)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Funnel Stage</th><th>Rate</th><th>Count (of 1,000)</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Website Visitors</td><td>100%</td><td class="td-blue">1,000</td><td>Mixed organic + paid traffic</td></tr>
+        <tr><td>Free Sign-Ups</td><td>8–12%</td><td class="td-blue">80–120</td><td>Web-first = higher conversion vs app</td></tr>
+        <tr><td>Complete Analysis #1</td><td>45%</td><td class="td-gold">36–54</td><td>Onboarding friction drop-off</td></tr>
+        <tr><td>Complete Analysis #2</td><td>75% of #1</td><td class="td-gold">27–40</td><td>High intent users continue</td></tr>
+        <tr><td>Hit Paywall (2 used up)</td><td>70% of completers</td><td class="td-red">19–28</td><td>Trigger upgrade email immediately</td></tr>
+        <tr><td><strong>Convert to Paid (no email)</strong></td><td>8–10%</td><td class="td-green"><strong>1–3</strong></td><td>Industry baseline, no nurture</td></tr>
+        <tr><td><strong>Convert to Paid (with email)</strong></td><td>18–22%</td><td class="td-green"><strong>3–6</strong></td><td>With automated email sequence</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Unit Economics (Target State — With Email Automation)</h3>
+  <div class="stat-grid">
+    <div class="stat volt"><div class="num">$14.50</div><div class="lbl">Avg Revenue Per User / Mo</div></div>
+    <div class="stat gold"><div class="num">18 mo</div><div class="lbl">Avg Subscription Lifetime</div></div>
+    <div class="stat blue"><div class="num">$261</div><div class="lbl">Lifetime Value (LTV)</div></div>
+    <div class="stat teal"><div class="num">$35–55</div><div class="lbl">Target CAC (blended)</div></div>
+    <div class="stat purple"><div class="num">5.3:1</div><div class="lbl">LTV : CAC Ratio</div></div>
+    <div class="stat volt"><div class="num">5–7 mo</div><div class="lbl">CAC Payback Period</div></div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">Plan Mix Assumption</div>
+    <p style="margin:0">Expected revenue mix: <strong>55% Player ($9.99)</strong> · <strong>32% Performance ($19.99)</strong> · <strong>10% Coach ($49.99)</strong> · <strong>3% B2B Clubs ($200–700)</strong>. Weighted ARPU: $14.50/mo. As B2B clubs are added in Year 2+, ARPU will climb to $18–22/mo, significantly improving LTV.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 5. 5-YEAR SALES PROJECTIONS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>5. 5-Year Sales Projections <span class="tag growth">Financial Forecast</span></h2>
+
+  <div class="callout warn">
+    <div class="callout-title">Methodology</div>
+    <p style="margin:0">Three scenarios modelled: <strong>Conservative</strong> (minimal marketing, organic growth only), <strong>Base</strong> (recommended ad spend + outreach), <strong>Optimistic</strong> (aggressive B2B + influencer + viral growth). All figures in USD. All assume email automation is live by Month 3.</p>
+  </div>
+
+  <h3>Year-by-Year Summary (Base Scenario)</h3>
+  <div class="table-wrap">
+    <table class="proj-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th class="year">Year 1</th>
+          <th class="year">Year 2</th>
+          <th class="year">Year 3</th>
+          <th class="year">Year 4</th>
+          <th class="year">Year 5</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="highlight-row">
+          <td><strong>Paying Subscribers (end of year)</strong></td>
+          <td class="td-green">800</td>
+          <td class="td-green">3,500</td>
+          <td class="td-green">11,000</td>
+          <td class="td-green">26,000</td>
+          <td class="td-green">55,000</td>
+        </tr>
+        <tr>
+          <td>Free Users (total registered)</td>
+          <td>8,000</td>
+          <td>32,000</td>
+          <td>90,000</td>
+          <td>200,000</td>
+          <td>400,000</td>
+        </tr>
+        <tr>
+          <td>Free → Paid Conversion Rate</td>
+          <td>10%</td>
+          <td>11%</td>
+          <td>12%</td>
+          <td>13%</td>
+          <td>14%</td>
+        </tr>
+        <tr>
+          <td>B2B Club Accounts</td>
+          <td>0</td>
+          <td>12</td>
+          <td>45</td>
+          <td>120</td>
+          <td>280</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><strong>Monthly Recurring Revenue (Dec)</strong></td>
+          <td class="td-gold">$11,600</td>
+          <td class="td-gold">$52,000</td>
+          <td class="td-gold">$165,000</td>
+          <td class="td-gold">$395,000</td>
+          <td class="td-gold">$840,000</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><strong>Annual Recurring Revenue</strong></td>
+          <td class="td-gold">$78K</td>
+          <td class="td-gold">$425K</td>
+          <td class="td-gold">$1.4M</td>
+          <td class="td-gold">$3.6M</td>
+          <td class="td-gold">$7.8M</td>
+        </tr>
+        <tr>
+          <td>Annual Ad Spend</td>
+          <td>$36K</td>
+          <td>$130K</td>
+          <td>$320K</td>
+          <td>$620K</td>
+          <td>$960K</td>
+        </tr>
+        <tr>
+          <td>Net Revenue (after ad spend)</td>
+          <td class="td-blue">$42K</td>
+          <td class="td-blue">$295K</td>
+          <td class="td-blue">$1.08M</td>
+          <td class="td-blue">$2.98M</td>
+          <td class="td-blue">$6.84M</td>
+        </tr>
+        <tr>
+          <td>Blended ARPU / month</td>
+          <td>$14.50</td>
+          <td>$15.00</td>
+          <td>$15.90</td>
+          <td>$17.20</td>
+          <td>$18.20</td>
+        </tr>
+        <tr>
+          <td>Churn Rate (monthly)</td>
+          <td>5.5%</td>
+          <td>4.8%</td>
+          <td>4.2%</td>
+          <td>3.8%</td>
+          <td>3.4%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Conservative vs. Base vs. Optimistic — ARR Comparison</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Scenario</th><th>Year 1 ARR</th><th>Year 2 ARR</th><th>Year 3 ARR</th><th>Year 5 ARR</th><th>Ad Spend / Mo (Yr 1)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Conservative</strong> — SEO only, no paid ads, no B2B outreach</td>
+          <td class="td-muted">$28K</td>
+          <td class="td-muted">$150K</td>
+          <td class="td-muted">$550K</td>
+          <td class="td-muted">$2.8M</td>
+          <td class="td-muted">$0–500</td>
+        </tr>
+        <tr class="highlight-row">
+          <td><strong>Base (Recommended)</strong> — Paid ads + SEO + B2B Month 3</td>
+          <td class="td-gold">$78K</td>
+          <td class="td-gold">$425K</td>
+          <td class="td-gold">$1.4M</td>
+          <td class="td-gold">$7.8M</td>
+          <td class="td-gold">$3,000</td>
+        </tr>
+        <tr>
+          <td><strong>Optimistic</strong> — Viral mechanism + Club deals + Influencer</td>
+          <td class="td-green">$150K</td>
+          <td class="td-green">$800K</td>
+          <td class="td-green">$3.2M</td>
+          <td class="td-green">$18M</td>
+          <td class="td-green">$6,000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Monthly Progression — Year 1 Detailed</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Month</th><th>Phase</th><th>New Paid Users</th><th>Total Paid</th><th>MRR</th><th>Ad Spend</th></tr></thead>
+      <tbody>
+        <tr><td>Month 1</td><td>Private Beta</td><td>10–20</td><td>15</td><td>$220</td><td>$0</td></tr>
+        <tr><td>Month 2</td><td>Private Beta</td><td>15–30</td><td>40</td><td>$580</td><td>$0</td></tr>
+        <tr><td>Month 3</td><td>Soft Launch</td><td>30–50</td><td>80</td><td>$1,160</td><td>$1,500</td></tr>
+        <tr><td>Month 4</td><td>Public Launch</td><td>50–80</td><td>150</td><td>$2,175</td><td>$2,500</td></tr>
+        <tr><td>Month 5</td><td>Growth</td><td>70–100</td><td>240</td><td>$3,480</td><td>$3,000</td></tr>
+        <tr><td>Month 6</td><td>Growth</td><td>80–120</td><td>340</td><td>$4,930</td><td>$3,000</td></tr>
+        <tr><td>Month 7</td><td>Growth</td><td>90–130</td><td>450</td><td>$6,525</td><td>$3,000</td></tr>
+        <tr><td>Month 8</td><td>Growth</td><td>90–130</td><td>560</td><td>$8,120</td><td>$3,000</td></tr>
+        <tr><td>Month 9</td><td>Scale</td><td>100–140</td><td>670</td><td>$9,715</td><td>$3,500</td></tr>
+        <tr><td>Month 10</td><td>Scale</td><td>100–150</td><td>790</td><td>$11,455</td><td>$3,500</td></tr>
+        <tr><td>Month 11</td><td>Scale</td><td>100–150</td><td>900</td><td>$13,050</td><td>$3,500</td></tr>
+        <tr class="highlight-row"><td><strong>Month 12</strong></td><td><strong>Year End</strong></td><td>100–150</td><td class="td-green"><strong>1,000</strong></td><td class="td-gold"><strong>$14,500</strong></td><td>$3,500</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">Year 1 Goal: 1,000 Paying Subscribers</div>
+    <p style="margin:0">SwingVision took approximately 18–24 months to reach 5,000 subscribers from a cold start, with a mobile-app friction barrier. SmartSwing AI's web-first zero-friction model, combined with automated email sequences, should reach 1,000 paying subscribers in 12 months with $36K in annual ad spend — a fully achievable target. At 1,000 subscribers and $14.50 ARPU, MRR is approximately <strong>$14,500 ($174K ARR)</strong>. Profitability comes from Month 8–10 with lean team structure.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 6. MARKETING CHANNELS & AD SPEND -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>6. Marketing Channels &amp; Recommended Ad Spend <span class="tag urgent">Budget Allocation</span></h2>
+
+  <h3>Channel Breakdown by CAC and Priority</h3>
+  <div class="channel-grid">
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--volt)">SEO / Content Marketing</div>
+      <div class="ch-cac" style="color:var(--volt)">$8–15 CAC</div>
+      <div class="ch-note">Tennis biomechanics keywords, "how to fix forehand" articles, YouTube SEO. Slow build but lowest CAC channel. Target 50K monthly organic visitors by Year 2.</div>
+      <span class="priority-tag p1">Priority 1 — Start Day 1</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--gold)">Instagram &amp; TikTok Ads</div>
+      <div class="ch-cac" style="color:var(--gold)">$30–50 CAC</div>
+      <div class="ch-note">Short video ads showing before/after AI analysis. Target tennis + pickleball interest audiences. 30s demo reels. Tennis audiences respond 40% better to video than static ads.</div>
+      <span class="priority-tag p1">Priority 1 — Month 3</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--gold)">Tennis Influencers / Creators</div>
+      <div class="ch-cac" style="color:var(--gold)">$25–45 CAC</div>
+      <div class="ch-note">Partner with 5–10 tennis YouTubers (10K–500K subscribers). Offer free Performance plan + revenue share or flat fee per video. Each video = 200–2,000 sign-ups. Best ROI after SEO.</div>
+      <span class="priority-tag p1">Priority 1 — Month 2</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--blue)">Google Search Ads</div>
+      <div class="ch-cac" style="color:var(--blue)">$55–80 CAC</div>
+      <div class="ch-note">Target "tennis swing analysis", "pickleball coaching app", "improve my forehand". High intent, lower volume. Budget $500–1,000/mo in Year 1 to build keyword data for organic strategy.</div>
+      <span class="priority-tag p2">Priority 2 — Month 4</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--blue)">Referral Program</div>
+      <div class="ch-cac" style="color:var(--blue)">$15–25 CAC</div>
+      <div class="ch-note">"Give 2 analyses, get 2 analyses." Tennis players refer friends at tennis clubs — built-in social network. AceServe cut CAC 35% with referrals. Build this Month 2–3. Target K-factor of 0.25.</div>
+      <span class="priority-tag p2">Priority 2 — Month 3</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--purple)">Tennis Club B2B Direct Sales</div>
+      <div class="ch-cac" style="color:var(--purple)">$200–400 CAC</div>
+      <div class="ch-note">High CAC but LTV of $1,788–$6,288/yr. One club deal outweighs 40 consumer subscriptions. Cold email 200 clubs/month using the sales playbook SPIN methodology. Convert 3–5% = 6–10 clubs/month.</div>
+      <span class="priority-tag p2">Priority 2 — Month 3</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--teal)">Product Hunt Launch</div>
+      <div class="ch-cac" style="color:var(--teal)">$5–10 CAC</div>
+      <div class="ch-note">One-time launch event. Tennis/sports/AI audience on Product Hunt. Target top 5 product of the day. Generates 1,000–5,000 sign-ups in 24h. Requires PR prep 2 weeks before. Free to launch.</div>
+      <span class="priority-tag p3">Priority 3 — Month 3</span>
+    </div>
+
+    <div class="channel-card">
+      <div class="ch-name" style="color:var(--teal)">Reddit / Tennis Forums</div>
+      <div class="ch-cac" style="color:var(--teal)">$5–12 CAC</div>
+      <div class="ch-note">r/tennis (500K members), r/10s, r/USTA. Authentic posts + weekly "free analysis for feedback" threads. Do NOT spam — provide value first. AMA sessions with a USPTA-certified coach on the team.</div>
+      <span class="priority-tag p3">Priority 3 — Month 1</span>
+    </div>
+
+  </div>
+
+  <h3>Recommended Monthly Ad Spend Roadmap</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Period</th><th>Total / Mo</th><th>Instagram/TikTok</th><th>Google Search</th><th>Influencer</th><th>B2B Outreach</th><th>Target New Paid Users</th></tr></thead>
+      <tbody>
+        <tr><td>Month 1–2 (Beta)</td><td>$0</td><td>$0</td><td>$0</td><td>Gifted accounts</td><td>Email only</td><td>20–40</td></tr>
+        <tr><td>Month 3–4 (Launch)</td><td>$2,500</td><td>$1,000</td><td>$500</td><td>$800</td><td>$200</td><td>60–100</td></tr>
+        <tr><td>Month 5–8</td><td>$3,000</td><td>$1,200</td><td>$600</td><td>$900</td><td>$300</td><td>80–120</td></tr>
+        <tr><td>Month 9–12</td><td>$3,500</td><td>$1,400</td><td>$700</td><td>$1,000</td><td>$400</td><td>100–150</td></tr>
+        <tr class="highlight-row"><td><strong>Year 1 Total</strong></td><td class="td-gold"><strong>$36K</strong></td><td>$14K</td><td>$7K</td><td>$10K</td><td>$5K</td><td class="td-green"><strong>800–1,200</strong></td></tr>
+        <tr><td>Year 2 Monthly</td><td>$10,000</td><td>$4,000</td><td>$2,000</td><td>$2,500</td><td>$1,500</td><td>250–350</td></tr>
+        <tr><td>Year 3 Monthly</td><td>$27,000</td><td>$10,000</td><td>$6,000</td><td>$6,000</td><td>$5,000</td><td>600–900</td></tr>
+        <tr><td>Year 4 Monthly</td><td>$52,000</td><td>$18,000</td><td>$12,000</td><td>$10,000</td><td>$12,000</td><td>1,200–1,800</td></tr>
+        <tr><td>Year 5 Monthly</td><td>$80,000</td><td>$28,000</td><td>$18,000</td><td>$15,000</td><td>$19,000</td><td>2,000–3,000</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 7. LAUNCH PLAN & TIMELINE -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>7. Launch Plan &amp; Timeline <span class="tag urgent">Execution Roadmap</span></h2>
+
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-phase">Phase 0</div>
+        <div class="tl-date">Now → Wk 4</div>
+      </div>
+      <div class="tl-right">
+        <h4>Pre-Launch Infrastructure — 4 Weeks</h4>
+        <ul>
+          <li><strong>Email automation:</strong> Set up Resend / SendGrid — welcome sequence, paywall trigger, win-back</li>
+          <li><strong>STRIPE_PROMO_CODE_SWINGAI:</strong> Create promo in Stripe dashboard, add env var to Vercel</li>
+          <li><strong>90-second demo video:</strong> Record product walkthrough, embed on index.html (highest-ROI asset)</li>
+          <li><strong>10 SEO blog posts:</strong> "How to fix your tennis forehand", "Best swing analysis tools", "Pickleball biomechanics guide"</li>
+          <li><strong>Beta waitlist:</strong> Collect 50 tennis players/coaches from your network for private testing</li>
+          <li><strong>Shareable report link:</strong> Implement share-by-URL feature for reports</li>
+          <li><strong>Stripe billing portal:</strong> Integrate Stripe Customer Portal for self-service billing management</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-phase">Phase 1</div>
+        <div class="tl-date">Wk 5–8</div>
+      </div>
+      <div class="tl-right">
+        <h4>Private Beta — 50 Users</h4>
+        <ul>
+          <li>Invite 50 players and coaches — at least 5 coaches, 5 parents, 10 competitive players, 10 recreational</li>
+          <li>Weekly 20-minute feedback calls with each user type</li>
+          <li>Focus on: onboarding clarity, report comprehension, mobile experience</li>
+          <li><strong>Success metric:</strong> 60%+ of beta users complete both free analyses</li>
+          <li><strong>Success metric:</strong> 30%+ upgrade to paid without prompting</li>
+          <li>Collect 10+ written testimonials and at least 3 short video testimonials</li>
+          <li>Identify and fix top 5 friction points before public launch</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-phase">Phase 2</div>
+        <div class="tl-date">Wk 9–12</div>
+      </div>
+      <div class="tl-right">
+        <h4>Public Launch — Go Live</h4>
+        <ul>
+          <li><strong>Product Hunt launch</strong> — coordinate upvotes, post on all channels same day</li>
+          <li><strong>Reddit AMA</strong> — r/tennis, r/10s — "We built an AI that analyses your swing, here's the science"</li>
+          <li><strong>3 YouTube influencer videos</strong> go live on same week as Product Hunt</li>
+          <li>Press release to tennis media: Tennis.com, Tennis Channel, USTA news</li>
+          <li>Email to all 50 beta users — "we're live, share with your team"</li>
+          <li>Instagram/TikTok ad campaigns start ($1,000/mo)</li>
+          <li><strong>Target:</strong> 500 sign-ups in launch week, 80–100 paying by end of Month 3</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-phase">Phase 3</div>
+        <div class="tl-date">Mo 4–6</div>
+      </div>
+      <div class="tl-right">
+        <h4>Growth Engine — Build the Machine</h4>
+        <ul>
+          <li>Launch referral program ("give 2 analyses, get 2 analyses")</li>
+          <li>B2B cold email to 200 tennis clubs/month using SPIN methodology from sales playbook</li>
+          <li>First 3–5 club deals closed ($199–399/mo each)</li>
+          <li>Progress timeline feature shipped — "see your improvement over time"</li>
+          <li>Scale ads to $3,000/mo, optimising for lowest CAC channel</li>
+          <li>2 SEO blog posts per week — target 30+ ranking pages</li>
+          <li>Add "Coach" tier positioning for $49.99/mo with white-label reports</li>
+          <li><strong>Target:</strong> 350 paying subscribers, $5,000 MRR</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-phase">Phase 4</div>
+        <div class="tl-date">Mo 7–12</div>
+      </div>
+      <div class="tl-right">
+        <h4>Scale — Compound the Growth</h4>
+        <ul>
+          <li>B2B Club portal MVP ships — unlock $199–699/mo tier</li>
+          <li>10–15 club accounts active by Month 12</li>
+          <li>Before/after comparison view released — drives upgrade from Player to Performance</li>
+          <li>Shareable social score cards (Instagram/TikTok native format)</li>
+          <li>Second Product Hunt launch with new features</li>
+          <li>USTA club partnership program — revenue share on member referrals</li>
+          <li>Hire first sales hire (outbound B2B) if MRR > $8K</li>
+          <li><strong>Target:</strong> 800–1,200 paying subscribers, $12K–18K MRR by Month 12</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-phase">Year 2</div>
+        <div class="tl-date">Mo 13–24</div>
+      </div>
+      <div class="tl-right">
+        <h4>Market Leader Position — $425K ARR Target</h4>
+        <ul>
+          <li>Coach Marketplace v1 — player ↔ coach matching with 10–15% booking commission</li>
+          <li>International expansion: UK, Australia, Spain (largest tennis markets after US)</li>
+          <li>USTA, LTA, or Tennis Australia official partnership talks</li>
+          <li>Raise seed round ($750K–$2M) if needed for engineering scale</li>
+          <li>50+ B2B club accounts — $100K+ ARR from B2B alone</li>
+          <li>Series of USPTA-endorsed webinars — 500+ coach audience per session</li>
+          <li><strong>Target:</strong> 3,500 paying subscribers, $52K MRR, $425K ARR</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 8. FREE PLAN STRATEGY -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>8. Free Plan Strategy — Getting the Hook Right <span class="tag growth">Conversion Driver</span></h2>
+
+  <p>The free tier is your top-of-funnel engine. It must be <em>generous enough to demonstrate real value</em> and <em>limited enough to create genuine upgrade desire.</em> Here's the optimal structure:</p>
+
+  <h3>Current Free Plan (Implemented) — Assessment</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Element</th><th>Current State</th><th>Verdict</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>Analysis count</td><td>2 lifetime analyses</td><td class="td-green">✓ Good</td><td>Keep as-is. 2 is enough to see value, few enough to create urgency.</td></tr>
+        <tr><td>Analysis depth</td><td>Full biomechanics report</td><td class="td-green">✓ Excellent</td><td>Keep. Users experience the full product. No artificial feature caps on the free analyses themselves.</td></tr>
+        <tr><td>Save/export</td><td>Disabled on free</td><td class="td-green">✓ Good</td><td>Keep. This is the most natural upgrade trigger — "I want to keep this report."</td></tr>
+        <tr><td>Referral bonus</td><td>Not implemented</td><td class="td-red">✗ Missing</td><td>ADD: "Refer a friend, unlock 2 more free analyses." Viral growth engine.</td></tr>
+        <tr><td>Email follow-up</td><td>Not implemented</td><td class="td-red">✗ Missing — CRITICAL</td><td>ADD immediately. Send at analysis #1, analysis #2, day 3, day 7, day 21 post-paywall hit.</td></tr>
+        <tr><td>Urgency messaging</td><td>Generic redirect to pricing</td><td class="td-gold">⚠ Weak</td><td>IMPROVE: "You're 1 analysis away from your full swing profile. Unlock unlimited for $9.99/mo."</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-title">The Ideal Free Plan Formula</div>
+    <p style="margin:0">
+      <strong>2 full lifetime analyses</strong> (current — keep) +
+      <strong>Referral bonus: +2 analyses per referred friend</strong> (add) +
+      <strong>Automated email sequence after paywall hit</strong> (add) +
+      <strong>Clear upgrade messaging showing what they're missing</strong> (improve) =
+      <strong>Target 20% free-to-paid conversion rate</strong> (vs. industry average 4–7%)
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 9. THE IDEAL FIRST LAUNCH VERSION (MVP+) -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>9. Ideal First Launch Version — MVP+ Checklist <span class="tag critical">Launch Gate</span></h2>
+
+  <p>This is the minimum viable product for a successful public launch. Nothing on this list is optional. Ship without any of these and you leave significant revenue on the table.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Feature</th><th>Status</th><th>Effort</th><th>Revenue Impact</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Working AI biomechanics analysis (any video)</td><td class="td-green">✓ Live</td><td>—</td><td class="td-green">Core product</td></tr>
+        <tr><td>2</td><td>Stripe payments for all 4 plans</td><td class="td-green">✓ Configured</td><td>—</td><td class="td-green">Core revenue</td></tr>
+        <tr><td>3</td><td>SWINGAI coupon code on checkout</td><td class="td-green">✓ Live</td><td>—</td><td class="td-gold">Launch promo</td></tr>
+        <tr><td>4</td><td>Free plan: 2 lifetime analyses with hard paywall</td><td class="td-green">✓ Live</td><td>—</td><td class="td-green">Conversion driver</td></tr>
+        <tr><td>5</td><td>Dark branding / polished UI on all pages</td><td class="td-green">✓ Live</td><td>—</td><td class="td-gold">Trust & credibility</td></tr>
+        <tr><td>6</td><td>Mobile-responsive on all pages</td><td class="td-green">✓ Live</td><td>—</td><td class="td-green">85% of users</td></tr>
+        <tr><td>7</td><td>Email automation (welcome + paywall trigger)</td><td class="td-red">✗ Missing</td><td>1–2 days</td><td class="td-red">HIGH — Blocks 70% of conversion</td></tr>
+        <tr><td>8</td><td>Shareable report link (no login for recipient)</td><td class="td-red">✗ Missing</td><td>1–2 days</td><td class="td-gold">Viral B2B driver</td></tr>
+        <tr><td>9</td><td>Stripe billing portal (cancel / manage)</td><td class="td-red">✗ Missing</td><td>0.5 days</td><td class="td-gold">Reduces support + involuntary churn</td></tr>
+        <tr><td>10</td><td>90-second demo video on homepage</td><td class="td-red">✗ Missing</td><td>1–2 days (record)</td><td class="td-green">+30% sign-up conversion</td></tr>
+        <tr><td>11</td><td>Pricing page with clear plan comparison</td><td class="td-green">✓ Live</td><td>—</td><td class="td-green">Core purchase path</td></tr>
+        <tr><td>12</td><td>Contact form working (support requests)</td><td class="td-green">✓ Live</td><td>—</td><td class="td-gold">Trust signal</td></tr>
+        <tr><td>13</td><td>Clear "Start Free" CTA on every page</td><td class="td-green">✓ Live</td><td>—</td><td class="td-green">Entry funnel</td></tr>
+        <tr><td>14</td><td>Google / Supabase OAuth working</td><td class="td-green">✓ Live</td><td>—</td><td class="td-green">Reduces signup friction by 40%</td></tr>
+        <tr><td>15</td><td>USTA / USPTA social proof on homepage</td><td class="td-red">✗ Missing</td><td>Content only</td><td class="td-gold">Credibility signal for tennis audience</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout danger">
+    <div class="callout-title">Launch Blocker — 3 Items Must Ship Before Going Public</div>
+    <p style="margin:0">Items 7 (email automation), 9 (billing portal), and 10 (demo video) must be live before the public launch. Email automation alone is responsible for the difference between 10% and 20% free-to-paid conversion. At 1,000 free users, that's 100 vs. 200 paying customers — a $14,500/mo MRR difference in Year 1.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 10. KEY RISKS & MITIGATIONS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>10. Key Risks &amp; Mitigations <span class="tag critical">Risk Register</span></h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Risk</th><th>Probability</th><th>Impact</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>AI analysis quality doesn't impress users</strong></td>
+          <td class="td-red">High — untested at scale</td>
+          <td class="td-red">Critical</td>
+          <td>Run beta with 50 real users and a qualified USPTA coach reviewing outputs before launch. Fix any biomechanics errors. One bad report shared socially can kill trust permanently.</td>
+        </tr>
+        <tr>
+          <td><strong>Mobile video recording quality issues</strong></td>
+          <td class="td-gold">Medium</td>
+          <td class="td-red">High</td>
+          <td>Create a clear video capture guide (how to hold phone, lighting, angle). Show an "Analysis quality score" before processing. Reject low-quality videos with a helpful error message, not a silent failure.</td>
+        </tr>
+        <tr>
+          <td><strong>SwingVision launches web version</strong></td>
+          <td class="td-gold">Medium (12–18 mo)</td>
+          <td class="td-gold">High</td>
+          <td>Move fast. Build brand loyalty in Year 1. Lock in club B2B contracts. Focus on coach relationships and biomechanics depth, which SwingVision doesn't offer.</td>
+        </tr>
+        <tr>
+          <td><strong>High churn (users don't return)</strong></td>
+          <td class="td-gold">Medium-High early</td>
+          <td class="td-gold">High</td>
+          <td>Weekly email nudges ("Your forehand score improved 4 points last month"), progress timeline in product, drill completion tracking. Retention is won by habit formation, not features.</td>
+        </tr>
+        <tr>
+          <td><strong>Supabase/Stripe config issues block payments</strong></td>
+          <td class="td-red">High (pre-launch)</td>
+          <td class="td-red">Critical</td>
+          <td>Complete end-to-end payment test with real card before public launch. Verify webhook is receiving events. Test SWINGAI coupon code flow. Already identified in test suite.</td>
+        </tr>
+        <tr>
+          <td><strong>CAC exceeds LTV before profitability</strong></td>
+          <td class="td-muted">Low if disciplined</td>
+          <td class="td-gold">High</td>
+          <td>Cap ad spend at 30% of MRR. Track CAC by channel weekly. Kill any channel where LTV:CAC drops below 3:1. Referral and SEO are the insurance policies here.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- 11. SUCCESS METRICS -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>11. North Star Metrics &amp; Monthly KPIs <span class="tag growth">Measurement</span></h2>
+
+  <h3>North Star Metric</h3>
+  <div class="callout success">
+    <div class="callout-title">Primary KPI</div>
+    <p style="margin:0"><strong>Monthly Active Paying Users (MAPU)</strong> — the number of subscribers who log in and run at least 1 analysis per month. This ties revenue to usage, and usage to retention. A paying user who never logs in is gone by Month 3. Track this weekly. If MAPU / total paying users drops below 60%, the product has a retention problem, not an acquisition problem.</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Month 3 Target</th><th>Month 6 Target</th><th>Month 12 Target</th><th>Year 2 Target</th></tr></thead>
+      <tbody>
+        <tr><td>Total Paying Subscribers</td><td>80–100</td><td>300–400</td><td>800–1,200</td><td>3,000–5,000</td></tr>
+        <tr><td>MRR</td><td>$1,200</td><td>$4,500</td><td>$14,500</td><td>$52,000</td></tr>
+        <tr><td>Free → Paid Conversion</td><td>8%</td><td>12%</td><td>16%</td><td>18%</td></tr>
+        <tr><td>Monthly Churn</td><td>&lt;7%</td><td>&lt;6%</td><td>&lt;5%</td><td>&lt;4%</td></tr>
+        <tr><td>Blended CAC</td><td>&lt;$80</td><td>&lt;$60</td><td>&lt;$45</td><td>&lt;$40</td></tr>
+        <tr><td>NPS Score</td><td>&gt;40</td><td>&gt;50</td><td>&gt;60</td><td>&gt;65</td></tr>
+        <tr><td>Monthly Active Paying Users</td><td>&gt;70%</td><td>&gt;65%</td><td>&gt;62%</td><td>&gt;60%</td></tr>
+        <tr><td>B2B Club Accounts</td><td>0</td><td>3–5</td><td>10–15</td><td>50+</td></tr>
+        <tr><td>Organic Monthly Traffic</td><td>3,000</td><td>12,000</td><td>35,000</td><td>100,000+</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section style="border-top:1px solid var(--line);padding-top:32px;margin-top:40px">
+  <p style="color:var(--muted);font-size:.85rem">
+    <strong style="color:var(--text)">Sources &amp; Data References:</strong><br>
+    Tennis market: BusinessResearchInsights ($8.4B market, 6.74% CAGR) · CognitiveMarketResearch ($5.58B, 2025) ·
+    Pickleball: SFIA Report (19.8M US players 2024), PickleballMax (25M+ projected 2026) ·
+    Competitor: SwingVision Wefunder/Kingscrowd (20,000 subscribers, $4M ARR, $2.75M revenue FY2024) ·
+    CAC Benchmarks: GenesysGrowth/PhoenixStrategy 2025 · FasterCapital Sport Coaching CAC Study ·
+    SaaS LTV/CAC: Zylo SaaS Statistics 2026 · BusinessOfApps App Acquisition Costs 2025
+  </p>
+  <p style="color:var(--muted);font-size:.82rem;margin-top:8px">Prepared by Claude Sonnet 4.6 for SmartSwing AI — March 2026. Confidential.</p>
+</section>
+
+</div>
+</body>
+</html>
