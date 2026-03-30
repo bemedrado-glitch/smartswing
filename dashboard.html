@@ -22,7 +22,15 @@
     .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/avatar/Persona 3 Tennis.png') center 22%/cover;display:flex;align-items:flex-end;padding:18px}.tabs .tab{padding:14px 12px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
     .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,216,77,.12);color:var(--orange)} .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px}.fill{height:100%;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--orange))}
     input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} textarea{min-height:110px;resize:vertical} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
-    .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.chart{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.col{min-height:170px;border-radius:16px;border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;background:rgba(255,255,255,.03)} .col .stick{width:100%;border-radius:12px 12px 4px 4px;background:linear-gradient(180deg,rgba(0,200,83,.9),rgba(0,102,255,.9))}
+    .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+    /* ── Progress Timeline ── */
+    .timeline-wrap{position:relative;width:100%;overflow:hidden;}
+    .timeline-svg{width:100%;display:block;}
+    .timeline-empty{padding:28px;text-align:center;color:var(--muted);font-size:14px;}
+    .shot-dot{cursor:default;}
+    .shot-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+    .shot-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+    .shot-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
     .detail-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);overflow:hidden}
     .detail-card summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
     .detail-card summary::-webkit-details-marker{display:none}
@@ -71,7 +79,14 @@
         <article class="panel"><h2>Weekly action plan</h2><div class="list" id="weeklyPlan"></div></article>
         <article class="panel"><h2>Top 3 feedback</h2><div class="list" id="topFeedback"></div></article>
       </div>
-      <article class="panel"><div class="row"><div><h2>Progress graph</h2><p class="muted">Your last five saved assessments.</p></div><div class="pill" id="trendPill">No trend yet</div></div><div class="chart" id="trendChart"></div></article>
+      <article class="panel">
+        <div class="row">
+          <div><h2>Progress Timeline</h2><p class="muted">SmartSwing Score across your last 10 analyses.</p></div>
+          <div class="pill" id="trendPill">No trend yet</div>
+        </div>
+        <div class="timeline-wrap" id="timelineWrap"></div>
+        <div class="shot-legend" id="shotLegend"></div>
+      </article>
     </section>
 
     <section class="tab-panel" id="tab-analytics">
@@ -203,7 +218,114 @@
     }).join('') || '<div class="card"><p class="muted">Run a report to unlock personalized feedback.</p></div>';
 
     document.getElementById('trendPill').textContent = latest ? `${metrics.improvement > 0 ? '+' : ''}${metrics.improvement} vs baseline` : 'No trend yet';
-    document.getElementById('trendChart').innerHTML = assessments.slice(0, 5).reverse().map((item, index) => `<div class="col"><div class="mini">${item.shotType || 'shot'} ${index + 1}</div><div class="stick" style="height:${Math.max(24, item.overallScore || 24)}%"></div><div style="font-weight:800">${item.overallScore || 0}%</div></div>`).join('') || '<div class="card"><p class="muted">Your last five assessments will appear here.</p></div>';
+
+    // ── Progress Timeline SVG ─────────────────────────────────────────────
+    (function renderTimeline() {
+      const wrap = document.getElementById('timelineWrap');
+      const legendEl = document.getElementById('shotLegend');
+      const pts = assessments.slice(0, 10).reverse(); // oldest→newest
+
+      if (!pts.length) {
+        wrap.innerHTML = '<div class="timeline-empty">Run your first analysis to start tracking your SmartSwing Score over time.</div>';
+        return;
+      }
+
+      const SHOT_COLORS = {
+        forehand: '#39ff14', backhand: '#ffd84d', serve: '#00d4aa',
+        volley: '#818cf8', slice: '#fb923c', 'drop-shot': '#f472b6', lob: '#38bdf8'
+      };
+      function shotColor(s) { return SHOT_COLORS[String(s || '').toLowerCase()] || '#9aa5b4'; }
+
+      const W = 600, H = 220;
+      const PAD = { top: 20, right: 24, bottom: 36, left: 40 };
+      const chartW = W - PAD.left - PAD.right;
+      const chartH = H - PAD.top - PAD.bottom;
+      const n = pts.length;
+
+      // Y axis: 0–100
+      const yMin = 0, yMax = 100;
+      function xPos(i) { return PAD.left + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW); }
+      function yPos(v) { return PAD.top + chartH - ((Math.min(100, Math.max(0, v)) - yMin) / (yMax - yMin)) * chartH; }
+
+      // Grid lines
+      const gridLines = [0, 25, 50, 75, 100].map((v) => {
+        const y = yPos(v);
+        return `<line x1="${PAD.left}" y1="${y}" x2="${W - PAD.right}" y2="${y}" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <text x="${PAD.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="rgba(255,255,255,.3)">${v}</text>`;
+      }).join('');
+
+      // Smooth polyline path (catmull-rom approximation via bezier)
+      function buildPath(points) {
+        if (points.length === 1) return `M ${points[0][0]},${points[0][1]}`;
+        let d = `M ${points[0][0]},${points[0][1]}`;
+        for (let i = 0; i < points.length - 1; i++) {
+          const x0 = i > 0 ? points[i - 1][0] : points[0][0];
+          const y0 = i > 0 ? points[i - 1][1] : points[0][1];
+          const x1 = points[i][0], y1 = points[i][1];
+          const x2 = points[i + 1][0], y2 = points[i + 1][1];
+          const x3 = i < points.length - 2 ? points[i + 2][0] : x2;
+          const y3 = i < points.length - 2 ? points[i + 2][1] : y2;
+          const cp1x = x1 + (x2 - x0) / 6;
+          const cp1y = y1 + (y2 - y0) / 6;
+          const cp2x = x2 - (x3 - x1) / 6;
+          const cp2y = y2 - (y3 - y1) / 6;
+          d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`;
+        }
+        return d;
+      }
+
+      const coords = pts.map((item, i) => [xPos(i), yPos(item.overallScore || 0)]);
+      const linePath = buildPath(coords);
+
+      // Area fill (gradient)
+      const areaPath = linePath + ` L ${coords[coords.length - 1][0]},${yPos(0)} L ${coords[0][0]},${yPos(0)} Z`;
+
+      // Dots
+      const dots = pts.map((item, i) => {
+        const cx = xPos(i), cy = yPos(item.overallScore || 0);
+        const color = shotColor(item.shotType);
+        const score = item.overallScore || 0;
+        const dateStr = item.analyzedAt ? new Date(item.analyzedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : `#${i + 1}`;
+        return `<circle class="shot-dot" cx="${cx}" cy="${cy}" r="7" fill="${color}" stroke="rgba(10,10,10,.8)" stroke-width="2">
+                  <title>${cap(item.shotType || 'shot')}: ${score}% · ${dateStr}</title>
+                </circle>
+                <text x="${cx}" y="${H - PAD.bottom + 14}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.35)">${dateStr}</text>`;
+      }).join('');
+
+      // Trend indicator
+      const first = pts[0]?.overallScore || 0;
+      const last2 = pts[pts.length - 1]?.overallScore || 0;
+      const delta = last2 - first;
+      const trendColor = delta > 0 ? '#39ff14' : delta < 0 ? '#ff5252' : '#9aa5b4';
+      const trendText = delta > 0 ? `▲ +${delta} pts since first` : delta < 0 ? `▼ ${delta} pts since first` : '→ Stable';
+      document.getElementById('trendPill').textContent = trendText;
+      document.getElementById('trendPill').style.background = `${trendColor}18`;
+      document.getElementById('trendPill').style.color = trendColor;
+
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()); }
+
+      wrap.innerHTML = `
+        <svg class="timeline-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Progress timeline chart" role="img">
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#39ff14" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#39ff14" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${gridLines}
+          <path d="${areaPath}" fill="url(#areaGrad)"/>
+          <path d="${linePath}" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${dots}
+        </svg>`;
+
+      // Legend
+      const seenShots = [...new Set(pts.map((p) => p.shotType || 'forehand'))];
+      legendEl.innerHTML = seenShots.map((shot) => `
+        <div class="shot-legend-item">
+          <div class="shot-legend-dot" style="background:${shotColor(shot)};"></div>
+          <span>${cap(shot)}</span>
+        </div>`).join('');
+    })();
 
     document.getElementById('priorityList').innerHTML = (latest?.metricComparisons || []).slice(0, 3).map((item, index) => `<details class="detail-card" ${index === 0 ? 'open' : ''}><summary><div><div class="mini">Priority ${index + 1}</div><h3>${item.metric.replace(/^\w/, (c) => c.toUpperCase())}</h3></div><div class="pill">${Math.min(100, Math.round(item.score || 0))}%</div></summary><div class="detail-body">${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees. Open this card during review to explain why it matters and what should change next in practice.</div></details>`).join('') || '<div class="card"><p class="muted">Biomechanics priorities will appear after your first report.</p></div>';
 
