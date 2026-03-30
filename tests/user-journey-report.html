@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartSwing AI — User Journey Test Report</title>
+<style>
+  :root { --bg:#0a0a0a; --panel:rgba(22,22,26,.95); --line:rgba(255,255,255,.1); --text:#f5f7fa; --muted:#aab; --volt:#39ff14; --gold:#ffd84d; --red:#ff4444; --amber:#ffa533; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"DM Sans",system-ui,sans-serif;background:var(--bg);color:var(--text);padding:32px;min-height:100vh}
+  h1{font-size:2.4rem;letter-spacing:-.05em;margin-bottom:4px}
+  h1 span{color:var(--volt)}
+  .sub{color:var(--muted);margin-bottom:32px;font-size:.95rem}
+  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;text-align:center}
+  .stat .num{font-size:2.5rem;font-weight:800;letter-spacing:-.04em}
+  .stat .lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:4px}
+  .green .num{color:var(--volt)} .red-s .num{color:var(--red)} .amber-s .num{color:var(--amber)} .rate .num{color:#60a5fa}
+  h2{font-size:1.3rem;margin:28px 0 12px;letter-spacing:-.03em}
+  .issues{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:24px}
+  .issues ul{list-style:none;display:grid;gap:8px;margin-top:10px}
+  .issues li{font-size:.9rem;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.04)}
+  .issues li.pass{color:var(--volt)}
+  details.persona{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden}
+  details.persona.fail{border-color:rgba(255,68,68,.4)} details.persona.warn{border-color:rgba(255,165,51,.35)} details.persona.pass{border-color:rgba(57,255,20,.2)}
+  summary{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:12px;user-select:none;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  .persona-name{font-weight:700;font-size:.95rem}
+  .persona-role{font-size:.7rem;font-weight:800;text-transform:uppercase;padding:3px 8px;border-radius:999px;letter-spacing:.06em}
+  .tag-player{background:rgba(57,255,20,.15);color:var(--volt)} .tag-coach{background:rgba(96,165,250,.15);color:#93c5fd} .tag-system{background:rgba(255,216,77,.15);color:var(--gold)}
+  .counts{margin-left:auto;font-size:.85rem;color:var(--muted)} .red{color:var(--red)} .amber{color:var(--amber)}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  thead{background:rgba(255,255,255,.04)}
+  th,td{text-align:left;padding:8px 14px;border-bottom:1px solid var(--line)}
+  th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  tr.pass td:first-child{color:var(--volt)} tr.fail td:first-child{color:var(--red)} tr.warn td:first-child{color:var(--amber)}
+  tr.fail{background:rgba(255,68,68,.05)} tr.warn{background:rgba(255,165,51,.04)}
+  @media(max-width:600px){.summary-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<h1>SmartSwing <span>AI</span> — User Journey Report</h1>
+<p class="sub">20 Personas (10 Students + 10 Coaches) &bull; Run: 2026-03-30T02:57:39.384Z</p>
+
+<div class="summary-grid">
+  <div class="stat green"><div class="num">160</div><div class="lbl">Passed</div></div>
+  <div class="stat red-s"><div class="num">0</div><div class="lbl">Failed</div></div>
+  <div class="stat amber-s"><div class="num">1</div><div class="lbl">Warnings</div></div>
+  <div class="stat rate"><div class="num">100.0%</div><div class="lbl">Pass Rate</div></div>
+</div>
+
+
+<div class="issues" style="border-color:rgba(57,255,20,.3)">
+  <h2 style="color:var(--volt)">✓ No Failures</h2>
+  <ul><li class="pass">All critical user journeys passed.</li></ul>
+</div>
+
+
+<div class="issues" style="border-color:rgba(255,165,51,.4)">
+  <h2 style="color:var(--amber)">⚠ Warnings — 1 item(s) to review</h2>
+  <ul><li><strong>Coach Thomas Weber</strong>: canAccessUserRecord not exposed — skipping permission check</li></ul>
+</div>
+
+<h2>Persona Results</h2>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Alice Chen (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 10 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Free plan assigned on signup</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan costs $0</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan has 2 lifetime reviews</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Can generate report 1 of 2</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Remaining is 2 before any use</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Remaining is 1 after first analysis</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Blocked after 2 free analyses</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Error flags redirectToPricing</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Limit is lifetime not monthly (key=lifetime-free)</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>startPlanTrial throws</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Bob Martinez (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 7 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Starter plan active</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Starter plan has 10 monthly reviews</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Starter can save reports</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Starter monthly price is $9.99</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout route generated for Starter</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Monthly price matches plan definition</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Yearly price is discounted</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Carlos Rivera (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 7 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Performance (pro) plan active</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Performance plan has unlimited reviews</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Performance can connect coaches</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout route generated for Performance</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Store passes couponCode to Stripe API</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>API handles SWINGAI coupon code</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>API applies Stripe promotion code</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Diana Park (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 5 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>getCurrentUser returns signed-in user</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>User role is player</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan cannot save reports</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan cannot print reports</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Post-auth destination resolves</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Emma Johnson (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Yearly price is lower than 12x monthly</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Yearly savings is ~15%</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>normalizeBillingInterval("yearly") returns "yearly"</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Yearly checkout route generated</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Frank Williams (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Pro plan allows unlimited reports</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pro plan remaining is Infinity</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pro plan has drill library</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pro plan has tactic library</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Grace Lee (Student — Parent)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Signup succeeds for parent as player role</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>how-it-works.html "Parents" card exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>"Parents" card describes child tracking</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>"Pickleball Players" card removed</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Henry Brown (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 3 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>User with 2 used analyses is blocked</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Remaining is 0</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Error message targets pricing redirect</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Isabella Garcia (Student)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Elite plan active</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite plan has unlimited reviews</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite plan price is $49.99/mo</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite can connect coaches</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">James Kim (Student — Junior)</span>
+      <span class="persona-role tag-player">PLAYER</span>
+      <span class="counts">✓ 5 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Junior signup succeeds</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pricing page has no 14-day trial badge</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pricing page mentions 2 free analyses</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pricing page still has Start Free CTA</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>No trial-related copy in pricing CTA sub</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Sarah Mitchell</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Coach role assigned</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Coach starts on free plan</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Coach routes to coach destination</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Coach dashboard page exists and has roster section</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Miguel Santos</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Starter plan active for coach</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Coach on Starter can save reports</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Coach dashboard includes accountability queue</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Coach dashboard includes message feed</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Anna Petrov</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Performance plan active for coach</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Performance plan has tactic library</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Performance plan has drill library</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Performance plan unlimited reviews</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach David Okonkwo</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 5 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Elite plan active for coach</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite plan $49.99/mo</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite plan unlimited reviews</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Library page shows drill targets</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Library page shows expected impact</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Elena Volkov</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 4 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Free plan coach cannot save reports</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan coach has 2 lifetime analyses</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan coach cannot connect players</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free coach can generate reports (quota not yet used)</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona warn">
+    <summary>
+      <span class="persona-name">Coach Thomas Weber</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 1 &nbsp; ✗ 0 &nbsp; <span class="amber">⚠ 1</span></span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Coach is current user</td><td>PASS</td><td></td></tr><tr class="warn"><td>⚠</td><td>canAccessUserRecord not exposed — skipping permission check</td><td>WARN</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Lucia Fernandez</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 5 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>createStripeBillingPortal function exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>verifyStripeCheckoutSession function exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Stripe checkout API file exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Stripe webhook API file exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Stripe checkout status API exists</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Kevin Zhang</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 6 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Checkout page has coupon input field</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout page placeholder shows SWINGAI example</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout page CTA references Stripe</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout page has billing toggle</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>API: SWINGAI applies Stripe promo code</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>API: Falls back to allow_promotion_codes when no coupon</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Maya Patel</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 7 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Contact page has name field</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Contact page has email field</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Contact page has topic selector</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Contact page has message field</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Contact page has coach onboarding option</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Contact page stores to localStorage</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>store.saveContactMessage function exists</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Coach Ryan O'Brien</span>
+      <span class="persona-role tag-coach">COACH</span>
+      <span class="counts">✓ 41 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>All 4 plans defined</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan: 2 lifetime analyses</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Starter plan: 10 monthly analyses</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pro plan: unlimited</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite plan: unlimited</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Free plan: cannot save</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Starter plan: can save</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pro plan: can print</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Elite plan price > Pro plan price</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Pricing page references Stripe recurring billing</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>index.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>features.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>pricing.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>how-it-works.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>for-players.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>for-coaches.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>for-clubs.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>for-parents.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>about.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>blog.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>contact.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>login.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>signup.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>auth-callback.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>welcome.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>privacy-policy.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>refund-policy.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>accessibility.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>cookie-policy.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>brand-policy.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>copyright-policy.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>california-privacy.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>user-agreement.html exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>growth-pages.css uses true dark --bg (#0a0a0a)</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>growth-pages.css has fixed nav</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>growth-pages.css nav-inner defined</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>policy-pages.css uses true dark --bg</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>policy-pages.css has fixed nav</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>app-data.js: startPlanTrial throws (no free trial)</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>app-data.js: free plan uses lifetime-free key</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>app-data.js: signUp no longer starts trial</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+  <details class="persona pass">
+    <summary>
+      <span class="persona-name">Infrastructure Checks</span>
+      <span class="persona-role tag-system">SYSTEM</span>
+      <span class="counts">✓ 26 &nbsp; ✗ 0 &nbsp; ⚠ 0</span>
+    </summary>
+    <table><thead><tr><th></th><th>Test</th><th>Status</th><th>Detail</th></tr></thead><tbody><tr class="pass"><td>✓</td><td>Analyzer: buildSession() exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Analyzer: generateReport() exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Analyzer: MediaPipe loads</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Analyzer: demo report button exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Analyzer: free plan limit message updated</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Dashboard: weekly action plan section</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Dashboard: coaching guardrail message</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Cart: references checkout</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Cart: plan summary renders</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: has checkoutForm</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: has checkoutFlow div</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: has billingToggle</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: has summaryList</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: Stripe referenced</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: coupon field present</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: no 14-day trial copy</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Checkout: 2 free analyses copy present</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Auth callback: PKCE exchange present</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>Auth callback: auto-enroll present</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>how-it-works: Parents card present</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>how-it-works: Pickleball Players removed</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>vercel.json exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>robots.txt exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>sitemap.xml exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>public-app-config.js exists</td><td>PASS</td><td></td></tr><tr class="pass"><td>✓</td><td>.env.example has STRIPE_PROMO_CODE_SWINGAI</td><td>PASS</td><td></td></tr></tbody></table>
+  </details>
+
+<p style="margin-top:32px;font-size:.8rem;color:var(--muted)">Generated by SmartSwing AI user-journey-tests.js &bull; Node.js v24.14.0</p>
+</body>
+</html>

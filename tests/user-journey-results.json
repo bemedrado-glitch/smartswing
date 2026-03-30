@@ -1,0 +1,940 @@
+{
+  "runDate": "2026-03-30T02:57:39.384Z",
+  "passed": 160,
+  "failed": 0,
+  "warned": 1,
+  "passRate": "100.0",
+  "personas": [
+    {
+      "name": "Alice Chen (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Free plan assigned on signup",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan costs $0",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan has 2 lifetime reviews",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Can generate report 1 of 2",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Remaining is 2 before any use",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Remaining is 1 after first analysis",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Blocked after 2 free analyses",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Error flags redirectToPricing",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Limit is lifetime not monthly (key=lifetime-free)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "startPlanTrial throws",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Bob Martinez (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Starter plan active",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Starter plan has 10 monthly reviews",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Starter can save reports",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Starter monthly price is $9.99",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout route generated for Starter",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Monthly price matches plan definition",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Yearly price is discounted",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Carlos Rivera (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Performance (pro) plan active",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Performance plan has unlimited reviews",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Performance can connect coaches",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout route generated for Performance",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Store passes couponCode to Stripe API",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "API handles SWINGAI coupon code",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "API applies Stripe promotion code",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Diana Park (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "getCurrentUser returns signed-in user",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "User role is player",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan cannot save reports",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan cannot print reports",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Post-auth destination resolves",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Emma Johnson (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Yearly price is lower than 12x monthly",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Yearly savings is ~15%",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "normalizeBillingInterval(\"yearly\") returns \"yearly\"",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Yearly checkout route generated",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Frank Williams (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Pro plan allows unlimited reports",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pro plan remaining is Infinity",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pro plan has drill library",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pro plan has tactic library",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Grace Lee (Student — Parent)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Signup succeeds for parent as player role",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "how-it-works.html \"Parents\" card exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "\"Parents\" card describes child tracking",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "\"Pickleball Players\" card removed",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Henry Brown (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "User with 2 used analyses is blocked",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Remaining is 0",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Error message targets pricing redirect",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Isabella Garcia (Student)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Elite plan active",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite plan has unlimited reviews",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite plan price is $49.99/mo",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite can connect coaches",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "James Kim (Student — Junior)",
+      "role": "player",
+      "tests": [
+        {
+          "label": "Junior signup succeeds",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pricing page has no 14-day trial badge",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pricing page mentions 2 free analyses",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pricing page still has Start Free CTA",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "No trial-related copy in pricing CTA sub",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Sarah Mitchell",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Coach role assigned",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Coach starts on free plan",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Coach routes to coach destination",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Coach dashboard page exists and has roster section",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Miguel Santos",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Starter plan active for coach",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Coach on Starter can save reports",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Coach dashboard includes accountability queue",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Coach dashboard includes message feed",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Anna Petrov",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Performance plan active for coach",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Performance plan has tactic library",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Performance plan has drill library",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Performance plan unlimited reviews",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach David Okonkwo",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Elite plan active for coach",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite plan $49.99/mo",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite plan unlimited reviews",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Library page shows drill targets",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Library page shows expected impact",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Elena Volkov",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Free plan coach cannot save reports",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan coach has 2 lifetime analyses",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan coach cannot connect players",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free coach can generate reports (quota not yet used)",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Thomas Weber",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Coach is current user",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "canAccessUserRecord not exposed — skipping permission check",
+          "status": "WARN",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Lucia Fernandez",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "createStripeBillingPortal function exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "verifyStripeCheckoutSession function exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Stripe checkout API file exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Stripe webhook API file exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Stripe checkout status API exists",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Kevin Zhang",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Checkout page has coupon input field",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout page placeholder shows SWINGAI example",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout page CTA references Stripe",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout page has billing toggle",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "API: SWINGAI applies Stripe promo code",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "API: Falls back to allow_promotion_codes when no coupon",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Maya Patel",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "Contact page has name field",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Contact page has email field",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Contact page has topic selector",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Contact page has message field",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Contact page has coach onboarding option",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Contact page stores to localStorage",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "store.saveContactMessage function exists",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Coach Ryan O'Brien",
+      "role": "coach",
+      "tests": [
+        {
+          "label": "All 4 plans defined",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan: 2 lifetime analyses",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Starter plan: 10 monthly analyses",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pro plan: unlimited",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite plan: unlimited",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Free plan: cannot save",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Starter plan: can save",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pro plan: can print",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Elite plan price > Pro plan price",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Pricing page references Stripe recurring billing",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "index.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "features.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "pricing.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "how-it-works.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "for-players.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "for-coaches.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "for-clubs.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "for-parents.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "about.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "blog.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "contact.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "login.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "signup.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "auth-callback.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "welcome.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "privacy-policy.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "refund-policy.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "accessibility.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "cookie-policy.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "brand-policy.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "copyright-policy.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "california-privacy.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "user-agreement.html exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "growth-pages.css uses true dark --bg (#0a0a0a)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "growth-pages.css has fixed nav",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "growth-pages.css nav-inner defined",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "policy-pages.css uses true dark --bg",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "policy-pages.css has fixed nav",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "app-data.js: startPlanTrial throws (no free trial)",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "app-data.js: free plan uses lifetime-free key",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "app-data.js: signUp no longer starts trial",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "name": "Infrastructure Checks",
+      "role": "system",
+      "tests": [
+        {
+          "label": "Analyzer: buildSession() exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Analyzer: generateReport() exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Analyzer: MediaPipe loads",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Analyzer: demo report button exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Analyzer: free plan limit message updated",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Dashboard: weekly action plan section",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Dashboard: coaching guardrail message",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Cart: references checkout",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Cart: plan summary renders",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: has checkoutForm",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: has checkoutFlow div",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: has billingToggle",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: has summaryList",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: Stripe referenced",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: coupon field present",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: no 14-day trial copy",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Checkout: 2 free analyses copy present",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Auth callback: PKCE exchange present",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "Auth callback: auto-enroll present",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "how-it-works: Parents card present",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "how-it-works: Pickleball Players removed",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "vercel.json exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "robots.txt exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "sitemap.xml exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": "public-app-config.js exists",
+          "status": "PASS",
+          "detail": ""
+        },
+        {
+          "label": ".env.example has STRIPE_PROMO_CODE_SWINGAI",
+          "status": "PASS",
+          "detail": ""
+        }
+      ]
+    }
+  ]
+}
