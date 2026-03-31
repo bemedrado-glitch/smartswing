@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI | Contact Us</title>
   <meta name="description" content="Contact SmartSwing AI for onboarding, coaching partnerships, technical support, and team deployment discussions.">
@@ -11,7 +13,7 @@
   <meta property="og:description" content="Contact SmartSwing AI for onboarding, coaching partnerships, technical support, and team deployment.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.smartswingai.com/contact.html">
-  <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/Coach%20Ace%2016_9.png">
+  <meta property="og:image" content="https://www.smartswingai.com/assets/logos/logo.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="manifest" href="./manifest.json">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -210,7 +212,10 @@
       color: var(--muted);
       font-weight: 700;
     }
-  </style>
+  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
+.brand-logo { height: 36px; width: auto; }
+.footer-logo { height: 32px; width: auto; }
+    </style>
   <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
 </head>
@@ -218,7 +223,7 @@
   <a href="#contact-main" class="skip-nav">Skip to main content</a>
   <div id="contact-main" class="page">
     <div class="top">
-      <a class="logo" href="./index.html">SmartSwing<span class="dot"> AI</span></a>
+      <a class="logo" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <div class="nav">
         <a class="btn" href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
         <a class="btn" href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>

@@ -1,7 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI | Payment Status</title>
   <meta name="robots" content="noindex,nofollow">
@@ -34,12 +36,15 @@
     .btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text)}
     .btn-primary{border:1px solid rgba(57,255,20,.35);background:linear-gradient(135deg,var(--volt),#82ff63);color:var(--dark)}
     .btn:hover,.btn-primary:hover{transform:translateY(-2px)}
-  </style>
+  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
+.brand-logo { height: 36px; width: auto; }
+.footer-logo { height: 32px; width: auto; }
+    </style>
 </head>
 <body>
   <div class="page">
     <header class="top">
-      <a class="brand" href="./index.html">Smart<span>Swing</span> AI</a>
+      <a class="brand" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
     </header>
 

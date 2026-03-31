@@ -1,7 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome to SmartSwing AI</title>
   <meta name="description" content="Complete your SmartSwing AI onboarding quiz and personalize your first improvement plan.">
@@ -130,13 +132,16 @@
       .topbar, .hero, .quiz-layout, .goal-grid, .examples, .options { grid-template-columns: 1fr; }
       .page { width: min(100%, calc(100% - 24px)); }
     }
-  </style>
+  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
+.brand-logo { height: 36px; width: auto; }
+.footer-logo { height: 32px; width: auto; }
+    </style>
   <script src="./analytics.js"></script>
 </head>
 <body>
   <main class="page">
     <header class="topbar">
-      <a class="brand" href="./index.html">SmartSwing AI</a>
+      <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <div></div>
       <div class="meta-box">
         <strong id="planLabel">Welcome plan</strong>

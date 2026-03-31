@@ -1,7 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI for Parents</title>
   <meta name="description" content="SmartSwing AI for parents: clearer progress conversations, easier report summaries, and better visibility into the next step for junior players.">
@@ -11,7 +13,7 @@
   <meta property="og:description" content="Help junior players understand progress, practice priorities, and coach feedback without turning every session into guesswork.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.smartswingai.com/for-parents.html">
-  <meta property="og:image" content="https://www.smartswingai.com/assets/avatar/Persona%201%20Tennis.png">
+  <meta property="og:image" content="https://www.smartswingai.com/assets/logos/logo.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -105,7 +107,10 @@
   .skip-nav:focus { top:0; }
   :focus-visible { outline:2px solid #39ff14;outline-offset:3px; }
   a:focus:not(:focus-visible),button:focus:not(:focus-visible) { outline:none; }
-  </style>
+  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
+.brand-logo { height: 36px; width: auto; }
+.footer-logo { height: 32px; width: auto; }
+    </style>
   <link rel="stylesheet" href="./growth-pages.css">
   <script src="./analytics.js"></script>
 </head>
@@ -113,7 +118,7 @@
   <a href="#main-content" class="skip-nav">Skip to main content</a>
   <nav class="nav" id="mainNav" aria-label="Main navigation">
     <div class="nav-inner page">
-      <a href="./index.html" class="brand" aria-label="SmartSwing AI — Home">SmartSwing<span class="dot"> AI</span></a>
+      <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <div class="nav-links">
         <a href="./for-players.html" data-i18n="nav.forPlayers">For Players</a>
         <a href="./for-coaches.html" data-i18n="nav.forCoaches">For Coaches</a>
@@ -191,7 +196,7 @@
       <div class="page">
         <div class="footer-grid">
           <div>
-            <div class="footer-brand">SmartSwing<span class="dot"> AI</span></div>
+            <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35"></div>
             <p class="footer-tagline">AI-powered tennis and pickleball analysis for players, coaches, and clubs.</p>
           </div>
           <div>

@@ -1,7 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Settings</title>
   <meta name="description" content="Manage your SmartSwing AI profile, player details, coach details, contact information, and profile photo.">
@@ -47,13 +49,16 @@
     .alert.success{display:block;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.28);color:#dfffd8}
     .alert.error{display:block;background:rgba(255,91,124,.12);border:1px solid rgba(255,91,124,.28);color:#ffd8e3}
     @media (max-width:980px){.topbar,.hero,.grid,.field-grid{grid-template-columns:1fr}.nav{justify-content:flex-start}}
-  </style>
+  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
+.brand-logo { height: 36px; width: auto; }
+.footer-logo { height: 32px; width: auto; }
+    </style>
   <script src="./analytics.js"></script>
 </head>
 <body>
   <div class="page">
     <header class="topbar">
-      <a class="logo" href="./index.html">SmartSwing<span class="dot"> AI</span></a>
+      <a class="logo" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <nav class="nav">
         <a class="btn" href="./dashboard.html">Dashboard</a>
         <a class="btn" href="./coach-dashboard.html">Coach View</a>
