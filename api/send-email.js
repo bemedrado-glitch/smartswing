@@ -18,13 +18,17 @@
  *   payment_success   — sent after Stripe checkout completes
  *   win_back_7d       — sent 7 days after signup if no analysis recorded
  *   win_back_21d      — sent 21 days after signup if still on free plan
+ *   monthly_digest    — monthly recap of analyses and grade
+ *   milestone_reached — user hits a notable analysis count (e.g. 10, 25, 50)
+ *   trial_expiring    — trial plan ending in N days
+ *   score_improved    — user achieves a new personal best on a specific shot
  */
 
 const { renderTemplate } = require('./_lib/email-templates');
 const { syncResendContact } = require('./_lib/resend-common');
 
 const RESEND_API = 'https://api.resend.com/emails';
-const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'paywall_followup_3d', 'paywall_followup_7d', 'referral_bonus', 'payment_success', 'win_back_7d', 'win_back_21d', 'coach_report_share'];
+const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'paywall_followup_3d', 'paywall_followup_7d', 'referral_bonus', 'payment_success', 'win_back_7d', 'win_back_21d', 'coach_report_share', 'monthly_digest', 'milestone_reached', 'trial_expiring', 'score_improved'];
 const SHARE_URL_ALLOWED_ORIGINS = ['https://www.smartswingai.com', 'https://smartswingai.com'];
 const MAX_BODY_BYTES = 8 * 1024; // 8 KB — well above any realistic payload
 

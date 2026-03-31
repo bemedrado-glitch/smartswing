@@ -354,13 +354,13 @@
   <div class="shell">
     <a class="logo" href="./index.html">SmartSwing AI</a>
     <div class="card">
-      <h1>Create Account</h1>
-      <p class="subtext">Set up your player or coach profile, save analyses, compare sessions over time, and schedule targeted training.</p>
+      <h1 data-i18n="auth.signUp.heading">Create Account</h1>
+      <p class="subtext" data-i18n="auth.signUp.subtext">Set up your player or coach profile, save analyses, compare sessions over time, and schedule targeted training.</p>
       <p class="subtext" id="planHint" style="margin-top:-12px; margin-bottom: 18px;">Default plan: Free (1 monthly report).</p>
 
       <div class="mode-switch">
-        <a data-preserve-intent href="./login.html">Sign in</a>
-        <a class="active" href="./signup.html">Create account</a>
+        <a data-preserve-intent href="./login.html" data-i18n="auth.signUp.tabSignIn">Sign in</a>
+        <a class="active" href="./signup.html" data-i18n="auth.signUp.tabCreate">Create account</a>
       </div>
 
       <div id="referralBanner" class="referral-banner" role="status" aria-live="polite">
@@ -515,7 +515,7 @@
         </div>
 
         <div id="submitFeedback" class="alert" role="status" aria-live="polite"></div>
-        <button id="signupBtn" class="btn" type="submit">Create Account</button>
+        <button id="signupBtn" class="btn" type="submit" data-i18n="auth.signUp.submit">Create Account</button>
       </form>
 
       <div class="links">

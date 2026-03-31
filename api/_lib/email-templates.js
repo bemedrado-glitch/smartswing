@@ -494,6 +494,213 @@ function coachReportShare({
   };
 }
 
+// ── Template: monthly_digest ─────────────────────────────────────────────────
+function monthlyDigest({
+  firstName = 'there',
+  analysisCount = 0,
+  topImprovement = '',
+  currentGrade = '',
+  dashboardUrl = ''
+} = {}) {
+  const destination = dashboardUrl || `${APP_URL}/dashboard.html`;
+  const statItems = [
+    { value: String(analysisCount), label: 'Analyses this month' },
+    ...(currentGrade ? [{ value: currentGrade, label: 'Current grade' }] : [])
+  ];
+
+  return {
+    subject: `Your SmartSwing AI monthly recap, ${firstName}`,
+    html: base({
+      preheader: `${analysisCount} analyses this month. Here's what changed in your game.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.teal};margin:0 0 12px 0;">Monthly recap</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">Here's how your game moved in ${analysisCount ? analysisCount + ' analyses' : 'the last month'}, ${firstName}.</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          Your monthly SmartSwing AI summary is in. Here's everything that shifted in your swing this month — the wins, the work in progress, and what to focus on next.
+        </p>
+
+        ${statBlock(statItems)}
+
+        ${topImprovement ? `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.22);border-radius:14px;padding:18px 20px;">
+          <tr>
+            <td>
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${C.teal};margin-bottom:8px;">Biggest improvement this month</div>
+              <div style="font-size:16px;font-weight:700;color:${C.text};line-height:1.5;">${topImprovement}</div>
+            </td>
+          </tr>
+        </table>` : ''}
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 12px 0;">
+          <tr><td>${btn('View Full Progress →', destination)}</td></tr>
+        </table>
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 0 0;">
+          <tr><td>${btn('Run Another Analysis', `${APP_URL}/analyze.html`, { variant: 'secondary' })}</td></tr>
+        </table>
+      `
+    })
+  };
+}
+
+// ── Template: milestone_reached ───────────────────────────────────────────────
+function milestoneReached({
+  firstName = 'there',
+  milestone = 10,
+  score = 0,
+  grade = ''
+} = {}) {
+  const statItems = [
+    { value: String(milestone), label: 'Analyses completed' },
+    ...(score ? [{ value: String(score), label: 'SmartSwing Score' }] : []),
+    ...(grade ? [{ value: grade, label: 'Current grade' }] : [])
+  ];
+
+  return {
+    subject: `${firstName}, you've hit ${milestone} analyses on SmartSwing`,
+    html: base({
+      preheader: `${milestone} swings analysed. That's serious commitment.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">Milestone unlocked 🏆</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">${milestone} analyses. You're building something real, ${firstName}.</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          Most players stop at 1–2 analyses. You've done <strong style="color:${C.text};">${milestone}</strong>. That's not luck — that's the kind of consistency that actually changes how you play. Your AI feedback is compounding, and your swing data now has enough history to show real patterns.
+        </p>
+
+        ${statBlock(statItems)}
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;">
+          <tr><td>${btn('Keep the Streak Going →', `${APP_URL}/analyze.html`)}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          Know a player who'd benefit from this kind of feedback? Each friend who completes their first analysis earns you <strong style="color:${C.text};">+2 free analyses</strong>.<br>
+          <a href="${APP_URL}/refer-friends.html" style="color:${C.volt};text-decoration:none;font-weight:700;">Share your referral link →</a>
+        </p>
+      `
+    })
+  };
+}
+
+// ── Template: trial_expiring ──────────────────────────────────────────────────
+function trialExpiring({
+  firstName = 'there',
+  daysLeft = 3,
+  planName = 'Performance'
+} = {}) {
+  const dayWord = `${daysLeft} day${daysLeft !== 1 ? 's' : ''}`;
+
+  return {
+    subject: `${firstName}, your SmartSwing trial ends in ${dayWord}`,
+    html: base({
+      preheader: `${dayWord} left on ${planName}. Lock in your rate before it changes.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.gold};margin:0 0 12px 0;">Trial ending soon</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">${dayWord} left on your ${planName} trial, ${firstName}.</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 20px 0;">
+          Your <strong style="color:${C.text};">${planName}</strong> trial is almost up. After it ends, you'll drop back to the free plan — which means losing access to everything you've been using to improve.
+        </p>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;border:1px solid ${C.border};border-radius:14px;overflow:hidden;">
+          ${[
+            ['Unlimited AI swing analyses', 'vs 2 lifetime on Free'],
+            ['Full drill library', '50+ sport-specific drills'],
+            ['Progress timeline & trends', 'Track your SmartSwing Score over time'],
+            ['Coach-ready PDF exports', 'Share reports with your instructor'],
+            ['Priority AI processing', 'Results in under 60 seconds'],
+          ].map(([feature, sub], i, arr) => `
+          <tr>
+            <td style="padding:12px 16px;${i < arr.length - 1 ? 'border-bottom:1px solid ' + C.border + ';' : ''}">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+                <td style="width:20px;padding-right:10px;vertical-align:top;">
+                  <span style="color:${C.volt};font-size:14px;font-weight:800;">✓</span>
+                </td>
+                <td>
+                  <div style="font-size:14px;font-weight:700;color:${C.text};">${feature}</div>
+                  <div style="font-size:12px;color:${C.muted};margin-top:2px;">${sub}</div>
+                </td>
+              </tr></table>
+            </td>
+          </tr>`).join('')}
+        </table>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">
+          <tr><td>${btn(`Keep My ${planName} Plan →`, `${APP_URL}/pricing.html`)}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          30-day money-back guarantee &bull; Cancel anytime &bull; No questions asked.
+        </p>
+      `
+    })
+  };
+}
+
+// ── Template: score_improved ──────────────────────────────────────────────────
+function scoreImproved({
+  firstName = 'there',
+  shotType = 'forehand',
+  previousScore = 0,
+  newScore = 0,
+  improvement = 0,
+  grade = ''
+} = {}) {
+  const gradeColor = grade === 'A' || grade === 'A+' ? C.volt
+    : grade && grade[0] === 'B' ? C.teal
+    : grade && grade[0] === 'C' ? C.gold
+    : C.muted;
+
+  return {
+    subject: `${firstName}, your ${shotType} just hit ${newScore}/100 — that's real progress`,
+    html: base({
+      preheader: `+${improvement} points on your ${shotType}. Your last 3 sessions are paying off.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">New personal best 🎾</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">Your ${shotType} just improved by +${improvement} points, ${firstName}!</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          This is what consistent analysis looks like in action. Your last few sessions have been building on each other — and the AI just confirmed it. Keep the momentum going.
+        </p>
+
+        <!-- Before / after score comparison -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;background:rgba(57,255,20,0.05);border:1px solid rgba(57,255,20,0.18);border-radius:16px;overflow:hidden;">
+          <tr>
+            <td style="padding:20px 0;text-align:center;width:40%;">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${C.muted};margin-bottom:8px;">Before</div>
+              <div style="font-size:40px;font-weight:900;letter-spacing:-2px;color:${C.muted};line-height:1;">${previousScore}</div>
+              <div style="font-size:11px;color:${C.muted};margin-top:4px;">/100</div>
+            </td>
+            <td style="text-align:center;width:20%;vertical-align:middle;">
+              <div style="font-size:22px;font-weight:900;color:${C.volt};letter-spacing:-1px;">+${improvement}</div>
+              <div style="font-size:20px;color:${C.muted};">→</div>
+            </td>
+            <td style="padding:20px 0;text-align:center;width:40%;">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${C.volt};margin-bottom:8px;">Now</div>
+              <div style="font-size:40px;font-weight:900;letter-spacing:-2px;color:${C.volt};line-height:1;">${newScore}</div>
+              <div style="font-size:11px;color:${C.muted};margin-top:4px;">/100</div>
+            </td>
+          </tr>
+          ${grade ? `
+          <tr>
+            <td colspan="3" style="padding:0 0 16px 0;text-align:center;">
+              <span style="display:inline-block;padding:5px 18px;border-radius:999px;background:rgba(57,255,20,0.12);border:1px solid rgba(57,255,20,0.28);color:${gradeColor};font-size:14px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;">Grade: ${grade}</span>
+            </td>
+          </tr>` : ''}
+        </table>
+
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          Progress like this compounds. Players who analyse consistently improve <strong style="color:${C.text};">3× faster</strong> than those who rely on memory alone. You're in that group now.
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 12px 0;">
+          <tr><td>${btn('See Full Breakdown →', `${APP_URL}/dashboard.html`)}</td></tr>
+        </table>
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 0 0;">
+          <tr><td>${btn('Analyse Another Shot', `${APP_URL}/analyze.html`, { variant: 'secondary' })}</td></tr>
+        </table>
+      `
+    })
+  };
+}
+
 // ── Exports ─────────────────────────────────────────────────────────────────
 const TEMPLATES = {
   welcome,
@@ -505,7 +712,11 @@ const TEMPLATES = {
   payment_success: paymentSuccess,
   win_back_7d: winBack7d,
   win_back_21d: winBack21d,
-  coach_report_share: coachReportShare
+  coach_report_share: coachReportShare,
+  monthly_digest: monthlyDigest,
+  milestone_reached: milestoneReached,
+  trial_expiring: trialExpiring,
+  score_improved: scoreImproved
 };
 
 function renderTemplate(type, data = {}) {

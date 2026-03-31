@@ -538,19 +538,22 @@
 
     document.getElementById('coachId').innerHTML = store.DEFAULT_COACHES.map((coach) => `<option value="${coach.id}">${coach.name} | ${coach.specialty}</option>`).join('');
     document.getElementById('sessionList').innerHTML = sessions.slice(0, 6).map((item) => `<div class="card"><div class="row"><div><h3>${item.coachName}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">No sessions booked yet.</p></div>';
-    document.getElementById('bookingForm').addEventListener('submit', (event) => {
-      event.preventDefault();
-      const coach = store.DEFAULT_COACHES.find((entry) => entry.id === document.getElementById('coachId').value) || store.DEFAULT_COACHES[0];
-      try {
-        store.bookCoachSession({ coachId: coach.id, coachName: coach.name, specialty: coach.specialty, when: document.getElementById('when').value, focus: document.getElementById('focus').value || 'Technique review' });
-        window.location.reload();
-      } catch (error) {
-        alert(error.message || 'Unable to book session.');
+    const bookingForm = document.getElementById('bookingForm');
+    if (bookingForm) {
+      bookingForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const coach = store.DEFAULT_COACHES.find((entry) => entry.id === document.getElementById('coachId').value) || store.DEFAULT_COACHES[0];
+        try {
+          store.bookCoachSession({ coachId: coach.id, coachName: coach.name, specialty: coach.specialty, when: document.getElementById('when').value, focus: document.getElementById('focus').value || 'Technique review' });
+          window.location.reload();
+        } catch (error) {
+          alert(error.message || 'Unable to book session.');
+        }
+      });
+      if (!access.canBookCoach) {
+        bookingForm.insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Coach booking unlocks on Performance and Tournament plans.</p></div>');
+        document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm button').forEach((el) => { el.disabled = true; });
       }
-    });
-    if (!access.canBookCoach) {
-      document.getElementById('bookingForm').insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Coach booking unlocks on Performance and Tournament plans.</p></div>');
-      document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm button').forEach((el) => { el.disabled = true; });
     }
 
     document.getElementById('drillList').innerHTML = drills.slice(0, 3).map((item, i) => `<details class="detail-card" ${i === 0 ? 'open' : ''}><summary><div><div class="mini">Drill ${i + 1}</div><h3>${item.title}</h3></div><div class="pill">${item.expectedImprovement || 'Focused gain'}</div></summary><div class="detail-body">${item.prescription || item.focus || 'Targeted drill recommendation.'}</div></details>`).join('') || '<div class="card"><p class="muted">Recommended drills will show here after your next report.</p></div>';
@@ -558,18 +561,21 @@
 
     document.getElementById('messageTarget').innerHTML = messageTargets.map((target) => `<option value="${target.id}">${target.label}</option>`).join('');
     document.getElementById('messageList').innerHTML = messages.slice(0, 8).map((item) => `<div class="card"><div class="row"><div><h3>${item.subject}</h3><p class="muted">${item.body}</p></div><div class="mini">${new Date(item.createdAt).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">Messages with coaches or SmartSwing support will appear here.</p></div>';
-    document.getElementById('messageForm').addEventListener('submit', (event) => {
-      event.preventDefault();
-      try {
-        store.sendMessage({ toUserId: document.getElementById('messageTarget').value, subject: document.getElementById('messageSubject').value || 'New message', body: document.getElementById('messageBody').value || '' });
-        window.location.reload();
-      } catch (error) {
-        alert(error.message || 'Unable to send message.');
+    const messageForm = document.getElementById('messageForm');
+    if (messageForm) {
+      messageForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        try {
+          store.sendMessage({ toUserId: document.getElementById('messageTarget').value, subject: document.getElementById('messageSubject').value || 'New message', body: document.getElementById('messageBody').value || '' });
+          window.location.reload();
+        } catch (error) {
+          alert(error.message || 'Unable to send message.');
+        }
+      });
+      if (!access.canMessage) {
+        messageForm.insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Messaging unlocks when coach access is enabled on your plan.</p></div>');
+        document.querySelectorAll('#messageForm input, #messageForm select, #messageForm textarea, #messageForm button').forEach((el) => { el.disabled = true; });
       }
-    });
-    if (!access.canMessage) {
-      document.getElementById('messageForm').insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Messaging unlocks when coach access is enabled on your plan.</p></div>');
-      document.querySelectorAll('#messageForm input, #messageForm select, #messageForm textarea, #messageForm button').forEach((el) => { el.disabled = true; });
     }
 
     document.getElementById('privacyList').innerHTML = [
@@ -609,7 +615,7 @@
     if (!access.canExport) {
       ['exportJsonBtn', 'exportCsvBtn', 'printDashboardBtn'].forEach((id) => {
         const button = document.getElementById(id);
-        button.style.opacity = '0.65';
+        if (button) button.style.opacity = '0.65';
       });
     }
 
