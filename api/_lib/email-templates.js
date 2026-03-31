@@ -432,6 +432,68 @@ function referralBonus({ firstName = 'there', bonusCount = 2 } = {}) {
   };
 }
 
+// ── Template: coach_report_share ─────────────────────────────────────────────
+function coachReportShare({
+  playerName = 'Your player',
+  coachEmail = '',
+  shotType = 'swing',
+  score = 0,
+  grade = '',
+  shareUrl = '',
+  topDrills = []
+} = {}) {
+  const gradeColor = grade === 'A' || grade === 'A+' ? C.volt
+    : grade && grade[0] === 'B' ? C.teal
+    : grade && grade[0] === 'C' ? C.gold
+    : C.muted;
+
+  const drillRows = topDrills.slice(0, 3).map(([title, focus]) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid ${C.border};">
+        <div style="font-size:14px;font-weight:700;color:${C.text};">${title}</div>
+        ${focus ? `<div style="font-size:12px;color:${C.muted};margin-top:3px;line-height:1.5;">${focus}</div>` : ''}
+      </td>
+    </tr>`).join('');
+
+  return {
+    subject: `${playerName}'s SmartSwing AI Biomechanics Report — ${shotType}`,
+    html: base({
+      preheader: `${playerName} scored ${score}/100 on their ${shotType} analysis. View the full AI breakdown.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">Swing Analysis Report</p>
+        <h1 style="font-size:24px;font-weight:800;line-height:1.1;letter-spacing:-.5px;color:${C.text};margin:0 0 6px 0;">${playerName}'s ${shotType} Analysis</h1>
+        <p style="font-size:14px;color:${C.muted};margin:0 0 24px 0;">Your player just completed an AI biomechanics analysis on SmartSwing AI.</p>
+
+        <!-- Score + grade -->
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.18);border-radius:16px;padding:20px;">
+          <tr>
+            <td style="text-align:center;">
+              <div style="font-size:54px;font-weight:900;letter-spacing:-3px;line-height:1;color:${C.volt};">${score}</div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${C.muted};margin-top:4px;">SmartSwing Score</div>
+              ${grade ? `<div style="display:inline-block;margin-top:10px;padding:5px 18px;border-radius:999px;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.28);color:${gradeColor};font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">Grade: ${grade}</div>` : ''}
+            </td>
+          </tr>
+        </table>
+
+        ${drillRows ? `
+        <p style="font-size:13px;font-weight:700;color:${C.text};margin:0 0 10px 0;text-transform:uppercase;letter-spacing:.06em;">AI-Recommended Drills</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;">
+          ${drillRows}
+        </table>` : ''}
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 20px 0;">
+          <tr><td>${btn('View Full Report →', shareUrl)}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          This report was shared by ${playerName} via SmartSwing AI.<br>
+          Not a SmartSwing coach yet? <a href="${APP_URL}/pricing.html" style="color:${C.volt};text-decoration:none;font-weight:700;">Try it free →</a>
+        </p>
+      `
+    })
+  };
+}
+
 // ── Exports ─────────────────────────────────────────────────────────────────
 const TEMPLATES = {
   welcome,
@@ -442,7 +504,8 @@ const TEMPLATES = {
   referral_bonus: referralBonus,
   payment_success: paymentSuccess,
   win_back_7d: winBack7d,
-  win_back_21d: winBack21d
+  win_back_21d: winBack21d,
+  coach_report_share: coachReportShare
 };
 
 function renderTemplate(type, data = {}) {

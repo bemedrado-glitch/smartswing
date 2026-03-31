@@ -914,11 +914,33 @@
       <div class="step-content" data-step="5">
         <div id="reportContent"></div>
 
-        <!-- Share with coach row -->
-        <div class="share-row" id="shareRow" style="display:none;">
-          <button class="btn btn-secondary" id="shareReportBtn">🔗 Share with Coach</button>
-          <input id="shareUrlInput" type="text" class="share-url-input" readonly aria-label="Shareable report URL">
-          <button class="btn btn-secondary" id="copyShareBtn" style="display:none;">Copy Link</button>
+        <!-- Share with coach card -->
+        <div id="shareRow" style="display:none;margin-bottom:20px;background:rgba(22,22,26,.95);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px 24px;">
+          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#39ff14;margin-bottom:10px;">Share This Report</div>
+          <p style="font-size:13px;color:rgba(255,255,255,.6);margin:0 0 16px 0;line-height:1.5;">Send a read-only version of this report to your coach — no login required on their end.</p>
+
+          <!-- Copy link row -->
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+            <input id="shareUrlInput" type="text" readonly aria-label="Shareable report URL"
+              style="flex:1;min-width:0;background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.3);color:#39ff14;padding:11px 14px;border-radius:12px;font-size:12px;font-family:monospace;outline:none;">
+            <button class="btn btn-secondary" id="copyShareBtn">Copy Link</button>
+          </div>
+
+          <!-- Divider -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);">or email directly to your coach</span>
+            <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
+          </div>
+
+          <!-- Email row -->
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input id="coachEmailInput" type="email" placeholder="coach@example.com" autocomplete="email"
+              style="flex:1;min-width:180px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#f5f7fa;padding:11px 14px;border-radius:12px;font-size:14px;font-family:inherit;outline:none;"
+              aria-label="Coach email address">
+            <button class="btn btn-primary" id="emailCoachBtn" style="white-space:nowrap;">✉ Send to Coach</button>
+          </div>
+          <div id="emailCoachStatus" style="margin-top:10px;font-size:13px;display:none;"></div>
         </div>
 
         <div class="btn-group">
@@ -3815,7 +3837,8 @@
     generateReport = function(session) {
       _lastReportSession = session;
       _origGenerateReport(session);
-      document.getElementById('shareRow').style.display = 'flex';
+      document.getElementById('shareRow').style.display = 'block';
+      populateShareUrl();
     };
 
     function buildShareUrl(session) {
@@ -3850,28 +3873,100 @@
       }
     }
 
-    document.getElementById('shareReportBtn').addEventListener('click', () => {
+    // Populate share URL input as soon as the card is revealed
+    function populateShareUrl() {
       if (!_lastReportSession) return;
       const url = buildShareUrl(_lastReportSession);
-      if (!url) { alert('Could not generate share link. Try again after generating a report.'); return; }
+      if (!url) return;
       const input = document.getElementById('shareUrlInput');
-      const copyBtn = document.getElementById('copyShareBtn');
-      input.value = url;
-      input.style.display = 'block';
-      copyBtn.style.display = 'inline-flex';
-      try { input.select(); input.setSelectionRange(0, 9999); } catch (_) {}
-    });
+      if (input) { input.value = url; try { input.select(); input.setSelectionRange(0, 9999); } catch (_) {} }
+    }
 
     document.getElementById('copyShareBtn').addEventListener('click', () => {
       const input = document.getElementById('shareUrlInput');
       const btn = document.getElementById('copyShareBtn');
       const original = btn.textContent;
-      navigator.clipboard.writeText(input.value).then(() => {
+      const url = input.value;
+      if (!url) return;
+      navigator.clipboard.writeText(url).then(() => {
         btn.textContent = '✓ Copied!';
         setTimeout(() => { btn.textContent = original; }, 2200);
       }).catch(() => {
         try { input.select(); document.execCommand('copy'); btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = original; }, 2200); } catch (_) {}
       });
+    });
+
+    // ── Email report to coach ─────────────────────────────────────────────
+    document.getElementById('emailCoachBtn').addEventListener('click', async () => {
+      const coachEmail = (document.getElementById('coachEmailInput').value || '').trim().toLowerCase();
+      const statusEl   = document.getElementById('emailCoachStatus');
+      const btn        = document.getElementById('emailCoachBtn');
+
+      if (!coachEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(coachEmail)) {
+        statusEl.style.display = 'block';
+        statusEl.style.color   = '#ff5252';
+        statusEl.textContent   = 'Please enter a valid coach email address.';
+        return;
+      }
+      if (!_lastReportSession) return;
+
+      const shareUrl = buildShareUrl(_lastReportSession);
+      if (!shareUrl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color   = '#ff5252';
+        statusEl.textContent   = 'Could not generate share link. Try again.';
+        return;
+      }
+
+      const s         = _lastReportSession.summary;
+      const playerName = (currentUser?.fullName || currentUser?.firstName || '').trim() || 'Your player';
+      const topDrills  = (s.tailoredDrills || []).slice(0, 3).map((d) => [
+        String(d.title || '').slice(0, 60),
+        String(d.prescription || d.focus || '').slice(0, 120)
+      ]);
+
+      btn.disabled    = true;
+      btn.textContent = 'Sending…';
+      statusEl.style.display = 'none';
+
+      try {
+        const resp = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'coach_report_share',
+            data: {
+              email:      coachEmail,
+              playerName: playerName,
+              shotType:   (s.shotType || _lastReportSession.profile?.shots?.[0] || 'swing'),
+              score:      s.score || 0,
+              grade:      s.grade || '',
+              shareUrl:   shareUrl,
+              topDrills:  topDrills
+            }
+          })
+        });
+        const result = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(result?.error || 'Send failed.');
+
+        statusEl.style.display = 'block';
+        statusEl.style.color   = '#39ff14';
+        statusEl.textContent   = `✓ Report sent to ${coachEmail}`;
+        document.getElementById('coachEmailInput').value = '';
+        btn.textContent = '✉ Send to Coach';
+      } catch (err) {
+        statusEl.style.display = 'block';
+        statusEl.style.color   = '#ff5252';
+        statusEl.textContent   = err.message || 'Could not send email. Please try again.';
+        btn.textContent = '✉ Send to Coach';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Allow Enter key in coach email field to trigger send
+    document.getElementById('coachEmailInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('emailCoachBtn').click();
     });
 
     function applyDemoProfileFromParams(params) {

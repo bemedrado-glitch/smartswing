@@ -24,7 +24,8 @@ const { renderTemplate } = require('./_lib/email-templates');
 const { syncResendContact } = require('./_lib/resend-common');
 
 const RESEND_API = 'https://api.resend.com/emails';
-const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'paywall_followup_3d', 'paywall_followup_7d', 'referral_bonus', 'payment_success', 'win_back_7d', 'win_back_21d'];
+const ALLOWED_TYPES = ['welcome', 'analysis_warning', 'paywall_hit', 'paywall_followup_3d', 'paywall_followup_7d', 'referral_bonus', 'payment_success', 'win_back_7d', 'win_back_21d', 'coach_report_share'];
+const SHARE_URL_ALLOWED_ORIGINS = ['https://www.smartswingai.com', 'https://smartswingai.com'];
 const MAX_BODY_BYTES = 8 * 1024; // 8 KB — well above any realistic payload
 
 function json(res, status, payload) {
@@ -131,6 +132,26 @@ module.exports = async (req, res) => {
   // Sanitise firstName — no HTML injection
   if (data.firstName) {
     data.firstName = String(data.firstName).replace(/[<>"&]/g, '').slice(0, 80).trim() || 'there';
+  }
+
+  // coach_report_share — extra field sanitisation + shareUrl origin validation
+  if (type === 'coach_report_share') {
+    data.playerName = String(data.playerName || '').replace(/[<>"&]/g, '').slice(0, 120).trim() || 'Your player';
+    data.shotType   = String(data.shotType   || '').replace(/[<>"&]/g, '').slice(0, 40).trim()  || 'swing';
+    data.grade      = String(data.grade      || '').replace(/[^A-Za-z+\-]/g, '').slice(0, 4);
+    data.score      = Math.min(100, Math.max(0, Number(data.score) || 0));
+    data.topDrills  = (Array.isArray(data.topDrills) ? data.topDrills : [])
+      .slice(0, 3)
+      .map((d) => [String(d[0] || '').slice(0, 60), String(d[1] || '').slice(0, 120)]);
+
+    const shareUrl = String(data.shareUrl || '').trim();
+    const allowedOrigin = SHARE_URL_ALLOWED_ORIGINS.some((o) => shareUrl.startsWith(o));
+    // Allow localhost for dev
+    const isLocalhost = /^https?:\/\/localhost(:\d+)?\//.test(shareUrl);
+    if (!shareUrl || (!allowedOrigin && !isLocalhost)) {
+      return json(res, 400, { error: 'shareUrl must be a smartswingai.com URL.' });
+    }
+    data.shareUrl = shareUrl;
   }
 
   // ── Render template ──────────────────────────────────────────────────────
