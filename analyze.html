@@ -753,11 +753,14 @@
         <!-- Mode toggle -->
         <div class="capture-tabs">
           <button type="button" class="capture-tab active" id="tabUpload">📁 Upload File</button>
-          <button type="button" class="capture-tab" id="tabCamera">📷 Record Now</button>
+          <button type="button" class="capture-tab" id="tabCamera">📷 Record Now <span id="camRecommendedBadge" style="display:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.18);color:#39ff14;padding:2px 7px;border-radius:999px;margin-left:6px;">Recommended</span></button>
         </div>
 
         <!-- Upload mode -->
         <div id="uploadMode">
+          <div id="mobileUploadHint" style="display:none;margin-bottom:12px;padding:11px 14px;background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.22);border-radius:12px;font-size:13px;color:rgba(255,255,255,.75);">
+            📱 <strong style="color:#39ff14;">On mobile?</strong> Tap <strong>Record Now</strong> above to film your swing directly — no app needed.
+          </div>
           <div class="upload-zone" id="uploadZone">
             <div style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">VIDEO</div>
             <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Click to select video</div>
@@ -769,6 +772,9 @@
 
         <!-- Camera / Record mode -->
         <div id="cameraMode" style="display:none;">
+          <div id="landscapePrompt" style="display:none;margin-bottom:12px;padding:11px 14px;background:rgba(255,216,77,.07);border:1px solid rgba(255,216,77,.28);border-radius:12px;font-size:13px;color:rgba(255,255,255,.8);text-align:center;">
+            🔄 <strong style="color:#ffd84d;">Rotate your phone to landscape</strong> for best results — swing analysis needs your full body in frame.
+          </div>
           <div class="camera-wrap" id="cameraWrap">
             <video id="cameraPreview" muted playsinline autoplay></video>
             <div class="cam-guide-box"></div>
@@ -3692,6 +3698,46 @@
 
     document.getElementById('tabUpload').addEventListener('click', () => switchCaptureTab('upload'));
     document.getElementById('tabCamera').addEventListener('click', () => switchCaptureTab('camera'));
+
+    // ── Mobile: auto-default to Record Now + orientation guard ────────────
+    const _isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 1 && /MacIntel/.test(navigator.platform));
+
+    if (_isMobile) {
+      // Show "Recommended" badge on the camera tab
+      const camBadge = document.getElementById('camRecommendedBadge');
+      if (camBadge) camBadge.style.display = 'inline';
+
+      // Show hint in upload zone pointing users to Record Now
+      const mobileHint = document.getElementById('mobileUploadHint');
+      if (mobileHint) mobileHint.style.display = 'block';
+
+      // Auto-switch to camera tab on mobile (only if no file already selected)
+      if (!playerProfile.videoFile) {
+        switchCaptureTab('camera');
+      }
+
+      // Landscape orientation prompt — show when in portrait, hide in landscape
+      function updateLandscapePrompt() {
+        const prompt = document.getElementById('landscapePrompt');
+        if (!prompt) return;
+        const cameraVisible = document.getElementById('cameraMode').style.display !== 'none';
+        const isPortrait = window.innerHeight > window.innerWidth;
+        prompt.style.display = (cameraVisible && isPortrait) ? 'block' : 'none';
+      }
+
+      window.addEventListener('resize', updateLandscapePrompt);
+      window.addEventListener('orientationchange', () => setTimeout(updateLandscapePrompt, 150));
+
+      // Re-run when camera tab is switched
+      const _origSwitchCaptureTab = switchCaptureTab;
+      switchCaptureTab = function(mode) {
+        _origSwitchCaptureTab(mode);
+        if (_isMobile) updateLandscapePrompt();
+      };
+
+      updateLandscapePrompt();
+    }
 
     document.getElementById('startRecordBtn').addEventListener('click', () => {
       if (!_cameraStream) return;

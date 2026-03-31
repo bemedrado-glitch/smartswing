@@ -284,10 +284,10 @@
       <p>9 transactional templates live via Resend (mail.smartswingai.com). Covers: welcome, analysis warning, paywall hit, paywall follow-up 3d &amp; 7d, payment success, win-back 7d &amp; 21d, referral bonus. Cron job sends win-back emails daily at 10:00 UTC. Bounce/complaint webhook protects deliverability.</p>
     </div>
 
-    <div class="feature-item">
-      <span class="fi-tag fi-critical">Critical — Pre-Launch</span>
+    <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
+      <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
       <h4>Mobile In-Browser Camera Capture</h4>
-      <p>Currently upload-only. 85% of users are on mobile. Users need to point and record directly from the browser without switching apps. Web Camera API supports this — needs implementation.</p>
+      <p>Fully implemented via Web Camera API + MediaRecorder. getUserMedia with back-camera preference, 60s auto-stop, live preview, retake, error handling. On mobile: auto-defaults to "Record Now" tab, shows "Recommended" badge, landscape orientation prompt, and a hint in the upload zone pointing to direct recording.</p>
     </div>
 
     <div class="feature-item">
