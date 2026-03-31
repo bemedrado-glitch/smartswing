@@ -296,10 +296,10 @@
       <p>Full share card on the report page: copy-link button generates a read-only shared-report.html URL (no login required for coach). Email field sends the report directly to any coach email via Resend — includes score, grade, top 3 drills, and a "Try it free" CTA converting coaches into users.</p>
     </div>
 
-    <div class="feature-item">
-      <span class="fi-tag fi-critical">Critical — Pre-Launch</span>
+    <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
+      <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
       <h4>Progress Timeline View</h4>
-      <p>No way to compare analyses across sessions. "See how far you've come" is the strongest retention hook in all of fitness SaaS. Users need a timeline of their SmartSwing Score over weeks and months.</p>
+      <p>Enhanced timeline with shot-type filter pills (All, Forehand, Backhand, Serve, Volley, etc.) — only showing types present in the user's data. Active filter re-renders the chart. Personal best dot highlighted with a gold ring and "PB" label. Score value shown above each dot. Uses analyzedAt || createdAt for dates.</p>
     </div>
 
     <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
@@ -308,10 +308,10 @@
       <p>"Give 2 free analyses, get 2 free analyses." refer-friends.html page is live. Referral bonus email template built and wired. Referrals table in Supabase tracking referrer-to-friend conversions.</p>
     </div>
 
-    <div class="feature-item">
-      <span class="fi-tag fi-high">High — Month 1–3</span>
+    <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
+      <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
       <h4>Before / After Comparison View</h4>
-      <p>Side-by-side video and metrics comparison between two analyses. The strongest upgrade driver: users want to see their improvement on the paid plan, not just in their memory.</p>
+      <p>New "Compare" tab on the player dashboard. Two selectors (Earlier / Later analysis) pre-populated with all assessments. Side-by-side score, grade pill, shot type and date. Full metric comparison table with mini bar fills and delta chips (green ↑ / red ↓). Biggest improvement callout highlighted in volt green. Re-renders automatically on select change.</p>
     </div>
 
     <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
@@ -338,10 +338,10 @@
       <p>Coaches on the Academy plan need reports with their logo and branding to share with students and parents. This is a strong retention lock-in — coaches build their practice around it.</p>
     </div>
 
-    <div class="feature-item">
-      <span class="fi-tag fi-growth">Growth — Month 6–12</span>
+    <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
+      <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
       <h4>Shareable Score Cards (Social)</h4>
-      <p>An Instagram/TikTok-ready image showing SmartSwing Score and top 3 improvements. Shareable cards create organic viral growth. Duolingo's streak cards drove 30% of their organic installs.</p>
+      <p>Canvas 2D score card generator live in dashboard Compare tab and analyze.html Step 5. Square (1080×1080) and Story (1080×1920) formats. Dark background with radial green glow, volt green accent bar, circular arc progress ring, large score number, grade pill, top 3 metric bars. Download PNG and Web Share API buttons. On analyze.html: "Get Score Card" button appears after report renders, opens a full modal with the same canvas preview and format toggle.</p>
     </div>
 
     <div class="feature-item">

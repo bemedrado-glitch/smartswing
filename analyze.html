@@ -943,6 +943,35 @@
           <div id="emailCoachStatus" style="margin-top:10px;font-size:13px;display:none;"></div>
         </div>
 
+        <!-- Score Card CTA -->
+        <div id="scoreCardCta" style="display:none;margin-bottom:20px;">
+          <button class="btn btn-secondary" id="openScoreCardBtn" style="font-size:15px;">&#127820; Get Score Card</button>
+        </div>
+
+        <!-- Score Card Modal -->
+        <div id="scoreCardModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);overflow-y:auto;padding:24px 16px;">
+          <div style="max-width:440px;margin:0 auto;background:#0d1b2a;border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:28px;color:#f5f5f7;font-family:'Inter',sans-serif;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#39ff14;">Score Card</div>
+              <button id="closeScoreCardBtn" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;">&times;</button>
+            </div>
+            <!-- Format selector -->
+            <div style="display:flex;gap:8px;margin-bottom:14px;">
+              <button class="sc-modal-fmt-btn" data-fmt="square" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(57,255,20,.4);background:rgba(57,255,20,.12);color:#39ff14;font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">&#9632; Square (1:1)</button>
+              <button class="sc-modal-fmt-btn" data-fmt="story" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;">&#9644; Story (9:16)</button>
+            </div>
+            <!-- Canvas preview -->
+            <div style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.1);margin-bottom:14px;background:#0a0a0a;">
+              <canvas id="scModalCanvas" style="display:block;width:100%;height:auto;"></canvas>
+            </div>
+            <!-- Action buttons -->
+            <div style="display:flex;gap:10px;">
+              <button id="scModalDownloadBtn" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#39ff14,#82ff63);color:#0a0a0a;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">&#8595; Download PNG</button>
+              <button id="scModalShareBtn" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#f5f5f7;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;">&#8679; Share</button>
+            </div>
+          </div>
+        </div>
+
         <div class="btn-group">
           <button class="btn btn-secondary" id="backBtn4">Back to Analysis</button>
           <button class="btn btn-secondary" id="printBtn">Print Report</button>
@@ -4490,6 +4519,226 @@
         initPoseEngine().catch(() => null);
       });
     }
+
+    // ── Score Card Modal (analyze.html Step 5) ───────────────────────────
+    (function initAnalyzeScoreCard() {
+      const modal      = document.getElementById('scoreCardModal');
+      const canvas     = document.getElementById('scModalCanvas');
+      const openBtn    = document.getElementById('openScoreCardBtn');
+      const closeBtn   = document.getElementById('closeScoreCardBtn');
+      const dlBtn      = document.getElementById('scModalDownloadBtn');
+      const shareBtn   = document.getElementById('scModalShareBtn');
+      const cta        = document.getElementById('scoreCardCta');
+      if (!modal || !canvas) return;
+
+      let currentFmt = 'square';
+
+      // Show the CTA by patching the already-existing share-row wrapper
+      // The share-row wrapper (defined above) wraps generateReport and sets _lastReportSession.
+      // We extend it here by patching the same wrapper one more time.
+      const _origAfterShare = generateReport;
+      generateReport = function(session) {
+        _origAfterShare(session);
+        if (cta) cta.style.display = 'block';
+      };
+
+      function getItem() {
+        if (!_lastReportSession) return null;
+        const s = _lastReportSession.summary;
+        return {
+          overallScore: s.score || 0,
+          score: s.score || 0,
+          grade: s.grade || '',
+          shotType: s.shotType || (_lastReportSession.profile?.shots?.[0] || 'swing'),
+          analyzedAt: _lastReportSession.timestamp || new Date().toISOString(),
+          metricComparisons: s.metricComparisons || []
+        };
+      }
+
+      function renderModal() {
+        const item = getItem();
+        if (!item) return;
+        document.fonts.ready.then(() => {
+          if (window._drawSmartSwingScoreCard) {
+            window._drawSmartSwingScoreCard(canvas, item, currentFmt);
+          } else {
+            // Inline fallback renderer for analyze.html (same logic, no external dep)
+            drawAnalyzeScoreCard(canvas, item, currentFmt);
+          }
+        });
+      }
+
+      if (openBtn) {
+        openBtn.addEventListener('click', () => {
+          modal.style.display = 'flex';
+          renderModal();
+        });
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+      }
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+      document.querySelectorAll('.sc-modal-fmt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sc-modal-fmt-btn').forEach(b => {
+            b.style.background = 'rgba(255,255,255,.04)';
+            b.style.borderColor = 'rgba(255,255,255,.12)';
+            b.style.color = 'rgba(255,255,255,.6)';
+          });
+          btn.style.background = 'rgba(57,255,20,.12)';
+          btn.style.borderColor = 'rgba(57,255,20,.4)';
+          btn.style.color = '#39ff14';
+          currentFmt = btn.dataset.fmt;
+          renderModal();
+        });
+      });
+
+      if (dlBtn) {
+        dlBtn.addEventListener('click', () => {
+          const link = document.createElement('a');
+          link.download = `smartswing-scorecard-${currentFmt}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        });
+      }
+
+      if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+          if (!navigator.share) { alert('Web Share API not available on this device/browser.'); return; }
+          canvas.toBlob(async (blob) => {
+            try {
+              const file = new File([blob], 'smartswing-scorecard.png', { type: 'image/png' });
+              await navigator.share({ title: 'My SmartSwing Score', files: [file] });
+            } catch (e) { /* user cancelled */ }
+          }, 'image/png');
+        });
+      }
+
+      // Inline canvas renderer (same output as dashboard, self-contained)
+      function drawAnalyzeScoreCard(canvas, item, fmt) {
+        const isStory = (fmt === 'story');
+        const CW = 1080, CH = isStory ? 1920 : 1080;
+        canvas.width  = CW;
+        canvas.height = CH;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, CW, CH);
+
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, CW, CH);
+
+        const grd = ctx.createRadialGradient(CW / 2, 0, 0, CW / 2, 0, CW * 0.65);
+        grd.addColorStop(0, 'rgba(57,255,20,0.22)');
+        grd.addColorStop(1, 'rgba(57,255,20,0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, CW, CH);
+
+        ctx.fillStyle = '#39ff14';
+        ctx.fillRect(0, 0, CW, 6);
+
+        const cx = CW / 2;
+        const topY = isStory ? 220 : 110;
+
+        ctx.font = '800 52px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#f5f5f7';
+        ctx.fillText('SmartSwing', cx - 18, topY);
+        const logoMeasure = ctx.measureText('SmartSwing');
+        ctx.fillStyle = '#39ff14';
+        ctx.beginPath();
+        ctx.arc(cx - 18 + logoMeasure.width / 2 + 22, topY - 14, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f5f5f7';
+        ctx.font = '800 52px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+        ctx.fillText('AI', cx - 18 + logoMeasure.width / 2 + 50, topY);
+
+        const ringY = isStory ? 640 : 510;
+        const ringR = isStory ? 210 : 190;
+        const score = item.overallScore || item.score || 0;
+
+        ctx.beginPath();
+        ctx.arc(cx, ringY, ringR, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 18;
+        ctx.stroke();
+
+        const startAngle = -Math.PI / 2;
+        const endAngle   = startAngle + (score / 100) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, ringY, ringR, startAngle, endAngle);
+        ctx.strokeStyle = '#39ff14';
+        ctx.lineWidth   = 18;
+        ctx.lineCap     = 'round';
+        ctx.stroke();
+
+        ctx.font = '900 ' + (isStory ? '210px' : '190px') + ' "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#39ff14';
+        ctx.fillText(String(score), cx, ringY + (isStory ? 75 : 68));
+
+        const belowRing = ringY + ringR + 44;
+        ctx.font = '600 32px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillStyle = 'rgba(238,243,247,0.7)';
+        ctx.fillText('SmartSwing Score', cx, belowRing);
+
+        const grade = item.grade || '—';
+        const gradeY = belowRing + 52;
+        const gradeW = 130, gradeH = 54, gradeRad = 27;
+        ctx.beginPath();
+        ctx.roundRect(cx - gradeW / 2, gradeY - gradeH + 12, gradeW, gradeH, gradeRad);
+        ctx.fillStyle = 'rgba(255,216,77,0.15)';
+        ctx.fill();
+        ctx.font = '800 34px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+        ctx.fillStyle = '#ffd84d';
+        ctx.fillText(grade, cx, gradeY + 4);
+
+        const shotDateY = gradeY + 58;
+        const shotType = capStr(item.shotType || 'swing');
+        const dateStr  = fmtDC(item.analyzedAt || item.createdAt || item.date);
+        ctx.font = '600 28px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillStyle = 'rgba(238,243,247,0.55)';
+        ctx.fillText(`${shotType}  ·  ${dateStr}`, cx, shotDateY);
+
+        const metrics = (item.metricComparisons || []).slice(0, 3);
+        const metricsStartY = shotDateY + (isStory ? 80 : 64);
+        const barMaxW = isStory ? 460 : 420;
+        const barH = 14;
+        metrics.forEach((m, i) => {
+          const my = metricsStartY + i * (isStory ? 90 : 74);
+          const mScore = Math.min(100, m.score || 0);
+          const label = capStr(m.metric || '');
+          ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+          ctx.fillStyle = '#f5f5f7';
+          ctx.textAlign = 'left';
+          ctx.fillText(label, cx - barMaxW / 2, my);
+          ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+          ctx.fillStyle = '#39ff14';
+          ctx.textAlign = 'right';
+          ctx.fillText(String(mScore), cx + barMaxW / 2, my);
+          ctx.fillStyle = 'rgba(255,255,255,0.08)';
+          ctx.beginPath();
+          ctx.roundRect(cx - barMaxW / 2, my + 8, barMaxW, barH, 7);
+          ctx.fill();
+          ctx.fillStyle = '#39ff14';
+          ctx.beginPath();
+          ctx.roundRect(cx - barMaxW / 2, my + 8, barMaxW * mScore / 100, barH, 7);
+          ctx.fill();
+        });
+
+        const footerY = CH - (isStory ? 80 : 60);
+        ctx.font = '500 24px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillStyle = 'rgba(238,243,247,0.3)';
+        ctx.textAlign = 'center';
+        ctx.fillText('Free AI swing analysis  ·  smartswingai.com', cx, footerY);
+
+        function capStr(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
+        function fmtDC(iso) { if (!iso) return ''; return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+      }
+
+      // Also expose so the outer generateReport wrapper can find it
+      window._analyzeDrawScoreCard = drawAnalyzeScoreCard;
+    })();
   </script>
 </body>
 </html>

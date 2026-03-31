@@ -37,6 +37,41 @@
     .detail-card summary::-webkit-details-marker{display:none}
     .detail-card .detail-body{padding:0 18px 18px;color:var(--muted);line-height:1.65}
     .hide{display:none!important}
+    /* ── Shot Filter Pills ── */
+    .shot-filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+    .shot-filter-pill{padding:5px 14px;border-radius:999px;font-size:12px;font-weight:800;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;transition:all .15s ease;text-transform:capitalize;}
+    .shot-filter-pill.active{background:rgba(57,255,20,.15);border-color:rgba(57,255,20,.4);color:var(--green);}
+    .shot-filter-pill:hover:not(.active){border-color:rgba(57,255,20,.2);color:var(--text);}
+    /* ── Compare Tab ── */
+    .compare-selects{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+    .compare-card{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+    .compare-side{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:18px;padding:18px;}
+    .compare-score{font-family:"Sora",sans-serif;font-size:42px;font-weight:800;line-height:1;}
+    .compare-grade-pill{display:inline-block;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:800;background:rgba(255,216,77,.12);color:var(--orange);margin:6px 0;}
+    .delta-chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:800;}
+    .delta-up{background:rgba(57,255,20,.15);color:#39ff14;}
+    .delta-down{background:rgba(255,82,82,.15);color:#ff5252;}
+    .delta-flat{background:rgba(255,255,255,.06);color:var(--muted);}
+    .metric-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+    .metric-table th{text-align:left;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--line);}
+    .metric-table td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+    .mini-bar-wrap{width:80px;height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;display:inline-block;vertical-align:middle;}
+    .mini-bar-fill{height:100%;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--orange));}
+    .best-improvement{margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.2);}
+    .best-improvement .bi-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:4px;}
+    /* ── Score Card Generator ── */
+    .sc-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px;}
+    .sc-controls label{flex:1;min-width:160px;}
+    .sc-format-btns{display:flex;gap:8px;}
+    .sc-fmt-btn{padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s ease;}
+    .sc-fmt-btn.active{border-color:rgba(57,255,20,.4);background:rgba(57,255,20,.12);color:var(--green);}
+    .sc-preview{max-width:360px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#0a0a0a;margin:0 auto 14px;}
+    .sc-preview canvas{display:block;width:100%;height:auto;}
+    .sc-action-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+    /* ── Score Card Modal (analyze.html) ── */
+    #scoreCardModal{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
+    .sc-modal-inner{background:#0d1b2a;border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:28px;max-width:440px;width:100%;}
+    .sc-modal-inner canvas{display:block;width:100%;height:auto;border-radius:10px;margin-bottom:14px;}
     /* ── Free Plan Referral Nudge ── */
     .free-nudge{display:none;background:linear-gradient(135deg,rgba(57,255,20,.06),rgba(0,212,170,.04));border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:24px;}
     .nudge-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
@@ -86,6 +121,7 @@
       <button class="tab" data-tab="library">Library</button>
       <button class="tab" data-tab="messages">Messaging</button>
       <button class="tab" data-tab="exports">Exports</button>
+      <button class="tab" data-tab="compare">Compare</button>
     </section>
 
     <section class="tab-panel active" id="tab-overview">
@@ -171,6 +207,40 @@
         <article class="panel"><h2>Export my data</h2><div class="list"><button class="btn" id="exportJsonBtn" type="button" onclick="exportDashboard('json')">Export JSON</button><button class="btn" id="exportCsvBtn" type="button" onclick="exportDashboard('csv')">Export CSV</button><button class="btn" id="printDashboardBtn" type="button" onclick="printDashboard()">Print dashboard</button></div></article>
         <article class="panel"><h2>Privacy and access</h2><div class="list" id="privacyList"></div></article>
       </div>
+    </section>
+
+    <section class="tab-panel" id="tab-compare">
+      <!-- Section A: Analysis Comparison -->
+      <article class="panel">
+        <h2>Before / After Comparison</h2>
+        <p class="muted" style="margin-bottom:16px;">Select two analyses to compare scores, grades, and biomechanics metrics side by side.</p>
+        <div class="compare-selects">
+          <div><label for="compareEarlier">Earlier Analysis</label><select id="compareEarlier"></select></div>
+          <div><label for="compareLater">Later Analysis</label><select id="compareLater"></select></div>
+        </div>
+        <div id="compareResult"></div>
+      </article>
+
+      <!-- Section B: Score Card Generator -->
+      <article class="panel">
+        <h2>Score Card Generator</h2>
+        <p class="muted" style="margin-bottom:16px;">Generate a shareable score card image for any analysis — square for posts, story for Instagram.</p>
+        <div class="sc-controls">
+          <div style="flex:1;min-width:160px;"><label for="scAnalysisPicker">Analysis</label><select id="scAnalysisPicker"></select></div>
+          <div>
+            <label>Format</label>
+            <div class="sc-format-btns">
+              <button class="sc-fmt-btn active" data-fmt="square" id="scFmtSquare">&#9632; Square (1:1)</button>
+              <button class="sc-fmt-btn" data-fmt="story" id="scFmtStory">&#9644; Story (9:16)</button>
+            </div>
+          </div>
+        </div>
+        <div class="sc-preview"><canvas id="scCanvas"></canvas></div>
+        <div class="sc-action-row">
+          <button class="btn primary" id="scDownloadBtn">&#8595; Download PNG</button>
+          <button class="btn" id="scShareBtn">&#8679; Share</button>
+        </div>
+      </article>
     </section>
   </div>
 
@@ -285,16 +355,13 @@
 
     document.getElementById('trendPill').textContent = latest ? `${metrics.improvement > 0 ? '+' : ''}${metrics.improvement} vs baseline` : 'No trend yet';
 
-    // ── Progress Timeline SVG ─────────────────────────────────────────────
+    // ── Progress Timeline SVG (enhanced with filter pills + PB highlight) ──
     (function renderTimeline() {
       const wrap = document.getElementById('timelineWrap');
       const legendEl = document.getElementById('shotLegend');
-      const pts = assessments.slice(0, 10).reverse(); // oldest→newest
+      const allPts = assessments.slice(0, 10).reverse(); // oldest→newest
 
-      if (!pts.length) {
-        wrap.innerHTML = '<div class="timeline-empty">Run your first analysis to start tracking your SmartSwing Score over time.</div>';
-        return;
-      }
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()); }
 
       const SHOT_COLORS = {
         forehand: '#39ff14', backhand: '#ffd84d', serve: '#00d4aa',
@@ -302,95 +369,160 @@
       };
       function shotColor(s) { return SHOT_COLORS[String(s || '').toLowerCase()] || '#9aa5b4'; }
 
-      const W = 600, H = 220;
-      const PAD = { top: 20, right: 24, bottom: 36, left: 40 };
-      const chartW = W - PAD.left - PAD.right;
-      const chartH = H - PAD.top - PAD.bottom;
-      const n = pts.length;
-
-      // Y axis: 0–100
-      const yMin = 0, yMax = 100;
-      function xPos(i) { return PAD.left + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW); }
-      function yPos(v) { return PAD.top + chartH - ((Math.min(100, Math.max(0, v)) - yMin) / (yMax - yMin)) * chartH; }
-
-      // Grid lines
-      const gridLines = [0, 25, 50, 75, 100].map((v) => {
-        const y = yPos(v);
-        return `<line x1="${PAD.left}" y1="${y}" x2="${W - PAD.right}" y2="${y}" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-                <text x="${PAD.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="rgba(255,255,255,.3)">${v}</text>`;
-      }).join('');
-
-      // Smooth polyline path (catmull-rom approximation via bezier)
-      function buildPath(points) {
-        if (points.length === 1) return `M ${points[0][0]},${points[0][1]}`;
-        let d = `M ${points[0][0]},${points[0][1]}`;
-        for (let i = 0; i < points.length - 1; i++) {
-          const x0 = i > 0 ? points[i - 1][0] : points[0][0];
-          const y0 = i > 0 ? points[i - 1][1] : points[0][1];
-          const x1 = points[i][0], y1 = points[i][1];
-          const x2 = points[i + 1][0], y2 = points[i + 1][1];
-          const x3 = i < points.length - 2 ? points[i + 2][0] : x2;
-          const y3 = i < points.length - 2 ? points[i + 2][1] : y2;
-          const cp1x = x1 + (x2 - x0) / 6;
-          const cp1y = y1 + (y2 - y0) / 6;
-          const cp2x = x2 - (x3 - x1) / 6;
-          const cp2y = y2 - (y3 - y1) / 6;
-          d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`;
-        }
-        return d;
+      if (!allPts.length) {
+        wrap.innerHTML = '<div class="timeline-empty">Run your first analysis to start tracking your SmartSwing Score over time.</div>';
+        return;
       }
 
-      const coords = pts.map((item, i) => [xPos(i), yPos(item.overallScore || 0)]);
-      const linePath = buildPath(coords);
+      // Build shot-type filter pills
+      const seenShots = [...new Set(allPts.map((p) => (p.shotType || 'forehand').toLowerCase()))];
+      let activeFilter = 'all';
 
-      // Area fill (gradient)
-      const areaPath = linePath + ` L ${coords[coords.length - 1][0]},${yPos(0)} L ${coords[0][0]},${yPos(0)} Z`;
+      function buildFilterPills() {
+        const row = document.createElement('div');
+        row.className = 'shot-filter-row';
+        row.id = 'shotFilterRow';
+        const allPill = document.createElement('button');
+        allPill.className = 'shot-filter-pill' + (activeFilter === 'all' ? ' active' : '');
+        allPill.textContent = 'All';
+        allPill.dataset.filter = 'all';
+        row.appendChild(allPill);
+        seenShots.forEach((shot) => {
+          const pill = document.createElement('button');
+          pill.className = 'shot-filter-pill' + (activeFilter === shot ? ' active' : '');
+          pill.textContent = cap(shot);
+          pill.dataset.filter = shot;
+          pill.style.borderColor = shotColor(shot) + '55';
+          row.appendChild(pill);
+        });
+        row.addEventListener('click', (e) => {
+          const btn = e.target.closest('.shot-filter-pill');
+          if (!btn) return;
+          activeFilter = btn.dataset.filter;
+          row.querySelectorAll('.shot-filter-pill').forEach((p) => p.classList.remove('active'));
+          btn.classList.add('active');
+          drawChart();
+        });
+        return row;
+      }
 
-      // Dots
-      const dots = pts.map((item, i) => {
-        const cx = xPos(i), cy = yPos(item.overallScore || 0);
-        const color = shotColor(item.shotType);
-        const score = item.overallScore || 0;
-        const dateStr = item.analyzedAt ? new Date(item.analyzedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : `#${i + 1}`;
-        return `<circle class="shot-dot" cx="${cx}" cy="${cy}" r="7" fill="${color}" stroke="rgba(10,10,10,.8)" stroke-width="2">
-                  <title>${cap(item.shotType || 'shot')}: ${score}% · ${dateStr}</title>
-                </circle>
-                <text x="${cx}" y="${H - PAD.bottom + 14}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.35)">${dateStr}</text>`;
-      }).join('');
+      function drawChart() {
+        const pts = activeFilter === 'all' ? allPts : allPts.filter((p) => (p.shotType || 'forehand').toLowerCase() === activeFilter);
+        const chartEl = document.getElementById('timelineChart');
+        const legendEl2 = document.getElementById('shotLegend');
 
-      // Trend indicator
-      const first = pts[0]?.overallScore || 0;
-      const last2 = pts[pts.length - 1]?.overallScore || 0;
-      const delta = last2 - first;
-      const trendColor = delta > 0 ? '#39ff14' : delta < 0 ? '#ff5252' : '#9aa5b4';
-      const trendText = delta > 0 ? `▲ +${delta} pts since first` : delta < 0 ? `▼ ${delta} pts since first` : '→ Stable';
-      document.getElementById('trendPill').textContent = trendText;
-      document.getElementById('trendPill').style.background = `${trendColor}18`;
-      document.getElementById('trendPill').style.color = trendColor;
+        if (!pts.length) {
+          chartEl.innerHTML = '<div class="timeline-empty">No analyses for this shot type yet.</div>';
+          legendEl2.innerHTML = '';
+          updateTrend(null);
+          return;
+        }
 
-      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()); }
+        const W = 600, H = 220;
+        const PAD = { top: 28, right: 24, bottom: 36, left: 40 };
+        const chartW = W - PAD.left - PAD.right;
+        const chartH = H - PAD.top - PAD.bottom;
+        const n = pts.length;
 
-      wrap.innerHTML = `
-        <svg class="timeline-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Progress timeline chart" role="img">
-          <defs>
-            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#39ff14" stop-opacity="0.18"/>
-              <stop offset="100%" stop-color="#39ff14" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          ${gridLines}
-          <path d="${areaPath}" fill="url(#areaGrad)"/>
-          <path d="${linePath}" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          ${dots}
-        </svg>`;
+        function xPos(i) { return PAD.left + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW); }
+        function yPos(v) { return PAD.top + chartH - ((Math.min(100, Math.max(0, v))) / 100) * chartH; }
 
-      // Legend
-      const seenShots = [...new Set(pts.map((p) => p.shotType || 'forehand'))];
-      legendEl.innerHTML = seenShots.map((shot) => `
-        <div class="shot-legend-item">
-          <div class="shot-legend-dot" style="background:${shotColor(shot)};"></div>
-          <span>${cap(shot)}</span>
-        </div>`).join('');
+        const gridLines = [0, 25, 50, 75, 100].map((v) => {
+          const y = yPos(v);
+          return `<line x1="${PAD.left}" y1="${y}" x2="${W - PAD.right}" y2="${y}" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                  <text x="${PAD.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="rgba(255,255,255,.3)">${v}</text>`;
+        }).join('');
+
+        function buildPath(points) {
+          if (points.length === 1) return `M ${points[0][0]},${points[0][1]}`;
+          let d = `M ${points[0][0]},${points[0][1]}`;
+          for (let i = 0; i < points.length - 1; i++) {
+            const x0 = i > 0 ? points[i - 1][0] : points[0][0];
+            const y0 = i > 0 ? points[i - 1][1] : points[0][1];
+            const x1 = points[i][0], y1 = points[i][1];
+            const x2 = points[i + 1][0], y2 = points[i + 1][1];
+            const x3 = i < points.length - 2 ? points[i + 2][0] : x2;
+            const y3 = i < points.length - 2 ? points[i + 2][1] : y2;
+            const cp1x = x1 + (x2 - x0) / 6;
+            const cp1y = y1 + (y2 - y0) / 6;
+            const cp2x = x2 - (x3 - x1) / 6;
+            const cp2y = y2 - (y3 - y1) / 6;
+            d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`;
+          }
+          return d;
+        }
+
+        const coords = pts.map((item, i) => [xPos(i), yPos(item.overallScore || 0)]);
+        const linePath = buildPath(coords);
+        const areaPath = linePath + ` L ${coords[coords.length - 1][0]},${yPos(0)} L ${coords[0][0]},${yPos(0)} Z`;
+
+        // Find personal best index
+        let pbIdx = 0;
+        pts.forEach((item, i) => { if ((item.overallScore || 0) > (pts[pbIdx].overallScore || 0)) pbIdx = i; });
+
+        const dots = pts.map((item, i) => {
+          const cx = xPos(i), cy = yPos(item.overallScore || 0);
+          const color = shotColor(item.shotType);
+          const score = item.overallScore || 0;
+          const dateStr = (item.analyzedAt || item.createdAt)
+            ? new Date(item.analyzedAt || item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : `#${i + 1}`;
+          const isPB = (i === pbIdx);
+          const scoreLabel = (n <= 10) ? `<text x="${cx}" y="${cy - 12}" text-anchor="middle" font-size="10" font-weight="800" fill="${color}">${score}</text>` : '';
+          const pbRing = isPB
+            ? `<circle cx="${cx}" cy="${cy}" r="12" fill="none" stroke="#ffd84d" stroke-width="2.5" opacity="0.9"/>
+               <text x="${cx}" y="${cy - 18}" text-anchor="middle" font-size="9" font-weight="800" fill="#ffd84d">PB</text>`
+            : '';
+          return `${pbRing}
+                  <circle class="shot-dot" cx="${cx}" cy="${cy}" r="7" fill="${color}" stroke="rgba(10,10,10,.8)" stroke-width="2">
+                    <title>${cap(item.shotType || 'shot')}: ${score}% · ${dateStr}</title>
+                  </circle>
+                  ${scoreLabel}
+                  <text x="${cx}" y="${H - PAD.bottom + 14}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.35)">${dateStr}</text>`;
+        }).join('');
+
+        updateTrend(pts);
+
+        chartEl.innerHTML = `
+          <svg class="timeline-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="Progress timeline chart" role="img">
+            <defs>
+              <linearGradient id="areaGrad2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#39ff14" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#39ff14" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            ${gridLines}
+            <path d="${areaPath}" fill="url(#areaGrad2)"/>
+            <path d="${linePath}" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            ${dots}
+          </svg>`;
+
+        const activeShotTypes = [...new Set(pts.map((p) => p.shotType || 'forehand'))];
+        legendEl2.innerHTML = activeShotTypes.map((shot) => `
+          <div class="shot-legend-item">
+            <div class="shot-legend-dot" style="background:${shotColor(shot)};"></div>
+            <span>${cap(shot)}</span>
+          </div>`).join('');
+      }
+
+      function updateTrend(pts) {
+        const pill = document.getElementById('trendPill');
+        if (!pts || !pts.length) { pill.textContent = 'No trend yet'; pill.style.background = ''; pill.style.color = ''; return; }
+        const first = pts[0]?.overallScore || 0;
+        const last2 = pts[pts.length - 1]?.overallScore || 0;
+        const delta = last2 - first;
+        const trendColor = delta > 0 ? '#39ff14' : delta < 0 ? '#ff5252' : '#9aa5b4';
+        const trendText = delta > 0 ? `▲ +${delta} pts since first` : delta < 0 ? `▼ ${delta} pts since first` : '→ Stable';
+        pill.textContent = trendText;
+        pill.style.background = `${trendColor}18`;
+        pill.style.color = trendColor;
+      }
+
+      // Insert filter pills then chart container
+      const filterRow = buildFilterPills();
+      wrap.parentElement.insertBefore(filterRow, wrap);
+      wrap.innerHTML = '<div id="timelineChart"></div>';
+      drawChart();
     })();
 
     document.getElementById('priorityList').innerHTML = (latest?.metricComparisons || []).slice(0, 3).map((item, index) => `<details class="detail-card" ${index === 0 ? 'open' : ''}><summary><div><div class="mini">Priority ${index + 1}</div><h3>${item.metric.replace(/^\w/, (c) => c.toUpperCase())}</h3></div><div class="pill">${Math.min(100, Math.round(item.score || 0))}%</div></summary><div class="detail-body">${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees. Open this card during review to explain why it matters and what should change next in practice.</div></details>`).join('') || '<div class="card"><p class="muted">Biomechanics priorities will appear after your first report.</p></div>';
@@ -480,6 +612,373 @@
         button.style.opacity = '0.65';
       });
     }
+
+    // ── Before / After Comparison ─────────────────────────────────────────
+    (function initCompare() {
+      const allA = assessments.slice(); // newest first from store
+      if (!allA.length) {
+        const res = document.getElementById('compareResult');
+        if (res) res.innerHTML = '<div class="card"><p class="muted">Run at least one analysis to use the comparison view.</p></div>';
+        return;
+      }
+
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
+
+      function optLabel(item) {
+        const d = fmtDate(item.analyzedAt || item.createdAt);
+        const shot = cap(item.shotType || 'shot');
+        const score = item.overallScore || 0;
+        return `${d} · ${shot} · ${score}/100`;
+      }
+
+      const earlierSel = document.getElementById('compareEarlier');
+      const laterSel   = document.getElementById('compareLater');
+      if (!earlierSel || !laterSel) return;
+
+      // Oldest first for earlier, newest first for later
+      const byOldest = allA.slice().reverse();
+      byOldest.forEach((item, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = optLabel(item);
+        earlierSel.appendChild(opt);
+      });
+      allA.forEach((item, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = optLabel(item);
+        laterSel.appendChild(opt);
+      });
+
+      // Default: earliest vs latest
+      earlierSel.value = '0';
+      laterSel.value   = '0';
+
+      function gradeColor(g) {
+        const s = String(g || '').toUpperCase();
+        if (s.startsWith('A')) return '#39ff14';
+        if (s.startsWith('B')) return '#ffd84d';
+        if (s.startsWith('C')) return '#fb923c';
+        return '#9aa5b4';
+      }
+
+      function renderCompare() {
+        const eItem = byOldest[parseInt(earlierSel.value, 10)];
+        const lItem = allA[parseInt(laterSel.value, 10)];
+        const res   = document.getElementById('compareResult');
+        if (!res) return;
+        if (!eItem || !lItem) { res.innerHTML = ''; return; }
+
+        const eScore = eItem.overallScore || 0;
+        const lScore = lItem.overallScore || 0;
+        const scoreDelta = lScore - eScore;
+        const deltaClass = scoreDelta > 0 ? 'delta-up' : scoreDelta < 0 ? 'delta-down' : 'delta-flat';
+        const deltaText  = scoreDelta > 0 ? `↑ +${scoreDelta} pts` : scoreDelta < 0 ? `↓ ${scoreDelta} pts` : '→ No change';
+
+        // Merge metrics from both sides
+        const eMetrics = (eItem.metricComparisons || []);
+        const lMetrics = (lItem.metricComparisons || []);
+        const allMetricNames = [...new Set([...eMetrics.map(m => m.metric), ...lMetrics.map(m => m.metric)])];
+
+        let bestImprovement = null, bestDelta = -Infinity;
+        const metricRows = allMetricNames.slice(0, 8).map(name => {
+          const eM = eMetrics.find(m => m.metric === name) || { score: 0 };
+          const lM = lMetrics.find(m => m.metric === name) || { score: 0 };
+          const d  = (lM.score || 0) - (eM.score || 0);
+          if (d > bestDelta) { bestDelta = d; bestImprovement = { name, d }; }
+          const dChip = d > 0
+            ? `<span class="delta-chip delta-up">+${d}</span>`
+            : d < 0
+            ? `<span class="delta-chip delta-down">${d}</span>`
+            : `<span class="delta-chip delta-flat">—</span>`;
+          return `<tr>
+            <td>${cap(name)}</td>
+            <td><div class="mini-bar-wrap"><div class="mini-bar-fill" style="width:${eM.score||0}%"></div></div> <span style="font-size:12px;color:var(--muted)">${eM.score||0}</span></td>
+            <td><div class="mini-bar-wrap"><div class="mini-bar-fill" style="width:${lM.score||0}%"></div></div> <span style="font-size:12px;color:var(--muted)">${lM.score||0}</span></td>
+            <td>${dChip}</td>
+          </tr>`;
+        }).join('');
+
+        const bestHtml = bestImprovement && bestImprovement.d > 0
+          ? `<div class="best-improvement"><div class="bi-label">Biggest improvement</div><strong>${cap(bestImprovement.name)}</strong> improved by <strong style="color:var(--green)">+${bestImprovement.d} pts</strong></div>`
+          : '';
+
+        res.innerHTML = `
+          <div class="compare-card">
+            <div class="compare-side">
+              <div class="mini" style="margin-bottom:6px;">Earlier</div>
+              <div class="compare-score" style="color:var(--muted)">${eScore}</div>
+              <div><span class="compare-grade-pill" style="background:${gradeColor(eItem.grade)}22;color:${gradeColor(eItem.grade)}">${eItem.grade || '—'}</span></div>
+              <div style="font-size:13px;color:var(--muted);margin-top:4px;">${cap(eItem.shotType || 'shot')} · ${fmtDate(eItem.analyzedAt || eItem.createdAt)}</div>
+            </div>
+            <div class="compare-side">
+              <div class="mini" style="margin-bottom:6px;">Later <span class="delta-chip ${deltaClass}" style="margin-left:6px;">${deltaText}</span></div>
+              <div class="compare-score" style="color:var(--green)">${lScore}</div>
+              <div><span class="compare-grade-pill" style="background:${gradeColor(lItem.grade)}22;color:${gradeColor(lItem.grade)}">${lItem.grade || '—'}</span></div>
+              <div style="font-size:13px;color:var(--muted);margin-top:4px;">${cap(lItem.shotType || 'shot')} · ${fmtDate(lItem.analyzedAt || lItem.createdAt)}</div>
+            </div>
+          </div>
+          ${allMetricNames.length ? `
+          <div style="overflow-x:auto">
+            <table class="metric-table">
+              <thead><tr><th>Metric</th><th>Earlier</th><th>Later</th><th>Delta</th></tr></thead>
+              <tbody>${metricRows}</tbody>
+            </table>
+          </div>` : ''}
+          ${bestHtml}`;
+      }
+
+      earlierSel.addEventListener('change', renderCompare);
+      laterSel.addEventListener('change', renderCompare);
+      renderCompare();
+    })();
+
+    // ── Score Card Generator ──────────────────────────────────────────────
+    (function initScoreCard() {
+      const allA = assessments.slice();
+      const picker  = document.getElementById('scAnalysisPicker');
+      const canvas  = document.getElementById('scCanvas');
+      const dlBtn   = document.getElementById('scDownloadBtn');
+      const shareBtn = document.getElementById('scShareBtn');
+      if (!picker || !canvas) return;
+
+      let currentFmt = 'square'; // 'square' | 'story'
+
+      function fmtDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
+
+      // Populate picker (newest first)
+      allA.forEach((item, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const d = fmtDate(item.analyzedAt || item.createdAt);
+        opt.textContent = `${d} · ${cap(item.shotType || 'shot')} · ${item.overallScore || 0}/100`;
+        picker.appendChild(opt);
+      });
+
+      document.querySelectorAll('.sc-fmt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sc-fmt-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFmt = btn.dataset.fmt;
+          triggerRender();
+        });
+      });
+
+      picker.addEventListener('change', triggerRender);
+
+      function triggerRender() {
+        const item = allA[parseInt(picker.value, 10)] || allA[0];
+        if (!item) return;
+        document.fonts.ready.then(() => drawScoreCard(canvas, item, currentFmt));
+      }
+
+      // Initial render after fonts load
+      if (allA.length) {
+        document.fonts.ready.then(() => drawScoreCard(canvas, allA[0], currentFmt));
+      } else {
+        canvas.width = 1080; canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, 1080, 1080);
+        ctx.fillStyle = 'rgba(255,255,255,.35)';
+        ctx.font = '600 32px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Run your first analysis to generate a score card.', 540, 540);
+      }
+
+      if (dlBtn) {
+        dlBtn.addEventListener('click', () => {
+          const link = document.createElement('a');
+          link.download = `smartswing-scorecard-${currentFmt}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        });
+      }
+      if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+          if (!navigator.share) { alert('Web Share API not available on this device/browser.'); return; }
+          canvas.toBlob(async (blob) => {
+            try {
+              const file = new File([blob], 'smartswing-scorecard.png', { type: 'image/png' });
+              await navigator.share({ title: 'My SmartSwing Score', files: [file] });
+            } catch (e) { /* user cancelled */ }
+          }, 'image/png');
+        });
+      }
+    })();
+
+    // ── Shared canvas draw function (used by dashboard + modal) ──────────
+    window._drawSmartSwingScoreCard = function drawScoreCard(canvas, item, fmt) {
+      const isStory = (fmt === 'story');
+      const CW = 1080, CH = isStory ? 1920 : 1080;
+      canvas.width  = CW;
+      canvas.height = CH;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, CW, CH);
+
+      // Background
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(0, 0, CW, CH);
+
+      // Radial green glow at top center
+      const grd = ctx.createRadialGradient(CW / 2, 0, 0, CW / 2, 0, CW * 0.65);
+      grd.addColorStop(0, 'rgba(57,255,20,0.22)');
+      grd.addColorStop(1, 'rgba(57,255,20,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, CW, CH);
+
+      // Top accent bar (volt green, 4px)
+      ctx.fillStyle = '#39ff14';
+      ctx.fillRect(0, 0, CW, 6);
+
+      const cx = CW / 2;
+      const topY = isStory ? 220 : 110;
+
+      // Logo
+      ctx.font = '800 52px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#f5f5f7';
+      ctx.fillText('SmartSwing', cx - 18, topY);
+      // Green dot after logo
+      ctx.fillStyle = '#39ff14';
+      const logoMeasure = ctx.measureText('SmartSwing');
+      ctx.beginPath();
+      ctx.arc(cx - 18 + logoMeasure.width / 2 + 22, topY - 14, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f5f5f7';
+      ctx.font = '800 52px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.fillText('AI', cx - 18 + logoMeasure.width / 2 + 50, topY);
+
+      // Score ring center Y
+      const ringY = isStory ? 640 : 510;
+      const ringR = isStory ? 210 : 190;
+      const score = item.overallScore || item.score || 0;
+
+      // Ring background (dark full circle)
+      ctx.beginPath();
+      ctx.arc(cx, ringY, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 18;
+      ctx.stroke();
+
+      // Ring arc (volt green, score % of full circle)
+      const startAngle = -Math.PI / 2;
+      const endAngle   = startAngle + (score / 100) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(cx, ringY, ringR, startAngle, endAngle);
+      ctx.strokeStyle = '#39ff14';
+      ctx.lineWidth   = 18;
+      ctx.lineCap     = 'round';
+      ctx.stroke();
+
+      // Score number (large, volt green)
+      ctx.font = '900 ' + (isStory ? '210px' : '190px') + ' "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#39ff14';
+      ctx.fillText(String(score), cx, ringY + (isStory ? 75 : 68));
+
+      // "SmartSwing Score" label
+      const belowRing = ringY + ringR + 44;
+      ctx.font = '600 32px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(238,243,247,0.7)';
+      ctx.fillText('SmartSwing Score', cx, belowRing);
+
+      // Grade pill
+      const grade = item.grade || '—';
+      const gradeY = belowRing + 52;
+      const gradeW = 130, gradeH = 54, gradeR = 27;
+      ctx.beginPath();
+      ctx.roundRect(cx - gradeW / 2, gradeY - gradeH + 12, gradeW, gradeH, gradeR);
+      ctx.fillStyle = 'rgba(255,216,77,0.15)';
+      ctx.fill();
+      ctx.font = '800 34px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.fillStyle = '#ffd84d';
+      ctx.fillText(grade, cx, gradeY + 4);
+
+      // Shot type + date
+      const shotDateY = gradeY + 58;
+      const shotType = cap(item.shotType || 'swing');
+      const dateStr  = fmtDateCard(item.analyzedAt || item.createdAt || item.date);
+      ctx.font = '600 28px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(238,243,247,0.55)';
+      ctx.fillText(`${shotType}  ·  ${dateStr}`, cx, shotDateY);
+
+      // Top 3 metrics
+      const metrics = (item.metricComparisons || []).slice(0, 3);
+      const metricsStartY = shotDateY + (isStory ? 80 : 64);
+      const barMaxW = isStory ? 460 : 420;
+      const barH = 14;
+      metrics.forEach((m, i) => {
+        const my = metricsStartY + i * (isStory ? 90 : 74);
+        const mScore = Math.min(100, m.score || 0);
+        const label = cap(m.metric || '');
+
+        ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillStyle = '#f5f5f7';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, cx - barMaxW / 2, my);
+
+        ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.fillStyle = '#39ff14';
+        ctx.textAlign = 'right';
+        ctx.fillText(String(mScore), cx + barMaxW / 2, my);
+
+        // Bar background
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.beginPath();
+        ctx.roundRect(cx - barMaxW / 2, my + 8, barMaxW, barH, 7);
+        ctx.fill();
+
+        // Bar fill
+        ctx.fillStyle = '#39ff14';
+        ctx.beginPath();
+        ctx.roundRect(cx - barMaxW / 2, my + 8, barMaxW * mScore / 100, barH, 7);
+        ctx.fill();
+      });
+
+      // Footer
+      const footerY = CH - (isStory ? 80 : 60);
+      ctx.font = '500 24px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(238,243,247,0.3)';
+      ctx.textAlign = 'center';
+      ctx.fillText('Free AI swing analysis  ·  smartswingai.com', cx, footerY);
+
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
+      function fmtDateCard(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    };
+
+    // Wire up the shared draw fn to the dashboard canvas
+    (function wireDashboardCanvas() {
+      const allA = assessments.slice();
+      const canvas = document.getElementById('scCanvas');
+      if (!canvas || !allA.length) return;
+      const picker = document.getElementById('scAnalysisPicker');
+      let currentFmt = 'square';
+
+      function redraw() {
+        const item = allA[parseInt(picker ? picker.value : '0', 10)] || allA[0];
+        if (!item) return;
+        window._drawSmartSwingScoreCard(canvas, item, currentFmt);
+      }
+
+      document.querySelectorAll('.sc-fmt-btn').forEach(btn => {
+        btn.addEventListener('click', () => { currentFmt = btn.dataset.fmt; redraw(); });
+      });
+      if (picker) picker.addEventListener('change', redraw);
+
+      document.fonts.ready.then(redraw);
+    })();
   </script>
 </body>
 </html>
