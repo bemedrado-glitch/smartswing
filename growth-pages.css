@@ -68,7 +68,7 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 68px;
+  height: 84px;
   gap: 24px;
   width: var(--page);
   margin: 0 auto;
@@ -85,8 +85,8 @@ a { color: inherit; }
 .brand .dot { color: var(--volt); }
 
 .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 64px; width: auto; }
-.footer-logo { height: 50px; width: auto; }
+.brand-logo { height: 80px; width: auto; }
+.footer-logo { height: 64px; width: auto; }
 
 .nav-links {
   display: flex;
@@ -127,7 +127,7 @@ a { color: inherit; }
 .btn-ghost:hover { border-color: rgba(255, 255, 255, 0.4); }
 
 /* Main offset for fixed nav */
-main, .main-content { padding-top: 80px; }
+main, .main-content { padding-top: 96px; }
 
 .btn,
 .btn-primary,
