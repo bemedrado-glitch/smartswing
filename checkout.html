@@ -167,16 +167,53 @@
     }
 
     /* Payment badges */
-    .payments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 16px; }
+    .payments { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
     .payment-badge {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 14px 12px;
-      background: rgba(255,255,255,0.04);
-      text-align: center;
-      font-weight: 800;
-      transition: transform 180ms ease, border-color 180ms ease;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 0 14px;
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      min-width: 68px;
+      transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+      cursor: default;
     }
+    .payment-badge:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.25);
+      transform: translateY(-1px);
+    }
+    .payment-badge svg { display: block; }
+    /* Trust / Security badges */
+    .security-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 0.02em;
+      transition: border-color 180ms;
+    }
+    .trust-badge:hover { border-color: rgba(255,255,255,0.22); }
+    .trust-badge svg { flex-shrink: 0; }
+    .trust-badge .tb-label { display: flex; flex-direction: column; line-height: 1.2; }
+    .trust-badge .tb-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.45); margin-top: 1px; }
 
     /* Checkout form area */
     .checkout-box { display: grid; gap: 14px; margin-top: 18px; }
@@ -300,15 +337,70 @@
             <div class="micro" id="accountCopy">Sign in to continue with your selected plan.</div>
           </div>
           <div class="payments">
-            <div class="payment-badge">Visa</div>
-            <div class="payment-badge">Mastercard</div>
-            <div class="payment-badge">American Express</div>
-            <div class="payment-badge">Discover</div>
-            <div class="payment-badge">Apple Pay</div>
-            <div class="payment-badge">Google Pay</div>
-            <div class="payment-badge">Link</div>
-            <div class="payment-badge">Cash App Pay</div>
-            <div class="payment-badge">PayPal</div>
+            <!-- Visa -->
+            <div class="payment-badge" title="Visa">
+              <svg width="46" height="16" viewBox="0 0 46 16" fill="none" aria-label="Visa">
+                <text x="0" y="14" font-family="Arial,sans-serif" font-weight="900" font-style="italic" font-size="17" fill="#fff" letter-spacing="-0.5">VISA</text>
+              </svg>
+            </div>
+            <!-- Mastercard -->
+            <div class="payment-badge" title="Mastercard">
+              <svg width="42" height="26" viewBox="0 0 42 26" fill="none" aria-label="Mastercard">
+                <circle cx="14" cy="13" r="13" fill="#EB001B"/>
+                <circle cx="28" cy="13" r="13" fill="#F79E1B"/>
+                <path d="M21 3.9a13 13 0 0 1 0 18.2A13 13 0 0 1 21 3.9z" fill="#FF5F00"/>
+              </svg>
+            </div>
+            <!-- American Express -->
+            <div class="payment-badge" title="American Express">
+              <svg width="50" height="18" viewBox="0 0 50 18" fill="none" aria-label="American Express">
+                <text x="0" y="14" font-family="Arial,sans-serif" font-weight="800" font-size="13" fill="#2E77BC" letter-spacing="1">AMEX</text>
+              </svg>
+            </div>
+            <!-- Discover -->
+            <div class="payment-badge" title="Discover">
+              <svg width="82" height="22" viewBox="0 0 82 22" fill="none" aria-label="Discover">
+                <text x="0" y="15" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#fff" letter-spacing="0.5">DISCOVER</text>
+                <circle cx="75" cy="11" r="10" fill="#F76F20"/>
+              </svg>
+            </div>
+            <!-- Apple Pay -->
+            <div class="payment-badge" title="Apple Pay">
+              <svg width="54" height="22" viewBox="0 0 54 22" fill="none" aria-label="Apple Pay">
+                <path d="M11.2 5.4c-.7.8-1.8 1.5-2.9 1.4-.1-1.1.4-2.3 1.1-3 .7-.9 1.9-1.5 2.9-1.5.1 1.2-.3 2.3-1.1 3.1zm1 1.6c-1.6-.1-3 .9-3.8.9-.8 0-2-.8-3.3-.8-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.5 3.2 2.5 1.3-.1 1.8-.8 3.3-.8 1.5 0 1.9.8 3.3.8 1.4 0 2.3-1.3 3.1-2.5.6-.9 1-1.9 1.3-2.9-3.2-1.2-3.7-5.7-.4-7.2-.9-1.1-2.2-1.7-3.8-1.7z" fill="white"/>
+                <text x="20" y="16" font-family="Arial,sans-serif" font-weight="600" font-size="14" fill="white">Pay</text>
+              </svg>
+            </div>
+            <!-- Google Pay -->
+            <div class="payment-badge" title="Google Pay">
+              <svg width="60" height="24" viewBox="0 0 60 24" fill="none" aria-label="Google Pay">
+                <text x="0" y="17" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#4285F4">G</text>
+                <text x="12" y="17" font-family="Arial,sans-serif" font-weight="500" font-size="15" fill="#fff">Pay</text>
+              </svg>
+            </div>
+            <!-- Stripe Link -->
+            <div class="payment-badge" title="Link by Stripe">
+              <svg width="44" height="20" viewBox="0 0 44 20" fill="none" aria-label="Link">
+                <rect x="0" y="1" width="18" height="18" rx="4" fill="#00D4FF" opacity="0.85"/>
+                <text x="3" y="15" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#0a0a0a">L</text>
+                <text x="22" y="15" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#00D4FF">link</text>
+              </svg>
+            </div>
+            <!-- Cash App Pay -->
+            <div class="payment-badge" title="Cash App Pay">
+              <svg width="78" height="22" viewBox="0 0 78 22" fill="none" aria-label="Cash App Pay">
+                <rect x="0" y="1" width="20" height="20" rx="5" fill="#00D64F"/>
+                <text x="4" y="16" font-family="Arial,sans-serif" font-weight="900" font-size="15" fill="#fff">$</text>
+                <text x="26" y="15" font-family="Arial,sans-serif" font-weight="700" font-size="12" fill="#fff">Cash App</text>
+              </svg>
+            </div>
+            <!-- PayPal -->
+            <div class="payment-badge" title="PayPal">
+              <svg width="62" height="22" viewBox="0 0 62 22" fill="none" aria-label="PayPal">
+                <text x="0" y="15" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#009CDE">Pay</text>
+                <text x="28" y="15" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#003087">Pal</text>
+              </svg>
+            </div>
           </div>
           <form id="checkoutForm" class="checkout-box">
             <div id="checkoutFlow"></div>
@@ -320,11 +412,11 @@
           <div class="trust-list">
             <div class="summary-card">
               <strong>Bank-level encryption</strong>
-              Your payment details are handled entirely by Stripe. SmartSwing never touches your card data.
+              Your payment details are handled entirely by Stripe. SmartSwing never sees or stores your card data.
             </div>
             <div class="summary-card">
               <strong>Cancel anytime</strong>
-              No lock-in. Manage or cancel your subscription from your account settings at any time.
+              No contracts, no lock-in. Manage or cancel your subscription from account settings at any time.
             </div>
             <div class="summary-card">
               <strong>Instant access</strong>
@@ -332,14 +424,69 @@
             </div>
           </div>
 
-          <div class="secure-grid">
+          <!-- Security trust badges -->
+          <div class="security-strip">
+            <!-- Stripe -->
+            <div class="trust-badge" title="Payments powered and secured by Stripe">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <rect width="18" height="18" rx="4" fill="#635BFF"/>
+                <path d="M7.5 6.8c0-.5.4-.7.9-.7.8 0 1.7.3 2.4.7V4.5A6.2 6.2 0 0 0 8.4 4C6.5 4 5.2 5 5.2 6.9c0 2.9 3.8 2.4 3.8 3.6 0 .6-.5.8-1 .8-.9 0-2-.4-2.8-.9V13c.9.4 1.9.6 2.8.6 2 0 3.3-.9 3.3-2.9-.1-3-3.8-2.6-3.8-3.9z" fill="white"/>
+              </svg>
+              <div class="tb-label">Stripe Secured<span class="tb-sub">Payment processor</span></div>
+            </div>
+            <!-- SSL / TLS -->
+            <div class="trust-badge" title="256-bit TLS encryption">
+              <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
+                <path d="M8 1L1 4v5c0 4 3 7.4 7 8 4-.6 7-4 7-8V4L8 1z" fill="none" stroke="#39ff14" stroke-width="1.5"/>
+                <rect x="5" y="8" width="6" height="5" rx="1" fill="#39ff14" opacity="0.9"/>
+                <circle cx="8" cy="8" r="1.5" fill="#0a0a0a"/>
+                <line x1="8" y1="9.5" x2="8" y2="11.5" stroke="#0a0a0a" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+              <div class="tb-label">256-bit TLS<span class="tb-sub">Encrypted connection</span></div>
+            </div>
+            <!-- PCI DSS -->
+            <div class="trust-badge" title="PCI DSS Level 1 compliance via Stripe">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <rect x="1" y="1" width="16" height="16" rx="3" stroke="#60a5fa" stroke-width="1.5" fill="none"/>
+                <path d="M5 9l2.5 2.5L13 6" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="tb-label">PCI DSS Level 1<span class="tb-sub">Compliance via Stripe</span></div>
+            </div>
+            <!-- No data stored -->
+            <div class="trust-badge" title="SmartSwing never stores card data">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="8" stroke="#a78bfa" stroke-width="1.5" fill="none"/>
+                <path d="M6 6l6 6M12 6l-6 6" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+              <div class="tb-label">Zero card storage<span class="tb-sub">We never see your card</span></div>
+            </div>
+            <!-- SOC 2 -->
+            <div class="trust-badge" title="SOC 2 Type II certified via Stripe infrastructure">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <polygon points="9,1 17,5 17,13 9,17 1,13 1,5" stroke="#2dd4bf" stroke-width="1.5" fill="none"/>
+                <text x="5" y="12" font-family="Arial" font-weight="900" font-size="7" fill="#2dd4bf">SOC</text>
+              </svg>
+              <div class="tb-label">SOC 2 Type II<span class="tb-sub">via Stripe infrastructure</span></div>
+            </div>
+            <!-- Money back / cancel -->
+            <div class="trust-badge" title="Cancel anytime, no questions asked">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 2a7 7 0 1 1 0 14A7 7 0 0 1 9 2z" stroke="#ffd84d" stroke-width="1.5" fill="none"/>
+                <path d="M6 9.5c.5 1.5 2 2.5 3.5 2.5S12 11 12 9c0-1.5-1.5-2.5-3-2.5" stroke="#ffd84d" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+                <path d="M6.5 7.5L6 9.5l2-.5" stroke="#ffd84d" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="tb-label">Cancel anytime<span class="tb-sub">No questions asked</span></div>
+            </div>
+          </div>
+
+          <div class="secure-grid" style="margin-top:16px;">
             <div class="summary-card">
               <strong>Billing support</strong>
-              Cancel anytime from the billing portal when available.
+              Manage or cancel from the self-service billing portal in Settings.
             </div>
             <div class="summary-card">
               <strong>Questions?</strong>
-              <a href="./contact.html">Contact support</a> before completing checkout.
+              <a href="./contact.html" style="color:var(--volt);">Contact support</a> before completing checkout.
             </div>
           </div>
         </article>
