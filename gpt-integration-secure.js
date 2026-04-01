@@ -188,51 +188,50 @@ async function handleStreamingResponse(response) {
 // ============================================================================
 
 function getSystemPrompt() {
-  return `You are an expert tennis biomechanics coach with 20+ years of ATP/WTA experience.
+  return `You are a friendly tennis coach writing a short feedback card for a player. Use simple, encouraging words — imagine explaining to a 10-year-old. Be honest AND motivating. Never use jargon.
 
-Analyze swing data and provide:
-1. TECHNICAL ASSESSMENT (2-3 sentences)
-2. PRIORITY IMPROVEMENTS (Top 3 with specific targets)
-3. TRAINING DRILLS (3-4 specific drills with frequency)
-4. PRO COMPARISON (Which pro they resemble and why)
+Return your feedback using EXACTLY these labeled lines, one label per line, nothing else:
+NAILED: [one specific thing the player is doing really well — celebrate it]
+FIX: [the single most important thing to work on this week — one clear action only]
+WHY: [one simple sentence explaining why fixing that one thing helps their game]
+HOW: [one easy-to-follow tip for how to fix it — plain English]
+FOOTWORK: [honest one-sentence comment on their footwork and one simple tip to improve it]
+PLAYING_HEIGHT: [one sentence on how well they meet the ball at the right height, with a simple tip]
+GRIP_NOTE: [one short observation about grip impact if detectable, or write: Grip looks good — keep it relaxed]
+DRILL: [name of one single drill to practice this week]
+DRILL_STEPS: [2-3 simple steps to do the drill, plain English, separated by " / "]
+DRILL_REPS: [how many reps/sets, e.g. "3 sets of 10 balls"]
+NEXT_GOAL: [one SMART goal for their next session, e.g. "Hit 8 out of 10 forehands with a full follow-through at waist height"]
 
-Format with clear headers and bullet points.
-Be specific with numbers and techniques.
-Tailor advice to skill level and age.
-Keep tone motivating and actionable.`;
+Rules: No jargon. No long paragraphs. One idea per labeled line. Be honest but encouraging.`;
 }
 
 function buildAnalysisPrompt(sessionData, userProfile) {
-  return `Analyze this tennis swing:
+  const kpis = sessionData.summary.performanceKpis || {};
+  return `Give me a coaching feedback card for this tennis player. Follow the exact output format from your instructions.
 
-**PLAYER PROFILE:**
-- Age: ${userProfile.age_range || 'Not specified'}
-- Gender: ${userProfile.gender || 'Not specified'}
-- USTA Level: ${userProfile.usta_level || 'Not specified'}
-- UTR Rating: ${userProfile.utr_rating || 'Not specified'}
-- Preferred Hand: ${userProfile.preferred_hand || 'Right'}
+**PLAYER:**
+- Age group: ${userProfile.age_range || 'Not specified'}
+- Level: ${userProfile.usta_level || 'Intermediate'}
+- Dominant hand: ${userProfile.preferred_hand || 'Right'}
 
-**SWING DATA:**
-- Shot Type: ${sessionData.summary.shotType}
-- Overall Score: ${sessionData.summary.score}/100
+**THEIR SWING:**
+- Shot: ${sessionData.summary.shotType}
+- Score: ${sessionData.summary.score}/100
 - Grade: ${sessionData.summary.grade}
-- Percentile: Top ${sessionData.summary.percentile}%
 
-**BIOMECHANICS:**
-- Shoulder Angle: ${Math.round(sessionData.summary.avgAngles.shoulder)}° (optimal: 105°)
-- Elbow Angle: ${Math.round(sessionData.summary.avgAngles.elbow)}° (optimal: 147°)
-- Hip Angle: ${Math.round(sessionData.summary.avgAngles.hip)}° (optimal: 165°)
-- Knee Angle: ${Math.round(sessionData.summary.avgAngles.knee)}° (optimal: 165°)
-- Trunk Rotation: ${Math.round(sessionData.summary.avgAngles.trunk)}° (optimal: 15°)
-- Wrist Angle: ${Math.round(sessionData.summary.avgAngles.wrist)}°
+**BODY ANGLES (measured vs ideal):**
+- Shoulder: ${Math.round(sessionData.summary.avgAngles.shoulder)}° (ideal: 105°)
+- Elbow: ${Math.round(sessionData.summary.avgAngles.elbow)}° (ideal: 147°)
+- Hip: ${Math.round(sessionData.summary.avgAngles.hip)}° (ideal: 165°)
+- Knee: ${Math.round(sessionData.summary.avgAngles.knee)}° (ideal: 165°)
+- Trunk rotation: ${Math.round(sessionData.summary.avgAngles.trunk)}° (ideal: 15°)
 
-**ADVANCED METRICS:**
-- X-Factor (Hip-Shoulder Separation): ${Math.round(sessionData.summary.xFactor)}° (optimal: 40°)
-- Racquet Head Speed: ${Math.round(sessionData.summary.maxSpeed)} mph
-- Frames Analyzed: ${sessionData.summary.framesAnalyzed}
-- Average Confidence: ${sessionData.summary.avgConfidence}%
-
-Provide detailed coaching feedback with actionable drills.`;
+**PERFORMANCE:**
+- Timing consistency: ${Math.round(kpis.timingConsistency || 0)}%
+- Footwork support: ${Math.round(kpis.footworkScore || 0)}%
+- Contact height score: ${Math.round(kpis.contactHeightScore || 0)}%
+- Racquet speed: ${Math.round(sessionData.summary.maxSpeed || 0)} mph`;
 }
 
 // ============================================================================
@@ -308,21 +307,57 @@ function displayGPTAnalysis(analysis, metadata = {}) {
 }
 
 function formatAnalysis(text) {
-  // Convert text to formatted HTML
-  let formatted = text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/^#{1,2}\s+(.+)$/gm, '<h4>$1</h4>')
-    .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-  
-  // Wrap paragraphs
-  if (!formatted.startsWith('<h4>') && !formatted.startsWith('<ul>')) {
-    formatted = '<p>' + formatted + '</p>';
+  // Parse labeled format: LABEL: value
+  const labels = {
+    'NAILED':        { icon: '✅', title: 'You Nailed This!',    color: '#00c853' },
+    'FIX':           { icon: '🎯', title: 'Your #1 Fix',          color: '#00e5ff' },
+    'WHY':           { icon: '💡', title: 'Why It Matters',        color: '#ffd84d' },
+    'HOW':           { icon: '🔧', title: 'How to Fix It',         color: '#ffd84d' },
+    'FOOTWORK':      { icon: '👟', title: 'Footwork',              color: '#aaa' },
+    'PLAYING_HEIGHT':{ icon: '📏', title: 'Playing Height',        color: '#aaa' },
+    'GRIP_NOTE':     { icon: '🤜', title: 'Grip',                  color: '#aaa' },
+    'DRILL':         { icon: '🎾', title: 'Your Drill This Week',  color: '#39ff14' },
+    'DRILL_STEPS':   { icon: '📋', title: 'How to Do It',          color: '#39ff14' },
+    'DRILL_REPS':    { icon: '🔁', title: 'Reps',                  color: '#39ff14' },
+    'NEXT_GOAL':     { icon: '🏅', title: "This Week's Goal",      color: '#ffd84d' }
+  };
+
+  const lines = text.split('\n');
+  let cards = '';
+  let usedLabels = false;
+
+  for (const line of lines) {
+    const match = line.match(/^([A-Z_]+):\s*(.+)$/);
+    if (match && labels[match[1]]) {
+      usedLabels = true;
+      const { icon, title, color } = labels[match[1]];
+      const value = match[2].trim();
+      const steps = match[1] === 'DRILL_STEPS'
+        ? value.split(' / ').map(s => `<li style="margin-bottom:4px;">${s.trim()}</li>`).join('')
+        : null;
+      cards += `
+        <div style="padding:14px 16px; margin-bottom:8px; background:rgba(10,22,40,0.55); border:1px solid rgba(255,255,255,0.1); border-left:3px solid ${color}; border-radius:12px;">
+          <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:${color}; margin-bottom:4px;">${icon} ${title}</div>
+          ${steps
+            ? `<ul style="margin:0; padding-left:18px; font-size:14px; color:#9aa5b4; line-height:1.6;">${steps}</ul>`
+            : `<div style="font-size:14px; color:#cdd5df; line-height:1.6;">${value}</div>`}
+        </div>`;
+    }
   }
-  
-  return formatted;
+
+  // Fallback: plain markdown if no labels found
+  if (!usedLabels) {
+    let formatted = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^#{1,2}\s+(.+)$/gm, '<h4>$1</h4>')
+      .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
+      .replace(/\n\n/g, '</p><p>');
+    if (!formatted.startsWith('<h4>')) formatted = '<p>' + formatted + '</p>';
+    return formatted;
+  }
+
+  return cards;
 }
 
 function showGPTError(error) {
