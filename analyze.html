@@ -9,8 +9,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet"></noscript>
   
   <!-- Local AI runtime first for stability; fallback mirrors are used only if these fail -->
   <script src="./assets/vendor/tf.min.js"></script>
@@ -21,7 +21,7 @@
   <script src="./app-data.js"></script>
 <!-- ── Upgrade Modal ──────────────────────────────────────────────── -->
 <div id="upgradeModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); overflow-y:auto; padding:24px 16px;">
-  <div style="max-width:580px; margin:0 auto; background:#0d1b2a; border:1px solid rgba(57,255,20,.22); border-radius:24px; padding:32px; color:#f5f5f7; font-family:'Inter',sans-serif;">
+  <div style="max-width:580px; margin:0 auto; background:#0d1b2a; border:1px solid rgba(57,255,20,.22); border-radius:24px; padding:32px; color:#f5f5f7; font-family:'DM Sans',sans-serif;">
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
       <div>
         <div style="font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:#39ff14; margin-bottom:6px;">Analysis Limit Reached</div>
@@ -57,7 +57,7 @@
 
     <!-- Referral CTA -->
     <div id="upgradeRefCta" style="margin-bottom:20px; padding:14px 16px; background:rgba(57,255,20,.07); border:1px solid rgba(57,255,20,.2); border-radius:14px;">
-      <div style="font-size:13px; font-weight:800; color:#39ff14; margin-bottom:4px;">🎾 Get 2 more free analyses — no payment needed</div>
+      <div style="font-size:13px; font-weight:800; color:#39ff14; margin-bottom:4px;">Get 2 more free analyses — no payment needed</div>
       <div style="font-size:13px; color:rgba(255,255,255,.7); margin-bottom:10px;">Share your referral link. Every friend who completes their first analysis earns you +2 analyses.</div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <input id="upgradeRefLinkInput" type="text" readonly style="flex:1; min-width:160px; padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:#f5f5f7; font-size:12px; font-family:monospace;" placeholder="Loading your referral link…">
@@ -88,12 +88,20 @@
   
   <style>
     :root {
+      --volt: #39FF14;
       --neon-green: #39FF14;
+      --gold: #FFD84D;
       --electric-cyan: #FFD84D;
+      --teal: #00d4aa;
+      --bg: #0a0a0a;
       --void-black: #000000;
       --deep-navy: #0D1B2A;
+      --panel: rgba(16,18,17,.94);
+      --line: rgba(255,255,255,.12);
+      --text: #f5f5f7;
       --silver: #F5F5F7;
       --gray: #EEF3F7;
+      --muted: #8a96a3;
       --success: #10B981;
       --warning: #F59E0B;
       --error: #FF3E6C;
@@ -102,7 +110,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      font-family: 'Inter', -apple-system, sans-serif;
+      font-family: 'DM Sans', -apple-system, sans-serif;
       background: var(--void-black);
       color: var(--silver);
       line-height: 1.6;
@@ -955,7 +963,7 @@
 
         <!-- Score Card Modal -->
         <div id="scoreCardModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);overflow-y:auto;padding:24px 16px;">
-          <div style="max-width:440px;margin:0 auto;background:#0d1b2a;border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:28px;color:#f5f5f7;font-family:'Inter',sans-serif;">
+          <div style="max-width:440px;margin:0 auto;background:#0d1b2a;border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:28px;color:#f5f5f7;font-family:'DM Sans',sans-serif;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
               <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#39ff14;">Score Card</div>
               <button id="closeScoreCardBtn" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;">&times;</button>
@@ -2962,10 +2970,10 @@
       const kpis = s.performanceKpis || {};
 
       function gradeLabel(score) {
-        if (score >= 90) return { label: '🏆 Elite', color: '#39ff14' };
-        if (score >= 75) return { label: '💪 Strong', color: '#39ff14' };
-        if (score >= 60) return { label: '📈 Getting There', color: '#ffd84d' };
-        return { label: '🌱 Keep Going!', color: '#ffaa00' };
+        if (score >= 90) return { label: 'Elite', color: '#39ff14' };
+        if (score >= 75) return { label: 'Strong', color: '#39ff14' };
+        if (score >= 60) return { label: 'Getting There', color: '#ffd84d' };
+        return { label: 'Keep Going!', color: '#ffaa00' };
       }
 
       function emojiBar(val) {
@@ -3005,14 +3013,14 @@
 
         <!-- 2. You Nailed This -->
         <div class="report-section" style="border-left:4px solid #00c853;">
-          <div class="report-section-title" style="color:#00c853;">✅ You Nailed This!</div>
+          <div class="report-section-title" style="color:#00c853;display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> You Nailed This!</div>
           <div class="metrics-grid">
             ${strengths.map(st => {
               const pct = Math.min(100, Math.round(st.score || 0));
               return `<div class="metric-card" style="border-color:rgba(0,200,83,0.28);">
                 <div class="metric-title">${formatMetricName(st.metric)}</div>
                 <div class="metric-value-large" style="color:#00c853;">${pct}%</div>
-                <div class="metric-label">This is a real strength — it's helping your ${s.shotType} stay consistent. Keep doing this! 🎉</div>
+                <div class="metric-label">This is a real strength — it's helping your ${s.shotType} stay consistent. Keep doing this!</div>
               </div>`;
             }).join('')}
           </div>
@@ -3020,7 +3028,7 @@
 
         <!-- 3. Your #1 Fix -->
         <div class="report-section" style="border-left:4px solid var(--electric-cyan);">
-          <div class="report-section-title">🎯 Your #1 Fix This Week</div>
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Your #1 Fix This Week</div>
           ${topMetrics[0] ? `
             <div class="metric-card">
               <div class="metric-title">${formatMetricName(topMetrics[0].metric)}</div>
@@ -3036,21 +3044,21 @@
 
         <!-- 4. Body Check -->
         <div class="report-section">
-          <div class="report-section-title">🏃 Body Check</div>
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg> Body Check</div>
           <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr);">
-            ${bodyCard('👟', 'Footwork', kpis.footworkScore,
+            ${bodyCard('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/></svg>', 'Footwork', kpis.footworkScore,
               'Great movement — arriving early!',
               'Good — try to get there a bit sooner',
               'Get into position before you swing')}
-            ${bodyCard('📏', 'Playing Height', kpis.contactHeightScore,
+            ${bodyCard('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="4"/><polyline points="8 8 12 4 16 8"/></svg>', 'Playing Height', kpis.contactHeightScore,
               'Hitting at a great height!',
               'Pretty good — aim for waist level',
               'Try to meet the ball at waist height')}
-            ${bodyCard('⚖️', 'Balance', kpis.positioningScore,
+            ${bodyCard('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M3 6l9 3 9-3"/><path d="M3 18l9-3 9 3"/></svg>', 'Balance', kpis.positioningScore,
               'Rock solid balance!',
               'Decent — keep your base wide',
               'Stay balanced through the full swing')}
-            ${bodyCard('🔄', 'Timing', kpis.timingConsistency,
+            ${bodyCard('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>', 'Timing', kpis.timingConsistency,
               'Great timing — very consistent!',
               'Good — lock in one rhythm cue',
               'Try to swing at the same moment every shot')}
@@ -3059,7 +3067,7 @@
 
         <!-- 5. Your Drill This Week -->
         <div class="report-section" style="border-left:4px solid var(--volt);">
-          <div class="report-section-title">🎾 Your One Drill This Week</div>
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> Your One Drill This Week</div>
           ${drill ? `
             <div class="metric-card">
               <div style="font-size:17px; font-weight:800; margin-bottom:8px;">${drill.title}</div>
@@ -3074,13 +3082,13 @@
 
         <!-- 6. This Week's SMART Goal -->
         <div class="report-section">
-          <div class="report-section-title">🏅 This Week's Goal</div>
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> This Week's Goal</div>
           <div class="metric-card" style="border-color:rgba(255,216,77,0.28); background:rgba(255,216,77,0.04);">
             <div style="font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); margin-bottom:8px;">SMART Goal</div>
             <div style="font-size:15px; line-height:1.7; color:var(--silver);">
               In your next practice, focus on <strong style="color:var(--text);">${topFix.toLowerCase()}</strong>.
               Try to hit <strong style="color:var(--text);">7 out of 10</strong> ${s.shotType}s with better ${topFix.toLowerCase()} than today.
-              If you hit 7+, you're ready to raise the bar next session. 💪
+              If you hit 7+, you're ready to raise the bar next session.
             </div>
             <div style="margin-top:10px; font-size:11px; color:var(--gray);">Specific · Measurable · Achievable · Relevant · Time-bound (this week only)</div>
           </div>
@@ -3088,13 +3096,13 @@
 
         <!-- 7. How You're Doing — bar overview -->
         <div class="report-section">
-          <div class="report-section-title">📊 How You're Doing Overall</div>
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> How You're Doing Overall</div>
           <div style="display:grid; gap:12px;">
             ${[
-              ['👟 Footwork', kpis.footworkScore],
-              ['📏 Playing Height', kpis.contactHeightScore],
-              ['⚖️ Balance & Position', kpis.positioningScore],
-              ['🔄 Timing', kpis.timingConsistency],
+              ['Footwork', kpis.footworkScore],
+              ['Playing Height', kpis.contactHeightScore],
+              ['Balance & Position', kpis.positioningScore],
+              ['Timing', kpis.timingConsistency],
             ].map(([label, val]) => {
               const pct = Math.min(100, Math.round(val || 0));
               const color = pct >= 75 ? '#00c853' : pct >= 55 ? '#ffd84d' : '#ff6d00';

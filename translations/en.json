@@ -8,9 +8,11 @@
     "howItWorks": "How It Works",
     "getStarted": "Get Started Free",
     "signIn": "Sign In",
-    "startFree": "Start Free Analysis"
+    "startFree": "Start Free Analysis",
+    "features": "Features"
   },
   "footer": {
+    "tagline": "AI-powered tennis and pickleball analysis for players, coaches, and clubs.",
     "tagline1": "Built for players, coaches, and performance programs.",
     "tagline2": "Web-first tennis intelligence for analysis, improvement, and accountability.",
     "copyright": "© 2026 SmartSwing AI",
@@ -18,7 +20,9 @@
       "pathways": "Pathways",
       "resources": "Resources",
       "legal": "Trust & Legal",
-      "community": "Community"
+      "community": "Community",
+      "product": "Product",
+      "audiences": "For You"
     },
     "links": {
       "forPlayers": "For Players",
@@ -34,7 +38,18 @@
       "userAgreement": "User Agreement",
       "privacyPolicy": "Privacy Policy",
       "cookiePolicy": "Cookie Policy",
-      "accessibility": "Accessibility"
+      "accessibility": "Accessibility",
+      "features": "Features",
+      "pricing": "Pricing",
+      "howItWorks": "How It Works",
+      "analyzeSwing": "Analyze a Swing",
+      "players": "Players",
+      "coaches": "Coaches",
+      "clubs": "Clubs",
+      "parents": "Parents",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "cookies": "Cookies"
     }
   },
   "cookie": {
@@ -65,12 +80,32 @@
       "forehand": { "title": "Forehand score", "value": "84", "detail": "Strong for level. Contact and hip timing are trending up." },
       "gain":     { "title": "Main gain",      "value": "+9%", "detail": "Shoulder-to-hip separation improved from the last session." },
       "nextMove": { "title": "Next move",      "value": "3 drills", "detail": "Prescribed from the exact metrics that cost depth and pace." }
-    }
+    },
+    "cta": { "primary": "Analyze Your Swing Free →", "secondary": "See How It Works" }
+  },
+  "stats": {
+    "analysisTime": "Analysis time",
+    "bodyPoints": "Body points tracked",
+    "rating": "Player rating",
+    "players": "Players analysed"
   },
   "trust": {
     "rating":  { "value": "★★★★★  4.9 / 5 rating", "label": "Rated by players and coaches across 3 continents." },
     "players": { "value": "2,400+ active players",   "label": "Junior athletes, adult league players, and tournament competitors." },
-    "price":   { "value": "Less than $1 / day",      "label": "Unlimited analyses on the Performance plan. Less than one private lesson per month." }
+    "price":   { "value": "Less than $1 / day",      "label": "Unlimited analyses on the Performance plan. Less than one private lesson per month." },
+    "label": "Trusted by players, coaches & clubs affiliated with"
+  },
+  "hook": {
+    "tag": "The Problem",
+    "cta": "Start for Free →"
+  },
+  "hiw": {
+    "tag": "How It Works",
+    "title": "Three steps to a better game.",
+    "sub": "No special equipment, no lengthy setup. Just your phone and one swing clip.",
+    "step1": { "title": "Record Your Swing", "desc": "Film a short video of your forehand, backhand, or serve from any angle using your phone." },
+    "step2": { "title": "AI Analyses Instantly", "desc": "Our biomechanics engine evaluates posture, rotation, contact point, follow-through, and 12 more metrics." },
+    "step3": { "title": "Get Your Action Plan", "desc": "Receive a personalised drill programme, tactical guidance, and progress tracking — ready to share with your coach." }
   },
   "howItWorks": {
     "eyebrow": "How it works",
@@ -80,11 +115,22 @@
     "step2": { "num": "02", "title": "AI reads your biomechanics",   "body": "33 body landmarks tracked. Your stroke compared to level-adjusted benchmarks — not pro-only standards that don't apply to your game. Your top 3 issues, ranked by impact." },
     "step3": { "num": "03", "title": "Train with a plan built for you", "body": "Specific drills for your specific issues. Tactical adjustments that make the mechanical fix stick in real match points. Not generic. Not a content dump. Just what you need next." }
   },
+  "metrics": {
+    "analysis": "Average analysis time",
+    "points": "Biomechanics data points",
+    "accuracy": "Technique accuracy",
+    "swings": "Swings analysed"
+  },
   "features": {
     "eyebrow": "What you get",
     "heading": "Your AI coach — available 24/7, costs less than one lesson.",
     "tagline": "One platform for everything a serious player needs: AI analysis, personalized drills, match tactics, progress tracking, and coach workflows — all in one place.",
     "expand": "Details",
+    "tag": "Features",
+    "title": "Everything you need to improve — nothing you don't.",
+    "bio": { "title": "Deep Biomechanics Analysis", "desc": "15+ data points including stance width, hip rotation, shoulder alignment, racket path, and contact zone." },
+    "drills": { "title": "Personalised Drill Plans", "desc": "Specific, sequenced drills targeted to your weaknesses — not generic YouTube advice." },
+    "tactical": { "title": "Tactical Breakdown", "desc": "Shot selection, court positioning, and match strategy insights to elevate your mental game." },
     "engine": {
       "eyebrow": "AI Biomechanics Engine",
       "title": "The film room every serious player deserves.",
@@ -122,6 +168,32 @@
       "whyDetail": "new sports can inherit the system without diluting the core product."
     }
   },
+  "showcase": {
+    "coaches": {
+      "tag": "For Coaches",
+      "title": "Grow your coaching practice with AI-backed reports.",
+      "desc": "Share professional PDF reports with clients. Track every player's progress over time. Spot patterns across your entire roster in one dashboard.",
+      "f1": "Coach-ready PDF reports ready in 60 seconds",
+      "f2": "Multi-player progress tracking dashboard",
+      "f3": "Side-by-side swing comparison tools",
+      "f4": "Drill assignment and tracking per player",
+      "cta": "Explore Coach Tools →"
+    },
+    "players": {
+      "tag": "For Players",
+      "title": "See exactly how you're improving, week by week.",
+      "desc": "Your personal progress timeline tracks every metric over time. Watch your technique scores rise, your drills completion climb, and your confidence grow.",
+      "f1": "Full swing history and trend visualisation",
+      "f2": "Before & after comparison with any past session",
+      "f3": "Weekly AI-generated goal recommendations",
+      "f4": "Mobile-first design — analyse anywhere",
+      "cta": "See Player Dashboard →"
+    }
+  },
+  "proof": {
+    "tag": "What Players Say",
+    "title": "Real results from real players."
+  },
   "stories": {
     "eyebrow": "Real results",
     "heading": "What happens after the first upload.",
@@ -146,16 +218,24 @@
   "pricing": {
     "eyebrow": "Pricing — Early access rates",
     "heading": "Start free. Upgrade when you see the difference.",
+    "tag": "Pricing",
+    "title": "Start free. Upgrade when you're ready.",
+    "sub": "Every plan includes real-time AI analysis. No hidden fees, cancel any time.",
     "mostPopular": "Most popular",
     "perMonth": "/ month",
     "urgency1": "💳  Private coaching: $80–$150/hour · SmartSwing Performance: $0.66/day",
     "urgency2": "🔒  Early access pricing — lock in your rate before it changes",
     "urgency3": "🏫  Academy or club billing?",
     "urgency3Link": "Contact us for a custom rollout",
-    "starter":     { "name": "Starter",        "price": "$0",     "tagline": "Remove all friction and get the first win.",                                                                             "f1": "1 analysis every month",               "f2": "Live report preview",                  "f3": "No save, print, or export",                          "cta": "Start Free →" },
-    "player":      { "name": "Player",          "price": "$9.99",  "tagline": "For players who want steady monthly feedback and saved reports to track real progress.",                               "f1": "10 analyses every month",              "f2": "Save, print & share reports",          "f3": "Progress dashboard & KPI tracking",                  "cta": "Choose Player →" },
+    "starter":     { "name": "Starter",        "price": "$0",     "tagline": "Remove all friction and get the first win.",   "desc": "Perfect for players just getting started with AI feedback.",                                                                          "f1": "1 analysis every month",               "f2": "Live report preview",                  "f3": "No save, print, or export",                          "cta": "Start Free →" },
+    "player":      { "name": "Player",          "price": "$9.99",  "tagline": "For players who want steady monthly feedback and saved reports to track real progress.", "desc": "For serious players who train regularly and want measurable progress.",                               "f1": "10 analyses every month",              "f2": "Save, print & share reports",          "f3": "Progress dashboard & KPI tracking",   "f4": "Tactical & drill plans",               "cta": "Choose Player →" },
+    "perf":        { "name": "Performance",     "price": "$19.99", "desc": "Advanced tools for competitive players and coaches.",                                                                     "f1": "Everything in Player",                 "f2": "Coach-ready PDF reports",              "f3": "Side-by-side comparisons",            "f4": "Priority AI processing",               "cta": "View All Plans" },
     "performance": { "name": "Performance",     "price": "$19.99", "tagline": "Unlimited analyses. Full drill library. Coach tools. Less than one private lesson per month.",                         "f1": "Unlimited analyses & saved reports",   "f2": "Full drills & tactics library",        "f3": "Coach & player connection tools",  "f4": "Weekly AI coaching reports",     "cta": "Choose Performance →" },
     "tournament":  { "name": "Tournament Pro",  "price": "$49.99", "tagline": "For serious competitors who want certified coach review, match prep, and priority access.",                            "f1": "Unlimited assessments & exports",      "f2": "Certified coach review workflow",      "f3": "Tournament preparation support",   "f4": "Priority scheduling & feedback", "cta": "Choose Tournament Pro →" }
+  },
+  "bigcta": {
+    "primary": "Start Free Today →",
+    "secondary": "See How It Works"
   },
   "lead": {
     "eyebrow": "Free resource",

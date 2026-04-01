@@ -1196,6 +1196,16 @@
   .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; mix-blend-mode: screen; }
 .brand-logo { height: 56px; width: auto; }
 .footer-logo { height: 44px; width: auto; }
+
+    /* Phone mockup images — no color filter, contain within frame */
+    img[src*="uiux"] {
+      filter: none !important;
+      display: block;
+    }
+    /* Step cards: taller on mobile for phone mockups */
+    @media (max-width: 600px) {
+      .step-img { height: 280px; }
+    }
     </style>
 </head>
 <body>
@@ -1280,18 +1290,18 @@
   <div class="trust page" style="background:var(--bg);">
     <p class="trust-label" data-i18n="trust.label">Trusted by players, coaches &amp; clubs affiliated with</p>
     <div class="trust-logos" style="gap:16px; row-gap:12px;">
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🎾 USTA</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🌍 ITF</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🏅 ATP</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🏆 WTA</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">📋 PTR</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🎓 USPTA</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇦🇺 Tennis Australia</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇬🇧 LTA</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇫🇷 FFT</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇩🇪 DTB</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇪🇸 RFET</span>
-      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇧🇷 CBT</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">USTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">ITF</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">ATP</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">WTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">PTR</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">USPTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">🇦🇺 Tennis Australia</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">🇬🇧 LTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">🇫🇷 FFT</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">🇩🇪 DTB</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">🇪🇸 RFET</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05); font-weight:700;">🇧🇷 CBT</span>
     </div>
   </div>
 
@@ -1309,7 +1319,7 @@
           </div>
         </div>
         <div class="hook-img reveal" style="transition-delay:120ms">
-          <picture><source srcset="./assets/redesign/woman-analysis.webp" type="image/webp"><img src="./assets/redesign/woman-analysis.webp" alt="AI swing analysis in action" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/woman-analysis.png';this.onerror=null"></picture>
+          <img src="./assets/uiux/Smart%208.png" alt="SmartSwing AI recording your swing in real time" loading="lazy" style="width:100%;height:440px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>
@@ -1326,7 +1336,7 @@
       <div class="steps-grid">
         <div class="step-card reveal">
           <div class="step-img">
-            <picture><source srcset="./assets/redesign/step1.webp" type="image/webp"><img src="./assets/redesign/step1.webp" alt="Record your swing" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/step1.jpg';this.onerror=null"></picture>
+            <img src="./assets/uiux/Smart%202.png" alt="Record your swing with SmartSwing AI live capture" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0d0d0d;">
           </div>
           <div class="step-body">
             <div class="step-num">1</div>
@@ -1336,7 +1346,7 @@
         </div>
         <div class="step-card reveal" style="transition-delay:100ms">
           <div class="step-img">
-            <picture><source srcset="./assets/redesign/ai-assessment.webp" type="image/webp"><img src="./assets/redesign/ai-assessment.webp" alt="AI analyses your technique" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/ai-assessment.png';this.onerror=null"></picture>
+            <img src="./assets/uiux/Smart%203.png" alt="SmartSwing AI analysis results showing score and drills" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;">
           </div>
           <div class="step-body">
             <div class="step-num">2</div>
@@ -1429,7 +1439,7 @@
           <a href="./coach-dashboard.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.coaches.cta">Explore Coach Tools →</a>
         </div>
         <div class="showcase-img reveal" style="transition-delay:120ms">
-          <picture><source srcset="./assets/redesign/ai-improvement.webp" type="image/webp"><img src="./assets/redesign/ai-improvement.webp" alt="Coach dashboard view" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/ai-improvement.png';this.onerror=null"></picture>
+          <img src="./assets/uiux/Smart%205.png" alt="SmartSwing AI coach mode with swing annotation and feedback" loading="lazy" style="width:100%;height:420px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>
@@ -1452,7 +1462,7 @@
           <a href="./dashboard.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.players.cta">See Player Dashboard →</a>
         </div>
         <div class="showcase-img reveal" style="transition-delay:120ms">
-          <picture><source srcset="./assets/redesign/swing-analysis.webp" type="image/webp"><img src="./assets/redesign/swing-analysis.webp" alt="Player progress dashboard" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/swing-analysis.png';this.onerror=null"></picture>
+          <img src="./assets/uiux/Smart%2010.png" alt="SmartSwing AI player progress dashboard showing current level and next practice" loading="lazy" style="width:100%;height:420px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>

@@ -8,20 +8,48 @@
     "howItWorks": "Comment Ça Marche",
     "getStarted": "Commencer Gratuitement",
     "signIn": "Connexion",
-    "startFree": "Analyse gratuite"
+    "startFree": "Analyse gratuite",
+    "features": "Fonctionnalités"
   },
   "footer": {
+    "tagline": "Conçu pour les joueurs, les coachs et les programmes de performance.",
     "tagline1": "Conçu pour les joueurs, les coachs et les programmes de performance.",
     "tagline2": "Intelligence tennis pour l'analyse, l'amélioration et la responsabilisation.",
     "copyright": "© 2026 SmartSwing AI",
-    "col": { "pathways": "Parcours", "resources": "Ressources", "legal": "Légal", "community": "Communauté" },
+    "col": {
+      "pathways": "Parcours",
+      "resources": "Ressources",
+      "legal": "Légal",
+      "community": "Communauté",
+      "product": "Produit",
+      "audiences": "Audience"
+    },
     "links": {
-      "forPlayers": "Pour les joueurs", "forCoaches": "Pour les coachs", "forClubs": "Pour les clubs",
-      "forParents": "Pour les parents", "blog": "Blog", "drillsLibrary": "Bibliothèque d'exercices",
-      "pickleball": "Pickleball", "referral": "Programme de parrainage", "contact": "Nous contacter",
-      "refundPolicy": "Politique de remboursement", "userAgreement": "Accord utilisateur",
-      "privacyPolicy": "Politique de confidentialité", "cookiePolicy": "Politique des cookies",
-      "accessibility": "Accessibilité"
+      "forPlayers": "Pour les joueurs",
+      "forCoaches": "Pour les coachs",
+      "forClubs": "Pour les clubs",
+      "forParents": "Pour les parents",
+      "blog": "Blog",
+      "drillsLibrary": "Bibliothèque d'exercices",
+      "pickleball": "Pickleball",
+      "referral": "Programme de parrainage",
+      "contact": "Nous contacter",
+      "refundPolicy": "Politique de remboursement",
+      "userAgreement": "Accord utilisateur",
+      "privacyPolicy": "Politique de confidentialité",
+      "cookiePolicy": "Politique des cookies",
+      "accessibility": "Accessibilité",
+      "features": "Fonctionnalités",
+      "pricing": "Tarifs",
+      "howItWorks": "Comment Ça Marche",
+      "analyzeSwing": "Analyser votre coup",
+      "players": "Joueurs",
+      "coaches": "Coachs",
+      "clubs": "Clubs",
+      "parents": "Parents",
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "cookies": "Cookies"
     }
   },
   "cookie": {
@@ -39,6 +67,10 @@
     "badge1": "✓ Aucune carte bancaire requise",
     "badge2": "✓ Résultats en 60 secondes",
     "badge3": "✓ Plan gratuit à vie",
+    "cta": {
+      "primary": "Obtenir mon analyse gratuite →",
+      "secondary": "Voir les plans et tarifs"
+    },
     "metric1": { "value": "60s", "label": "Du téléchargement à votre analyse biomécanique complète et plan d'action personnalisé." },
     "metric2": { "value": "Top 3", "label": "Uniquement des corrections — pas un mur de données. Les corrections exactes qui vous coûtent le plus de points." },
     "overlay": {
@@ -48,10 +80,44 @@
       "nextMove": { "title": "Prochaine étape",     "value": "3 exercices","detail": "Prescrits à partir des métriques exactes qui coûtent profondeur et rythme." }
     }
   },
+  "stats": {
+    "analysisTime": "Temps d'analyse",
+    "bodyPoints": "Points corporels",
+    "rating": "Note",
+    "players": "Joueurs"
+  },
   "trust": {
     "rating":  { "value": "★★★★★  4,9 / 5 note", "label": "Noté par des joueurs et coachs sur 3 continents." },
     "players": { "value": "2 400+ joueurs actifs", "label": "Jeunes athlètes, joueurs de ligues amateurs et compétiteurs de tournois." },
-    "price":   { "value": "Moins de 1 € / jour",   "label": "Analyses illimitées sur le plan Performance. Moins d'une leçon privée par mois." }
+    "price":   { "value": "Moins de 1 € / jour",   "label": "Analyses illimitées sur le plan Performance. Moins d'une leçon privée par mois." },
+    "label": "Approuvé par des joueurs, coachs et clubs affiliés à"
+  },
+  "hook": {
+    "tag": "Le Problème",
+    "cta": "Commencer gratuitement →"
+  },
+  "hiw": {
+    "tag": "Comment Ça Marche",
+    "title": "Téléchargez une fois. Entraînez-vous plus intelligemment pour toujours.",
+    "sub": "La plupart des joueurs terminent une séance sans savoir ce qui a mal tourné. SmartSwing comble cette lacune en 60 secondes.",
+    "step1": {
+      "title": "Filmez un coup",
+      "desc": "Téléphone, tablette ou support de clôture. SmartSwing vérifie l'angle de caméra avant de démarrer l'analyse."
+    },
+    "step2": {
+      "title": "L'IA analyse votre biomécanique",
+      "desc": "33 points de repère corporels suivis. Vos 3 problèmes principaux, classés par impact."
+    },
+    "step3": {
+      "title": "Entraînez-vous avec votre plan",
+      "desc": "Des exercices spécifiques pour vos problèmes. Des ajustements tactiques qui font tenir la correction."
+    }
+  },
+  "metrics": {
+    "analysis": "Analyses effectuées",
+    "points": "Points corporels",
+    "accuracy": "Précision IA",
+    "swings": "Coups analysés"
   },
   "howItWorks": {
     "eyebrow": "Comment ça marche",
@@ -66,6 +132,20 @@
     "heading": "Votre coach IA — disponible 24h/24, 7j/7, coûte moins qu'une leçon.",
     "tagline": "Une plateforme pour tout ce dont un joueur sérieux a besoin : analyse IA, exercices personnalisés, tactiques de match, suivi des progrès et workflows de coach.",
     "expand": "Détails",
+    "tag": "Fonctionnalités",
+    "title": "Tout ce dont vous avez besoin pour vous améliorer — sans le superflu.",
+    "bio": {
+      "title": "Analyse biomécanique",
+      "desc": "33 points corporels suivis. Comparaison ajustée au niveau."
+    },
+    "drills": {
+      "title": "Exercices personnalisés",
+      "desc": "Exercices ciblés pour vos problèmes spécifiques."
+    },
+    "tactical": {
+      "title": "Tactiques de match",
+      "desc": "Ajustements qui tiennent dans les vrais points de match."
+    },
     "engine": {
       "eyebrow": "Moteur de biomécanique IA",
       "title": "La salle d'analyse que chaque joueur sérieux mérite.",
@@ -98,6 +178,32 @@
       "whatDetail": "SmartSwing garde le tennis comme expérience principale.", "whyDetail": "de nouveaux sports peuvent hériter du système sans diluer le produit principal."
     }
   },
+  "showcase": {
+    "coaches": {
+      "tag": "Pour les coachs",
+      "title": "Tout ce dont un coach a besoin pour suivre une liste complète d'athlètes.",
+      "desc": "Attribuez des exercices, suivez la progression et fournissez du feedback — sans perdre de temps.",
+      "f1": "Exercices attribués",
+      "f2": "Tableau de bord de l'athlète",
+      "f3": "Messages intégrés",
+      "f4": "Rapports d'analyse",
+      "cta": "Explorer les outils pour coachs →"
+    },
+    "players": {
+      "tag": "Pour les joueurs",
+      "title": "Votre tableau de bord personnel — tout ce dont vous avez besoin pour progresser.",
+      "desc": "Suivez vos progrès, révisez vos rapports et accédez à vos exercices — n'importe où.",
+      "f1": "Suivi des progrès",
+      "f2": "Bibliothèque de rapports",
+      "f3": "Plan d'exercices",
+      "f4": "Accès aux tactiques",
+      "cta": "Voir le tableau de bord →"
+    }
+  },
+  "proof": {
+    "tag": "Ce que disent les joueurs",
+    "title": "De vrais résultats pour de vrais joueurs."
+  },
   "stories": {
     "eyebrow": "Résultats réels", "heading": "Ce qui se passe après le premier téléchargement.",
     "s1": { "stat": "NTRP amélioré en 6 semaines",      "name": "Sofia R., 14 ans — Compétitrice junior",   "quote": "\"Mon coach était surpris que j'aie corrigé mon jeu de jambes avant notre prochaine leçon. J'ai juste suivi l'exercice que SmartSwing m'a donné.\"" },
@@ -118,15 +224,32 @@
   "pricing": {
     "eyebrow": "Tarifs — Accès anticipé",
     "heading": "Commencez gratuitement. Passez au niveau supérieur quand vous voyez la différence.",
+    "tag": "Tarifs",
+    "title": "Commencez gratuitement. Améliorez-vous quand vous êtes prêt.",
+    "sub": "Sans carte bancaire. Passez au niveau supérieur ou annulez quand vous voulez.",
     "mostPopular": "Le plus populaire", "perMonth": "/ mois",
     "urgency1": "💳  Coaching privé : 80–150 €/heure · SmartSwing Performance : 0,60 €/jour",
     "urgency2": "🔒  Tarifs d'accès anticipé — bloquez votre tarif avant qu'il change",
     "urgency3": "🏫  Facturation pour académie ou club ?",
     "urgency3Link": "Contactez-nous pour un déploiement sur mesure",
-    "starter":     { "name": "Débutant",      "price": "0 €",    "tagline": "Supprimez tous les obstacles et remportez la première victoire.",                                                      "f1": "1 analyse par mois",               "f2": "Aperçu du rapport en direct",       "f3": "Sans sauvegarde, impression ni export",    "cta": "Commencer gratuitement →" },
-    "player":      { "name": "Joueur",         "price": "9,99 €", "tagline": "Pour les joueurs qui veulent un feedback mensuel régulier et des rapports sauvegardés.",                            "f1": "10 analyses par mois",             "f2": "Sauvegarder, imprimer et partager", "f3": "Tableau de bord et suivi des KPIs",        "cta": "Choisir Joueur →" },
+    "starter":     { "name": "Débutant",      "price": "0 €",    "tagline": "Supprimez tous les obstacles et remportez la première victoire.", "desc": "Parfait pour les joueurs qui commencent avec le feedback IA.",                                      "f1": "1 analyse par mois",               "f2": "Aperçu du rapport en direct",       "f3": "Sans sauvegarde, impression ni export",    "cta": "Commencer gratuitement →" },
+    "player":      { "name": "Joueur", "desc": "Pour les joueurs sérieux qui s'entraînent régulièrement et veulent des progrès mesurables.",         "price": "9,99 €", "tagline": "Pour les joueurs qui veulent un feedback mensuel régulier et des rapports sauvegardés.",                            "f1": "10 analyses par mois",             "f2": "Sauvegarder, imprimer et partager", "f3": "Tableau de bord et suivi des KPIs", "f4": "Mieux que de deviner entre les cours", "cta": "Choisir Joueur →" },
     "performance": { "name": "Performance",    "price": "19,99 €","tagline": "Analyses illimitées. Bibliothèque complète. Outils coach. Moins d'une leçon privée par mois.",                      "f1": "Analyses et rapports illimités",   "f2": "Bibliothèque complète",             "f3": "Outils coach/joueur",       "f4": "Rapports IA hebdomadaires", "cta": "Choisir Performance →" },
-    "tournament":  { "name": "Tournament Pro", "price": "49,99 €","tagline": "Pour les compétiteurs sérieux avec révision de coach certifié, préparation aux tournois et accès prioritaire.",      "f1": "Évaluations et exports illimités", "f2": "Workflow de coach certifié",        "f3": "Préparation aux tournois",  "f4": "Planification prioritaire", "cta": "Choisir Tournament Pro →" }
+    "tournament":  { "name": "Tournament Pro", "price": "49,99 €","tagline": "Pour les compétiteurs sérieux avec révision de coach certifié, préparation aux tournois et accès prioritaire.",      "f1": "Évaluations et exports illimités", "f2": "Workflow de coach certifié",        "f3": "Préparation aux tournois",  "f4": "Planification prioritaire", "cta": "Choisir Tournament Pro →" },
+    "perf": {
+      "name": "Performance",
+      "price": "19,99 €",
+      "desc": "Analyses illimitées. Bibliothèque complète. Outils coach.",
+      "f1": "Analyses illimitées",
+      "f2": "Bibliothèque d'exercices",
+      "f3": "Outils coach/joueur",
+      "f4": "Rapports IA hebdomadaires",
+      "cta": "Commencer maintenant →"
+    }
+  },
+  "bigcta": {
+    "primary": "Commencer gratuitement aujourd'hui →",
+    "secondary": "Voir Comment Ça Marche"
   },
   "lead": {
     "eyebrow": "Ressource gratuite",

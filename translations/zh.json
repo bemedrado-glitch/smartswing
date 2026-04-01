@@ -8,20 +8,48 @@
     "howItWorks": "如何运作",
     "getStarted": "免费开始",
     "signIn": "登录",
-    "startFree": "免费分析"
+    "startFree": "免费分析",
+    "features": "功能"
   },
   "footer": {
+    "tagline": "专为球员、教练和高性能训练项目打造。",
     "tagline1": "专为球员、教练和高性能训练项目打造。",
     "tagline2": "网络优先的网球智能平台，助力分析、提升与责任追踪。",
     "copyright": "© 2026 SmartSwing AI",
-    "col": { "pathways": "入口", "resources": "资源", "legal": "法律信息", "community": "社区" },
+    "col": {
+      "pathways": "入口",
+      "resources": "资源",
+      "legal": "法律信息",
+      "community": "社区",
+      "product": "产品",
+      "audiences": "受众"
+    },
     "links": {
-      "forPlayers": "球员", "forCoaches": "教练", "forClubs": "俱乐部",
-      "forParents": "家长", "blog": "博客", "drillsLibrary": "训练库",
-      "pickleball": "匹克球", "referral": "推荐计划", "contact": "联系我们",
-      "refundPolicy": "退款政策", "userAgreement": "用户协议",
-      "privacyPolicy": "隐私政策", "cookiePolicy": "Cookie政策",
-      "accessibility": "无障碍访问"
+      "forPlayers": "球员",
+      "forCoaches": "教练",
+      "forClubs": "俱乐部",
+      "forParents": "家长",
+      "blog": "博客",
+      "drillsLibrary": "训练库",
+      "pickleball": "匹克球",
+      "referral": "推荐计划",
+      "contact": "联系我们",
+      "refundPolicy": "退款政策",
+      "userAgreement": "用户协议",
+      "privacyPolicy": "隐私政策",
+      "cookiePolicy": "Cookie政策",
+      "accessibility": "无障碍访问",
+      "features": "功能",
+      "pricing": "价格",
+      "howItWorks": "如何运作",
+      "analyzeSwing": "分析挥拍",
+      "players": "球员",
+      "coaches": "教练",
+      "clubs": "俱乐部",
+      "parents": "家长",
+      "privacy": "隐私",
+      "terms": "条款",
+      "cookies": "Cookies"
     }
   },
   "cookie": {
@@ -39,6 +67,10 @@
     "badge1": "✓ 无需信用卡",
     "badge2": "✓ 60秒获得结果",
     "badge3": "✓ 永久免费计划",
+    "cta": {
+      "primary": "获取免费分析 →",
+      "secondary": "查看计划和价格"
+    },
     "metric1": { "value": "60秒", "label": "从上传到完整的生物力学分析和个性化行动计划。" },
     "metric2": { "value": "前3项", "label": "只有纠正——不是数据墙。让您损失最多分数的精准纠正。" },
     "overlay": {
@@ -48,10 +80,44 @@
       "nextMove": { "title": "下一步",    "value": "3个训练","detail": "根据影响深度和节奏的精确指标制定。" }
     }
   },
+  "stats": {
+    "analysisTime": "分析时间",
+    "bodyPoints": "身体标志点",
+    "rating": "评分",
+    "players": "球员"
+  },
   "trust": {
     "rating":  { "value": "★★★★★  4.9/5评分", "label": "由3大洲的球员和教练评定。" },
     "players": { "value": "2,400+活跃球员",   "label": "青少年运动员、成人联赛球员和锦标赛选手。" },
-    "price":   { "value": "每天不到7元",       "label": "Performance计划中的无限分析。不到每月一节私教课。" }
+    "price":   { "value": "每天不到7元",       "label": "Performance计划中的无限分析。不到每月一节私教课。" },
+    "label": "受到球员、教练和俱乐部信任，合作机构包括"
+  },
+  "hook": {
+    "tag": "问题所在",
+    "cta": "今天免费开始 →"
+  },
+  "hiw": {
+    "tag": "如何运作",
+    "title": "上传一次。永远更聪明地训练。",
+    "sub": "大多数球员结束训练时不知道哪里出了问题。SmartSwing在60秒内弥补这一差距。",
+    "step1": {
+      "title": "拍摄一次击球",
+      "desc": "手机、平板电脑或围栏支架。SmartSwing在分析开始前检查您的摄像角度。"
+    },
+    "step2": {
+      "title": "AI读取您的生物力学",
+      "desc": "追踪33个身体标志点。您最重要的3个问题，按影响排序。"
+    },
+    "step3": {
+      "title": "按照为您定制的计划训练",
+      "desc": "针对您具体问题的具体训练。让技术纠正在真实比赛中发挥作用的战术调整。"
+    }
+  },
+  "metrics": {
+    "analysis": "已完成分析",
+    "points": "身体标志点",
+    "accuracy": "AI准确度",
+    "swings": "已分析击球"
   },
   "howItWorks": {
     "eyebrow": "工作原理",
@@ -66,6 +132,20 @@
     "heading": "您的AI教练——全天候可用，费用低于一堂课。",
     "tagline": "一个平台满足认真球员的所有需求：AI分析、个性化训练、比赛战术、进度追踪和教练工作流——一站式服务。",
     "expand": "详情",
+    "tag": "功能",
+    "title": "您需要的一切，用于提升——没有多余。",
+    "bio": {
+      "title": "生物力学分析",
+      "desc": "追踪33个身体标志点。与水平调整后的基准比较。"
+    },
+    "drills": {
+      "title": "个性化训练",
+      "desc": "针对您具体问题的专项训练。"
+    },
+    "tactical": {
+      "title": "比赛战术",
+      "desc": "在真实比赛得分中有效的战术调整。"
+    },
     "engine": {
       "eyebrow": "AI生物力学引擎",
       "title": "每位认真球员都应拥有的录像室。",
@@ -98,6 +178,32 @@
       "whatDetail": "SmartSwing保持网球为主要体验。", "whyDetail": "新运动可以继承系统而不稀释核心产品。"
     }
   },
+  "showcase": {
+    "coaches": {
+      "tag": "教练专区",
+      "title": "教练管理完整运动员名单所需的一切。",
+      "desc": "分配训练、追踪进度并提供反馈——高效无忧。",
+      "f1": "分配的训练",
+      "f2": "运动员仪表板",
+      "f3": "内置消息",
+      "f4": "分析报告",
+      "cta": "探索教练工具 →"
+    },
+    "players": {
+      "tag": "球员专区",
+      "title": "您的个人仪表板——进步所需的一切。",
+      "desc": "追踪进度、查看报告并随时随地访问训练。",
+      "f1": "进度追踪",
+      "f2": "报告库",
+      "f3": "训练计划",
+      "f4": "战术访问",
+      "cta": "查看球员仪表板 →"
+    }
+  },
+  "proof": {
+    "tag": "球员评价",
+    "title": "真实球员的真实成果。"
+  },
   "stories": {
     "eyebrow": "真实成果", "heading": "第一次上传后发生了什么。",
     "s1": { "stat": "6周内NTRP提升",        "name": "Sofia R.，14岁——青少年选手", "quote": "\"我的教练很惊讶我在下次课前就纠正了步法。我只是按照SmartSwing给的训练做的。\"" },
@@ -118,15 +224,32 @@
   "pricing": {
     "eyebrow": "价格——早期访问费率",
     "heading": "免费开始。看到效果后再升级。",
+    "tag": "价格",
+    "title": "免费开始。准备好后再提升。",
+    "sub": "无需信用卡。随时升级或取消。",
     "mostPopular": "最受欢迎", "perMonth": "/ 月",
     "urgency1": "💳  私教费用：$80–$150/小时 · SmartSwing Performance：$0.66/天",
     "urgency2": "🔒  早期访问价格——在涨价前锁定您的费率",
     "urgency3": "🏫  学院或俱乐部计费？",
     "urgency3Link": "联系我们获取定制方案",
-    "starter":     { "name": "入门版",     "price": "$0",     "tagline": "消除所有障碍，获得第一次成功。",                                   "f1": "每月1次分析",             "f2": "实时报告预览",             "f3": "不可保存、打印或导出",        "cta": "免费开始 →" },
-    "player":      { "name": "球员版",     "price": "$9.99",  "tagline": "适合希望获得稳定月度反馈和保存报告的球员。",                       "f1": "每月10次分析",            "f2": "保存、打印和分享报告",     "f3": "进度仪表板和KPI追踪",         "cta": "选择球员版 →" },
+    "starter":     { "name": "入门版",     "price": "$0",     "tagline": "消除所有障碍，获得第一次成功。", "desc": "适合开始使用AI反馈的球员。",                                   "f1": "每月1次分析",             "f2": "实时报告预览",             "f3": "不可保存、打印或导出",        "cta": "免费开始 →" },
+    "player":      { "name": "球员版", "desc": "适合定期训练并希望获得可量化进步的认真球员。",     "price": "$9.99",  "tagline": "适合希望获得稳定月度反馈和保存报告的球员。",                       "f1": "每月10次分析",            "f2": "保存、打印和分享报告",     "f3": "进度仪表板和KPI追踪", "f4": "比在课程间猜测更好",         "cta": "选择球员版 →" },
     "performance": { "name": "Performance","price": "$19.99", "tagline": "无限分析。完整训练库。教练工具。每月不到一节私教课。",               "f1": "无限分析和报告",          "f2": "完整训练库",               "f3": "教练/球员连接工具", "f4": "每周AI报告", "cta": "选择Performance →" },
-    "tournament":  { "name": "锦标赛专业版","price": "$49.99","tagline": "适合需要认证教练审查、赛前准备和优先访问的严肃选手。",               "f1": "无限评估和导出",          "f2": "认证教练审查工作流",       "f3": "赛事准备支持",     "f4": "优先排期",        "cta": "选择锦标赛专业版 →" }
+    "tournament":  { "name": "锦标赛专业版","price": "$49.99","tagline": "适合需要认证教练审查、赛前准备和优先访问的严肃选手。",               "f1": "无限评估和导出",          "f2": "认证教练审查工作流",       "f3": "赛事准备支持",     "f4": "优先排期",        "cta": "选择锦标赛专业版 →" },
+    "perf": {
+      "name": "Performance",
+      "price": "$19.99",
+      "desc": "无限分析。完整训练库。教练工具。",
+      "f1": "无限分析",
+      "f2": "训练库",
+      "f3": "教练/球员工具",
+      "f4": "每周AI报告",
+      "cta": "立即开始 →"
+    }
+  },
+  "bigcta": {
+    "primary": "今天免费开始 →",
+    "secondary": "了解如何运作"
   },
   "lead": {
     "eyebrow": "免费资源",
