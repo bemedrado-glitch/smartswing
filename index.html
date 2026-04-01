@@ -303,10 +303,15 @@
 
     /* ── HERO ── */
     .hero {
-      padding: calc(var(--section-gap) + 60px) 0 0;
+      padding: calc(var(--section-gap) + 80px) 0 80px;
       position: relative;
       overflow: hidden;
-      text-align: center;
+      text-align: left;
+    }
+    .hero-split {
+      display: flex;
+      align-items: center;
+      gap: 56px;
     }
     .hero-orb {
       position: absolute;
@@ -327,9 +332,63 @@
     .hero-inner {
       position: relative;
       z-index: 1;
-      max-width: 860px;
-      margin-inline: auto;
-      padding: 0 24px;
+      flex: 1 1 0;
+      max-width: 560px;
+      padding: 0;
+    }
+    /* Hero right-side visual */
+    .hero-visual {
+      flex: 1 1 0;
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+    }
+    .hero-visual-img {
+      width: 100%;
+      height: 580px;
+      object-fit: cover;
+      object-position: center 25%;
+      border-radius: var(--radius-lg);
+      display: block;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    }
+    .hero-phone-overlay {
+      position: absolute;
+      bottom: -28px;
+      left: -36px;
+      width: 168px;
+      border-radius: 26px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.75);
+      border: 2px solid rgba(255,255,255,0.12);
+      animation: float 4s ease-in-out infinite;
+      background: #0a0a0a;
+    }
+    .hero-visual-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(10,10,10,0.82);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(57,255,20,0.3);
+      border-radius: 100px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--volt);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* Mobile hero: stack vertically */
+    @media (max-width: 900px) {
+      .hero { text-align: center; padding-bottom: 48px; }
+      .hero-split { flex-direction: column-reverse; gap: 36px; }
+      .hero-inner { max-width: 100%; }
+      .hero-sub { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .hero-note { justify-content: center; }
+      .hero-visual-img { height: 300px; object-position: center 20%; }
+      .hero-phone-overlay { width: 110px; bottom: -16px; left: -12px; }
     }
     .float-badge {
       display: inline-flex;
@@ -369,16 +428,16 @@
     }
     .hero h1 em, .hero h1 span.volt { color: var(--volt); font-style: normal; }
     .hero-sub {
-      font-size: clamp(16px, 2vw, 20px);
+      font-size: clamp(16px, 1.8vw, 19px);
       color: var(--muted);
-      max-width: 600px;
-      margin: 0 auto 36px;
+      max-width: 520px;
+      margin: 0 0 36px;
       line-height: 1.7;
     }
     .hero-actions {
       display: flex;
       gap: 14px;
-      justify-content: center;
+      justify-content: flex-start;
       flex-wrap: wrap;
       margin-bottom: 20px;
     }
@@ -387,9 +446,9 @@
       color: var(--muted);
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 8px;
-      margin-bottom: 56px;
+      margin-bottom: 0;
     }
     .hero-note .green-dot {
       width: 6px; height: 6px;
@@ -1175,18 +1234,22 @@
       .hero-sub { font-size: 14px; }
     }
 
-    /* Image color normalization — reduce blue cast, keep dark/neutral */
-    .hero-strip img,
-    .step-img img,
-    .step-media img,
-    .bento-main-img,
-    .bento-card img,
-    .hook-img img,
-    .showcase-img img,
-    .split-img img,
-    img[src*="redesign"] {
+    /* Image color normalization — reduce blue cast on AI-generated images only */
+    img[src*="redesign/hero.webp"],
+    img[src*="redesign/ai-breakdown"],
+    img[src*="redesign/tactical"],
+    img[src*="redesign/personalized"],
+    img[src*="redesign/step"] {
       filter: saturate(0.75) brightness(0.88);
       transition: filter 0.4s ease, transform 0.4s ease;
+    }
+    /* Real editorial photos — full color, natural look */
+    img[src*="hero-action"],
+    img[src*="hero-phone"],
+    img[src*="hero-record"],
+    img[src*="hero-drill"] {
+      filter: none;
+      transition: transform 0.4s ease;
     }
     .step-card:hover .step-img img,
     .step-row:hover .step-media img {
@@ -1239,29 +1302,49 @@
     <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
-    <div class="hero-inner">
-      <div class="float-badge" aria-label="AI Analysis Now Live">
-        <span class="live-dot" aria-hidden="true"></span>
-        AI Analysis Now Live
+    <div class="page">
+      <div class="hero-split">
+
+        <!-- LEFT: copy -->
+        <div class="hero-inner">
+          <div class="float-badge" aria-label="AI Analysis Now Live">
+            <span class="live-dot" aria-hidden="true"></span>
+            AI Analysis Now Live
+          </div>
+
+          <h1 id="hero-heading">Your Swing.<br><span class="volt">Perfected.</span></h1>
+
+          <p class="hero-sub">Point your phone at any swing. Get instant biomechanics feedback, a personalised drill plan, and coach-ready insights — all in under 60 seconds.</p>
+
+          <div class="hero-actions">
+            <a href="./signup.html" class="btn-primary btn-lg" data-i18n="hero.cta.primary">Analyze Your Swing Free →</a>
+            <a href="./how-it-works.html" class="btn-ghost btn-lg" data-i18n="hero.cta.secondary">See How It Works</a>
+          </div>
+
+          <p class="hero-note">
+            <span class="green-dot" aria-hidden="true"></span>
+            No credit card &nbsp;·&nbsp; Results in 60 seconds
+          </p>
+        </div>
+
+        <!-- RIGHT: cinematic action shot + AI score overlay -->
+        <div class="hero-visual" aria-hidden="true">
+          <img src="./assets/redesign/hero-action.png"
+               alt="Tennis player executing a powerful backhand with perfect technique"
+               class="hero-visual-img"
+               loading="eager" fetchpriority="high" decoding="async">
+          <!-- floating AI analysis phone -->
+          <img src="./assets/uiux/Smart%203.png"
+               alt="SmartSwing AI analysis results — score 88/100"
+               class="hero-phone-overlay">
+          <!-- badge overlay -->
+          <div class="hero-visual-badge">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--volt);display:inline-block;"></span>
+            AI Score in 60s
+          </div>
+        </div>
+
       </div>
-
-      <h1 id="hero-heading">Your Swing.<br><span class="volt">Perfected.</span></h1>
-
-      <p class="hero-sub">Upload one video. Get instant biomechanics feedback, a personalised drill plan, and coach-ready insights — all in under 60 seconds.</p>
-
-      <div class="hero-actions">
-        <a href="./signup.html" class="btn-primary btn-lg" data-i18n="hero.cta.primary">Analyze Your Swing Free →</a>
-        <a href="./how-it-works.html" class="btn-ghost btn-lg" data-i18n="hero.cta.secondary">See How It Works</a>
-      </div>
-
-      <p class="hero-note">
-        <span class="green-dot" aria-hidden="true"></span>
-        No credit card &nbsp;·&nbsp; Results in 60 seconds
-      </p>
-    </div>
-
-    <div class="hero-img-strip page">
-      <picture><source srcset="./assets/redesign/hero.webp" type="image/webp"><img src="./assets/redesign/hero.webp" alt="Transform your tennis and pickleball game with SmartSwing AI" loading="eager" fetchpriority="high" width="1280" height="520" decoding="async" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/hero.jpg';this.onerror=null"></picture>
     </div>
 
     <div class="page">
@@ -1319,7 +1402,7 @@
           </div>
         </div>
         <div class="hook-img reveal" style="transition-delay:120ms">
-          <img src="./assets/uiux/Smart%208.png" alt="SmartSwing AI recording your swing in real time" loading="lazy" style="width:100%;height:440px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
+          <img src="./assets/redesign/hero-phone.png" alt="Player reviewing their SmartSwing AI analysis results on the court" loading="lazy" style="width:100%;height:440px;object-fit:cover;object-position:center 20%;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>
@@ -1336,7 +1419,7 @@
       <div class="steps-grid">
         <div class="step-card reveal">
           <div class="step-img">
-            <img src="./assets/uiux/Smart%202.png" alt="Record your swing with SmartSwing AI live capture" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0d0d0d;">
+            <img src="./assets/redesign/hero-record.png" alt="Player setting up tripod to record swing for SmartSwing AI analysis" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;">
           </div>
           <div class="step-body">
             <div class="step-num">1</div>
