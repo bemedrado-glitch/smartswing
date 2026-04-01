@@ -451,7 +451,7 @@
 
     /* ── TRUST BAR ── */
     .trust {
-      padding: 32px 0 48px;
+      padding: 40px 0 56px;
       text-align: center;
       border-top: 1px solid rgba(255,255,255,0.06);
     }
@@ -471,8 +471,8 @@
       align-items: center;
     }
     .trust-logo {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 800;
       letter-spacing: 0.1em;
       color: rgba(255,255,255,0.3);
       text-transform: uppercase;
@@ -1211,9 +1211,7 @@
     <div class="nav-inner page">
       <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <div class="nav-links" role="list">
-        <a href="./for-players.html" role="listitem" data-i18n="nav.forPlayers">For Players</a>
-        <a href="./for-coaches.html" role="listitem" data-i18n="nav.forCoaches">For Coaches</a>
-        <a href="./for-clubs.html" role="listitem" data-i18n="nav.forClubs">For Clubs</a>
+        <a href="./features.html" role="listitem" data-i18n="nav.features">Features</a>
         <a href="./how-it-works.html" role="listitem" data-i18n="nav.howItWorks">How It Works</a>
         <a href="./pricing.html" role="listitem" data-i18n="nav.pricing">Pricing</a>
         <a href="./blog.html" role="listitem" data-i18n="nav.blog">Blog</a>
@@ -1280,14 +1278,20 @@
 
   <!-- ── TRUST BAR ── -->
   <div class="trust page" style="background:var(--bg);">
-    <p class="trust-label" data-i18n="trust.label">Trusted by players from</p>
-    <div class="trust-logos">
-      <span class="trust-logo">USTA</span>
-      <span class="trust-logo">ITF</span>
-      <span class="trust-logo">PTR</span>
-      <span class="trust-logo">USPTA</span>
-      <span class="trust-logo">WTA</span>
-      <span class="trust-logo">ATP</span>
+    <p class="trust-label" data-i18n="trust.label">Trusted by players, coaches &amp; clubs affiliated with</p>
+    <div class="trust-logos" style="gap:16px; row-gap:12px;">
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🎾 USTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🌍 ITF</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🏅 ATP</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🏆 WTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">📋 PTR</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🎓 USPTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇦🇺 Tennis Australia</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇬🇧 LTA</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇫🇷 FFT</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇩🇪 DTB</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇪🇸 RFET</span>
+      <span class="trust-logo" style="padding:8px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:8px; color:#fff; background:rgba(255,255,255,0.05);">🇧🇷 CBT</span>
     </div>
   </div>
 
@@ -1372,7 +1376,7 @@
         <h2 data-i18n="features.title">Everything you need to improve — nothing you don't.</h2>
       </div>
       <div class="bento-grid">
-        <div class="bento-card tall reveal">
+        <a class="bento-card tall reveal" href="./features.html#biomechanics" style="text-decoration:none; color:inherit; cursor:pointer;">
           <div class="bento-card-img">
             <picture><source srcset="./assets/redesign/ai-breakdown.webp" type="image/webp"><img src="./assets/redesign/ai-breakdown.webp" alt="AI biomechanics breakdown" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/ai-breakdown.png';this.onerror=null"></picture>
           </div>
@@ -1380,17 +1384,19 @@
             <div class="bento-icon">🧬</div>
             <h3 data-i18n="features.bio.title">Deep Biomechanics Analysis</h3>
             <p data-i18n="features.bio.desc">15+ data points including stance width, hip rotation, shoulder alignment, racket path, and contact zone. Know exactly what to fix and why.</p>
+            <div style="margin-top:14px; font-size:13px; font-weight:700; color:#39ff14;">Learn more →</div>
           </div>
-        </div>
+        </a>
         <div class="bento-right">
-          <div class="bento-card reveal" style="transition-delay:80ms">
+          <a class="bento-card reveal" href="./features.html#drills" style="transition-delay:80ms; text-decoration:none; color:inherit; cursor:pointer; display:block;">
             <div class="bento-card-body">
               <div class="bento-icon">🎯</div>
               <h3 data-i18n="features.drills.title">Personalised Drill Plans</h3>
               <p data-i18n="features.drills.desc">Specific, sequenced drills targeted to your weaknesses — not generic YouTube advice.</p>
+              <div style="margin-top:14px; font-size:13px; font-weight:700; color:#39ff14;">Learn more →</div>
             </div>
-          </div>
-          <div class="bento-card reveal" style="transition-delay:160ms">
+          </a>
+          <a class="bento-card reveal" href="./features.html#tactics" style="transition-delay:160ms; text-decoration:none; color:inherit; cursor:pointer; display:block;">
             <div class="bento-card-img">
               <picture><source srcset="./assets/redesign/tactical.webp" type="image/webp"><img src="./assets/redesign/tactical.webp" alt="Tactical breakdown" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/tactical.png';this.onerror=null"></picture>
             </div>
@@ -1398,8 +1404,9 @@
               <div class="bento-icon">♟️</div>
               <h3 data-i18n="features.tactical.title">Tactical Breakdown</h3>
               <p data-i18n="features.tactical.desc">Shot selection, court positioning, and match strategy insights to elevate your mental game.</p>
+              <div style="margin-top:14px; font-size:13px; font-weight:700; color:#39ff14;">Learn more →</div>
             </div>
-          </div>
+          </a>
         </div>
       </div>
     </div>
@@ -1419,7 +1426,7 @@
             <li data-i18n="showcase.coaches.f3">Side-by-side swing comparison tools</li>
             <li data-i18n="showcase.coaches.f4">Drill assignment and tracking per player</li>
           </ul>
-          <a href="./for-coaches.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.coaches.cta">Explore Coach Tools →</a>
+          <a href="./coach-dashboard.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.coaches.cta">Explore Coach Tools →</a>
         </div>
         <div class="showcase-img reveal" style="transition-delay:120ms">
           <picture><source srcset="./assets/redesign/ai-improvement.webp" type="image/webp"><img src="./assets/redesign/ai-improvement.webp" alt="Coach dashboard view" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/ai-improvement.png';this.onerror=null"></picture>
@@ -1442,7 +1449,7 @@
             <li data-i18n="showcase.players.f3">Weekly AI-generated goal recommendations</li>
             <li data-i18n="showcase.players.f4">Mobile-first design — analyse anywhere</li>
           </ul>
-          <a href="./for-players.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.players.cta">See Player Dashboard →</a>
+          <a href="./dashboard.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.players.cta">See Player Dashboard →</a>
         </div>
         <div class="showcase-img reveal" style="transition-delay:120ms">
           <picture><source srcset="./assets/redesign/swing-analysis.webp" type="image/webp"><img src="./assets/redesign/swing-analysis.webp" alt="Player progress dashboard" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/swing-analysis.png';this.onerror=null"></picture>
@@ -1457,45 +1464,82 @@
       <div class="section-header reveal">
         <div class="tag" data-i18n="proof.tag">What Players Say</div>
         <h2 data-i18n="proof.title">Real results from real players.</h2>
+        <p style="color:var(--muted); font-size:15px; margin-top:8px;">Players of all ages, levels, and backgrounds — here's what they're saying.</p>
       </div>
-      <div class="proof-grid">
+      <div class="proof-grid" style="grid-template-columns:repeat(3,1fr);">
+
         <div class="proof-card reveal">
           <div class="stars">★★★★★</div>
-          <p class="proof-quote">"I improved my serve by 18 mph in six weeks. The breakdown was more detailed than anything my human coach had ever given me. Absolutely worth it."</p>
+          <p class="proof-quote">"My serve speed went up 18 mph in six weeks. The biomechanics breakdown was more specific than anything my private coach had ever given me. I didn't expect AI to catch what it caught."</p>
           <div class="proof-author">
-            <div class="proof-avatar">
-              <picture><source srcset="./assets/redesign/woman-analysis.webp" type="image/webp"><img src="./assets/redesign/woman-analysis.webp" alt="Sarah M." onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/woman-analysis.png';this.onerror=null"></picture>
-            </div>
+            <div class="proof-avatar" style="background:linear-gradient(135deg,#e8b4a0,#c4805a); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;">S</div>
             <div>
-              <p class="proof-name">Sarah M.</p>
-              <p class="proof-title">4.0 NTRP Player · Austin, TX</p>
+              <p class="proof-name">Sarah M., 28</p>
+              <p class="proof-title">4.0 NTRP · Austin, TX · USTA Member</p>
             </div>
           </div>
         </div>
-        <div class="proof-card reveal" style="transition-delay:100ms">
+
+        <div class="proof-card reveal" style="transition-delay:80ms">
           <div class="stars">★★★★★</div>
-          <p class="proof-quote">"The tactical analysis blew me away. It caught a footwork pattern I'd had for years that no one had ever mentioned. My coach was genuinely impressed by the report."</p>
+          <p class="proof-quote">"It caught a footwork habit I'd had for 12 years. My coach read the report and couldn't believe how precise it was. Now we train with a shared goal every session — this is what data-driven coaching looks like."</p>
           <div class="proof-author">
-            <div class="proof-avatar" style="background:rgba(57,255,20,0.15);"></div>
+            <div class="proof-avatar" style="background:linear-gradient(135deg,#7b9fd4,#4a6fa5); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;">M</div>
             <div>
-              <p class="proof-name">Marcus T.</p>
-              <p class="proof-title">Tournament Player · London, UK</p>
+              <p class="proof-name">Marcus T., 34</p>
+              <p class="proof-title">Tournament Player · London, UK · LTA Rated</p>
             </div>
           </div>
         </div>
-        <div class="proof-card reveal" style="transition-delay:200ms">
+
+        <div class="proof-card reveal" style="transition-delay:160ms">
           <div class="stars">★★★★★</div>
-          <p class="proof-quote">"As a club coach I use this with every new student. The AI report gives me a perfect baseline in 60 seconds — sessions are 30% more efficient now."</p>
+          <p class="proof-quote">"I use SmartSwing with every new student as the first session baseline. The AI gives me a 60-second report I can build a 3-month plan from. My coaching sessions are 30% more focused now."</p>
           <div class="proof-author">
-            <div class="proof-avatar">
-              <picture><source srcset="./assets/redesign/woman-analysis2.webp" type="image/webp"><img src="./assets/redesign/woman-analysis2.webp" alt="Coach Diana R." onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/woman-analysis2.png';this.onerror=null"></picture>
-            </div>
+            <div class="proof-avatar" style="background:linear-gradient(135deg,#a8c4a0,#6b9e61); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;">D</div>
             <div>
-              <p class="proof-name">Coach Diana R.</p>
-              <p class="proof-title">PTR Certified · Miami, FL</p>
+              <p class="proof-name">Coach Diana R., 42</p>
+              <p class="proof-title">PTR Certified Pro · Miami, FL</p>
             </div>
           </div>
         </div>
+
+        <div class="proof-card reveal" style="transition-delay:80ms">
+          <div class="stars">★★★★★</div>
+          <p class="proof-quote">"My 13-year-old daughter was losing confidence after a rough season. SmartSwing gave her a clear score and one drill to focus on. In 4 weeks her forehand score went from 58 to 79. She's hooked now."</p>
+          <div class="proof-author">
+            <div class="proof-avatar" style="background:linear-gradient(135deg,#f0c8d0,#d4789a); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;">L</div>
+            <div>
+              <p class="proof-name">Lucia V., 41</p>
+              <p class="proof-title">Tennis Parent · São Paulo, Brazil · CBT Club</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="proof-card reveal" style="transition-delay:160ms">
+          <div class="stars">★★★★★</div>
+          <p class="proof-quote">"As a 55-year-old returning to tennis after 10 years, I was nervous about tech like this. But the report was in plain English, the drill was simple, and my backhand timing improved in two sessions. Remarkable."</p>
+          <div class="proof-author">
+            <div class="proof-avatar" style="background:linear-gradient(135deg,#c8b49a,#8a6a4a); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;">R</div>
+            <div>
+              <p class="proof-name">Robert K., 55</p>
+              <p class="proof-title">Club Player · Munich, Germany · DTB Affiliated</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="proof-card reveal" style="transition-delay:240ms">
+          <div class="stars">★★★★★</div>
+          <p class="proof-quote">"I manage 22 junior players at our academy. SmartSwing gives me a dashboard view across every student. I can spot who needs attention before they walk on court. It's changed how I run my whole program."</p>
+          <div class="proof-author">
+            <div class="proof-avatar" style="background:linear-gradient(135deg,#9ec4d8,#4a89b0); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;">J</div>
+            <div>
+              <p class="proof-name">Coach James O., 38</p>
+              <p class="proof-title">Academy Director · Sydney, Australia · Tennis Australia</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>

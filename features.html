@@ -781,11 +781,9 @@
     <div class="nav-inner">
       <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40"></a>
       <div class="nav-links">
-        <a href="./index.html">Home</a>
         <a href="./features.html" class="active">Features</a>
-        <a href="./about.html">About</a>
+        <a href="./how-it-works.html">How It Works</a>
         <a href="./pricing.html">Pricing</a>
-        <a href="./for-coaches.html">Coaches</a>
         <a href="./blog.html">Blog</a>
       </div>
       <div class="nav-cta">
@@ -824,7 +822,7 @@
   </div>
 
   <!-- BENTO FEATURE GRID -->
-  <section class="section page">
+  <section id="biomechanics" class="section page">
     <div class="section-header reveal">
       <span class="eyebrow">Core capabilities</span>
       <h2>Every layer reinforces the next.</h2>
@@ -911,6 +909,106 @@
     </div>
   </section>
 
+  <!-- DEEP DIVE: BIOMECHANICS -->
+  <section class="section page" style="scroll-margin-top:100px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;" class="reveal">
+      <div>
+        <span class="eyebrow" style="background:rgba(57,255,20,0.12); border:1px solid rgba(57,255,20,0.28); color:#39ff14;">🧬 Deep Biomechanics Analysis</span>
+        <h2 style="margin-top:16px; font-size:clamp(28px,3.5vw,44px); letter-spacing:-0.04em; line-height:1.05;">What your body<br>is actually doing.</h2>
+        <p style="color:rgba(255,255,255,0.6); line-height:1.7; margin-top:14px;">Our AI tracks 15+ biomechanics data points frame by frame — shoulder rotation, hip alignment, elbow angle, contact point height, stance width, racket path, and more. Every measurement is compared against level-adjusted benchmarks so the feedback fits <em>you</em>, not a pro player.</p>
+        <ul style="list-style:none; display:grid; gap:10px; margin-top:20px;">
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Shoulder, elbow, hip, knee, trunk, wrist — all tracked simultaneously</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Level-adjusted scoring: beginner benchmarks vs tournament benchmarks are different</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Age and gender context applied before scoring — fair for juniors and masters alike</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Results explained in plain English — "your elbow is too low at contact" not raw angles</li>
+        </ul>
+        <a href="./analyze.html" class="btn btn-volt" style="margin-top:24px; display:inline-flex;">Analyze My Swing Free →</a>
+      </div>
+      <div style="background:rgba(57,255,20,0.04); border:1px solid rgba(57,255,20,0.16); border-radius:20px; padding:24px; display:grid; gap:12px;">
+        <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.4); margin-bottom:4px;">Sample metrics tracked</div>
+        ${[['Shoulder Rotation','87%'],['Hip-Shoulder Separation (X-Factor)','72%'],['Elbow Angle at Contact','91%'],['Knee Bend','65%'],['Contact Height','78%'],['Trunk Rotation','83%']].map(([n,v]) => {
+          return '';
+        }).join('')}
+        <div style="display:flex; align-items:center; gap:10px;"><div style="min-width:180px; font-size:13px; font-weight:600;">Shoulder Rotation</div><div style="flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:87%; background:#39ff14; border-radius:999px;"></div></div><div style="min-width:36px; text-align:right; font-size:12px; font-weight:800; color:#39ff14;">87%</div></div>
+        <div style="display:flex; align-items:center; gap:10px;"><div style="min-width:180px; font-size:13px; font-weight:600;">Hip-Shoulder Separation</div><div style="flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:72%; background:#ffd84d; border-radius:999px;"></div></div><div style="min-width:36px; text-align:right; font-size:12px; font-weight:800; color:#ffd84d;">72%</div></div>
+        <div style="display:flex; align-items:center; gap:10px;"><div style="min-width:180px; font-size:13px; font-weight:600;">Elbow Angle at Contact</div><div style="flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:91%; background:#39ff14; border-radius:999px;"></div></div><div style="min-width:36px; text-align:right; font-size:12px; font-weight:800; color:#39ff14;">91%</div></div>
+        <div style="display:flex; align-items:center; gap:10px;"><div style="min-width:180px; font-size:13px; font-weight:600;">Knee Bend & Stance Width</div><div style="flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:65%; background:#ff6d00; border-radius:999px;"></div></div><div style="min-width:36px; text-align:right; font-size:12px; font-weight:800; color:#ff6d00;">65%</div></div>
+        <div style="display:flex; align-items:center; gap:10px;"><div style="min-width:180px; font-size:13px; font-weight:600;">Contact Height</div><div style="flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:78%; background:#ffd84d; border-radius:999px;"></div></div><div style="min-width:36px; text-align:right; font-size:12px; font-weight:800; color:#ffd84d;">78%</div></div>
+        <div style="display:flex; align-items:center; gap:10px;"><div style="min-width:180px; font-size:13px; font-weight:600;">Trunk Rotation</div><div style="flex:1; height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;"><div style="height:100%; width:83%; background:#39ff14; border-radius:999px;"></div></div><div style="min-width:36px; text-align:right; font-size:12px; font-weight:800; color:#39ff14;">83%</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEEP DIVE: DRILL PLANS -->
+  <section id="drills" class="section page" style="scroll-margin-top:100px; background:rgba(255,255,255,0.02); border-radius:24px; padding:48px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start;" class="reveal">
+      <div style="display:grid; gap:14px;">
+        <div style="background:rgba(57,255,20,0.05); border:1px solid rgba(57,255,20,0.18); border-radius:16px; padding:20px;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:#39ff14; margin-bottom:8px;">🎾 Drill 1 — This Week</div>
+          <div style="font-size:16px; font-weight:800; margin-bottom:6px;">Shadow Swing Focus Drill</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.6;">Stand sideways, practice the full swing motion focusing on hip-to-shoulder sequence. 3 sets of 10 slow reps.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:20px; opacity:0.6;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.4); margin-bottom:8px;">Drill 2 — Next Week</div>
+          <div style="font-size:16px; font-weight:800; margin-bottom:6px;">Contact Point Wall Drill</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.5); line-height:1.6;">Stand near a wall and practice meeting the ball at the right contact height. Builds muscle memory for waist-level strikes.</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:20px; opacity:0.4;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.3); margin-bottom:8px;">Drill 3 — When Ready</div>
+          <div style="font-size:16px; font-weight:800; margin-bottom:6px;">Cross-Court Rally Consistency</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.4); line-height:1.6;">10-ball rally blocks focusing on the corrected technique. Unlock when drill 1 scores improve.</div>
+        </div>
+      </div>
+      <div>
+        <span class="eyebrow" style="background:rgba(57,255,20,0.12); border:1px solid rgba(57,255,20,0.28); color:#39ff14;">🎯 Personalised Drill Plans</span>
+        <h2 style="margin-top:16px; font-size:clamp(28px,3.5vw,44px); letter-spacing:-0.04em; line-height:1.05;">One drill.<br>One priority.<br>One week.</h2>
+        <p style="color:rgba(255,255,255,0.6); line-height:1.7; margin-top:14px;">Most apps dump 10 drills at once. We give you one. The drill that targets your single biggest weakness, with clear steps, a rep count, and a simple coaching cue — nothing more.</p>
+        <p style="color:rgba(255,255,255,0.6); line-height:1.7; margin-top:10px;">As your scores improve, the next drill unlocks. Progress is built in, not left to chance.</p>
+        <ul style="list-style:none; display:grid; gap:10px; margin-top:20px;">
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Matched to your exact weakest metric from the analysis</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Step-by-step instructions in plain language</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Includes a SMART weekly goal tied to the drill</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#39ff14; font-weight:800; flex-shrink:0;">✓</span>Coaching tip included — not just what to do, but how to feel it</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEEP DIVE: TACTICAL BREAKDOWN -->
+  <section id="tactics" class="section page" style="scroll-margin-top:100px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start;" class="reveal">
+      <div>
+        <span class="eyebrow" style="background:rgba(0,212,170,0.12); border:1px solid rgba(0,212,170,0.28); color:#00d4aa;">♟️ Tactical Breakdown</span>
+        <h2 style="margin-top:16px; font-size:clamp(28px,3.5vw,44px); letter-spacing:-0.04em; line-height:1.05;">Not just how you<br>hit — where and when.</h2>
+        <p style="color:rgba(255,255,255,0.6); line-height:1.7; margin-top:14px;">Technique fixes win practice sessions. Tactics win matches. SmartSwing AI links your biomechanics data to shot selection, court positioning, and pattern recognition — so your better technique actually shows up when it counts.</p>
+        <ul style="list-style:none; display:grid; gap:10px; margin-top:20px;">
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#00d4aa; font-weight:800; flex-shrink:0;">✓</span>Shot selection recommendations matched to your current level</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#00d4aa; font-weight:800; flex-shrink:0;">✓</span>Court positioning principles for each shot type</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#00d4aa; font-weight:800; flex-shrink:0;">✓</span>Pattern recognition: when to go cross-court vs down the line</li>
+          <li style="display:flex; gap:10px; align-items:flex-start; font-size:14px; color:rgba(255,255,255,0.7);"><span style="color:#00d4aa; font-weight:800; flex-shrink:0;">✓</span>Mental game cues: pressure handling, reset patterns, confidence triggers</li>
+        </ul>
+        <a href="./analyze.html" class="btn btn-volt" style="margin-top:24px; display:inline-flex;">See Your Tactical Breakdown →</a>
+      </div>
+      <div style="display:grid; gap:14px;">
+        <div style="background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.18); border-radius:16px; padding:20px;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:#00d4aa; margin-bottom:8px;">Tactical Tip 1</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Use your stronger forehand cross-court on second ball</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.6;">Your forehand scores 83% — it's a weapon. When you get a short ball, redirect cross-court with topspin to push opponent wide.</div>
+        </div>
+        <div style="background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.18); border-radius:16px; padding:20px;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:#00d4aa; margin-bottom:8px;">Tactical Tip 2</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Avoid running backhand down-the-line under pressure</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.6;">Your backhand scores 62% under pressure. Redirect cross-court on defensive backhand returns until the technique score reaches 75%+.</div>
+        </div>
+        <div style="background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.18); border-radius:16px; padding:20px;">
+          <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:#00d4aa; margin-bottom:8px;">Mental Game</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:6px;">Reset ritual between points</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.6;">After an error, take 2 deep breaths, bounce the ball 3 times, and use one word: "smooth". Builds consistency under pressure.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- METRICS BAR -->
   <div class="metrics-bar">
     <div class="metrics-inner">
@@ -939,7 +1037,7 @@
           </ul>
           <div class="split-actions">
             <a href="./analyze.html" class="btn btn-volt">Try It Free</a>
-            <a href="./for-players.html" class="btn btn-ghost">For Players</a>
+            <a href="./dashboard.html" class="btn btn-ghost">Player Dashboard</a>
           </div>
         </div>
       </div>
@@ -963,8 +1061,7 @@
             <li>Scalable workflows — manage a full roster without custom software or spreadsheets.</li>
           </ul>
           <div class="split-actions">
-            <a href="./for-coaches.html" class="btn btn-volt">For Coaches</a>
-            <a href="./for-clubs.html" class="btn btn-ghost">For Clubs</a>
+            <a href="./coach-dashboard.html" class="btn btn-volt">Coach Dashboard</a>
           </div>
         </div>
       </div>
