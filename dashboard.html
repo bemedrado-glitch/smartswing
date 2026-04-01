@@ -22,7 +22,7 @@
     .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
     .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--orange)}.mini{color:var(--orange)} h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.08;letter-spacing:-.02em} h1{font-size:44px;margin:10px 0 12px} h2{font-size:24px;margin-bottom:10px;color:var(--green)} h3{font-size:18px;margin-bottom:6px;color:var(--green)}.muted{color:var(--muted);line-height:1.6}
     .stat .value{font-family:"Sora",sans-serif;font-size:32px;color:var(--orange);line-height:1}.avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);font-weight:800;background-size:cover;background-position:center}.user{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
-    .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/avatar/Persona 3 Tennis.png') center 22%/cover;display:flex;align-items:flex-end;padding:18px}.tabs .tab{padding:14px 12px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
+    .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/redesign/hero-action.png') center 25%/cover;display:flex;align-items:flex-end;padding:18px}.tabs .tab{padding:14px 12px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
     .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,216,77,.12);color:var(--orange)} .bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px}.fill{height:100%;border-radius:999px;background:linear-gradient(135deg,var(--green),var(--orange))}
     input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} textarea{min-height:110px;resize:vertical} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
     .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
@@ -108,6 +108,45 @@
   .chat-row{padding:10px 12px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:7px;}
   #pChatInput{flex:1;padding:8px 11px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#f5f5f7;font:inherit;font-size:12px;}
   #pChatSend{padding:8px 13px;background:var(--green);color:#0a0a0a;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;}
+/* Score Ring */
+.score-ring-wrap{display:flex;align-items:center;gap:20px;margin:16px 0;}
+.score-ring-svg{flex-shrink:0;}
+.score-ring-meta{display:flex;flex-direction:column;gap:4px;}
+.score-ring-value{font-family:"Sora",sans-serif;font-size:48px;font-weight:800;line-height:1;color:var(--green);}
+.score-ring-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);}
+.score-ring-grade{font-size:14px;font-weight:700;color:var(--orange);margin-top:4px;}
+.stats-mini-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;}
+.stats-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;}
+.stats-mini .sm-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.35);margin-bottom:4px;}
+.stats-mini .sm-value{font-family:"Sora",sans-serif;font-size:22px;font-weight:800;color:var(--orange);line-height:1.1;}
+.stats-mini .sm-delta{font-size:11px;font-weight:700;margin-top:2px;}
+.delta-up{color:#39ff14;}.delta-down{color:#ff5252;}.delta-flat{color:rgba(255,255,255,.3);}
+/* Action Plan */
+.action-item{display:flex;align-items:flex-start;gap:14px;padding:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;cursor:pointer;transition:border-color .18s,background .18s;}
+.action-item:hover{border-color:rgba(57,255,20,.25);background:rgba(57,255,20,.04);}
+.action-item.done{opacity:.55;}
+.action-item.done .ai-title{text-decoration:line-through;}
+.action-checkbox{width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s;margin-top:2px;}
+.action-item.done .action-checkbox{border-color:var(--green);background:var(--green);}
+.action-checkbox svg{display:none;}
+.action-item.done .action-checkbox svg{display:block;}
+.ai-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.ai-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+.ai-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.ai-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(57,255,20,.1);color:var(--green);border:1px solid rgba(57,255,20,.2);}
+.ai-tag.orange{background:rgba(255,216,77,.1);color:var(--orange);border-color:rgba(255,216,77,.2);}
+/* Insights */
+.insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px;}
+.insight-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px;}
+.insight-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.insight-title{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.insight-body{font-size:12px;color:var(--muted);line-height:1.6;}
+/* Focus Bars */
+.focus-bar-item{margin-bottom:14px;}
+.focus-bar-label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px;}
+.focus-bar-track{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;}
+.focus-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--orange));transition:width .6s ease;}
+@media(max-width:720px){.insight-grid{grid-template-columns:1fr;}.stats-mini-row{grid-template-columns:1fr 1fr;}}
     </style>
 </head>
 <body>
@@ -127,10 +166,31 @@
 
     <section class="hero" style="margin-top:20px;">
       <article class="panel" style="background:linear-gradient(135deg,rgba(22,22,26,0.96),rgba(14,25,20,0.96));border-color:rgba(57,255,20,0.15);">
-        <div class="eyebrow" style="color:var(--green);margin-bottom:10px;">Your Progress</div>
-        <h1 style="font-size:clamp(28px,4vw,44px);margin:0 0 10px;">Welcome back!</h1>
-        <p class="muted" style="font-size:14px;line-height:1.6;margin-bottom:16px;">Your personal swing dashboard — progress, drills, goals, and coach notes all in one place.</p>
-        <div class="stats" id="stats" style="grid-template-columns:repeat(4,1fr);"></div>
+        <div class="eyebrow" style="color:var(--green);margin-bottom:8px;">Your Progress</div>
+        <h1 style="font-size:clamp(26px,3.5vw,40px);margin:0 0 6px;">Welcome back, <span id="heroFirstName">Player</span></h1>
+        <p class="muted" style="font-size:13px;line-height:1.6;margin-bottom:14px;">Your swing intelligence hub — every report compiled into trends, insights and a live action plan.</p>
+        <!-- Score ring -->
+        <div class="score-ring-wrap">
+          <svg class="score-ring-svg" width="84" height="84" viewBox="0 0 84 84" id="scoreRingSvg">
+            <circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+            <circle cx="42" cy="42" r="36" fill="none" stroke="url(#rg)" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226" id="scoreArc"
+              transform="rotate(-90 42 42)"/>
+            <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#39ff14"/><stop offset="100%" stop-color="#ffd84d"/>
+            </linearGradient></defs>
+          </svg>
+          <div class="score-ring-meta">
+            <div class="score-ring-value" id="ringScore">—</div>
+            <div class="score-ring-label">SmartSwing Score</div>
+            <div class="score-ring-grade" id="ringGrade">Run your first analysis</div>
+          </div>
+        </div>
+        <div class="stats-mini-row">
+          <div class="stats-mini"><div class="sm-label">Best Score</div><div class="sm-value" id="smBest">—</div></div>
+          <div class="stats-mini"><div class="sm-label">Sessions</div><div class="sm-value" id="smSessions">0</div></div>
+          <div class="stats-mini"><div class="sm-label">Trend</div><div class="sm-value" id="smTrend">—</div><div class="sm-delta" id="smDelta"></div></div>
+        </div>
       </article>
       <article class="hero-art" id="heroArt">
         <div class="card" style="border-color:rgba(57,255,20,0.2);background:rgba(57,255,20,0.05);">
@@ -141,10 +201,9 @@
       </article>
     </section>
 
-    <section class="tabs">
+    <section class="tabs" style="grid-template-columns:repeat(3,1fr);">
       <button class="tab active" data-tab="overview">Overview</button>
       <button class="tab" data-tab="analytics">Analytics</button>
-      <button class="tab" data-tab="schedule">Scheduling</button>
       <button class="tab" data-tab="library">Library</button>
       <button class="tab" data-tab="messages">Messaging</button>
       <button class="tab" data-tab="exports">Exports</button>
@@ -152,11 +211,50 @@
     </section>
 
     <section class="tab-panel active" id="tab-overview">
+      <!-- Row 1: Action Plan + Focus Areas -->
       <div class="grid">
-        <article class="panel"><h2>Weekly action plan</h2><div class="list" id="weeklyPlan"></div></article>
-        <article class="panel"><h2>Top 3 feedback</h2><div class="list" id="topFeedback"></div></article>
+        <article class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h2 style="margin:0;">Weekly Action Plan</h2>
+            <span class="pill" id="actionProgress">0/0 done</span>
+          </div>
+          <div class="list" id="weeklyPlan" style="gap:10px;display:flex;flex-direction:column;"></div>
+        </article>
+        <article class="panel">
+          <h2>Focus Areas</h2>
+          <p class="muted" style="font-size:13px;margin-bottom:16px;">Your highest-priority biomechanics from the latest report.</p>
+          <div id="focusBars"></div>
+          <div style="margin-top:16px;padding:14px;background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.15);border-radius:14px;" id="coachNoteBox">
+            <div class="mini" style="color:var(--green);margin-bottom:6px;">AI Coach Insight</div>
+            <p class="muted" id="coachNoteText" style="font-size:13px;line-height:1.6;">Run your first analysis to unlock personalised coaching insights.</p>
+          </div>
+        </article>
       </div>
-      <!-- ── Free Plan Referral Nudge ── -->
+
+      <!-- Row 2: Trends & Insights -->
+      <article class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <h2 style="margin:0;">Performance Insights</h2>
+          <div class="pill" id="trendPill">No trend yet</div>
+        </div>
+        <p class="muted" style="font-size:13px;margin-bottom:16px;">AI-generated insights compiled from all your reports.</p>
+        <div class="insight-grid" id="insightGrid">
+          <div class="insight-card"><div class="insight-icon" style="background:rgba(57,255,20,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="insight-title">Score Trend</div><div class="insight-body" id="insightTrend">Complete analyses to see your score trajectory.</div></div>
+          <div class="insight-card"><div class="insight-icon" style="background:rgba(255,216,77,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21.02 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="insight-title">Strongest Shot</div><div class="insight-body" id="insightStrong">Run more analyses to identify your best shot type.</div></div>
+          <div class="insight-card"><div class="insight-icon" style="background:rgba(0,212,170,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="insight-title">Consistency</div><div class="insight-body" id="insightConsistency">Your session consistency index will appear here after 3+ analyses.</div></div>
+        </div>
+      </article>
+
+      <!-- Row 3: Progress Timeline -->
+      <article class="panel">
+        <div class="row">
+          <div><h2>Progress Timeline</h2><p class="muted" style="font-size:13px;">SmartSwing Score across all your analyses.</p></div>
+        </div>
+        <div class="timeline-wrap" id="timelineWrap"></div>
+        <div class="shot-legend" id="shotLegend"></div>
+      </article>
+
+      <!-- Free Plan Nudge -->
       <article class="free-nudge" id="freeNudge">
         <div class="nudge-top">
           <div>
@@ -173,41 +271,19 @@
           <button id="nudgeCopyBtn" class="nudge-copy-btn" onclick="copyNudgeLink()">Copy Link</button>
         </div>
       </article>
-
-      <article class="panel">
-        <div class="row">
-          <div><h2>Progress Timeline</h2><p class="muted">SmartSwing Score across your last 10 analyses.</p></div>
-          <div class="pill" id="trendPill">No trend yet</div>
-        </div>
-        <div class="timeline-wrap" id="timelineWrap"></div>
-        <div class="shot-legend" id="shotLegend"></div>
-      </article>
     </section>
 
     <section class="tab-panel" id="tab-analytics">
       <div class="grid">
-        <article class="panel"><h2>Biomechanics priorities</h2><div class="list" id="priorityList"></div></article>
-        <article class="panel"><h2>Readable KPI view</h2><div class="list" id="kpiList"></div></article>
+        <article class="panel"><h2>Biomechanics Priorities</h2><div class="list" id="priorityList"></div></article>
+        <article class="panel"><h2>Top 3 AI Feedback</h2><div class="list" id="topFeedback"></div></article>
       </div>
-      <article class="panel"><h2>Activities</h2><div class="list" id="activityList"></div></article>
+      <article class="panel"><h2>Performance KPIs</h2><div class="list" id="kpiList"></div></article>
+      <article class="panel"><h2>Session History</h2><div class="list" id="activityList"></div></article>
     </section>
 
-    <section class="tab-panel" id="tab-schedule">
-      <div class="grid">
-        <article class="panel"><h2>Upcoming sessions</h2><div class="list" id="sessionList"></div></article>
-        <article class="panel">
-          <h2>Book a session</h2>
-          <form id="bookingForm" class="list">
-            <div><label for="coachId">Coach</label><select id="coachId"></select></div>
-            <div><label for="when">Date and time</label><input id="when" type="datetime-local" required></div>
-            <div><label for="focus">Focus</label><input id="focus" type="text" placeholder="Serve timing and spacing"></div>
-            <button class="btn primary" type="submit">Schedule session</button>
-          </form>
-        </article>
-      </div>
-    </section>
 
-    <section class="tab-panel" id="tab-library">
+<section class="tab-panel" id="tab-library">
       <div class="grid">
         <article class="panel"><h2>Recommended drills</h2><div class="list" id="drillList"></div></article>
         <article class="panel"><h2>Recommended tactics</h2><div class="list" id="tacticList"></div></article>
@@ -378,30 +454,210 @@
       }).catch(function() { inp.select(); document.execCommand('copy'); });
     };
 
-    document.getElementById('stats').innerHTML = [
-      ['Average score', `${metrics.avgScore}%`],
-      ['Best score', `${metrics.bestScore}%`],
-      ['Improvement', `${metrics.improvement > 0 ? '+' : ''}${metrics.improvement}`],
-      ['Readiness', `${latest?.performanceKpis?.readinessIndex || 0}%`]
-    ].map(([label, value]) => `<div class="card stat"><div class="mini">${label}</div><div class="value">${value}</div></div>`).join('');
+    // ── Score Ring ──────────────────────────────────────────────────────────
+    const avgScore = metrics.avgScore || 0;
+    const bestScore = metrics.bestScore || 0;
+    const improvement = metrics.improvement || 0;
+    const sessionCount = assessments.length;
 
-    const firstFocus = focusAreas[0];
-    document.getElementById('heroTitle').textContent = firstFocus ? `${firstFocus.metric.replace(/^\w/, (c) => c.toUpperCase())} is the cleanest next gain.` : 'Your next report should stay comparable.';
-    document.getElementById('heroCopy').textContent = latest?.coachSummary?.nextCoachFocus || 'Keep the same shot and camera setup so SmartSwing can compare movement quality fairly.';
+    // Hero first name
+    const firstName = (user.fullName || 'Player').split(' ')[0];
+    const heroFirstNameEl = document.getElementById('heroFirstName');
+    if (heroFirstNameEl) heroFirstNameEl.textContent = firstName;
 
-    document.getElementById('weeklyPlan').innerHTML = [
-      { title: 'Repeat the same camera setup', copy: 'This reduces noise and makes your score trend meaningful.', score: latest?.setupScore || 88 },
-      { title: drills[0]?.title || 'Primary drill block', copy: drills[0]?.prescription || 'Run the first recommended drill for 10-15 minutes.', score: latest?.metricComparisons?.[0]?.score || 76 },
-      { title: tactics[0]?.title || 'Primary match pattern', copy: tactics[0]?.summary || 'Rehearse one tactical pattern linked to the report.', score: latest?.performanceKpis?.timingConsistency || 74 }
-    ].map((item, i) => `<details class="detail-card" ${i === 0 ? 'open' : ''}><summary><div><div class="mini">Step ${i + 1}</div><h3>${item.title}</h3></div><div class="pill">${Math.min(100, Math.round(item.score || 0))}%</div></summary><div class="detail-body">${item.copy}</div></details>`).join('');
+    // Ring animation
+    const ringScoreEl = document.getElementById('ringScore');
+    const ringGradeEl = document.getElementById('ringGrade');
+    const scoreArc = document.getElementById('scoreArc');
+    if (ringScoreEl && scoreArc) {
+      ringScoreEl.textContent = avgScore > 0 ? avgScore + '%' : '—';
+      const grades = [[90,'Elite'],[80,'Advanced'],[70,'Developing'],[60,'Building'],[0,'Getting Started']];
+      const grade = grades.find(([t]) => avgScore >= t);
+      if (ringGradeEl) ringGradeEl.textContent = avgScore > 0 ? (grade ? grade[1] : '—') : 'Run your first analysis';
+      const circumference = 226;
+      const offset = circumference - (avgScore / 100) * circumference;
+      setTimeout(() => { scoreArc.style.transition = 'stroke-dashoffset 1s ease'; scoreArc.setAttribute('stroke-dashoffset', offset); }, 200);
+    }
 
-    document.getElementById('topFeedback').innerHTML = (focusAreas.length ? focusAreas : (latest?.metricComparisons || []).slice(0, 3)).slice(0, 3).map((item) => {
-      const label = (item.metric || 'timing').replace(/^\w/, (c) => c.toUpperCase());
-      const score = Math.min(100, Math.round(item.score || 72));
-      return `<details class="detail-card"><summary><h3>${label}</h3><div class="pill">${score}%</div></summary><div class="detail-body">This is a high-impact priority because it affects consistency, contact quality, and ball control together.<div class="bar"><div class="fill" style="width:${score}%"></div></div></div></details>`;
-    }).join('') || '<div class="card"><p class="muted">Run a report to unlock personalized feedback.</p></div>';
+    // Mini stats
+    const smBest = document.getElementById('smBest');
+    const smSessions = document.getElementById('smSessions');
+    const smTrend = document.getElementById('smTrend');
+    const smDelta = document.getElementById('smDelta');
+    if (smBest) smBest.textContent = bestScore > 0 ? bestScore + '%' : '—';
+    if (smSessions) smSessions.textContent = sessionCount;
+    if (smTrend && smDelta) {
+      smTrend.textContent = improvement !== 0 ? (improvement > 0 ? '+' + improvement : improvement) + 'pts' : '—';
+      smDelta.className = 'sm-delta ' + (improvement > 0 ? 'delta-up' : improvement < 0 ? 'delta-down' : 'delta-flat');
+      smDelta.textContent = improvement > 0 ? 'Improving' : improvement < 0 ? 'Declining' : 'Stable';
+    }
 
-    document.getElementById('trendPill').textContent = latest ? `${metrics.improvement > 0 ? '+' : ''}${metrics.improvement} vs baseline` : 'No trend yet';
+    // ── Focus Bars ──────────────────────────────────────────────────────────
+    const focusBarsEl = document.getElementById('focusBars');
+    const topFocusAreas = (focusAreas.length ? focusAreas : (latest?.metricComparisons || [])).slice(0, 4);
+    if (focusBarsEl) {
+      if (topFocusAreas.length) {
+        focusBarsEl.innerHTML = topFocusAreas.map((item) => {
+          const label = (item.metric || 'timing').replace(/_/g,' ').replace(/^\w/, c => c.toUpperCase());
+          const score = Math.min(100, Math.round(item.score || 0));
+          const color = score >= 80 ? '#39ff14' : score >= 60 ? '#ffd84d' : '#ff5252';
+          return `<div class="focus-bar-item"><div class="focus-bar-label"><span>${label}</span><span style="color:${color};font-weight:800;">${score}%</span></div><div class="focus-bar-track"><div class="focus-bar-fill" style="width:${score}%;background:linear-gradient(90deg,${color},${color}88);"></div></div></div>`;
+        }).join('');
+      } else {
+        focusBarsEl.innerHTML = '<p class="muted" style="font-size:13px;">Run an analysis to see your biomechanics priorities.</p>';
+      }
+    }
+
+    // ── Coach Note ──────────────────────────────────────────────────────────
+    const coachNoteText = document.getElementById('coachNoteText');
+    if (coachNoteText && latest?.coachSummary?.nextCoachFocus) {
+      coachNoteText.textContent = latest.coachSummary.nextCoachFocus;
+    } else if (coachNoteText && latest) {
+      const firstFocus2 = topFocusAreas[0];
+      coachNoteText.textContent = firstFocus2
+        ? `Focus your next session on ${(firstFocus2.metric||'technique').replace(/_/g,' ')}. This is the highest-leverage area for score improvement based on your latest report.`
+        : 'Complete your next analysis with the same camera angle to start building reliable trend data.';
+    }
+
+    // ── Weekly Action Plan (data-driven) ─────────────────────────────────
+    const PLAN_KEY = 'ss_weekly_plan_' + (user.id || 'guest');
+    const planDone = JSON.parse(localStorage.getItem(PLAN_KEY) || '{}');
+    // Clear stale completions older than 7 days
+    const now = Date.now();
+    Object.keys(planDone).forEach(k => { if (now - (planDone[k] || 0) > 7 * 86400000) delete planDone[k]; });
+
+    function buildPlanItems() {
+      const items = [];
+      // Item 1: Most critical focus area with drill
+      if (topFocusAreas[0]) {
+        const fa = topFocusAreas[0];
+        const drill = drills[0];
+        items.push({
+          id: 'focus-0',
+          priority: 'HIGH IMPACT',
+          title: drill ? drill.title : `Work on ${(fa.metric||'technique').replace(/_/g,' ')}`,
+          desc: drill ? (drill.prescription || drill.description || 'Complete 3\xd710 reps with focus on clean contact and follow-through.') : 'Dedicate 15 minutes to targeted repetition on this priority area.',
+          tags: ['Focus Area', drill ? `${drill.category || 'Drill'}` : 'Biomechanics'],
+          score: Math.round(fa.score || 70)
+        });
+      } else {
+        items.push({ id: 'first-analysis', priority: 'GET STARTED', title: 'Record and analyse your first swing', desc: 'Upload a short video of your forehand or serve to unlock your personalised action plan.', tags: ['First Step'], score: null });
+      }
+      // Item 2: Second drill or second focus area
+      if (drills[1] || topFocusAreas[1]) {
+        const d2 = drills[1]; const f2 = topFocusAreas[1];
+        items.push({
+          id: 'focus-1',
+          priority: 'DRILL BLOCK',
+          title: d2 ? d2.title : `Secondary: ${(f2?.metric||'consistency').replace(/_/g,' ')}`,
+          desc: d2 ? (d2.prescription || '2 sets of 15 — track contact point and hip rotation on each rep.') : 'Run a 10-minute block focused on this secondary priority area.',
+          tags: ['Drill', d2?.sets ? `${d2.sets} sets` : null, d2?.reps ? `${d2.reps} reps` : null].filter(Boolean),
+          score: Math.round(f2?.score || drills[1]?.difficultyScore || 68)
+        });
+      }
+      // Item 3: Tactic / match pattern
+      if (tactics[0]) {
+        items.push({
+          id: 'tactic-0',
+          priority: 'MATCH PATTERN',
+          title: tactics[0].title,
+          desc: tactics[0].summary || 'Rehearse this tactical pattern in a practice set — focus on decision-making under pressure.',
+          tags: ['Tactics', 'Match Play'],
+          score: Math.round(latest?.performanceKpis?.timingConsistency || 72)
+        });
+      } else if (items.length < 3) {
+        items.push({ id: 'consistent-setup', priority: 'CONSISTENCY', title: 'Keep the same camera setup', desc: 'Record from the same angle and distance so your AI score trend stays comparable and meaningful.', tags: ['Setup', 'Tracking'], score: null });
+      }
+      // Item 4: SMART weekly goal from report
+      const weeklyGoal = latest?.nextFocus || latest?.weeklyGoal;
+      if (weeklyGoal) {
+        items.push({ id: 'smart-goal', priority: 'WEEKLY GOAL', title: weeklyGoal, desc: 'This goal was set by your AI coach based on the highest-leverage area in your latest report.', tags: ['AI Goal'], score: null });
+      }
+      return items;
+    }
+
+    function renderPlan() {
+      const planEl = document.getElementById('weeklyPlan');
+      const progressEl = document.getElementById('actionProgress');
+      const items = buildPlanItems();
+      const doneCount = items.filter(i => planDone[i.id]).length;
+      if (progressEl) progressEl.textContent = `${doneCount}/${items.length} done`;
+
+      planEl.innerHTML = items.map((item) => {
+        const isDone = !!planDone[item.id];
+        const scoreHTML = item.score != null ? `<span class="pill" style="margin-left:auto;flex-shrink:0;">${item.score}%</span>` : '';
+        return `<div class="action-item${isDone ? ' done' : ''}" data-id="${item.id}" onclick="togglePlanItem('${item.id}')">
+          <div class="action-checkbox">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+              <div class="mini" style="color:var(--orange);">${item.priority}</div>${scoreHTML}
+            </div>
+            <div class="ai-title">${item.title}</div>
+            <div class="ai-desc">${item.desc}</div>
+            <div class="ai-tags">${item.tags.map(t => `<span class="ai-tag">${t}</span>`).join('')}</div>
+          </div>
+        </div>`;
+      }).join('') || '<p class="muted" style="font-size:13px;padding:12px;">Run your first analysis to unlock your action plan.</p>';
+    }
+    renderPlan();
+
+    window.togglePlanItem = function(id) {
+      if (planDone[id]) delete planDone[id];
+      else planDone[id] = Date.now();
+      localStorage.setItem(PLAN_KEY, JSON.stringify(planDone));
+      renderPlan();
+    };
+
+    // ── Performance Insights ──────────────────────────────────────────────
+    const insightTrendEl = document.getElementById('insightTrend');
+    const insightStrongEl = document.getElementById('insightStrong');
+    const insightConsEl = document.getElementById('insightConsistency');
+
+    if (assessments.length >= 2) {
+      const oldest = assessments[assessments.length - 1]?.overallScore || 0;
+      const newest = assessments[0]?.overallScore || 0;
+      const diff = newest - oldest;
+      if (insightTrendEl) insightTrendEl.textContent = diff >= 0
+        ? `Up ${diff}pts across ${assessments.length} sessions. Keep the consistency — your trajectory is positive.`
+        : `Down ${Math.abs(diff)}pts from your baseline. Focus on the action plan items to reverse the trend.`;
+
+      // Strongest shot type
+      const byShot = {};
+      assessments.forEach(a => {
+        const s = (a.shotType || 'forehand').toLowerCase();
+        if (!byShot[s]) byShot[s] = [];
+        byShot[s].push(a.overallScore || 0);
+      });
+      const avgByShot = Object.entries(byShot).map(([s, arr]) => [s, arr.reduce((a,b)=>a+b,0)/arr.length]);
+      avgByShot.sort((a,b) => b[1]-a[1]);
+      const best = avgByShot[0];
+      if (best && insightStrongEl) insightStrongEl.textContent = `Your ${best[0]} is your highest-scoring shot at ${Math.round(best[1])}% avg. Build tactical patterns around this strength.`;
+
+      // Consistency
+      const scores = assessments.map(a => a.overallScore || 0);
+      const mean = scores.reduce((a,b)=>a+b,0)/scores.length;
+      const variance = scores.reduce((s,v)=>s+Math.pow(v-mean,2),0)/scores.length;
+      const stdDev = Math.sqrt(variance);
+      const consScore = Math.max(0, Math.round(100 - stdDev));
+      if (insightConsEl) insightConsEl.textContent = `Session consistency score: ${consScore}/100. ${consScore >= 80 ? 'Very consistent — your technique is stabilising.' : consScore >= 60 ? 'Moderate variance — work on repeatable technique under different conditions.' : 'High variance — focus on one shot type per session for cleaner data.'}`;
+    }
+
+    // ── Trend Pill ──────────────────────────────────────────────────────────
+    const trendPillEl = document.getElementById('trendPill');
+    if (trendPillEl) trendPillEl.textContent = latest ? `${improvement > 0 ? '+' : ''}${improvement} vs baseline` : 'No trend yet';
+
+    // ── Top Feedback (Analytics tab) ──────────────────────────────────────
+    const feedbackEl = document.getElementById('topFeedback');
+    if (feedbackEl) {
+      feedbackEl.innerHTML = (topFocusAreas.length ? topFocusAreas : (latest?.metricComparisons || []).slice(0,3)).slice(0,3).map((item) => {
+        const label = (item.metric || 'timing').replace(/^\w/, c => c.toUpperCase()).replace(/_/g,' ');
+        const score = Math.min(100, Math.round(item.score || 72));
+        const color = score >= 80 ? '#39ff14' : score >= 60 ? '#ffd84d' : '#ff5252';
+        return `<details class="detail-card"><summary><h3>${label}</h3><div class="pill" style="color:${color};border-color:${color}44;background:${color}15;">${score}%</div></summary><div class="detail-body"><p style="margin-bottom:10px;">High-impact priority: improving this metric directly raises your SmartSwing Score.</p><div class="focus-bar-track"><div class="focus-bar-fill" style="width:${score}%;background:linear-gradient(90deg,${color},${color}88);"></div></div></div></details>`;
+      }).join('') || '<div class="card"><p class="muted">Run an analysis to unlock personalised feedback.</p></div>';
+    }
 
     // ── Progress Timeline SVG (enhanced with filter pills + PB highlight) ──
     (function renderTimeline() {
@@ -584,8 +840,10 @@
 
     document.getElementById('activityList').innerHTML = progressEvents.map((item) => `<div class="card"><div class="row"><div><h3>${item.title}</h3><p class="muted">${item.detail}</p></div><div class="mini">${new Date(item.createdAt).toLocaleDateString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">Saved reports, goals, and drill completions will show here.</p></div>';
 
-    document.getElementById('coachId').innerHTML = store.DEFAULT_COACHES.map((coach) => `<option value="${coach.id}">${coach.name} | ${coach.specialty}</option>`).join('');
-    document.getElementById('sessionList').innerHTML = sessions.slice(0, 6).map((item) => `<div class="card"><div class="row"><div><h3>${item.coachName}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">No sessions booked yet.</p></div>';
+    const coachIdEl = document.getElementById('coachId');
+    if (coachIdEl) coachIdEl.innerHTML = store.DEFAULT_COACHES.map((coach) => `<option value="${coach.id}">${coach.name} | ${coach.specialty}</option>`).join('');
+    const sessionListEl = document.getElementById('sessionList');
+    if (sessionListEl) sessionListEl.innerHTML = sessions.slice(0, 6).map((item) => `<div class="card"><div class="row"><div><h3>${item.coachName}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">No sessions booked yet.</p></div>';
     const bookingForm = document.getElementById('bookingForm');
     if (bookingForm) {
       bookingForm.addEventListener('submit', (event) => {
