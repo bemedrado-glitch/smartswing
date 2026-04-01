@@ -1,115 +1,469 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="./assets/logos/icon.png">
   <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI - Coach Dashboard</title>
+  <title>SmartSwing AI — Coach Dashboard</title>
   <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet"></noscript>
   <style>
-    :root{--bg:#050505;--bg2:#0e1510;--panel:rgba(16,18,17,.94);--line:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#eef3f7;--blue:#ffd84d;--green:#39ff14;--orange:#ffd84d;--danger:#ff5a7c;--deep:#0e1012}
-    *{box-sizing:border-box;margin:0;padding:0} body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(57,255,20,.14),transparent 30%),radial-gradient(circle at 95% 0%,rgba(255,216,77,.12),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
-    .page{max-width:1280px;margin:0 auto;padding:24px 20px 64px}.topbar,.hero,.stats,.tabs,.grid,.list{display:grid;gap:16px}.topbar{grid-template-columns:auto 1fr auto;align-items:center;margin-bottom:16px}.hero{grid-template-columns:1.1fr .9fr;margin-bottom:16px}.stats,.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .logo{font-family:"Sora",sans-serif;font-size:30px;font-weight:800;text-decoration:none;color:var(--green)}.nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-    .btn,.tab{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-weight:700;cursor:pointer;text-decoration:none;padding:11px 15px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.btn.primary,.tab.active{border:none;color:var(--deep);background:linear-gradient(135deg,var(--green),#82ff63)}
-    .btn:hover,.tab:hover,.panel:hover,.card:hover{transform:translateY(-3px);border-color:rgba(57,255,20,.28);box-shadow:0 18px 46px rgba(0,0,0,.28)}
-    .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
-    .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--orange)}.mini{color:var(--orange)} h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.08;letter-spacing:-.02em} h1{font-size:44px;margin:10px 0 12px} h2{font-size:24px;margin-bottom:10px;color:var(--green)} h3{font-size:18px;margin-bottom:6px;color:var(--green)}.muted{color:var(--muted);line-height:1.6}
-    .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);font-weight:800;background-size:cover;background-position:center}.user{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
-    .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url('./assets/avatar/Coach Ace 16_9.png') center 18%/cover;display:flex;align-items:flex-end;padding:18px}.tab-panel{display:none}.tab-panel.active{display:grid;gap:16px}
-    .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(255,216,77,.12);color:var(--orange)} input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit} textarea{min-height:110px;resize:vertical} label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
-    .row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.hide{display:none!important}
-    .detail-card{border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.03);overflow:hidden}
-    .detail-card summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-    .detail-card summary::-webkit-details-marker{display:none}
-    .detail-card .detail-body{padding:0 18px 18px;color:var(--muted);line-height:1.65}
-    @media (max-width:1024px){.hero,.grid,.stats,.tabs{grid-template-columns:1fr 1fr}.topbar{grid-template-columns:1fr}} @media (max-width:720px){.grid,.stats,.tabs{grid-template-columns:1fr}h1{font-size:34px}}
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
-    </style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: rgba(22,22,26,0.94);
+      --panel-soft: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.1);
+      --text: #f5f7fa;
+      --muted: #8a96a3;
+      --volt: #39ff14;
+      --gold: #ffd84d;
+      --teal: #00d4aa;
+      --red: #ff5252;
+      --orange: #ff6d00;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 5% 5%, rgba(57,255,20,0.1), transparent 28%),
+        radial-gradient(circle at 95% 5%, rgba(255,216,77,0.1), transparent 24%),
+        linear-gradient(180deg, #050505 0%, #0a0a0a 60%, #111 100%);
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line);
+      padding: 0 24px;
+    }
+    .topbar-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; gap: 16px;
+      height: 72px;
+    }
+    .brand-logo { height: 52px; width: auto; display: block; }
+    .topbar-nav { display: flex; gap: 8px; margin-left: 8px; }
+    .nav-btn {
+      padding: 8px 14px; border-radius: 10px;
+      border: 1px solid var(--line); background: var(--panel-soft);
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; transition: all 0.18s;
+    }
+    .nav-btn:hover, .nav-btn.active { border-color: rgba(57,255,20,0.35); color: var(--text); background: rgba(57,255,20,0.08); }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .coach-pill {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--panel-soft);
+    }
+    .coach-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--volt), #82ff63);
+      display: grid; place-items: center;
+      font-size: 13px; font-weight: 800; color: #0a0a0a;
+      flex-shrink: 0;
+    }
+    .coach-name { font-size: 13px; font-weight: 700; }
+    .coach-role { font-size: 11px; color: var(--muted); }
+
+    /* ── PAGE ── */
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 24px 80px; }
+
+    /* ── KPI ROW ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 18px; padding: 20px;
+      transition: transform 0.18s, border-color 0.18s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); border-color: rgba(57,255,20,0.2); }
+    .kpi-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 8px; }
+    .kpi-value { font-family: "Sora", sans-serif; font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+    .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .kpi-card.urgent .kpi-value { color: var(--red); }
+    .kpi-card.sessions .kpi-value { color: var(--gold); }
+    .kpi-card.athletes .kpi-value { color: var(--volt); }
+    .kpi-card.reports .kpi-value { color: var(--teal); }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; padding: 4px; background: rgba(255,255,255,0.04); border-radius: 14px; width: fit-content; }
+    .tab {
+      padding: 10px 18px; border-radius: 10px; border: none;
+      font: inherit; font-size: 13px; font-weight: 700;
+      color: var(--muted); background: transparent; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .tab.active { background: var(--volt); color: #0a0a0a; }
+    .tab:not(.active):hover { color: var(--text); background: rgba(255,255,255,0.06); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: grid; gap: 18px; }
+
+    /* ── PANELS ── */
+    .panel {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 22px; padding: 24px;
+      transition: transform 0.18s, border-color 0.18s;
+    }
+    .panel:hover { border-color: rgba(255,255,255,0.14); }
+    .panel-title {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); margin-bottom: 18px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .panel-title-count {
+      font-size: 11px; font-weight: 700; color: var(--volt);
+      background: rgba(57,255,20,0.1); border: 1px solid rgba(57,255,20,0.2);
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+    /* ── ATHLETE CARDS ── */
+    .athlete-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--line); background: var(--panel-soft);
+      cursor: pointer; transition: all 0.18s; margin-bottom: 10px;
+    }
+    .athlete-card:last-child { margin-bottom: 0; }
+    .athlete-card:hover { border-color: rgba(57,255,20,0.25); background: rgba(57,255,20,0.04); }
+    .athlete-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(57,255,20,0.3), rgba(0,212,170,0.3));
+      display: grid; place-items: center;
+      font-size: 16px; font-weight: 800; flex-shrink: 0;
+    }
+    .athlete-info { flex: 1; min-width: 0; }
+    .athlete-name { font-size: 14px; font-weight: 700; }
+    .athlete-meta { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .athlete-score {
+      font-family: "Sora", sans-serif; font-size: 22px; font-weight: 800;
+      line-height: 1; min-width: 44px; text-align: right;
+    }
+    .score-bar { height: 4px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; margin-top: 6px; }
+    .score-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+    .status-chip {
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 3px 8px; border-radius: 6px;
+    }
+    .status-urgent { background: rgba(255,82,82,0.15); color: var(--red); }
+    .status-ok { background: rgba(57,255,20,0.12); color: var(--volt); }
+    .status-watch { background: rgba(255,216,77,0.12); color: var(--gold); }
+
+    /* ── PRIORITY ITEM ── */
+    .priority-item {
+      padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--line); background: var(--panel-soft);
+      margin-bottom: 10px; cursor: pointer; transition: all 0.18s;
+    }
+    .priority-item:last-child { margin-bottom: 0; }
+    .priority-item:hover { border-color: rgba(57,255,20,0.25); }
+    .priority-rank { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--volt); margin-bottom: 4px; }
+    .priority-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .priority-issue { font-size: 12px; color: var(--muted); }
+
+    /* ── SESSION ITEMS ── */
+    .session-item {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--line); background: var(--panel-soft);
+      gap: 12px; margin-bottom: 10px;
+    }
+    .session-item:last-child { margin-bottom: 0; }
+    .session-athlete { font-size: 14px; font-weight: 700; }
+    .session-focus { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .session-time { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+
+    /* ── FORM ── */
+    .form-row { display: grid; gap: 12px; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    input, select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.04);
+      color: var(--text); font: inherit; font-size: 14px;
+      transition: border-color 0.18s;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: rgba(57,255,20,0.4); }
+    textarea { min-height: 100px; resize: vertical; }
+    select option { color: #111; }
+    .btn-primary {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px 24px; background: var(--volt); color: #0a0a0a;
+      font: inherit; font-size: 14px; font-weight: 700;
+      border: none; border-radius: 12px; cursor: pointer;
+      transition: transform 0.18s, box-shadow 0.18s;
+      text-decoration: none;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(57,255,20,0.28); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 18px; background: var(--panel-soft);
+      color: var(--muted); font: inherit; font-size: 13px; font-weight: 600;
+      border: 1px solid var(--line); border-radius: 10px; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+
+    /* ── ANALYTICS ── */
+    .metric-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .metric-row:last-child { margin-bottom: 0; }
+    .metric-name { min-width: 140px; font-size: 13px; font-weight: 600; }
+    .metric-bar-wrap { flex: 1; height: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .metric-bar-fill { height: 100%; border-radius: 999px; }
+    .metric-pct { min-width: 36px; text-align: right; font-size: 12px; font-weight: 800; }
+
+    /* ── EXPORT ── */
+    .export-card {
+      padding: 24px; border-radius: 18px;
+      border: 1px solid var(--line); background: var(--panel-soft);
+      text-align: center;
+    }
+    .export-icon { font-size: 32px; margin-bottom: 10px; }
+    .export-label { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .export-desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { padding: 32px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    /* ── AI CHAT ── */
+    #aiChat { position: fixed; bottom: 24px; right: 24px; z-index: 999; }
+    #aiChatBtn {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--volt); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #0a0a0a; box-shadow: 0 8px 28px rgba(57,255,20,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #aiChatBtn:hover { transform: scale(1.08); box-shadow: 0 12px 36px rgba(57,255,20,0.45); }
+    #aiChatWindow {
+      display: none; position: absolute; bottom: 68px; right: 0;
+      width: 340px; background: #111; border: 1px solid rgba(57,255,20,0.25);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    }
+    #aiChatWindow.open { display: flex; flex-direction: column; }
+    .chat-header {
+      padding: 14px 18px; background: rgba(57,255,20,0.08);
+      border-bottom: 1px solid rgba(57,255,20,0.14);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .chat-header-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--volt); }
+    .chat-header-title { font-size: 13px; font-weight: 800; }
+    .chat-header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .chat-messages { flex: 1; max-height: 280px; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.55; max-width: 85%; }
+    .chat-msg.ai { background: rgba(57,255,20,0.08); border: 1px solid rgba(57,255,20,0.15); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .chat-msg.user { background: rgba(255,255,255,0.08); color: var(--text); align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-input-row { padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 8px; }
+    #chatInput { flex: 1; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.05); color: var(--text); font: inherit; font-size: 13px; }
+    #chatSend { padding: 9px 14px; background: var(--volt); color: #0a0a0a; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } .three-col { grid-template-columns: 1fr; } .page { padding: 16px 16px 60px; } }
+    @media (max-width: 480px) { .kpi-row { grid-template-columns: 1fr 1fr; } .topbar-nav { display: none; } }
+  </style>
 </head>
 <body>
-  <div class="page">
-    <header class="topbar">
-      <a class="logo" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
-      <nav class="nav">
-        <a class="btn" href="./dashboard.html">Player Dashboard</a>
-        <a class="btn" href="./analyze.html">Analyzer</a>
-        <a class="btn" href="./library.html">Drills Library</a>
-        <a class="btn" href="./settings.html">Settings</a>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="./index.html" aria-label="SmartSwing AI Home">
+        <img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="130" height="52">
+      </a>
+      <nav class="topbar-nav">
+        <a class="nav-btn active" href="./coach-dashboard.html">Coach Hub</a>
+        <a class="nav-btn" href="./dashboard.html">Player View</a>
+        <a class="nav-btn" href="./analyze.html">Analyzer</a>
+        <a class="nav-btn" href="./library.html">Drill Library</a>
+        <a class="nav-btn" href="./settings.html">Settings</a>
       </nav>
-      <div class="user"><div class="avatar" id="coachAvatar">C</div><div><div id="coachName" style="font-weight:800">Coach</div><div id="coachMeta" class="muted">Access</div></div></div>
-    </header>
-
-    <section class="hero">
-      <article class="panel">
-        <div class="eyebrow">Coach Command Layer</div>
-        <h1>Review athletes by tab, not by overload.</h1>
-        <p class="muted">Messaging, schedule, athlete analytics, and exports now live in separate views so coaches can focus faster and manage cleaner accountability loops.</p>
-        <div class="stats" id="coachStats"></div>
-      </article>
-      <article class="hero-art"><div class="card"><div class="mini">Right now</div><h3>Start with the highest-risk athlete.</h3><p class="muted" id="coachHeroCopy">Use the athlete tab to open the top issue, then send one clear coaching priority.</p></div></article>
-    </section>
-
-    <section class="tabs">
-      <button class="tab active" data-tab="overview">Overview</button>
-      <button class="tab" data-tab="athletes">Athletes</button>
-      <button class="tab" data-tab="schedule">Scheduling</button>
-      <button class="tab" data-tab="messages">Messaging</button>
-      <button class="tab" data-tab="analytics">Analytics</button>
-      <button class="tab" data-tab="exports">Exports</button>
-    </section>
-
-    <section class="tab-panel active" id="tab-overview">
-      <div class="grid">
-        <article class="panel"><h2>Priority queue</h2><div class="list" id="priorityQueue"></div></article>
-        <article class="panel"><h2>Upcoming sessions</h2><div class="list" id="coachSessions"></div></article>
+      <div class="topbar-right">
+        <div class="coach-pill">
+          <div class="coach-avatar" id="coachAvatar">C</div>
+          <div>
+            <div class="coach-name" id="coachName">Coach</div>
+            <div class="coach-role" id="coachMeta">Loading…</div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
+  </header>
 
-    <section class="tab-panel" id="tab-athletes">
-      <article class="panel"><h2>Athlete roster</h2><div class="list" id="athleteRoster"></div></article>
-    </section>
+  <div class="page">
 
-    <section class="tab-panel" id="tab-schedule">
-      <article class="panel"><h2>Coach calendar</h2><div class="list" id="scheduleList"></div></article>
-    </section>
+    <!-- KPI ROW -->
+    <div class="kpi-row" id="kpiRow">
+      <div class="kpi-card athletes">
+        <div class="kpi-label">Total Athletes</div>
+        <div class="kpi-value" id="kpiAthletes">—</div>
+        <div class="kpi-sub">on your roster</div>
+      </div>
+      <div class="kpi-card urgent">
+        <div class="kpi-label">Needs Attention</div>
+        <div class="kpi-value" id="kpiUrgent">—</div>
+        <div class="kpi-sub">athletes flagged</div>
+      </div>
+      <div class="kpi-card sessions">
+        <div class="kpi-label">Upcoming Sessions</div>
+        <div class="kpi-value" id="kpiSessions">—</div>
+        <div class="kpi-sub">scheduled this week</div>
+      </div>
+      <div class="kpi-card reports">
+        <div class="kpi-label">Reports Filed</div>
+        <div class="kpi-value" id="kpiReports">—</div>
+        <div class="kpi-sub">total assessments</div>
+      </div>
+    </div>
 
-    <section class="tab-panel" id="tab-messages">
-      <div class="grid">
-        <article class="panel"><h2>Message feed</h2><div class="list" id="coachMessageFeed"></div></article>
-        <article class="panel">
-          <h2>Send athlete note</h2>
-          <form id="coachMessageForm" class="list">
-            <div><label for="athleteTarget">Athlete</label><select id="athleteTarget"></select></div>
-            <div><label for="athleteSubject">Subject</label><input id="athleteSubject" type="text" placeholder="One thing to fix first"></div>
-            <div><label for="athleteBody">Message</label><textarea id="athleteBody" placeholder="Explain what matters, why, and what drill the athlete should do next."></textarea></div>
-            <button class="btn primary" type="submit">Send coaching note</button>
+    <!-- TABS -->
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-tab="overview">Overview</button>
+      <button class="tab" role="tab" data-tab="athletes">Athletes</button>
+      <button class="tab" role="tab" data-tab="schedule">Schedule</button>
+      <button class="tab" role="tab" data-tab="messages">Messages</button>
+      <button class="tab" role="tab" data-tab="analytics">Analytics</button>
+      <button class="tab" role="tab" data-tab="exports">Exports</button>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-title">
+            Priority Queue
+            <span class="panel-title-count" id="priorityCount">0</span>
+          </div>
+          <div id="priorityQueue"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Upcoming Sessions</div>
+          <div id="coachSessions"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATHLETES TAB -->
+    <div class="tab-panel" id="tab-athletes">
+      <div class="panel">
+        <div class="panel-title">
+          Athlete Roster
+          <span class="panel-title-count" id="rosterCount">0</span>
+        </div>
+        <div id="athleteRoster"></div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE TAB -->
+    <div class="tab-panel" id="tab-schedule">
+      <div class="panel">
+        <div class="panel-title">Session Calendar</div>
+        <div id="scheduleList"></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES TAB -->
+    <div class="tab-panel" id="tab-messages">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-title">Message Feed</div>
+          <div id="coachMessageFeed"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Send Coaching Note</div>
+          <form id="coachMessageForm" class="form-row">
+            <div>
+              <label for="athleteTarget">Athlete</label>
+              <select id="athleteTarget"></select>
+            </div>
+            <div>
+              <label for="athleteSubject">Subject</label>
+              <input id="athleteSubject" type="text" placeholder="One thing to fix first">
+            </div>
+            <div>
+              <label for="athleteBody">Message</label>
+              <textarea id="athleteBody" placeholder="Explain what matters, why, and the drill to do next."></textarea>
+            </div>
+            <button class="btn-primary" type="submit">Send Coaching Note →</button>
           </form>
-        </article>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="tab-panel" id="tab-analytics">
-      <div class="grid">
-        <article class="panel"><h2>Readiness overview</h2><div class="list" id="coachAnalytics"></div></article>
-        <article class="panel"><h2>Accountability queue</h2><div class="list" id="accountabilityQueue"></div></article>
+    <!-- ANALYTICS TAB -->
+    <div class="tab-panel" id="tab-analytics">
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-title">Readiness Overview</div>
+          <div id="coachAnalytics"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Accountability Queue</div>
+          <div id="accountabilityQueue"></div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="tab-panel" id="tab-exports">
-      <div class="grid">
-        <article class="panel"><h2>Export coach workspace</h2><div class="list"><button class="btn" type="button" onclick="exportCoach('json')">Export JSON</button><button class="btn" type="button" onclick="exportCoach('csv')">Export CSV</button><button class="btn" type="button" onclick="printCoachDashboard()">Print dashboard</button></div></article>
-        <article class="panel"><h2>Guardrails</h2><div class="list" id="guardrailList"></div></article>
+    <!-- EXPORTS TAB -->
+    <div class="tab-panel" id="tab-exports">
+      <div class="three-col">
+        <div class="export-card">
+          <div class="export-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+          <div class="export-label">Export JSON</div>
+          <div class="export-desc">Full roster, sessions, assessments, and analytics in structured JSON format.</div>
+          <button class="btn-primary" onclick="exportCoach('json')">Download JSON</button>
+        </div>
+        <div class="export-card">
+          <div class="export-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></div>
+          <div class="export-label">Export CSV</div>
+          <div class="export-desc">Athlete scores and issues in spreadsheet-ready CSV format.</div>
+          <button class="btn-primary" onclick="exportCoach('csv')">Download CSV</button>
+        </div>
+        <div class="export-card">
+          <div class="export-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+          <div class="export-label">Print Dashboard</div>
+          <div class="export-desc">Print a clean view of current roster and priority queue for offline review.</div>
+          <button class="btn-primary" onclick="printCoachDashboard()">Print</button>
+        </div>
       </div>
-    </section>
+      <div class="panel">
+        <div class="panel-title">Guardrails & Privacy</div>
+        <div id="guardrailList"></div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+
+  <!-- AI COACH CHAT -->
+  <div id="aiChat">
+    <div id="aiChatWindow">
+      <div class="chat-header">
+        <div class="chat-header-dot"></div>
+        <div>
+          <div class="chat-header-title">AI Coaching Assistant</div>
+          <div class="chat-header-sub">Ask about tactics, drills, player motivation</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg ai">Hi Coach! I can help with player tactics, drill ideas, injury prevention, and motivating athletes. What do you need?</div>
+      </div>
+      <div class="chat-input-row">
+        <input id="chatInput" type="text" placeholder="Ask about a player, tactic, or drill…" autocomplete="off">
+        <button id="chatSend">→</button>
+      </div>
+    </div>
+    <button id="aiChatBtn" title="AI Coaching Assistant"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 14l.5 1.5L21 16l-1.5.5L19 18l-.5-1.5L17 16l1.5-.5z"/><path d="M5 18l.4 1.2 1.2.4-1.2.4L5 21.4l-.4-1.4-1.2-.4 1.2-.4z"/></svg></button>
   </div>
 
   <script src="./public-app-config.js"></script>
@@ -126,87 +480,183 @@
     const sessions = store.getVisibleCoachSessionsForCurrentUser();
     const messages = store.getVisibleMessagesForCurrentUser();
 
-    document.querySelectorAll('.tab').forEach((button) => {
-      button.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach((el) => el.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach((el) => el.classList.remove('active'));
-        button.classList.add('active');
-        document.getElementById(`tab-${button.dataset.tab}`).classList.add('active');
-      });
-    });
+    // ── KPIs ──
+    document.getElementById('kpiAthletes').textContent = summary.users?.length || 0;
+    document.getElementById('kpiUrgent').textContent = summary.urgentAthletes || 0;
+    document.getElementById('kpiSessions').textContent = sessions.length;
+    document.getElementById('kpiReports').textContent = summary.assessments?.length || 0;
+    document.getElementById('priorityCount').textContent = Math.min(athletes.length, 6);
+    document.getElementById('rosterCount').textContent = athletes.length;
 
+    // ── Coach identity ──
     document.getElementById('coachName').textContent = access.user.fullName || 'Coach';
-    document.getElementById('coachMeta').textContent = `${summary.users?.length || 0} athletes | ${summary.urgentAthletes || 0} urgent`;
-    document.getElementById('coachHeroCopy').textContent = `${summary.urgentAthletes || 0} athletes need immediate attention based on stale tracking or large mechanical gaps.`;
-    const coachAvatar = document.getElementById('coachAvatar');
+    document.getElementById('coachMeta').textContent = `${summary.users?.length || 0} athletes`;
+    const av = document.getElementById('coachAvatar');
     if (access.user.avatarDataUrl) {
-      coachAvatar.style.cssText = `background:url(${access.user.avatarDataUrl}) center/cover no-repeat;color:transparent;`;
-      coachAvatar.textContent = '';
-      const coachHeroArt = document.querySelector('.hero-art');
-      if (coachHeroArt) {
-        coachHeroArt.style.backgroundImage = `linear-gradient(180deg,rgba(6,14,28,.08),rgba(6,14,28,.82)),url(${access.user.avatarDataUrl})`;
-        coachHeroArt.style.backgroundSize = 'cover';
-        coachHeroArt.style.backgroundPosition = 'center top';
-      }
+      av.style.cssText = `background:url(${access.user.avatarDataUrl}) center/cover no-repeat; color:transparent;`;
+      av.textContent = '';
     } else {
-      coachAvatar.textContent = (access.user.fullName || 'Coach').charAt(0).toUpperCase();
+      av.textContent = (access.user.fullName || 'C').charAt(0).toUpperCase();
     }
 
-    document.getElementById('coachStats').innerHTML = [
-      ['Athletes', summary.users?.length || 0],
-      ['Urgent', summary.urgentAthletes || 0],
-      ['Sessions', sessions.length],
-      ['Assessments', summary.assessments?.length || 0]
-    ].map(([label, value]) => `<div class="card"><div class="mini">${label}</div><h3>${value}</h3></div>`).join('');
+    // ── Score helpers ──
+    function scoreColor(s) { return s >= 75 ? '#39ff14' : s >= 55 ? '#ffd84d' : '#ff5252'; }
+    function statusChip(state) {
+      if (state === 'at-risk') return '<span class="status-chip status-urgent">Urgent</span>';
+      if (state === 'watch') return '<span class="status-chip status-watch">Watch</span>';
+      return '<span class="status-chip status-ok">On Track</span>';
+    }
 
-    document.getElementById('priorityQueue').innerHTML = athletes.slice(0, 6).map((item, index) => `<details class="detail-card" ${index === 0 ? 'open' : ''}><summary><div><div class="mini">Priority ${index + 1}</div><h3>${item.user.fullName}</h3></div><div class="pill">${item.latest?.overallScore || 0}%</div></summary><div class="detail-body">${item.topIssue ? `${item.topIssue.metric} | ${item.topIssue.delta > 0 ? '+' : ''}${item.topIssue.delta} deg` : 'Needs new assessment'}. Open this athlete to decide the first correction note and next assignment.</div></details>`).join('') || '<div class="card"><p class="muted">No athlete data yet.</p></div>';
-    document.getElementById('coachSessions').innerHTML = sessions.slice(0, 6).map((item) => {
-      const athlete = store.getUsers().find((user) => user.id === item.userId);
-      return `<div class="card"><div class="row"><div><h3>${athlete?.fullName || 'Athlete session'}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`;
-    }).join('') || '<div class="card"><p class="muted">No coach sessions scheduled.</p></div>';
-    document.getElementById('athleteRoster').innerHTML = athletes.map((item, index) => `<details class="detail-card" ${index === 0 ? 'open' : ''}><summary><div><h3>${item.user.fullName}</h3><p class="muted">${item.latest ? `${item.latest.shotType} | ${item.latest.overallScore}%` : 'No assessment yet'}</p></div><div class="pill">${item.retention.accountabilityState || 'on-track'}</div></summary><div class="detail-body">${item.goals?.length || 0} goals | ${item.drills?.length || 0} drills | ${item.nextSession ? `Next session ${new Date(item.nextSession.when).toLocaleDateString()}` : 'No upcoming session'}.</div></details>`).join('') || '<div class="card"><p class="muted">No athletes found.</p></div>';
-    document.getElementById('scheduleList').innerHTML = sessions.map((item) => {
-      const athlete = store.getUsers().find((user) => user.id === item.userId);
-      return `<div class="card"><div class="row"><div><h3>${athlete?.fullName || 'Athlete session'}</h3><p class="muted">${item.focus}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`;
-    }).join('') || '<div class="card"><p class="muted">Calendar is empty.</p></div>';
-    document.getElementById('coachAnalytics').innerHTML = athletes.slice(0, 5).map((item, index) => `<details class="detail-card" ${index === 0 ? 'open' : ''}><summary><h3>${item.user.fullName}</h3><div class="pill">${item.latest?.performanceKpis?.readinessIndex || item.latest?.overallScore || 0}%</div></summary><div class="detail-body">${item.topIssue ? `Main issue: ${item.topIssue.metric}` : 'Awaiting first saved report.'}</div></details>`).join('') || '<div class="card"><p class="muted">Analytics will appear after athlete reports are saved.</p></div>';
-    document.getElementById('accountabilityQueue').innerHTML = athletes.slice(0, 5).map((item, index) => `<details class="detail-card" ${index === 0 ? 'open' : ''}><summary><h3>${item.user.fullName}</h3><div class="pill">${item.retention.daysSinceLastAssessment ?? 'n/a'} days</div></summary><div class="detail-body">${item.retention.accountabilityState === 'at-risk' ? 'Needs follow-up now.' : 'Training cadence is healthy.'}</div></details>`).join('') || '<div class="card"><p class="muted">No accountability items yet.</p></div>';
+    // ── Priority Queue ──
+    document.getElementById('priorityQueue').innerHTML = athletes.slice(0, 6).map((item, i) => `
+      <div class="priority-item">
+        <div class="priority-rank">Priority ${i + 1}</div>
+        <div class="priority-name">${item.user.fullName}</div>
+        <div class="priority-issue">${item.topIssue ? `${item.topIssue.metric.replace(/_/g,' ')} needs attention` : 'No recent assessment — needs new report'}</div>
+      </div>`).join('') || '<div class="empty-state">No athlete data yet.</div>';
 
-    const targets = athletes.map((item) => `<option value="${item.user.id}">${item.user.fullName}</option>`).join('');
-    document.getElementById('athleteTarget').innerHTML = targets || '<option value="">No athletes available</option>';
-    document.getElementById('coachMessageFeed').innerHTML = messages.slice(0, 10).map((item) => {
+    // ── Upcoming Sessions ──
+    document.getElementById('coachSessions').innerHTML = sessions.slice(0, 6).map(item => {
+      const ath = store.getUsers().find(u => u.id === item.userId);
+      return `<div class="session-item">
+        <div><div class="session-athlete">${ath?.fullName || 'Athlete'}</div><div class="session-focus">${item.focus} · ${item.format}</div></div>
+        <div class="session-time">${new Date(item.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`;
+    }).join('') || '<div class="empty-state">No sessions scheduled yet.</div>';
+
+    // ── Roster ──
+    document.getElementById('athleteRoster').innerHTML = athletes.map(item => {
+      const score = item.latest?.overallScore || 0;
+      const c = scoreColor(score);
+      return `<div class="athlete-card">
+        <div class="athlete-avatar">${item.user.fullName.charAt(0)}</div>
+        <div class="athlete-info">
+          <div class="athlete-name">${item.user.fullName}</div>
+          <div class="athlete-meta">${item.latest ? `${item.latest.shotType} · Last: ${new Date(item.latest.timestamp || Date.now()).toLocaleDateString()}` : 'No assessment yet'}</div>
+          <div class="score-bar"><div class="score-bar-fill" style="width:${score}%; background:${c};"></div></div>
+        </div>
+        <div>
+          <div class="athlete-score" style="color:${c};">${score}</div>
+          ${statusChip(item.retention?.accountabilityState)}
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty-state">No athletes found. Invite athletes from Settings.</div>';
+
+    // ── Schedule ──
+    document.getElementById('scheduleList').innerHTML = sessions.map(item => {
+      const ath = store.getUsers().find(u => u.id === item.userId);
+      return `<div class="session-item">
+        <div><div class="session-athlete">${ath?.fullName || 'Athlete'}</div><div class="session-focus">${item.focus}</div></div>
+        <div class="session-time">${new Date(item.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>`;
+    }).join('') || '<div class="empty-state">Calendar is empty — schedule sessions from athlete profiles.</div>';
+
+    // ── Analytics ──
+    document.getElementById('coachAnalytics').innerHTML = athletes.slice(0, 5).map(item => {
+      const score = item.latest?.performanceKpis?.readinessIndex || item.latest?.overallScore || 0;
+      const c = scoreColor(score);
+      return `<div class="metric-row">
+        <div class="metric-name">${item.user.fullName}</div>
+        <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:${score}%; background:${c};"></div></div>
+        <div class="metric-pct" style="color:${c};">${score}%</div>
+      </div>`;
+    }).join('') || '<div class="empty-state">Analytics appear after athlete reports are saved.</div>';
+
+    document.getElementById('accountabilityQueue').innerHTML = athletes.slice(0, 5).map(item => {
+      const days = item.retention?.daysSinceLastAssessment;
+      const atRisk = item.retention?.accountabilityState === 'at-risk';
+      return `<div class="session-item">
+        <div><div class="session-athlete">${item.user.fullName}</div><div class="session-focus">${atRisk ? 'Needs follow-up now' : 'Training cadence healthy'}</div></div>
+        <div class="session-time" style="color:${atRisk?'var(--red)':'var(--volt)'};">${days != null ? `${days}d ago` : 'New'}</div>
+      </div>`;
+    }).join('') || '<div class="empty-state">No accountability items yet.</div>';
+
+    // ── Messages ──
+    const targets = athletes.map(item => `<option value="${item.user.id}">${item.user.fullName}</option>`).join('');
+    document.getElementById('athleteTarget').innerHTML = targets || '<option value="">No athletes</option>';
+    document.getElementById('coachMessageFeed').innerHTML = messages.slice(0, 10).map(item => {
       const counterpart = item.fromUserId === access.user.id ? (item.toName || 'Athlete') : (item.fromName || 'Athlete');
-      return `<div class="card"><div class="row"><div><div class="mini">${counterpart}</div><h3>${item.subject}</h3><p class="muted">${item.body}</p></div><div class="mini">${new Date(item.createdAt).toLocaleString()}</div></div></div>`;
-    }).join('') || '<div class="card"><p class="muted">Coach and athlete messages will appear here.</p></div>';
-    document.getElementById('coachMessageForm').addEventListener('submit', (event) => {
-      event.preventDefault();
+      return `<div class="priority-item"><div class="priority-rank">${counterpart} · ${new Date(item.createdAt).toLocaleDateString()}</div><div class="priority-name">${item.subject}</div><div class="priority-issue">${item.body}</div></div>`;
+    }).join('') || '<div class="empty-state">No messages yet.</div>';
+
+    document.getElementById('coachMessageForm').addEventListener('submit', e => {
+      e.preventDefault();
       try {
         store.sendMessage({ toUserId: document.getElementById('athleteTarget').value, subject: document.getElementById('athleteSubject').value || 'Coaching note', body: document.getElementById('athleteBody').value || '' });
         window.location.reload();
-      } catch (error) {
-        alert(error.message || 'Unable to send coaching note.');
-      }
+      } catch (err) { alert(err.message || 'Unable to send.'); }
     });
 
+    // ── Guardrails ──
     document.getElementById('guardrailList').innerHTML = [
-      `Coach access can review athlete data, but player dashboards stay scoped to each logged-in player.`,
-      `Plan and trial rules still control report limits, exports, and premium surfaces.`,
-      `Coach messaging, schedules, and athlete notes stay scoped to assigned players only.`
-    ].map((item) => `<div class="card"><p class="muted">${item}</p></div>`).join('');
+      'Coach access reviews athlete data; player dashboards remain scoped to each logged-in player.',
+      'Plan and trial rules control report limits, exports, and premium surfaces.',
+      'Coach messaging and athlete notes stay scoped to assigned players only.'
+    ].map(t => `<div class="priority-item"><div class="priority-issue">${t}</div></div>`).join('');
 
-    function csvEscape(value){return `"${String(value ?? '').replace(/"/g,'""')}"`;}
-    window.exportCoach = function(format){
+    // ── Exports ──
+    function csvEscape(v){return `"${String(v??'').replace(/"/g,'""')}"`;};
+    window.exportCoach = function(fmt){
       const payload = { summary, athletes, sessions };
-      if(format === 'json'){
-        const blob = new Blob([JSON.stringify(payload,null,2)], { type: 'application/json' });
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'smartswing-coach-dashboard.json'; link.click(); return;
-      }
-      const rows = [['athlete','score','issue'],...athletes.map((item) => [item.user.fullName, item.latest?.overallScore || 0, item.topIssue?.metric || 'none'])];
-      const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'smartswing-coach-dashboard.csv'; link.click();
+      if(fmt==='json'){const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='smartswing-coach.json';l.click();return;}
+      const rows=[['athlete','score','issue'],...athletes.map(a=>[a.user.fullName,a.latest?.overallScore||0,a.topIssue?.metric||'none'])];
+      const csv=rows.map(r=>r.map(csvEscape).join(',')).join('\n');
+      const b=new Blob([csv],{type:'text/csv;charset=utf-8'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='smartswing-coach.csv';l.click();
     };
     window.printCoachDashboard = function(){ window.print(); };
+
+    // ── Tabs ──
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+      });
+    });
+
+    // ── AI Chat ──
+    const chatBtn = document.getElementById('aiChatBtn');
+    const chatWin = document.getElementById('aiChatWindow');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+
+    chatBtn.addEventListener('click', () => chatWin.classList.toggle('open'));
+
+    const CHAT_RESPONSES = [
+      "Great question! For footwork issues, try the split-step timing drill — have the player do 20 split-steps to a feed, focusing on landing just before the ball bounces.",
+      "For motivation, try setting a mini-challenge: 'Hit 8 out of 10 cross-court forehands' — small wins build confidence fast.",
+      "If a player is struggling with consistency, reduce the court size in drills. Smaller target = more success = faster learning.",
+      "Tactical tip for intermediate players: emphasise playing to their stronger side until their weaker side improves to 70%+.",
+      "For juniors, keep session themes to ONE thing. Less is more. One cue, one drill, one goal per session.",
+      "If an athlete is feeling frustrated, try a 'best shot of the session' focus — end every session on a positive note.",
+      "For shoulder issues, the key is hip-to-shoulder sequencing. Drills where the hips fire first before the arm moves work best.",
+      "Match simulation pressure drills are great for bridging the gap between practice and match performance. Try 3-ball patterns with scoring.",
+    ];
+    let chatIdx = 0;
+
+    function addMsg(text, role) {
+      const div = document.createElement('div');
+      div.className = `chat-msg ${role}`;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendChat() {
+      const q = chatInput.value.trim();
+      if (!q) return;
+      addMsg(q, 'user');
+      chatInput.value = '';
+      setTimeout(() => {
+        addMsg(CHAT_RESPONSES[chatIdx % CHAT_RESPONSES.length], 'ai');
+        chatIdx++;
+      }, 800);
+    }
+
+    chatSend.addEventListener('click', sendChat);
+    chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
   </script>
 </body>
 </html>

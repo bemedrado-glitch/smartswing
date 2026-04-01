@@ -8,20 +8,28 @@
     "howItWorks": "Cómo Funciona",
     "getStarted": "Empieza Gratis",
     "signIn": "Iniciar Sesión",
-    "startFree": "Análisis Gratuito"
+    "startFree": "Análisis Gratuito",
+    "features": "Características"
   },
   "footer": {
+    "tagline": "Análisis de tenis y pádel con IA para jugadores, entrenadores y clubes.",
     "tagline1": "Creado para jugadores, entrenadores y programas de alto rendimiento.",
     "tagline2": "Inteligencia tenística para análisis, mejora y seguimiento.",
     "copyright": "© 2026 SmartSwing AI",
-    "col": { "pathways": "Accesos", "resources": "Recursos", "legal": "Legal", "community": "Comunidad" },
+    "col": {
+      "pathways": "Accesos", "resources": "Recursos", "legal": "Legal", "community": "Comunidad",
+      "product": "Producto", "audiences": "Para Ti"
+    },
     "links": {
       "forPlayers": "Para Jugadores", "forCoaches": "Para Entrenadores", "forClubs": "Para Clubes",
       "forParents": "Para Padres", "blog": "Blog", "drillsLibrary": "Biblioteca de Ejercicios",
       "pickleball": "Pickleball", "referral": "Programa de Referidos", "contact": "Contáctanos",
       "refundPolicy": "Política de Reembolso", "userAgreement": "Acuerdo de Usuario",
       "privacyPolicy": "Política de Privacidad", "cookiePolicy": "Política de Cookies",
-      "accessibility": "Accesibilidad"
+      "accessibility": "Accesibilidad",
+      "features": "Características", "pricing": "Precios", "howItWorks": "Cómo Funciona",
+      "analyzeSwing": "Analizar un Golpe", "players": "Jugadores", "coaches": "Entrenadores",
+      "clubs": "Clubes", "parents": "Padres", "privacy": "Privacidad", "terms": "Términos", "cookies": "Cookies"
     }
   },
   "cookie": {
@@ -46,12 +54,32 @@
       "forehand": { "title": "Puntuación del golpe de derecha", "value": "84",      "detail": "Fuerte para el nivel. El contacto y el timing de cadera están mejorando." },
       "gain":     { "title": "Ganancia principal",              "value": "+9%",    "detail": "La separación hombro-cadera mejoró desde la última sesión." },
       "nextMove": { "title": "Siguiente paso",                  "value": "3 ejercicios", "detail": "Prescritos a partir de las métricas que cuestan profundidad y ritmo." }
-    }
+    },
+    "cta": { "primary": "Analiza tu Golpe Gratis →", "secondary": "Ver Cómo Funciona" }
+  },
+  "stats": {
+    "analysisTime": "Tiempo de análisis",
+    "bodyPoints": "Puntos corporales rastreados",
+    "rating": "Valoración del jugador",
+    "players": "Jugadores analizados"
   },
   "trust": {
     "rating":  { "value": "★★★★★  4,9 / 5 puntuación", "label": "Valorado por jugadores y entrenadores en 3 continentes." },
     "players": { "value": "2.400+ jugadores activos",   "label": "Atletas juveniles, jugadores de ligas amateur y competidores de torneos." },
-    "price":   { "value": "Menos de $1 / día",          "label": "Análisis ilimitados en el plan Performance. Menos que una clase privada al mes." }
+    "price":   { "value": "Menos de $1 / día",          "label": "Análisis ilimitados en el plan Performance. Menos que una clase privada al mes." },
+    "label": "Confiado por jugadores, entrenadores y clubes afiliados con"
+  },
+  "hook": {
+    "tag": "El Problema",
+    "cta": "Comenzar Gratis →"
+  },
+  "hiw": {
+    "tag": "Cómo Funciona",
+    "title": "Tres pasos para un mejor juego.",
+    "sub": "Sin equipo especial, sin configuración larga. Solo tu teléfono y un clip de golpe.",
+    "step1": { "title": "Graba tu Golpe", "desc": "Filma un vídeo corto de tu derecha, revés o saque desde cualquier ángulo usando tu teléfono." },
+    "step2": { "title": "La IA Analiza al Instante", "desc": "Nuestro motor de biomecánica evalúa postura, rotación, punto de contacto, seguimiento y 12 métricas más." },
+    "step3": { "title": "Obtén tu Plan de Acción", "desc": "Recibe un programa de ejercicios personalizado, orientación táctica y seguimiento del progreso — listo para compartir con tu entrenador." }
   },
   "howItWorks": {
     "eyebrow": "Cómo funciona",
@@ -61,11 +89,22 @@
     "step2": { "num": "02", "title": "La IA lee tu biomecánica",               "body": "33 puntos de referencia corporales rastreados. Tu golpe comparado con benchmarks ajustados al nivel. Tus 3 principales problemas, clasificados por impacto." },
     "step3": { "num": "03", "title": "Entrena con un plan creado para ti",     "body": "Ejercicios específicos para tus problemas específicos. Ajustes tácticos que hacen que la corrección mecánica funcione en puntos de partido reales." }
   },
+  "metrics": {
+    "analysis": "Tiempo de análisis promedio",
+    "points": "Puntos de datos biomecánicos",
+    "accuracy": "Precisión técnica",
+    "swings": "Golpes analizados"
+  },
   "features": {
     "eyebrow": "Lo que obtienes",
     "heading": "Tu entrenador de IA — disponible 24/7, cuesta menos que una clase.",
     "tagline": "Una plataforma para todo lo que necesita un jugador serio: análisis de IA, ejercicios personalizados, tácticas de partido, seguimiento del progreso y flujos de trabajo para entrenadores.",
     "expand": "Detalles",
+    "tag": "Características",
+    "title": "Todo lo que necesitas para mejorar — nada más.",
+    "bio": { "title": "Análisis Biomecánico Profundo", "desc": "15+ puntos de datos incluyendo anchura de postura, rotación de cadera, alineación de hombros, trayectoria de raqueta y zona de contacto." },
+    "drills": { "title": "Planes de Ejercicios Personalizados", "desc": "Ejercicios específicos y secuenciados dirigidos a tus debilidades — no consejos genéricos de YouTube." },
+    "tactical": { "title": "Análisis Táctico", "desc": "Selección de golpes, posicionamiento en cancha e insights de estrategia de partido para elevar tu juego mental." },
     "engine": {
       "eyebrow": "Motor de Biomecánica con IA",
       "title": "La sala de análisis que merece todo jugador serio.",
@@ -98,6 +137,32 @@
       "whatDetail": "SmartSwing mantiene el tenis como experiencia principal.", "whyDetail": "los nuevos deportes pueden heredar el sistema sin diluir el producto principal."
     }
   },
+  "showcase": {
+    "coaches": {
+      "tag": "Para Entrenadores",
+      "title": "Haz crecer tu práctica de coaching con informes respaldados por IA.",
+      "desc": "Comparte informes PDF profesionales con clientes. Rastrea el progreso de cada jugador a lo largo del tiempo.",
+      "f1": "Informes PDF listos en 60 segundos",
+      "f2": "Panel de seguimiento de progreso multi-jugador",
+      "f3": "Herramientas de comparación de golpes lado a lado",
+      "f4": "Asignación y seguimiento de ejercicios por jugador",
+      "cta": "Explorar Herramientas del Entrenador →"
+    },
+    "players": {
+      "tag": "Para Jugadores",
+      "title": "Mira exactamente cómo mejoras, semana a semana.",
+      "desc": "Tu línea de tiempo de progreso personal rastrea todas las métricas a lo largo del tiempo.",
+      "f1": "Historial completo de golpes y visualización de tendencias",
+      "f2": "Comparación antes y después con cualquier sesión pasada",
+      "f3": "Recomendaciones de objetivos generadas por IA semanalmente",
+      "f4": "Diseño mobile-first — analiza en cualquier lugar",
+      "cta": "Ver Panel del Jugador →"
+    }
+  },
+  "proof": {
+    "tag": "Lo que dicen los jugadores",
+    "title": "Resultados reales de jugadores reales."
+  },
   "stories": {
     "eyebrow": "Resultados reales", "heading": "Lo que pasa después de la primera subida.",
     "s1": { "stat": "NTRP mejoró en 6 semanas",           "name": "Sofia R., 14 — Competidora junior",     "quote": "\"Mi entrenador se sorprendió de que corregí mi footwork antes de nuestra próxima clase. Solo seguí el ejercicio que me dio SmartSwing.\"" },
@@ -118,15 +183,23 @@
   "pricing": {
     "eyebrow": "Precios — Tarifas de acceso anticipado",
     "heading": "Empieza gratis. Mejora cuando veas la diferencia.",
+    "tag": "Precios",
+    "title": "Empieza gratis. Mejora cuando estés listo.",
+    "sub": "Todos los planes incluyen análisis de IA en tiempo real. Sin tarifas ocultas, cancela cuando quieras.",
     "mostPopular": "Más popular", "perMonth": "/ mes",
     "urgency1": "💳  Entrenamiento privado: $80–$150/hora · SmartSwing Performance: $0.66/día",
     "urgency2": "🔒  Precios de acceso anticipado — asegura tu tarifa antes de que cambie",
     "urgency3": "🏫  ¿Facturación para academia o club?",
     "urgency3Link": "Contáctanos para un plan personalizado",
-    "starter":     { "name": "Inicial",        "price": "$0",     "tagline": "Elimina toda la fricción y consigue la primera victoria.",                                                             "f1": "1 análisis por mes",                   "f2": "Vista previa del informe en vivo",     "f3": "Sin guardar, imprimir ni exportar",           "cta": "Empezar Gratis →" },
-    "player":      { "name": "Jugador",         "price": "$9.99",  "tagline": "Para jugadores que quieren retroalimentación mensual constante e informes guardados.",                               "f1": "10 análisis por mes",                  "f2": "Guardar, imprimir y compartir",        "f3": "Panel de progreso y seguimiento de KPIs",     "cta": "Elegir Jugador →" },
+    "starter":     { "name": "Inicial",        "price": "$0",     "tagline": "Elimina toda la fricción y consigue la primera victoria.", "desc": "Perfecto para jugadores que están empezando con el feedback de IA.",                                                   "f1": "1 análisis por mes",                   "f2": "Vista previa del informe en vivo",     "f3": "Sin guardar, imprimir ni exportar",           "cta": "Empezar Gratis →" },
+    "player":      { "name": "Jugador",         "price": "$9.99",  "desc": "Para jugadores serios que entrenan regularmente y quieren un progreso medible.", "tagline": "Para jugadores que quieren retroalimentación mensual constante e informes guardados.",                               "f1": "10 análisis por mes",                  "f2": "Guardar, imprimir y compartir",        "f3": "Panel de progreso y seguimiento de KPIs", "f4": "Planes tácticos y de ejercicios", "cta": "Elegir Jugador →" },
+    "perf":        { "name": "Performance",     "price": "$19.99", "desc": "Herramientas avanzadas para jugadores competitivos y entrenadores.",                                                     "f1": "Todo en Jugador",                      "f2": "Informes PDF para entrenadores",       "f3": "Comparaciones lado a lado",          "f4": "Procesamiento de IA prioritario",  "cta": "Ver Todos los Planes" },
     "performance": { "name": "Performance",     "price": "$19.99", "tagline": "Análisis ilimitados. Biblioteca completa. Herramientas de entrenador. Menos que una clase privada al mes.",         "f1": "Análisis e informes ilimitados",        "f2": "Biblioteca completa de ejercicios",    "f3": "Herramientas entrenador/jugador",  "f4": "Informes de IA semanales",   "cta": "Elegir Performance →" },
     "tournament":  { "name": "Tournament Pro",  "price": "$49.99", "tagline": "Para competidores serios con revisión de entrenador certificado, preparación para torneos y acceso prioritario.",   "f1": "Evaluaciones y exportaciones ilimitadas","f2": "Flujo de revisión certificado",        "f3": "Apoyo para preparación de torneos",  "f4": "Programación prioritaria",   "cta": "Elegir Tournament Pro →" }
+  },
+  "bigcta": {
+    "primary": "Comienza Gratis Hoy →",
+    "secondary": "Ver Cómo Funciona"
   },
   "lead": {
     "eyebrow": "Recurso gratuito",
@@ -211,7 +284,7 @@
     "tournamentF5": "Ideal para competidores serios",
     "roiChip": "Calculadora de ROI",
     "roiHeading": "¿Cuánto te cuestan las clases cada mes?",
-    "roiBody": "Mueve el control deslizante para comparar el gasto típico en coaching con SmartSwing Performance. El objetivo no es reemplazar el buen coaching. El objetivo es hacer cada clase más productiva.",
+    "roiBody": "Mueve el control deslizante para comparar el gasto típico en coaching con SmartSwing Performance.",
     "roiLabel": "Gasto mensual en clases",
     "whatThatMeans": "Lo que eso significa",
     "roiSmartSwing": "SmartSwing Performance",
@@ -231,49 +304,42 @@
     "faq1Q": "¿Qué cuenta como una revisión?",
     "faq1A": "Cada informe generado cuenta como una revisión. Abrir el analizador solo no consume un crédito.",
     "faq2Q": "¿Puedo cambiar de plan en cualquier momento?",
-    "faq2A": "Absolutamente. Cambia arriba o abajo cuando quieras — sin penalizaciones ni fricción. Los planes mensuales se cancelan en cualquier momento.",
+    "faq2A": "Absolutamente. Cambia arriba o abajo cuando quieras — sin penalizaciones ni fricción.",
     "faq3Q": "¿Si elijo Starter, estoy limitado?",
-    "faq3A": "Starter te da un análisis completo por mes — suficiente para probar el concepto. Cuando estés listo para entrenar consistentemente, actualizar toma 30 segundos.",
+    "faq3A": "Starter te da un análisis completo por mes — suficiente para probar el concepto.",
     "faq4Q": "¿Dónde se desbloquean los ejercicios y tácticas?",
-    "faq4A": "Pro y Tournament Pro desbloquean la biblioteca completa de ejercicios y tácticas dentro de los informes y en la página de biblioteca.",
+    "faq4A": "Pro y Tournament Pro desbloquean la biblioteca completa de ejercicios y tácticas.",
     "footerTagline": "Inteligencia de tenis priorizada para reducir la práctica desperdiciada y mejorar la retención de clases."
   },
   "howItWorksPage": {
     "eyebrow": "Captura. Analiza. Corrige. Monitorea.",
     "heading": "De un video a tu próximo avance — en 60 segundos.",
-    "body": "La mayoría de los jugadores terminan una sesión sin saber qué salió mal. SmartSwing cierra esa brecha en 60 segundos — para que cada repetición sea más inteligente que la anterior.",
+    "body": "La mayoría de los jugadores terminan una sesión sin saber qué salió mal. SmartSwing cierra esa brecha en 60 segundos.",
     "outcomeLabel": "Resultado",
     "outcomeH3": "La velocidad de corrección es el producto.",
     "outcomeBody": "Cada superficie debe ayudar al jugador a entender qué pasó, por qué importa y qué hacer a continuación.",
-    "step1Num": "01",
-    "step1Heading": "Captura el ángulo y el contexto correctos",
+    "step1Num": "01", "step1Heading": "Captura el ángulo y el contexto correctos",
     "step1Body": "Filma desde detrás de la línea de base o la valla. SmartSwing te guía sobre la calidad del ángulo antes de que comience el análisis.",
     "step1i1": "La orientación previa a la captura mejora la calidad de entrada antes de que comience la subida.",
     "step1i2": "La intención del golpe y la sesión define el benchmark y el marco de feedback.",
     "step1i3": "Los detalles del perfil mantienen la puntuación justa por nivel y contexto del jugador.",
-    "step2Num": "02",
-    "step2Heading": "Obtén tu informe biomecánico personalizado",
-    "step2Body": "La IA rastrea 33 puntos de referencia corporales, calcula las métricas específicas del tenis más importantes y compara tu golpe con benchmarks ajustados al nivel.",
+    "step2Num": "02", "step2Heading": "Obtén tu informe biomecánico personalizado",
+    "step2Body": "La IA rastrea 33 puntos de referencia corporales y compara tu golpe con benchmarks ajustados al nivel.",
     "step2i1": "La biomecánica, el movimiento, el posicionamiento, el timing y el comportamiento de contacto se evalúan juntos.",
     "step2i2": "El informe enfatiza las principales prioridades en lugar de detalles de bajo valor.",
     "step2i3": "Las tarjetas expandibles explican qué significa una métrica y cómo interpretarla.",
-    "step3Num": "03",
-    "step3Heading": "Entrena con un plan construido para TU juego",
-    "step3Body": "Cada informe muestra tus 3 principales prioridades con videos de ejercicios. No son consejos genéricos — son prescripciones específicas para tus problemas específicos de movimiento.",
+    "step3Num": "03", "step3Heading": "Entrena con un plan construido para TU juego",
+    "step3Body": "Cada informe muestra tus 3 principales prioridades con videos de ejercicios.",
     "step3i1": "Las 3 principales recomendaciones de ejercicios vinculadas directamente a las principales debilidades.",
     "step3i2": "Las 3 principales recomendaciones tácticas basadas en el perfil actual del jugador.",
     "step3i3": "El resumen listo para el entrenador mantiene la conversación de enseñanza rápida y útil.",
-    "step4Num": "04",
-    "step4Heading": "Registra cada repetición. Véte mejorar.",
-    "step4Body": "Tu panel de progreso muestra exactamente cómo se mueve cada métrica a lo largo del tiempo. Los entrenadores pueden asignar ejercicios, añadir notas y hacer seguimiento — todo en un lugar.",
+    "step4Num": "04", "step4Heading": "Registra cada repetición. Véte mejorar.",
+    "step4Body": "Tu panel de progreso muestra exactamente cómo se mueve cada métrica a lo largo del tiempo.",
     "step4i1": "Las vistas del jugador y del entrenador están separadas en pestañas limpias por tarea.",
-    "step4i2": "Los límites del plan, los ensayos y las reglas de privacidad se aplican antes de guardar, exportar y enviar mensajes.",
+    "step4i2": "Los límites del plan y las reglas de privacidad se aplican antes de guardar y exportar.",
     "step4i3": "Los jugadores y entrenadores permanecen en sus propias vistas para que la comunicación sea fácil de seguir.",
-    "ctaEyebrow": "Ejecútalo ahora",
-    "ctaHeading": "Ve tu juego como lo ve un entrenador de biomecánica.",
-    "ctaPrimary": "Abrir Analizador",
-    "ctaSecondary": "Comparar Planes",
-    "ctaContact": "Habla con Nosotros",
+    "ctaEyebrow": "Ejecútalo ahora", "ctaHeading": "Ve tu juego como lo ve un entrenador de biomecánica.",
+    "ctaPrimary": "Abrir Analizador", "ctaSecondary": "Comparar Planes", "ctaContact": "Habla con Nosotros",
     "footerTagline": "Descripción del flujo de trabajo desde la captura hasta el análisis, ejercicios, tácticas y seguimiento."
   }
 }
