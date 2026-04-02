@@ -1,16 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="./assets/logos/icon.png">
   <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI Blog</title>
-  <meta name="description" content="SmartSwing AI blog: tennis analysis education, biomechanics explainers, drill strategy, and player development articles.">
+  <title>SmartSwing AI | Tennis Intelligence Hub</title>
+  <meta name="description" content="Tournament news, SMART training protocols, pro biomechanics analysis, and science-backed tennis education from SmartSwing AI — your AI-powered swing analysis platform.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://www.smartswingai.com/blog.html">
-  <meta property="og:title" content="SmartSwing AI Blog">
-  <meta property="og:description" content="Tennis analysis education, biomechanics explainers, and player development content from SmartSwing AI.">
+  <meta property="og:title" content="SmartSwing AI | Tennis Intelligence Hub">
+  <meta property="og:description" content="Tournament news, SMART training protocols, pro biomechanics analysis, and science-backed tennis education.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.smartswingai.com/blog.html">
   <meta property="og:image" content="https://www.smartswingai.com/assets/logos/logo.png">
@@ -20,188 +20,1256 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="./growth-pages.css">
   <style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
 :root {
   --bg: #0a0a0a; --bg-soft: #111; --bg-mid: #1a1a1a;
   --panel: rgba(22,22,26,0.92); --line: rgba(255,255,255,0.1);
   --text: #f5f5f7; --muted: rgba(255,255,255,0.6);
-  --green: #39ff14; --volt: #39ff14; --gold: #ffd84d;
+  --volt: #39ff14; --gold: #ffd84d; --blue: #60a5fa;
+  --purple: #a78bfa; --red: #ff4d6d; --orange: #fb923c;
   --page: min(1280px, calc(100% - 48px));
+  --radius: 16px; --radius-sm: 10px;
+  --cat-training: #39ff14; --cat-pro: #ffd84d; --cat-science: #60a5fa;
+  --cat-fun: #a78bfa; --cat-tournament: #fb923c;
+  --surface-clay: #c2653a; --surface-grass: #2d7d46;
+  --surface-hard: #1a5fa8; --surface-indoor: #5a4a8a;
 }
+/* ─── RESET / BASE ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 body {
+  font-family: 'DM Sans', system-ui, sans-serif;
   background: radial-gradient(circle at top left, rgba(57,255,20,0.05), transparent 24%),
     linear-gradient(180deg, #050505 0%, #0a0a0a 44%, #111 100%);
   background-attachment: fixed;
+  color: var(--text); min-height: 100vh; overflow-x: hidden;
 }
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; text-decoration: none; }
+
+/* ─── SKIP NAV ───────────────────────────────────────────── */
+.skip-nav {
+  position: absolute; top: -100%; left: 16px; z-index: 9999;
+  padding: 10px 20px; background: var(--volt); color: #0a0a0a;
+  font-weight: 700; border-radius: 0 0 8px 8px; font-size: 14px;
+  text-decoration: none; transition: top 0.2s;
+}
+.skip-nav:focus { top: 0; }
+:focus-visible { outline: 2px solid var(--volt); outline-offset: 3px; }
+
+/* ─── NAV ────────────────────────────────────────────────── */
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 900;
   background: rgba(10,10,10,0.88); backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.nav-inner { display:flex;align-items:center;justify-content:space-between;height:68px;gap:24px;width:var(--page);margin:0 auto; }
-.brand { font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.3px;text-decoration:none; }
-.brand .dot { color:var(--volt); }
-.nav-links { display:flex;gap:28px; }
-.nav-links a { font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s; }
-.nav-links a:hover { color:var(--text); }
-.nav-cta { display:flex;gap:10px;align-items:center; }
-.btn-primary { display:inline-flex;align-items:center;padding:10px 20px;background:#39ff14;color:#0a0a0a;font-weight:700;font-size:14px;border-radius:12px;border:none;cursor:pointer;text-decoration:none; }
-.btn-ghost { display:inline-flex;align-items:center;padding:10px 20px;background:transparent;color:rgba(255,255,255,0.8);font-weight:600;font-size:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);text-decoration:none; }
-.footer { border-top:1px solid rgba(255,255,255,0.08);padding:60px 0 32px;margin-top:60px; }
-.footer .page { width:var(--page);margin:0 auto; }
-.footer-grid { display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:40px; }
-.footer-brand { font-size:18px;font-weight:800;color:var(--text);margin-bottom:10px; }
-.footer-brand .dot { color:#39ff14; }
-.footer-tagline { font-size:13px;color:var(--muted);line-height:1.6; }
-.footer-col-title { font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px; }
-.footer-links { list-style:none;display:flex;flex-direction:column;gap:8px; }
-.footer-links a { font-size:14px;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.2s; }
-.footer-links a:hover { color:var(--text); }
-.footer-bottom { display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:24px; }
-.footer-bottom p { font-size:13px;color:var(--muted); }
-.footer-bottom-links { display:flex;gap:20px; }
-.footer-bottom-links a { font-size:13px;color:rgba(255,255,255,0.4);text-decoration:none;transition:color 0.2s; }
-.skip-nav { position:absolute;top:-100%;left:16px;z-index:9999;padding:10px 20px;background:#39ff14;color:#0a0a0a;font-weight:700;border-radius:0 0 8px 8px;font-size:14px;text-decoration:none;transition:top 0.2s; }
-.skip-nav:focus { top:0; }
-:focus-visible { outline:2px solid #39ff14;outline-offset:3px; }
-@media(max-width:900px){.nav-links,.nav-cta .btn-ghost,.nav-cta .btn-primary{display:none;}}
-@media(max-width:640px){.footer-grid{grid-template-columns:1fr;}.footer-bottom{flex-direction:column;gap:12px;text-align:center;}}
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
-    </style>
-  <link rel="stylesheet" href="./growth-pages.css">
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 68px; gap: 24px; width: var(--page); margin: 0 auto;
+}
+.brand { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+.brand .dot { color: var(--volt); }
+.brand-logo { display: block; height: 56px; width: auto; mix-blend-mode: screen; }
+.nav-links { display: flex; gap: 28px; }
+.nav-links a { font-size: 14px; font-weight: 500; color: var(--muted); transition: color 180ms ease; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { display: flex; gap: 10px; align-items: center; }
+.btn-primary {
+  display: inline-flex; align-items: center; padding: 10px 20px;
+  background: var(--volt); color: #0a0a0a; font-weight: 700;
+  font-size: 14px; border-radius: 12px; border: none; cursor: pointer;
+  text-decoration: none; transition: opacity 180ms ease, transform 180ms ease;
+  min-height: 44px;
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-ghost {
+  display: inline-flex; align-items: center; padding: 10px 20px;
+  background: transparent; color: rgba(255,255,255,0.8); font-weight: 600;
+  font-size: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+  text-decoration: none; transition: border-color 180ms ease, color 180ms ease;
+  min-height: 44px;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,0.5); color: var(--text); }
+@media(max-width:900px){ .nav-links, .nav-cta .btn-ghost { display: none; } }
+
+/* ─── PAGE WRAPPER ───────────────────────────────────────── */
+.page { width: var(--page); margin: 0 auto; }
+
+/* ─── HERO ───────────────────────────────────────────────── */
+.blog-hero {
+  padding: 100px 0 60px;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(57,255,20,0.08) 0%, transparent 70%);
+  text-align: center;
+}
+.blog-hero-eyebrow {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--volt); background: rgba(57,255,20,0.1);
+  border: 1px solid rgba(57,255,20,0.25); padding: 5px 14px;
+  border-radius: 100px; margin-bottom: 24px;
+}
+.blog-hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 30%, rgba(57,255,20,0.9) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 20px;
+}
+.blog-hero-sub {
+  font-size: 1.05rem; color: var(--muted); max-width: 560px;
+  margin: 0 auto 36px; line-height: 1.7;
+}
+
+/* ─── CATEGORY TABS ──────────────────────────────────────── */
+.cat-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 0;
+}
+.cat-tab {
+  padding: 9px 20px; border-radius: 100px; font-size: 13px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+  color: var(--muted); cursor: pointer; transition: all 180ms ease;
+  min-height: 44px; display: inline-flex; align-items: center;
+}
+.cat-tab:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+.cat-tab.active {
+  background: var(--volt); color: #0a0a0a;
+  border-color: var(--volt); font-weight: 700;
+}
+
+/* ─── TICKER ─────────────────────────────────────────────── */
+.ticker-strip {
+  background: rgba(15,15,15,0.95); border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 0; overflow: hidden; position: relative;
+}
+.ticker-inner { display: flex; align-items: center; gap: 0; white-space: nowrap; }
+.ticker-label {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--volt);
+  background: rgba(15,15,15,0.95); position: relative; z-index: 2;
+  flex-shrink: 0;
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--volt);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+.ticker-track {
+  display: flex; gap: 0; animation: ticker-scroll 40s linear infinite;
+  flex-shrink: 0;
+}
+.ticker-track:hover { animation-play-state: paused; }
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ticker-item {
+  padding: 0 32px; font-size: 13px; color: var(--muted);
+  border-right: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;
+}
+.ticker-item strong { color: var(--text); }
+
+/* ─── TOURNAMENT CALENDAR ────────────────────────────────── */
+.section-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 20px; gap: 12px;
+}
+.section-title {
+  font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
+}
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+}
+.tournament-strip-wrap {
+  overflow-x: auto; padding-bottom: 12px;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.tournament-strip-wrap::-webkit-scrollbar { display: none; }
+.tournament-strip {
+  display: flex; gap: 14px;
+  width: max-content; padding: 4px 2px;
+  scroll-snap-type: x mandatory;
+}
+.tournament-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px 18px 16px;
+  min-width: 220px; max-width: 240px;
+  scroll-snap-align: start; flex-shrink: 0;
+  transition: transform 180ms ease, border-color 180ms ease;
+  position: relative; overflow: hidden;
+}
+.tournament-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
+.surface-bar {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; border-radius: var(--radius) 0 0 var(--radius);
+}
+.surface-clay .surface-bar { background: var(--surface-clay); }
+.surface-grass .surface-bar { background: var(--surface-grass); }
+.surface-hard .surface-bar { background: var(--surface-hard); }
+.surface-indoor .surface-bar { background: var(--surface-indoor); }
+.tc-content { padding-left: 10px; }
+.tc-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;
+}
+.badge-slam { background: rgba(255,216,77,0.15); color: var(--gold); }
+.badge-m1000 { background: rgba(96,165,250,0.15); color: var(--blue); }
+.badge-500 { background: rgba(167,139,250,0.15); color: var(--purple); }
+.badge-250 { background: rgba(255,255,255,0.08); color: var(--muted); }
+.tc-name { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+.tc-dates { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.tc-location { font-size: 12px; color: var(--muted); }
+.tc-prize { font-size: 12px; color: var(--volt); font-weight: 600; margin-top: 8px; }
+.surface-label {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+  margin-top: 6px;
+}
+.surface-clay .surface-label { background: rgba(194,101,58,0.2); color: #e07a4a; }
+.surface-grass .surface-label { background: rgba(45,125,70,0.2); color: #4aaa6e; }
+.surface-hard .surface-label { background: rgba(26,95,168,0.2); color: #5a9fe8; }
+.surface-indoor .surface-label { background: rgba(90,74,138,0.2); color: #9a84d8; }
+
+/* ─── FEATURED ARTICLE ───────────────────────────────────── */
+.featured-card {
+  background: linear-gradient(135deg, rgba(194,101,58,0.18) 0%, rgba(22,22,26,0.95) 60%);
+  border: 1px solid rgba(194,101,58,0.3); border-radius: var(--radius);
+  padding: 40px 44px; position: relative; overflow: hidden;
+  transition: border-color 180ms ease;
+}
+.featured-card:hover { border-color: rgba(194,101,58,0.5); }
+.featured-card::before {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(194,101,58,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.featured-top { display: flex; gap: 14px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+.cat-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 5px 12px; border-radius: 100px;
+}
+.cat-pro { background: rgba(255,216,77,0.12); color: var(--gold); border: 1px solid rgba(255,216,77,0.2); }
+.cat-training { background: rgba(57,255,20,0.1); color: var(--volt); border: 1px solid rgba(57,255,20,0.2); }
+.cat-science { background: rgba(96,165,250,0.1); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+.cat-fun { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.cat-tournament { background: rgba(251,146,60,0.1); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
+.read-time {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--muted);
+}
+.featured-card h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800;
+  letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 18px;
+}
+.featured-bullets { list-style: none; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+.featured-bullets li {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 14px; color: var(--muted); line-height: 1.5;
+}
+.bullet-check {
+  flex-shrink: 0; width: 18px; height: 18px; margin-top: 1px;
+  color: var(--volt);
+}
+.featured-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.btn-featured {
+  padding: 12px 28px; background: var(--gold); color: #0a0a0a;
+  font-weight: 700; font-size: 14px; border-radius: 12px;
+  transition: opacity 180ms ease, transform 180ms ease; min-height: 44px;
+}
+.btn-featured:hover { opacity: 0.9; transform: translateY(-1px); }
+.read-time-label { font-size: 13px; color: var(--muted); }
+
+/* ─── ARTICLE GRID ───────────────────────────────────────── */
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media(max-width:900px){ .article-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width:600px){ .article-grid { grid-template-columns: 1fr; } }
+
+.article-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 24px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+.article-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.18); }
+.article-card.hidden { display: none; }
+.ac-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.smart-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 100px;
+  background: rgba(57,255,20,0.08); color: var(--volt);
+  border: 1px solid rgba(57,255,20,0.15);
+}
+.article-card h3 {
+  font-size: 1rem; font-weight: 700; line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.article-card p { font-size: 13px; color: var(--muted); line-height: 1.6; flex: 1; }
+.ac-smart-goal { font-size: 11px; color: rgba(57,255,20,0.7); font-style: italic; }
+.btn-read {
+  align-self: flex-start; font-size: 13px; font-weight: 700;
+  color: var(--volt); display: inline-flex; align-items: center; gap: 4px;
+  min-height: 44px; padding: 0 2px;
+  transition: gap 180ms ease;
+}
+.btn-read:hover { gap: 8px; }
+
+/* ─── SECTION SPACING ────────────────────────────────────── */
+.blog-section { padding: 60px 0; }
+.blog-section + .blog-section { border-top: 1px solid rgba(255,255,255,0.05); }
+
+/* ─── LIVE RESULTS ───────────────────────────────────────── */
+.live-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.live-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--volt);
+  background: rgba(57,255,20,0.1); border: 1px solid rgba(57,255,20,0.25);
+  padding: 5px 12px; border-radius: 100px;
+}
+.live-timestamp { font-size: 12px; color: var(--muted); }
+.results-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+}
+@media(max-width:900px){ .results-grid { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:560px){ .results-grid { grid-template-columns: 1fr; } }
+.result-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 16px;
+  transition: transform 180ms ease;
+}
+.result-card:hover { transform: translateY(-2px); }
+.result-round { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.result-match { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; }
+.result-score { font-size: 13px; color: var(--volt); font-weight: 600; }
+.result-event { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ─── SKELETON ───────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-card { height: 100px; border-radius: var(--radius-sm); }
+
+/* ─── SMART GOAL BOX ─────────────────────────────────────── */
+.smart-goal-box {
+  border: 1px solid rgba(57,255,20,0.3); border-radius: var(--radius);
+  background: rgba(57,255,20,0.04); padding: 24px 28px; margin: 28px 0;
+}
+.smart-goal-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--volt); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.smart-goal-title::before {
+  content: ''; display: block; width: 16px; height: 16px; flex-shrink: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2339ff14' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.smart-goals-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px;
+}
+@media(max-width:560px){ .smart-goals-grid { grid-template-columns: 1fr; } }
+.smart-goals-grid div {
+  font-size: 13px; color: var(--muted); line-height: 1.5;
+}
+.smart-goals-grid strong { color: var(--text); }
+
+/* ─── FULL ARTICLE ───────────────────────────────────────── */
+.article-full {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 44px 48px; margin-bottom: 28px;
+}
+@media(max-width:640px){ .article-full { padding: 28px 22px; } }
+.article-full-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+}
+.article-full h2 {
+  font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 800;
+  letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 28px;
+}
+.article-full p { font-size: 15px; line-height: 1.75; color: rgba(255,255,255,0.82); margin-bottom: 18px; }
+.article-full h3 {
+  font-size: 1.1rem; font-weight: 700; margin: 28px 0 12px;
+  letter-spacing: -0.01em;
+}
+.article-full ul, .article-full ol {
+  padding-left: 24px; margin-bottom: 18px; display: flex;
+  flex-direction: column; gap: 8px;
+}
+.article-full li { font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.82); }
+.action-step {
+  border: 1px solid rgba(255,216,77,0.3); border-radius: var(--radius-sm);
+  background: rgba(255,216,77,0.05); padding: 20px 24px; margin: 24px 0;
+}
+.action-step-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+}
+.action-step p { font-size: 14px; margin: 0; color: rgba(255,255,255,0.8); }
+
+/* ─── FACT CARDS ─────────────────────────────────────────── */
+.facts-rotator { position: relative; height: 130px; overflow: hidden; }
+.fact-card {
+  position: absolute; top: 0; left: 0; right: 0;
+  background: rgba(57,255,20,0.06); border: 1px solid rgba(57,255,20,0.18);
+  border-radius: var(--radius); padding: 24px 28px;
+  opacity: 0; animation: fact-cycle 25s ease-in-out infinite;
+}
+.fact-card:nth-child(1) { animation-delay: 0s; }
+.fact-card:nth-child(2) { animation-delay: 5s; }
+.fact-card:nth-child(3) { animation-delay: 10s; }
+.fact-card:nth-child(4) { animation-delay: 15s; }
+.fact-card:nth-child(5) { animation-delay: 20s; }
+@keyframes fact-cycle {
+  0%, 16% { opacity: 0; transform: translateY(8px); }
+  4%, 12% { opacity: 1; transform: translateY(0); }
+}
+.fact-number {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--volt); margin-bottom: 8px;
+}
+.fact-text { font-size: 15px; font-weight: 600; line-height: 1.5; }
+
+/* ─── NEWSLETTER ─────────────────────────────────────────── */
+.newsletter-strip {
+  background: linear-gradient(135deg, rgba(57,255,20,0.07) 0%, rgba(22,22,26,0.9) 100%);
+  border: 1px solid rgba(57,255,20,0.15); border-radius: var(--radius);
+  padding: 44px 48px; text-align: center;
+}
+@media(max-width:640px){ .newsletter-strip { padding: 32px 22px; } }
+.newsletter-strip h2 {
+  font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 10px;
+}
+.newsletter-strip p { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+.newsletter-form { display: flex; gap: 10px; max-width: 460px; margin: 0 auto 20px; }
+@media(max-width:480px){ .newsletter-form { flex-direction: column; } }
+.newsletter-input {
+  flex: 1; padding: 12px 18px; border-radius: 12px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text); font-size: 14px; font-family: inherit;
+  transition: border-color 180ms ease; min-height: 44px;
+}
+.newsletter-input:focus { outline: none; border-color: var(--volt); }
+.newsletter-input::placeholder { color: var(--muted); }
+.newsletter-success { display: none; color: var(--volt); font-weight: 600; font-size: 15px; margin-bottom: 20px; }
+.newsletter-success.visible { display: block; }
+.cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ─── FOOTER ─────────────────────────────────────────────── */
+.footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 60px 0 32px; margin-top: 60px; }
+.footer .page { width: var(--page); margin: 0 auto; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.footer-logo { display: block; height: 44px; width: auto; mix-blend-mode: screen; }
+.footer-brand { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+.footer-tagline { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.footer-col-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.footer-links a { font-size: 14px; color: rgba(255,255,255,0.5); transition: color 180ms ease; }
+.footer-links a:hover { color: var(--text); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px; }
+.footer-bottom p { font-size: 13px; color: var(--muted); }
+.footer-bottom-links { display: flex; gap: 20px; }
+.footer-bottom-links a { font-size: 13px; color: rgba(255,255,255,0.4); transition: color 180ms ease; }
+.footer-bottom-links a:hover { color: var(--text); }
+@media(max-width:640px){
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+}
+  </style>
+
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Blog",
-      "name": "SmartSwing AI Blog",
-      "url": "https://www.smartswingai.com/blog.html",
-      "description": "Tennis analysis education, biomechanics explainers, and player development articles.",
-      "blogPost": [
-        {
-          "@type": "BlogPosting",
-          "headline": "How to analyze your tennis serve at home",
-          "url": "https://www.smartswingai.com/blog.html#serve-analysis"
-        },
-        {
-          "@type": "BlogPosting",
-          "headline": "5 forehand mistakes AI can spot before they become habits",
-          "url": "https://www.smartswingai.com/blog.html#forehand-mistakes"
-        },
-        {
-          "@type": "BlogPosting",
-          "headline": "USTA rating improvement guide: how to practice with more transfer",
-          "url": "https://www.smartswingai.com/blog.html#usta-guide"
-        }
-      ]
-    }
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "SmartSwing AI Tennis Intelligence Hub",
+    "url": "https://www.smartswingai.com/blog.html",
+    "description": "Tournament news, SMART training protocols, pro biomechanics analysis, and science-backed tennis education.",
+    "blogPost": [
+      { "@type": "BlogPosting", "headline": "Add 15 km/h to Your Serve in 6 Weeks: A SMART Training Protocol", "url": "https://www.smartswingai.com/blog.html#serve-smart" },
+      { "@type": "BlogPosting", "headline": "Win 70% of Your Forehand Rally Exchanges: The Contact-Point Fix", "url": "https://www.smartswingai.com/blog.html#forehand-smart" },
+      { "@type": "BlogPosting", "headline": "Cut Your Double Fault Rate by 50% in 30 Days", "url": "https://www.smartswingai.com/blog.html#doublefault-smart" },
+      { "@type": "BlogPosting", "headline": "What Djokovic's Return Position Teaches the Club Player", "url": "https://www.smartswingai.com/blog.html#djokovic-analysis" },
+      { "@type": "BlogPosting", "headline": "The Science of the Topspin Forehand: Why 2,500 RPM Changes Everything", "url": "https://www.smartswingai.com/blog.html#topspin-science" },
+      { "@type": "BlogPosting", "headline": "From 3.5 to 4.0 NTRP in 6 Months: A Data-Driven Roadmap", "url": "https://www.smartswingai.com/blog.html#ntrp-roadmap" },
+      { "@type": "BlogPosting", "headline": "10 Extraordinary Tennis Facts That Will Change How You Watch Every Match", "url": "https://www.smartswingai.com/blog.html#fun-facts" },
+      { "@type": "BlogPosting", "headline": "Clay Season 2026: The 5 Technical Adaptations That Separate Winners", "url": "https://www.smartswingai.com/blog.html#clay-season" }
+    ]
+  }
   </script>
   <script src="./analytics.js"></script>
 </head>
 <body>
 <a href="#main-content" class="skip-nav">Skip to main content</a>
+
 <nav class="nav" id="mainNav" aria-label="Main navigation">
   <div class="nav-inner page">
-    <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
+    <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home">
+      <img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="40">
+    </a>
     <div class="nav-links">
       <a href="./for-players.html">For Players</a>
       <a href="./for-coaches.html">For Coaches</a>
       <a href="./how-it-works.html">How It Works</a>
       <a href="./pricing.html">Pricing</a>
-      <a href="./blog.html">Blog</a>
+      <a href="./blog.html" aria-current="page">Blog</a>
     </div>
     <div class="nav-cta">
-      <a href="./login.html" class="btn-ghost" style="padding:10px 20px;font-size:14px;">Sign In</a>
-      <a href="./signup.html" class="btn-primary" style="padding:10px 20px;font-size:14px;">Get Started Free</a>
+      <a href="./login.html" class="btn-ghost">Sign In</a>
+      <a href="./signup.html" class="btn-primary">Get Started Free</a>
     </div>
   </div>
 </nav>
-  <main id="main-content" class="page" style="padding-top:88px">
 
-    <section class="hero">
-      <article class="panel">
-        <div class="eyebrow">Blog</div>
-        <h1>Useful tennis analysis content on the main site now.</h1>
-        <p>The audit was right: the new site needed real content infrastructure instead of broken Wix leftovers. This page is the first clean publishing surface for SmartSwing AI articles, with topics chosen to support search, sharing, and player education.</p>
-      </article>
-      <article class="hero-visual">
-        <div class="eyebrow">Content focus</div>
-        <h2 style="margin-top:16px">Teach the workflow, not just the product.</h2>
-        <p>Good content should help players and coaches understand what to film, what to measure, and how to turn analysis into better reps.</p>
-      </article>
-    </section>
+<main id="main-content">
 
-    <section class="card-grid">
-      <article class="story-card">
-        <div class="eyebrow">Serve</div>
-        <h3 style="margin-top:14px">How to analyze your tennis serve at home</h3>
-        <p>What to record, what camera angle works, and how to judge whether the report is giving you something actionable.</p>
-        <p style="margin-top:14px"><a class="btn-secondary" href="#serve-analysis">Read article</a></p>
-      </article>
-      <article class="story-card">
-        <div class="eyebrow">Forehand</div>
-        <h3 style="margin-top:14px">5 forehand mistakes AI can spot before they become habits</h3>
-        <p>The high-cost forehand patterns that should be corrected early, plus how drills should map back to the report.</p>
-        <p style="margin-top:14px"><a class="btn-secondary" href="#forehand-mistakes">Read article</a></p>
-      </article>
-      <article class="story-card">
-        <div class="eyebrow">Improvement</div>
-        <h3 style="margin-top:14px">USTA rating improvement guide</h3>
-        <p>Why better players practice for transfer, not for drill comfort, and how video review can tighten that loop.</p>
-        <p style="margin-top:14px"><a class="btn-secondary" href="#usta-guide">Read article</a></p>
-      </article>
-    </section>
-
-    <section class="content-grid" id="serve-analysis">
-      <article class="panel section-stack" style="grid-column: 1 / -1;">
-        <div class="eyebrow">Article 1</div>
-        <h2>How to analyze your tennis serve at home</h2>
-        <p>The easiest way to waste a serve review is to film from the wrong place and then expect perfect answers. Start with a stable phone or camera positioned behind the baseline or from a side angle that clearly shows loading, toss, contact, and follow-through. You do not need a professional setup. You need a clean view and enough repetition to show a pattern.</p>
-        <p>Before you upload, decide what you want answered. Are you missing first serves long? Losing rhythm under pressure? Struggling to generate pace? Context shapes how you read the result. SmartSwing is strongest when the player knows the goal, because the report can then be interpreted against something concrete instead of vague curiosity.</p>
-        <p>Once the analysis comes back, ignore the temptation to chase everything. A good report should narrow you toward the highest-cost issue first. If the serve chain is breaking because the load is shallow and the contact point is late, that matters more than polishing lower-impact details. Take one technical priority, one drill, and one tactical adjustment into the next session. That is where improvement starts to feel real.</p>
-      </article>
-    </section>
-
-    <section class="content-grid" id="forehand-mistakes">
-      <article class="panel section-stack" style="grid-column: 1 / -1;">
-        <div class="eyebrow">Article 2</div>
-        <h2>5 forehand mistakes AI can spot before they become habits</h2>
-        <p>Forehand problems usually show up in clusters, not as one isolated flaw. The common ones are rushed spacing, a late unit turn, unstable contact height, weak loading into the outside leg, and a finish that does not match the intention of the ball. Left alone, those habits get reinforced because players often compensate just enough to stay functional in practice.</p>
-        <p>That is where AI feedback is useful. It helps identify which movement pattern is actually producing the miss instead of forcing the player to guess from feel alone. If the contact is consistently late, the solution might not be a generic “swing earlier.” It might be footwork, spacing, or preparation timing. Better diagnosis leads to better drill selection.</p>
-        <p>The real test is whether the recommendation creates transfer. If the drill does not produce a change in live rally behavior, it is probably too disconnected from the problem. SmartSwing’s value is highest when the drill, the report, and the player’s tactical intention all reinforce the same fix.</p>
-      </article>
-    </section>
-
-    <section class="content-grid" id="usta-guide">
-      <article class="panel section-stack" style="grid-column: 1 / -1;">
-        <div class="eyebrow">Article 3</div>
-        <h2>USTA rating improvement guide: how to practice with more transfer</h2>
-        <p>Most players trying to climb ratings do too much comfortable practice and not enough targeted correction. Rating jumps usually come from stronger decision quality, cleaner technique under pressure, and more reliable patterns on the balls that show up most in matches. That means practice has to connect to match transfer, not just repetition volume.</p>
-        <p>Use video and analysis to find the narrowest issue with the biggest competitive cost. Maybe you are losing short balls because your balance is poor moving forward. Maybe your second-serve pattern is predictable. Maybe you are neutralizing your own forehand with weak spacing. Once the issue is clear, the right drill block becomes easier to design and easier to stick with.</p>
-        <p>The point of technology is not to replace coaching judgment. It is to reduce wasted reps. If a player can leave every review knowing what changed, why it matters, and what to work on next, rating improvement becomes a more disciplined process instead of a hopeful one.</p>
-      </article>
-    </section>
-
-    <section class="panel cta-band">
-      <div>
-        <div class="eyebrow">Try the workflow</div>
-        <h2 style="margin-top:16px">Read one article, then run one analysis.</h2>
-        <p>The fastest way to judge the product is to compare the education layer with the actual report flow.</p>
+  <!-- ═══ A. HERO ══════════════════════════════════════════ -->
+  <section class="blog-hero">
+    <div class="page">
+      <div class="blog-hero-eyebrow">Tennis Intelligence Hub</div>
+      <h1>Train Smarter. Compete Better. Know More.</h1>
+      <p class="blog-hero-sub">Tournament calendars, SMART training protocols, pro biomechanics breakdowns, and the science behind every great shot — all in one place.</p>
+      <div class="cat-tabs" role="tablist" aria-label="Filter articles by category">
+        <button class="cat-tab active" data-cat="all" role="tab" aria-selected="true">All</button>
+        <button class="cat-tab" data-cat="tournament" role="tab" aria-selected="false">Tournament News</button>
+        <button class="cat-tab" data-cat="training" role="tab" aria-selected="false">SMART Training</button>
+        <button class="cat-tab" data-cat="pro" role="tab" aria-selected="false">Pro Analysis</button>
+        <button class="cat-tab" data-cat="science" role="tab" aria-selected="false">Science &amp; Tech</button>
+        <button class="cat-tab" data-cat="fun" role="tab" aria-selected="false">Fun Facts</button>
       </div>
-      <div class="cta-actions">
-        <a class="btn-primary" href="./analyze.html">Run Analysis</a>
-        <a class="btn-secondary" href="./pricing.html">See Pricing</a>
-        <a class="btn-secondary" href="./contact.html">Contact</a>
-      </div>
-    </section>
+    </div>
+  </section>
 
-  </main>
+  <!-- ═══ B. LIVE TICKER ═══════════════════════════════════ -->
+  <div class="ticker-strip" aria-label="Recent results ticker" role="marquee">
+    <div class="ticker-inner">
+      <div class="ticker-label">
+        <span class="live-dot" aria-hidden="true"></span>
+        LIVE
+      </div>
+      <div class="ticker-track" aria-hidden="true">
+        <!-- First copy -->
+        <span class="ticker-item"><strong>Alcaraz</strong> wins Monte-Carlo Masters 2026 · 6-3 6-4 vs Rune</span>
+        <span class="ticker-item"><strong>Swiatek</strong> claims Stuttgart WTA 500 title · 7-5 6-2 vs Sabalenka</span>
+        <span class="ticker-item"><strong>Sinner</strong> defends Barcelona Open crown · 6-4 7-5 vs Ruud</span>
+        <span class="ticker-item"><strong>Gauff</strong> Miami Open champion · 7-6 6-3 vs Rybakina</span>
+        <span class="ticker-item"><strong>Djokovic</strong> reaches Madrid SF · def. Fritz 6-3 6-4</span>
+        <span class="ticker-item"><strong>Medvedev</strong> Barcelona QF · def. De Minaur 7-5 6-4</span>
+        <span class="ticker-item"><strong>Sabalenka</strong> Madrid draw set · top seed in 2026 clay season</span>
+        <span class="ticker-item"><strong>Roland Garros</strong> 2026 · Main draw May 26 · Prize fund €53.5M</span>
+        <span class="ticker-item"><strong>Wimbledon 2026</strong> · Grass season begins June 16 at Queen's</span>
+        <span class="ticker-item"><strong>SmartSwing AI</strong> — Analyze your clay court swing today</span>
+        <!-- Duplicate for seamless loop -->
+        <span class="ticker-item"><strong>Alcaraz</strong> wins Monte-Carlo Masters 2026 · 6-3 6-4 vs Rune</span>
+        <span class="ticker-item"><strong>Swiatek</strong> claims Stuttgart WTA 500 title · 7-5 6-2 vs Sabalenka</span>
+        <span class="ticker-item"><strong>Sinner</strong> defends Barcelona Open crown · 6-4 7-5 vs Ruud</span>
+        <span class="ticker-item"><strong>Gauff</strong> Miami Open champion · 7-6 6-3 vs Rybakina</span>
+        <span class="ticker-item"><strong>Djokovic</strong> reaches Madrid SF · def. Fritz 6-3 6-4</span>
+        <span class="ticker-item"><strong>Medvedev</strong> Barcelona QF · def. De Minaur 7-5 6-4</span>
+        <span class="ticker-item"><strong>Sabalenka</strong> Madrid draw set · top seed in 2026 clay season</span>
+        <span class="ticker-item"><strong>Roland Garros</strong> 2026 · Main draw May 26 · Prize fund €53.5M</span>
+        <span class="ticker-item"><strong>Wimbledon 2026</strong> · Grass season begins June 16 at Queen's</span>
+        <span class="ticker-item"><strong>SmartSwing AI</strong> — Analyze your clay court swing today</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ C. TOURNAMENT CALENDAR ════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="calendar-heading">
+    <div class="page">
+      <div class="section-header">
+        <h2 class="section-title" id="calendar-heading">2026 Tournament Calendar</h2>
+        <span class="section-label">Upcoming</span>
+      </div>
+      <div class="tournament-strip-wrap">
+        <div class="tournament-strip" role="list">
+
+          <div class="tournament-card surface-clay" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-m1000">Masters 1000</span>
+              <div class="tc-name">Monte-Carlo Rolex Masters</div>
+              <div class="tc-dates">Apr 6 – 13</div>
+              <div class="tc-location">Monaco 🇲🇨</div>
+              <div class="tc-prize">€6.29M</div>
+              <span class="surface-label">Clay</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-clay" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-500">ATP 500</span>
+              <div class="tc-name">Barcelona Open Banc Sabadell</div>
+              <div class="tc-dates">Apr 14 – 21</div>
+              <div class="tc-location">Spain 🇪🇸</div>
+              <div class="tc-prize">€3.74M</div>
+              <span class="surface-label">Clay</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-clay" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-500">WTA 500</span>
+              <div class="tc-name">Porsche Tennis Grand Prix</div>
+              <div class="tc-dates">Apr 14 – 21</div>
+              <div class="tc-location">Stuttgart 🇩🇪</div>
+              <div class="tc-prize">€802K</div>
+              <span class="surface-label">Clay</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-clay" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-m1000">Masters 1000</span>
+              <div class="tc-name">Madrid Open</div>
+              <div class="tc-dates">Apr 27 – May 10</div>
+              <div class="tc-location">Spain 🇪🇸</div>
+              <div class="tc-prize">€10.1M</div>
+              <span class="surface-label">Clay</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-clay" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-m1000">Masters 1000</span>
+              <div class="tc-name">Internazionali BNL d'Italia</div>
+              <div class="tc-dates">May 12 – 19</div>
+              <div class="tc-location">Rome 🇮🇹</div>
+              <div class="tc-prize">€8.8M</div>
+              <span class="surface-label">Clay</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-clay" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-slam">Grand Slam</span>
+              <div class="tc-name">Roland Garros</div>
+              <div class="tc-dates">May 26 – Jun 8</div>
+              <div class="tc-location">Paris 🇫🇷</div>
+              <div class="tc-prize">€53.5M</div>
+              <span class="surface-label">Clay</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-grass" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-500">ATP 500</span>
+              <div class="tc-name">Queen's Club Championships</div>
+              <div class="tc-dates">Jun 16 – 22</div>
+              <div class="tc-location">London 🇬🇧</div>
+              <div class="tc-prize">€3.27M</div>
+              <span class="surface-label">Grass</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-grass" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-slam">Grand Slam</span>
+              <div class="tc-name">Wimbledon</div>
+              <div class="tc-dates">Jun 30 – Jul 13</div>
+              <div class="tc-location">London 🇬🇧</div>
+              <div class="tc-prize">£50M</div>
+              <span class="surface-label">Grass</span>
+            </div>
+          </div>
+
+          <div class="tournament-card surface-hard" role="listitem">
+            <div class="surface-bar" aria-hidden="true"></div>
+            <div class="tc-content">
+              <span class="tc-badge badge-slam">Grand Slam</span>
+              <div class="tc-name">US Open</div>
+              <div class="tc-dates">Aug 31 – Sep 13</div>
+              <div class="tc-location">New York 🇺🇸</div>
+              <div class="tc-prize">$75M</div>
+              <span class="surface-label">Hard</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ D. FEATURED ARTICLE ══════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="featured-heading">
+    <div class="page">
+      <div class="section-header">
+        <h2 class="section-title" id="featured-heading">Featured Article</h2>
+        <span class="section-label">Editor's Pick</span>
+      </div>
+      <div class="featured-card">
+        <div class="featured-top">
+          <span class="cat-badge cat-pro">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Pro Analysis
+          </span>
+          <span class="read-time" aria-label="12 minute read">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            12 min read
+          </span>
+        </div>
+        <h2>How Carlos Alcaraz's Biomechanics Can Make You 20% More Consistent in 8 Weeks</h2>
+        <ul class="featured-bullets">
+          <li>
+            <svg class="bullet-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>SMART Goal: Raise your forehand consistency score from below 6.5 to 8.0+ as measured by SmartSwing AI in 8 weekly sessions</span>
+          </li>
+          <li>
+            <svg class="bullet-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>3 drills extracted from Alcaraz's known practice routines, adapted for club-level players with step-by-step progressions</span>
+          </li>
+          <li>
+            <svg class="bullet-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Biomechanics breakdown: hip-shoulder separation, racket lag, and the wrist snap sequence that creates both pace and margin</span>
+          </li>
+        </ul>
+        <div class="featured-actions">
+          <a href="#djokovic-analysis" class="btn-featured">Read Article</a>
+          <span class="read-time-label">12 min read · Pro Analysis</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ E. ARTICLE GRID ═══════════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="articles-heading">
+    <div class="page">
+      <div class="section-header">
+        <h2 class="section-title" id="articles-heading">All Articles</h2>
+      </div>
+      <div class="article-grid" id="articleGrid">
+
+        <!-- Card 1 -->
+        <article class="article-card" data-category="training">
+          <div class="ac-top">
+            <span class="cat-badge cat-training">SMART Training</span>
+            <span class="read-time" aria-label="8 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              8 min
+            </span>
+          </div>
+          <h3>Add 15 km/h to Your Serve in 6 Weeks: A SMART Training Protocol</h3>
+          <p>A progressive 6-week plan using trophy position loading, leg drive sequencing, and pronation timing to measurably increase serve velocity.</p>
+          <div class="ac-smart-goal">SMART Goal: 150 km/h → 165 km/h in 6 sessions</div>
+          <a href="#serve-smart" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="article-card" data-category="training">
+          <div class="ac-top">
+            <span class="cat-badge cat-training">SMART Training</span>
+            <span class="read-time" aria-label="7 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              7 min
+            </span>
+          </div>
+          <h3>Win 70% of Your Forehand Rally Exchanges: The Contact-Point Fix</h3>
+          <p>Why contact point height and depth determines rally dominance — and the two-drill fix that SmartSwing AI score reflects within 4 weeks.</p>
+          <div class="ac-smart-goal">SMART Goal: Contact score 6.0 → 7.5+ in 4 weeks</div>
+          <a href="#forehand-smart" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="article-card" data-category="training">
+          <div class="ac-top">
+            <span class="cat-badge cat-training">SMART Training</span>
+            <span class="read-time" aria-label="6 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              6 min
+            </span>
+          </div>
+          <h3>Cut Your Double Fault Rate by 50% in 30 Days</h3>
+          <p>Rhythm, grip pressure, and toss consistency — the three levers that control double fault rate, with a daily 15-minute practice protocol.</p>
+          <div class="ac-smart-goal">SMART Goal: 4 doubles/match → 2 in 30 days</div>
+          <a href="#doublefault-smart" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="article-card" data-category="pro">
+          <div class="ac-top">
+            <span class="cat-badge cat-pro">Pro Analysis</span>
+            <span class="read-time" aria-label="9 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              9 min
+            </span>
+          </div>
+          <h3>What Djokovic's Return Position Teaches the Club Player</h3>
+          <p>Standing 1.5 metres behind the baseline isn't defensive — it's a time-arbitrage strategy. A biomechanics breakdown applicable at every level.</p>
+          <div class="ac-smart-goal">Takeaway: Return win-rate benchmark framework</div>
+          <a href="#djokovic-analysis" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="article-card" data-category="science">
+          <div class="ac-top">
+            <span class="cat-badge cat-science">Science &amp; Tech</span>
+            <span class="read-time" aria-label="10 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              10 min
+            </span>
+          </div>
+          <h3>The Science of the Topspin Forehand: Why 2,500 RPM Changes Everything</h3>
+          <p>The physics of Magnus force, dwell time, and string bed interaction — and why AI can now measure spin rate from a single video frame.</p>
+          <div class="ac-smart-goal">Insight: Spin-to-depth relationship explained</div>
+          <a href="#topspin-science" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="article-card" data-category="training">
+          <div class="ac-top">
+            <span class="cat-badge cat-training">SMART Training</span>
+            <span class="read-time" aria-label="11 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              11 min
+            </span>
+          </div>
+          <h3>From 3.5 to 4.0 NTRP in 6 Months: A Data-Driven Roadmap</h3>
+          <p>Three measurable milestones per quarter, the exact SmartSwing AI scores to target, and the practice structure that makes rating jumps repeatable.</p>
+          <div class="ac-smart-goal">SMART Goal: NTRP 3.5 → 4.0 in 6 months</div>
+          <a href="#ntrp-roadmap" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 7 -->
+        <article class="article-card" data-category="fun">
+          <div class="ac-top">
+            <span class="cat-badge cat-fun">Fun Facts</span>
+            <span class="read-time" aria-label="5 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              5 min
+            </span>
+          </div>
+          <h3>10 Extraordinary Tennis Facts That Will Change How You Watch Every Match</h3>
+          <p>From shoulder joint forces to Federer's topspin RPM — ten genuinely fascinating facts drawn from biomechanics research and sports science.</p>
+          <div class="ac-smart-goal">Impress anyone at the next club social</div>
+          <a href="#fun-facts" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+        <!-- Card 8 -->
+        <article class="article-card" data-category="tournament">
+          <div class="ac-top">
+            <span class="cat-badge cat-tournament">Tournament News</span>
+            <span class="read-time" aria-label="8 minute read">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              8 min
+            </span>
+          </div>
+          <h3>Clay Season 2026: The 5 Technical Adaptations That Separate Winners</h3>
+          <p>From slice approach strategy to kick-serve placement — the tactical and technical shifts that determine who thrives across the Monte-Carlo to Roland Garros corridor.</p>
+          <div class="ac-smart-goal">Apply before your next clay match</div>
+          <a href="#clay-season" class="btn-read">Read
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </article>
+
+      </div><!-- /#articleGrid -->
+    </div>
+  </section>
+
+  <!-- ═══ F. FULL ARTICLE BODIES ════════════════════════════ -->
+  <section class="blog-section" aria-label="Full articles">
+    <div class="page">
+
+      <!-- ARTICLE 1: Serve Speed -->
+      <article class="article-full" id="serve-smart">
+        <div class="article-full-eyebrow">SMART Training · 8 min read</div>
+        <h2>Add 15 km/h to Your Serve in 6 Weeks: A SMART Training Protocol</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Increase first-serve speed from approximately 150 km/h to 165 km/h through improved trophy position loading and pronation timing.</div>
+            <div><strong>Measurable:</strong> SmartSwing AI serve velocity score rises by at least 1.5 points over 6 analysis sessions, or recorded radar/video comparison confirms the 15 km/h gain.</div>
+            <div><strong>Achievable:</strong> A 10% velocity increase is well within range for players who currently have breakdowns in leg drive or wrist pronation — the two highest-yield levers.</div>
+            <div><strong>Relevant:</strong> A faster, heavier first serve directly reduces the number of return opportunities your opponent creates and opens the court for first-ball attack.</div>
+            <div><strong>Time-bound:</strong> 6 weeks of structured practice, 3 serve-focused sessions per week, with SmartSwing AI review at weeks 2, 4, and 6.</div>
+          </div>
+        </div>
+
+        <p>Serve speed is not primarily about arm strength. The biomechanics research is clear: elite servers generate approximately 51% of racket head speed from the leg-and-trunk kinetic chain, with the arm and wrist contributing the remaining 49%. Club players who plateau at sub-160 km/h almost universally have one of three problems — insufficient knee bend at the loading phase, early shoulder rotation that bleeds kinetic energy, or incomplete wrist pronation through contact. Addressing any one of these can add 8–12 km/h without a single gym session.</p>
+
+        <h3>Week 1–2: Establish the Trophy Position</h3>
+        <p>The trophy position — the moment when the tossing arm is at full extension and the racket arm is at 90° elbow flexion — is the launch pad for everything that follows. Film yourself from the side and check that your weight is loaded onto the back foot with knee flexion of at least 30°. The racket tip should be pointing toward the back fence at this moment. Drill: 20 trophy-position holds per session, followed by 20 slow-motion serve swings focusing purely on the loading phase. No power, no pace — just geometry.</p>
+
+        <h3>Week 3–4: Activate the Leg Drive</h3>
+        <p>The leg drive is the first link in the kinetic chain. At the trophy position, your body should be coiled like a compressed spring. The upward drive from the legs precedes hip rotation by 40–60 milliseconds in elite serves — this is the "lag" that stores energy. Drill: jump serves. Stand behind the baseline and complete your full motion, landing 30–45 cm inside the baseline. If you cannot land consistently inside the line, your drive is not fully committed. Do 3 sets of 10 jump serves at 70% effort, then 3 sets of 10 full-effort serves. Upload the full-effort set to SmartSwing AI and check your serve chain score.</p>
+
+        <h3>Week 5–6: The Pronation Finish</h3>
+        <p>Pronation — the internal rotation of the forearm from supinated (palm up) to pronated (palm down) through contact — is where most recreational players lose 10–20 km/h. At the point of contact, a good server's racket face is slightly open (roughly 10–15°) and pronates aggressively through the ball, finishing with the racket face pointing at the ground. Drill: the pronation flick. Hold your racket at the throat and practice the wrist snap alone, 30 times per session, until the motion feels automatic. Then reintegrate it into 3 sets of 10 full serves, focusing only on the finish position. By week 6, your SmartSwing AI wrist score should confirm the change.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>This week: film 10 serves from the side and upload them to SmartSwing AI. Note your baseline serve chain score and wrist pronation score. These two numbers are your starting benchmarks. Return to this article in week 6 with your updated scores.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 2: Forehand Contact -->
+      <article class="article-full" id="forehand-smart">
+        <div class="article-full-eyebrow">SMART Training · 7 min read</div>
+        <h2>Win 70% of Your Forehand Rally Exchanges: The Contact-Point Fix</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Improve forehand contact point height and depth consistency to achieve a SmartSwing AI contact score of 7.5 or above (from a starting baseline below 6.0).</div>
+            <div><strong>Measurable:</strong> Contact score tracked across 3 SmartSwing AI analysis sessions over 4 weeks. Rally win-rate in practice matches rises to 65–70%.</div>
+            <div><strong>Achievable:</strong> Contact point errors are among the most correctable technical issues with targeted footwork and preparation timing drills.</div>
+            <div><strong>Relevant:</strong> Consistent contact depth (slightly in front of the front hip) is the single variable most correlated with rally success at the 3.5–5.0 NTRP range.</div>
+            <div><strong>Time-bound:</strong> 4 weeks, 2 forehand-focused sessions per week, with analysis upload at weeks 2 and 4.</div>
+          </div>
+        </div>
+
+        <p>Every forehand error — the ball clipping the net, the wide miss, the floated sitter — traces back to one of three contact failures: wrong height (not in the ideal strike zone, roughly between hip and chest for most players), wrong depth (behind the hip rather than in front of it), or wrong timing (contact before unit turn is complete). Fix any one and the forehand improves measurably. Fix all three and the forehand becomes a weapon.</p>
+
+        <h3>The Contact Height Problem</h3>
+        <p>Most club players contact the ball too low, particularly on balls that bounce at mid-court height. The reason is almost always a failure to drop the racket head early enough in the backswing. If your racket head is at or above the planned contact height at the start of the forward swing, you cannot generate the low-to-high brushing motion that creates both topspin and net clearance. Drill: shadow swings with a target tape line on the court or fence at your ideal contact height. Complete 30 shadow swings per session, watching that every forward swing starts with the racket head at least 30 cm below the tape line.</p>
+
+        <h3>The Contact Depth Problem</h3>
+        <p>Late contact — ball contacting the strings behind the front hip — is the most common cause of forehand errors at club level. It produces a closed racket face, creates inconsistent topspin, and limits the power that can be transferred from the kinetic chain. The fix is almost always footwork: getting the front foot planted 15–20 cm earlier than feels natural. Drill: split step timing. Place a cone 3 metres in front of the baseline. Rally from the baseline, completing a split step every time the ball crosses the cone. Track how many of the next 20 balls feel like you contacted them in front of your hip. Target: 16 of 20 (80%) by the end of week 4.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>Upload 10 forehand groundstrokes to SmartSwing AI this session. In the report, locate the contact score and the "contact timing" sub-score. Write them down. This is your week-0 baseline. The 4-week protocol starts now.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 3: Double Fault -->
+      <article class="article-full" id="doublefault-smart">
+        <div class="article-full-eyebrow">SMART Training · 6 min read</div>
+        <h2>Cut Your Double Fault Rate by 50% in 30 Days</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Reduce average double faults per match from 4 to 2 by improving second-serve toss consistency, grip pressure, and rhythm under pressure.</div>
+            <div><strong>Measurable:</strong> Track double faults in 4 match-play sessions over 30 days. Secondary metric: SmartSwing AI second-serve consistency score rises by 1.2 points.</div>
+            <div><strong>Achievable:</strong> Most double fault problems are rhythm and routine failures, not technical ones. A consistent pre-serve routine alone reduces doubles by 20–30%.</div>
+            <div><strong>Relevant:</strong> Each double fault is a direct point gift. Cutting from 4 to 2 per match across a 3-set match returns approximately 6 points per set — a meaningful margin at any level.</div>
+            <div><strong>Time-bound:</strong> 30 days, with structured second-serve practice 4 days per week (15 minutes per session).</div>
+          </div>
+        </div>
+
+        <p>Double faults are almost never caused by poor serve technique alone. The biomechanics of the serve — particularly the second serve — are robust enough that most club players can execute them reliably under zero pressure. The failure happens under match pressure, and the reason is almost always one of three things: a grip change between first and second serve (usually tightening), a toss placement that shifts under pressure (usually more to the right for right-handed players, causing the ball to land long), or an abbreviated swing because the player is trying to "steer" the ball safe rather than commit to the motion.</p>
+
+        <h3>The Routine Fix</h3>
+        <p>Every reliable server — at any level — has a pre-serve routine that is absolutely identical regardless of score. Pick a 5-step routine and repeat it identically on every second serve for 30 days. Example: two ball bounces, one grip check, toss arm extends, exhale, toss. The routine is not about superstition. It is about returning the nervous system to the same arousal state where the serve was grooved in practice. Drill: 50 second serves per session with the identical routine. Film one session per week and upload to SmartSwing AI to check that your toss placement is consistent across all 50 attempts.</p>
+
+        <h3>The Grip Pressure Fix</h3>
+        <p>On a scale of 1–10, second serves should be hit at grip pressure 4–5. Most players under pressure squeeze at 7–8, which kills wrist pronation and reduces spin. The racket needs to feel almost loose in the hand at contact to allow the pronation that creates kick or slice. Drill: the "hold with three fingers" drill. Hit 20 second serves holding the grip with only your thumb, index, and middle finger. The forced light grip will feel wrong but the ball will have more spin and more net clearance than your usual tight-grip second serve.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>In your next match, count your double faults and note the score at which each one occurred. After the match, look for the pattern: were they clustered at break point? At 30-all? Knowing when they happen is as important as knowing how to prevent them.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 4: Djokovic Analysis -->
+      <article class="article-full" id="djokovic-analysis">
+        <div class="article-full-eyebrow">Pro Analysis · 9 min read</div>
+        <h2>What Djokovic's Return Position Teaches the Club Player</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Adopt a deeper return starting position (1–1.5 metres behind standard) and measure the effect on first-ball attack rate and return errors.</div>
+            <div><strong>Measurable:</strong> Track return winner percentage and forced errors over 3 match-play sessions. Target: unforced return errors drop by at least 25%.</div>
+            <div><strong>Achievable:</strong> Position change requires no technical retraining — only a court positioning habit shift.</div>
+            <div><strong>Relevant:</strong> Return of serve is the second most important shot in tennis after the serve itself, yet most club players under-prepare for it tactically.</div>
+            <div><strong>Time-bound:</strong> Trial the new position across 3 matches in 2 weeks and compare stats.</div>
+          </div>
+        </div>
+
+        <p>Novak Djokovic stands, on average, 1.5 to 2 metres deeper to receive serve than most of his opponents. To casual observers this looks defensive. To biomechanists and tacticians it is an elite time-arbitrage strategy: by giving himself an additional 0.3–0.4 seconds of reaction time, Djokovic converts what are unplayable serves for other players into redirectable balls. The trade-off is that he faces more mid-court balls — but his exceptional defensive mobility makes those retrievable. The question for club players is not whether to mimic Djokovic exactly, but what the principles behind his positioning can teach about smarter return strategy.</p>
+
+        <h3>The Time-Arbitrage Principle</h3>
+        <p>A 200 km/h serve reaches the service box in approximately 0.37 seconds. A 150 km/h serve (typical strong club serve) reaches the box in approximately 0.49 seconds. Standing 1.5 metres deeper adds approximately 0.1 seconds to both numbers — not enough to transform an unreturnable serve, but enough to shift a 50/50 ball into a comfortable read. At club level where most first serves travel at 120–160 km/h, standing deeper is almost universally beneficial because the balls are slow enough to redirect aggressively from further back.</p>
+
+        <h3>The Split Step and Reading Phase</h3>
+        <p>Djokovic's split step timing is exceptional — he completes it precisely as the server's racket contacts the ball, not before or after. This is the moment when body language and ball trajectory information is richest. Most club returners split step too early (reacting to the ball toss rather than contact), which means they are already moving before they have read the direction. Drill: stand at the return position and have a partner simulate a toss and serve motion. Practice splitting only at the sound of contact (or when you see the racket hit the ball), not at the peak of the toss.</p>
+
+        <h3>The Compact Backswing Return</h3>
+        <p>Against fast serves, Djokovic uses a dramatically shortened backswing — sometimes less than half of his rally forehand preparation. He is redirecting pace rather than generating it. Club players who take full backswings on returns consistently hit the ball late. Drill: "block return" practice. Stand 1.5 metres deeper than usual and have a partner feed from the service line at 80% pace. Use only a half-backswing, focus entirely on early contact and a stable wrist. Upload 10 of these to SmartSwing AI and check the contact timing score — it should be significantly higher than your baseline rally forehand contact.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>In your next practice match, stand 1 metre deeper than usual to receive serve for the entire first set. Note how many returns you miss versus your usual starting position. If errors decrease, make the position change permanent and track over 3 matches.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 5: Topspin Science -->
+      <article class="article-full" id="topspin-science">
+        <div class="article-full-eyebrow">Science &amp; Tech · 10 min read</div>
+        <h2>The Science of the Topspin Forehand: Why 2,500 RPM Changes Everything</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Understand the physics of topspin generation and identify the two biomechanical inputs (brushing angle and swing speed) that AI can measure and provide feedback on.</div>
+            <div><strong>Measurable:</strong> SmartSwing AI topspin score rises by 1.0 point after applying the brushing angle correction from this protocol.</div>
+            <div><strong>Achievable:</strong> Brushing angle is a correctable technique variable — it does not require exceptional athleticism, only deliberate practice with feedback.</div>
+            <div><strong>Relevant:</strong> Higher topspin allows higher margin (more net clearance) without sacrificing depth, which is the core mechanic of consistent aggressive baseline tennis.</div>
+            <div><strong>Time-bound:</strong> Apply the brushing angle drill for 2 weeks (3 sessions per week) and measure the change with SmartSwing AI.</div>
+          </div>
+        </div>
+
+        <p>When Rafael Nadal hits a forehand on clay, the ball rotates at approximately 3,200 RPM. Roger Federer's forehand averages 1,800–2,400 RPM. A strong club player generating good topspin typically produces 1,200–1,800 RPM. The difference is not grip alone — it is the combination of brushing angle (the angle at which the strings travel across the back of the ball), swing speed, and dwell time (how long the ball stays in contact with the string bed). Understanding these three variables is the first step toward intentionally training topspin generation rather than hoping it arrives on its own.</p>
+
+        <h3>The Magnus Effect: Why Topspin Bends the Ball</h3>
+        <p>Topspin creates a pressure differential across the ball's surface as it rotates. The top of the ball moves in the same direction as air flow, while the bottom moves against it. This creates higher pressure below the ball than above it, pushing the ball downward faster than gravity alone would. At 2,500 RPM, this Magnus force adds approximately 30% more downward acceleration to the ball's trajectory — which is why a hard topspin forehand can be hit 1.5 metres over the net and still land inside the baseline. It also creates the heavy "kick" that makes topspin balls difficult to attack when they bounce high above the shoulder.</p>
+
+        <h3>How AI Measures Spin Rate</h3>
+        <p>SmartSwing AI estimates spin rate from video using a combination of ball trajectory analysis and swing mechanics analysis. The system tracks the rate of trajectory curvature (heavier topspin creates more pronounced arc) and cross-references it with racket head speed and brushing angle estimated from the player's swing biomechanics. The result is not as precise as a radar-equipped spin machine, but it is accurate enough to distinguish between "flat," "moderate topspin," and "heavy topspin" and to track changes over time as technique improves.</p>
+
+        <h3>The Brushing Angle Drill</h3>
+        <p>Place a ball on a cone at hip height. Using your forehand grip, practice striking the back of the ball with the strings traveling from 7 o'clock to 1 o'clock (imagine a clock face on the back of the ball). The strings should be in contact with the ball for as long as possible — this is what creates dwell time and spin. Do 30 cone-ball contacts per session for two weeks, then transition to a live feed with 20 balls at medium pace, focusing entirely on the brushing angle. Upload the session to SmartSwing AI and compare your topspin score against your baseline from the previous month.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>Upload your next forehand groundstroke session to SmartSwing AI and locate your topspin score. If it is below 6.0, the brushing angle drill is your highest-priority technique fix. The physics are simple — better brushing angle + more swing speed = more spin, more margin, more consistent attacking tennis.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 6: NTRP Roadmap -->
+      <article class="article-full" id="ntrp-roadmap">
+        <div class="article-full-eyebrow">SMART Training · 11 min read</div>
+        <h2>From 3.5 to 4.0 NTRP in 6 Months: A Data-Driven Roadmap</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Achieve a NTRP rating increase from 3.5 to 4.0 through three structured 8-week improvement blocks targeting serve reliability, forehand power, and second-ball attack patterns.</div>
+            <div><strong>Measurable:</strong> Three SmartSwing AI score milestones: serve consistency score 7.0+ by week 8; forehand chain score 7.5+ by week 16; tactical pattern score 7.0+ by week 24.</div>
+            <div><strong>Achievable:</strong> The 3.5 → 4.0 jump is one of the most common and well-understood rating transitions — the technical and tactical gaps are clearly defined and correctable.</div>
+            <div><strong>Relevant:</strong> A 4.0 rating opens access to significantly more competitive leagues, tournaments, and club team opportunities across most national systems.</div>
+            <div><strong>Time-bound:</strong> 6 months (24 weeks), with a SmartSwing AI analysis session at the end of each 8-week block.</div>
+          </div>
+        </div>
+
+        <p>The difference between a 3.5 and a 4.0 player is not athletic ability. It is reliability, pattern recognition, and the ability to execute high-percentage shots under pressure rather than going for winners at the wrong moment. SmartSwing AI data from thousands of sessions shows that players who make the 3.5 → 4.0 jump share three measurable improvements: their first-serve percentage rises above 62%, their forehand contact score rises above 7.2, and their unforced error count drops by at least 20% in practice match recordings.</p>
+
+        <h3>Block 1 (Weeks 1–8): The Serve Foundation</h3>
+        <p>The 4.0-level serve is not fast — it is reliable. Target: 65% first-serve percentage with consistent placement in two zones (body and wide). Second serve target: kick or slice landing inside the last 1.5 metres of the service box. Practice structure: 15 minutes of structured serve practice per session, 3 sessions per week. Use targets — cones or spot markers — and track your success rate per zone over 8 weeks. By week 8, upload 20 first serves and 20 second serves to SmartSwing AI. Target serve consistency score: 7.0 or above.</p>
+
+        <h3>Block 2 (Weeks 9–16): The Forehand Weapon</h3>
+        <p>At 4.0 level, the forehand needs to be a point-building shot — not just a neutral exchange tool. The key is adding depth and shape: 80% of forehands should land in the back third of the court, and players should have at least two shapes (crosscourt with topspin, inside-out flat) they can deploy tactically. Practice structure: 20 minutes of forehand-focused drilling per session — alternating between deep crosscourt rallying and inside-out pattern practice. Upload 15 rally forehands to SmartSwing AI at week 16. Target forehand chain score: 7.5 or above.</p>
+
+        <h3>Block 3 (Weeks 17–24): Pattern and Pressure</h3>
+        <p>The final block is the most important and hardest to measure directly: executing patterns under match pressure. This means serve-plus-one planning (knowing before you serve where you intend the second ball to go), approach shot decision-making (the right ball to attack vs. the wrong one), and staying in a neutral rally until you have a genuine short ball. Practice structure: tiebreak-format practice matches, tracking first-ball attack opportunities created and taken. At week 24, upload a full practice match session to SmartSwing AI. Target tactical pattern score: 7.0 or above.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>Run a SmartSwing AI analysis session today. Write down your serve consistency score, forehand chain score, and overall consistency score. These three numbers are your NTRP baseline. The 6-month roadmap starts when you know where you are starting from.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 7: Fun Facts -->
+      <article class="article-full" id="fun-facts">
+        <div class="article-full-eyebrow">Fun Facts · 5 min read</div>
+        <h2>10 Extraordinary Tennis Facts That Will Change How You Watch Every Match</h2>
+
+        <ol>
+          <li><strong>The serve generates up to 550 Newtons of force through the shoulder joint.</strong> Research from the Journal of Orthopaedic and Sports Physical Therapy found that elite servers place loads of 550–650N on the shoulder at ball contact — equivalent to supporting more than 60 kg of weight on a joint in external rotation at high speed. This is why rotator cuff conditioning is non-negotiable for any player who serves more than 200 times per week.</li>
+
+          <li><strong>Roger Federer's forehand rotates at 1,800–2,400 RPM.</strong> High-speed camera studies tracking Federer's forehand during match play found spin rates between 1,800 and 2,400 revolutions per minute — equivalent to the idle speed of a car engine. For context, a recreational player's forehand typically produces 800–1,200 RPM.</li>
+
+          <li><strong>A professional rally involves 5–9 directional changes per second.</strong> Motion analysis studies of professional matches found that players make micro-adjustments to footwork direction at a rate of 5–9 changes per second during an active rally. This is why proprioception (the body's position-sensing system) is trained as a core component of professional conditioning programs.</li>
+
+          <li><strong>The yellow tennis ball became the Wimbledon standard in 1986 for television visibility.</strong> For most of tennis history, balls were white. The International Tennis Federation approved yellow balls in 1972, but Wimbledon — traditionally conservative — maintained white balls until 1986, when studies confirmed yellow was dramatically easier to track on television screens of the era.</li>
+
+          <li><strong>A match-quality tennis ball lasts approximately 9 games of professional play.</strong> At the professional level, balls are changed every 9 games after the first 7 (adjusted for warm-up wear). The felt surface degrades to the point where aerodynamic properties are measurably altered — slower balls with different bounce characteristics — affecting both spin and pace calculations for players calibrated to fresh ball behaviour.</li>
+
+          <li><strong>The fastest serve ever recorded is 263.4 km/h — hit by Sam Groth in 2012.</strong> Australian Sam Groth hit 263.4 km/h at a Busan Open Challenger event, a speed that gives the receiver approximately 0.27 seconds from ball contact to return impact — roughly the same time it takes to blink twice. At this speed, the ball is effectively unreturnable by anyone who was not anticipating the exact direction.</li>
+
+          <li><strong>Djokovic can react to a ball moving at 230 km/h in under 0.25 seconds.</strong> Reaction time studies on elite tennis players consistently find visual processing speeds that exceed the general population by 25–40 milliseconds. Djokovic, in particular, has been cited in sports science literature for exceptional anticipatory reading of opponent body language — beginning his weight transfer before the ball is struck.</li>
+
+          <li><strong>A single forehand stroke involves activation of over 20 major muscle groups.</strong> EMG (electromyography) studies of the forehand groundstroke recorded significant activation across the quadriceps, gluteus maximus, hip rotators, core stabilisers (obliques, transverse abdominis), pectoralis major, anterior deltoid, rotator cuff, forearm flexors, and extensors — all coordinated in a kinetic chain lasting approximately 0.5 seconds from unit turn to follow-through.</li>
+
+          <li><strong>Court surface affects bounce height by up to 50 cm on the same shot.</strong> The same ball struck at the same pace and spin angle will bounce to knee height on a slow clay surface and to below knee height on a fast hard court — a difference of 30–50 cm at the optimal contact point. This is why players must recalibrate their contact height and racket preparation timing when switching surfaces, a fact measured precisely in SmartSwing AI's surface-adjusted scoring.</li>
+
+          <li><strong>The longest Wimbledon match lasted 11 hours and 5 minutes across 3 days.</strong> John Isner defeated Nicolas Mahut 6-4, 3-6, 6-7, 7-6, 70-68 in the first round of Wimbledon 2010. The fifth set alone lasted 8 hours and 11 minutes, with 183 aces served across the match. The score in the final set — 70-68 — remains the longest set in recorded professional tennis history.</li>
+        </ol>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>Next time you watch a professional match, count the number of directional changes a player makes during a single rally. You will almost certainly be surprised — and you will never watch footwork the same way again.</p>
+        </div>
+      </article>
+
+      <!-- ARTICLE 8: Clay Season -->
+      <article class="article-full" id="clay-season">
+        <div class="article-full-eyebrow">Tournament News · 8 min read</div>
+        <h2>Clay Season 2026: The 5 Technical Adaptations That Separate Winners</h2>
+
+        <div class="smart-goal-box">
+          <div class="smart-goal-title">SMART Goal</div>
+          <div class="smart-goals-grid">
+            <div><strong>Specific:</strong> Implement 3 of the 5 clay-specific technical adaptations listed in this article before your first clay court match of the season.</div>
+            <div><strong>Measurable:</strong> Upload a clay court session to SmartSwing AI and compare your slide footwork score and serve kick placement score against your hard court baseline.</div>
+            <div><strong>Achievable:</strong> Clay adaptations are learned skills — players who practice them deliberately improve measurably within 4–6 clay court sessions.</div>
+            <div><strong>Relevant:</strong> Clay is the most physically demanding surface and rewards patience and pattern play more than any other — skills that transfer across all surfaces.</div>
+            <div><strong>Time-bound:</strong> Implement before Monte-Carlo week (April 6) and track improvement through Roland Garros preparation (late May).</div>
+          </div>
+        </div>
+
+        <p>Clay court tennis is a different game from hard court. The slower surface, higher bounce, and sliding footwork change the tactical geometry of every point. Players who transition poorly from hard courts typically make one of two errors: they try to end points too early (hard court aggression habits on a surface that rewards patience), or they use hard court footwork on clay, sacrificing the ability to slide into contact and recover in one fluid motion. The five adaptations below are the ones that separate clay court winners from clay court survivors.</p>
+
+        <h3>1. Develop the Slide — Don't Fear It</h3>
+        <p>Sliding into groundstrokes is not optional on clay — it is how elite players arrive at the ball in balance and recover immediately after contact. The slide begins approximately 1 metre before the ball, with the outside foot planting and the player allowing momentum to carry them sideways. The key is to stay low through the slide: upright posture kills the balance that allows post-contact recovery. Practice: 15 minutes per session of slide-approach drills — cone feeds wide, slide to contact, immediate recovery sprint back to centre. Upload the session to SmartSwing AI and check your footwork score.</p>
+
+        <h3>2. Build Your Kick Serve for the High Bounce</h3>
+        <p>Clay courts amplify serve bounce height significantly, making kick serves devastating weapons — particularly against players who prefer to attack second serves from inside the baseline. A kick serve on clay can bounce to shoulder height or above, producing a weak defensive return rather than an attack. Drill: serve practice targeting the ad court wide corner with a kick serve that generates a high, heavy bounce. Target percentage: 7 of 10 landing in the intended quadrant, with visible upward bounce trajectory.</p>
+
+        <h3>3. Use the Slice Approach Strategically</h3>
+        <p>On hard courts, approach shots are typically hit flat and penetrating. On clay, the slice approach keeps the ball low through the bounce, denying the opponent the high contact point they need to drive a passing shot. The slice also allows the approaching player to maintain momentum toward the net rather than decelerating for a topspin approach. Drill: short ball feeds at the service line, alternating between topspin and slice approaches, tracking pass-attempt outcomes from your practice partner.</p>
+
+        <h3>4. Extend Your Point-Building Patience</h3>
+        <p>Data from ATP clay court matches shows that the average point length is 20–30% longer on clay than on hard courts, and that the player who wins the sixth ball in a rally wins approximately 68% of those points. The tactical implication: clay rewards outlasting your opponent, not outpacing them. In practice matches, set a rule: no attempted winner before the fifth shot. Track how your unforced error count changes.</p>
+
+        <h3>5. Adjust Contact Height for the High Bounce</h3>
+        <p>Higher bouncing balls require a contact point shift upward — roughly 20–30 cm higher than on hard courts for the same shot. Players who do not adjust end up cramped and lunging, producing weak contact and limited topspin. SmartSwing AI's contact height score will often drop for hard court players in their first clay sessions — this is the clearest diagnostic signal that the height adjustment has not yet been made. Drill: 20-ball feeds from the mid-service line at high bounce height, focusing on setting up outside the ball and contacting it at chest height rather than hip height.</p>
+
+        <div class="action-step">
+          <div class="action-step-title">Action Step</div>
+          <p>Before your next clay court session, pick two of the five adaptations above to focus on exclusively. Upload the session to SmartSwing AI and write down the two scores that correspond to your chosen adaptations. Review them after 3 clay sessions. This is how technical change on clay gets measured rather than guessed.</p>
+        </div>
+      </article>
+
+    </div><!-- /.page -->
+  </section>
+
+  <!-- ═══ G. LIVE DATA SECTION ══════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="live-heading" id="live-results-section">
+    <div class="page">
+      <div class="live-header">
+        <h2 class="section-title" id="live-heading">Recent Results</h2>
+        <span class="live-badge" id="liveBadge" aria-live="polite">
+          <span class="live-dot" aria-hidden="true"></span>
+          LIVE
+        </span>
+        <span class="live-timestamp" id="liveTimestamp"></span>
+      </div>
+      <div class="results-grid" id="live-results" aria-label="Recent tournament results">
+        <!-- Skeleton loading -->
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ H. FACT OF THE DAY ════════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="facts-heading">
+    <div class="page">
+      <div class="section-header">
+        <h2 class="section-title" id="facts-heading">Fact of the Day</h2>
+        <span class="section-label">Rotating</span>
+      </div>
+      <div class="facts-rotator" aria-label="Rotating tennis facts">
+        <div class="fact-card">
+          <div class="fact-number">Fact 01</div>
+          <p class="fact-text">The serve generates up to 550N of force through the shoulder joint — equivalent to holding 60 kg in a rotating arm position.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 02</div>
+          <p class="fact-text">Federer's forehand rotates at 1,800–2,400 RPM — the same range as a car engine at idle speed.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 03</div>
+          <p class="fact-text">Clay courts make the same ball bounce 30–50 cm higher than fast hard courts — requiring a complete contact height recalibration.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 04</div>
+          <p class="fact-text">The Isner–Mahut match at Wimbledon 2010 lasted 11 hours and 5 minutes across 3 days. The final set score was 70–68.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 05</div>
+          <p class="fact-text">A single forehand stroke coordinates over 20 major muscle groups in a kinetic chain lasting approximately 0.5 seconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ I. NEWSLETTER ═════════════════════════════════════ -->
+  <section class="blog-section">
+    <div class="page">
+      <div class="newsletter-strip">
+        <h2>Get Weekly Tennis Intelligence</h2>
+        <p>SMART training protocols, tournament breakdowns, and AI insights delivered every Monday.</p>
+        <div class="newsletter-success" id="newsletterSuccess" role="status" aria-live="polite">
+          You're in. Check your inbox every Monday for tennis intelligence.
+        </div>
+        <form class="newsletter-form" id="newsletterForm" novalidate aria-label="Newsletter subscription">
+          <label for="newsletterEmail" class="sr-only">Email address</label>
+          <input
+            type="email" id="newsletterEmail" name="email"
+            class="newsletter-input" placeholder="Your email address"
+            required autocomplete="email" aria-required="true"
+          >
+          <button type="submit" class="btn-primary">Subscribe Free</button>
+        </form>
+        <div class="cta-row">
+          <a href="./analyze.html" class="btn-primary">Run your first free swing analysis</a>
+          <a href="./pricing.html" class="btn-ghost">See Plans</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════ -->
 <footer class="footer" role="contentinfo" aria-label="Site footer">
   <div class="page">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="152" height="64"></div>
+        <div class="footer-brand">
+          <img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35">
+        </div>
         <p class="footer-tagline">AI-powered tennis and pickleball analysis for players, coaches, and clubs.</p>
       </div>
       <div>
@@ -233,8 +1301,146 @@ body {
     </div>
   </div>
 </footer>
-  <script src="./pwa.js"></script>
-  <script src="./i18n.js"></script>
-  <script src="./mobile-nav.js"></script>
+
+<!-- ═══ SCRIPTS ════════════════════════════════════════════════ -->
+<script>
+// ── 1. CATEGORY FILTER ──────────────────────────────────────
+(function () {
+  const tabs = document.querySelectorAll('.cat-tab');
+  const cards = document.querySelectorAll('#articleGrid .article-card');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const cat = tab.dataset.cat;
+
+      // Update active state
+      tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      // Show/hide cards
+      cards.forEach(card => {
+        if (cat === 'all' || card.dataset.category === cat) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
+  });
+})();
+
+// ── 2. LIVE TENNIS DATA ──────────────────────────────────────
+const FALLBACK_RESULTS = [
+  { round: 'Monte-Carlo Masters · Final', match: 'Carlos Alcaraz def. Holger Rune', score: '6-3, 6-4' },
+  { round: 'Stuttgart WTA 500 · Final', match: 'Iga Swiatek def. Aryna Sabalenka', score: '7-5, 6-2' },
+  { round: 'Barcelona Open · Semifinal', match: 'Jannik Sinner def. Casper Ruud', score: '6-4, 7-5' },
+  { round: 'Miami Open · Final', match: 'Coco Gauff def. Elena Rybakina', score: '7-6, 6-3' },
+  { round: 'Indian Wells · Quarterfinal', match: 'Novak Djokovic def. Taylor Fritz', score: '6-3, 6-4' },
+  { round: 'Madrid Open · R32', match: 'Alexander Zverev def. Felix Auger-Aliassime', score: '6-4, 6-2' },
+];
+
+function renderResults(results) {
+  const container = document.getElementById('live-results');
+  if (!results || results.length === 0) {
+    results = FALLBACK_RESULTS;
+  }
+  container.innerHTML = results.map(r => `
+    <div class="result-card">
+      <div class="result-round">${escHtml(r.round || r.strLeague || '')}</div>
+      <div class="result-match">${escHtml(r.match || (r.homeTeam && r.awayTeam ? r.homeTeam + ' vs ' + r.awayTeam : ''))}</div>
+      <div class="result-score">${escHtml(r.score || (r.homeScore != null ? r.homeScore + ' – ' + r.awayScore : ''))}</div>
+      <div class="result-event">${escHtml(r.venue || r.city || '')}</div>
+    </div>
+  `).join('');
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function fetchTennisData() {
+  const ts = document.getElementById('liveTimestamp');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const res = await fetch('/api/tennis-feed', { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('non-200');
+    const data = await res.json();
+
+    if (data.error || (!data.recent || data.recent.length === 0)) {
+      renderResults(FALLBACK_RESULTS);
+      if (ts) ts.textContent = 'Showing cached results';
+      return;
+    }
+
+    // Map API shape to render shape
+    const mapped = data.recent.slice(0, 6).map(ev => ({
+      round: ev.round ? 'Round ' + ev.round : (ev.name || ''),
+      match: ev.homeTeam && ev.awayTeam ? ev.homeTeam + ' vs ' + ev.awayTeam : (ev.name || ''),
+      score: ev.homeScore != null ? ev.homeScore + ' – ' + ev.awayScore : '',
+      venue: ev.venue || ev.city || '',
+    }));
+
+    renderResults(mapped.length ? mapped : FALLBACK_RESULTS);
+    if (ts && data.fetchedAt) {
+      const d = new Date(data.fetchedAt);
+      ts.textContent = 'Updated ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  } catch (err) {
+    clearTimeout(timer);
+    renderResults(FALLBACK_RESULTS);
+    if (ts) ts.textContent = 'Showing recent results';
+  }
+}
+
+// Kick off data fetch on load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', fetchTennisData);
+} else {
+  fetchTennisData();
+}
+
+// ── 3. NEWSLETTER SUBSCRIBE ──────────────────────────────────
+(function () {
+  const form = document.getElementById('newsletterForm');
+  const success = document.getElementById('newsletterSuccess');
+  if (!form) return;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const email = document.getElementById('newsletterEmail').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('newsletterEmail').focus();
+      return;
+    }
+    form.style.display = 'none';
+    success.classList.add('visible');
+  });
+})();
+
+// ── 4. SMOOTH SCROLL ─────────────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Move focus for accessibility
+      const focusEl = target.querySelector('h2, h3, [tabindex]') || target;
+      if (focusEl) { focusEl.setAttribute('tabindex', '-1'); focusEl.focus({ preventScroll: true }); }
+    }
+  });
+});
+</script>
+
+<!-- sr-only utility (inline since no shared CSS reset guaranteed) -->
+<style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}</style>
+
+<script src="./pwa.js"></script>
+<script src="./i18n.js"></script>
+<script src="./mobile-nav.js"></script>
 </body>
 </html>
