@@ -493,16 +493,7 @@
     }
     if (access.canAccessCoachDashboard) document.getElementById('coachNavBtn').classList.remove('hide');
 
-    // Blog nav: show lock badge for free/starter plans so they know it's premium
-    (function setBlogNavState() {
-      var BLOG_PLANS = ['pro', 'elite', 'coach'];
-      var planId = String((user.planId || user.plan || 'free')).toLowerCase();
-      var hasBlogAccess = BLOG_PLANS.indexOf(planId) !== -1;
-      var blogBtn = document.getElementById('blogNavBtn');
-      if (blogBtn && !hasBlogAccess) {
-        blogBtn.innerHTML = blogBtn.innerHTML + '<span style="margin-left:2px;font-size:9px;font-weight:800;padding:1px 5px;border-radius:999px;background:rgba(255,216,77,.15);color:var(--orange);vertical-align:middle;">PRO</span>';
-      }
-    })();
+    // Blog nav: open to all during soft launch — no badge needed.
 
     const metrics = store.getDashboardMetrics(user.id);
     const assessments = store.getVisibleAssessmentsForCurrentUser(user.id);

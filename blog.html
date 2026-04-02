@@ -499,8 +499,8 @@ a { color: inherit; text-decoration: none; }
   .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
 }
 
-/* ─── AUTH GATE ──────────────────────────────────────────── */
-#blog-main { display: none; }
+/* ─── AUTH GATE — disabled during soft launch, open to all ── */
+#blog-main { display: block; }
 #blog-gate { display: none; }
 
 .gate-wrap {
@@ -1997,40 +1997,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 <script src="./app-data.js"></script>
 <script>
 // ── Blog access gate ──────────────────────────────────────────────────────
-// Runs synchronously after app-data.js loads (localStorage-backed, no flicker).
-// Access: planId === 'pro' (Performance) or 'elite' (Tournament Pro) or 'coach'.
+// Soft launch: blog is open to everyone. Gate preserved below for future use.
+// To re-enable: restore ALLOWED_PLANS check and set #blog-main { display: none; } in CSS.
 (function blogAccessGate() {
-  var ALLOWED_PLANS = ['pro', 'elite', 'coach'];
-  var store = window.SmartSwingStore;
-
-  function allow() {
-    var el = document.getElementById('blog-main');
-    if (el) el.style.display = '';
-  }
-  function deny() {
-    var gate = document.getElementById('blog-gate');
-    if (gate) gate.style.display = '';
-    // Update nav CTA buttons to reflect state
-    var signInBtn = document.querySelector('.nav-cta .btn-ghost[href*="login"]');
-    if (signInBtn) signInBtn.textContent = 'Sign In to Access';
-  }
-
-  if (!store) { allow(); return; }            // store not available → fail open (demo mode)
-
-  var user = store.getCurrentUser ? store.getCurrentUser() : null;
-
-  if (!user) {
-    // Not logged in: save return destination then show gate
-    deny();
-    return;
-  }
-
-  var planId = String(user.planId || user.plan || 'free').toLowerCase();
-  if (ALLOWED_PLANS.indexOf(planId) !== -1) {
-    allow();
-  } else {
-    deny();
-  }
+  // Open to all — no plan check during soft launch.
+  var el = document.getElementById('blog-main');
+  if (el) el.style.display = '';
 })();
 </script>
 <script>
