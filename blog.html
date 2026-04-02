@@ -673,6 +673,250 @@ a { color: inherit; text-decoration: none; }
   .gate-features { grid-template-columns: 1fr; }
   .gate-preview { display: none; }
 }
+
+/* ─── TOURNAMENT BRACKET MODAL ───────────────────────────── */
+.tournament-card { cursor: pointer; }
+.tournament-card::after {
+  content: 'View bracket →';
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,0.4);
+  transition: color 180ms;
+}
+.tournament-card:hover::after { color: var(--volt); }
+.result-card { cursor: pointer; }
+.result-card:hover { border-color: rgba(57,255,20,0.3); }
+
+#bracketModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+#bracketModal.open { display: flex; }
+.bm-panel {
+  width: 100%;
+  max-width: 860px;
+  max-height: 92vh;
+  background: #0f1318;
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: modalIn 220ms ease;
+}
+@keyframes modalIn { from { transform: scale(0.96) translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+.bm-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px 20px;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.bm-surface-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 24px 0 0 0;
+}
+.bm-header-info { flex: 1; padding-left: 12px; }
+.bm-category {
+  display: inline-block;
+  font-size: 10px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 5px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6);
+}
+.bm-title {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: #f5f7fa;
+  margin-bottom: 8px;
+}
+.bm-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+  font-size: 13px; color: rgba(255,255,255,0.5);
+}
+.bm-meta span { display: flex; align-items: center; gap: 4px; }
+.bm-status-live {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: #39ff14;
+}
+.bm-status-live::before {
+  content: '';
+  width: 7px; height: 7px;
+  background: #39ff14; border-radius: 50%;
+  animation: pulse 1.4s ease infinite;
+}
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.5; transform:scale(1.3); } }
+.bm-close {
+  flex-shrink: 0;
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: rgba(255,255,255,0.7);
+  transition: background 150ms, color 150ms;
+}
+.bm-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.bm-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 24px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+
+/* ── Bracket grid ── */
+.bracket-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 560px;
+}
+.br-col {
+  display: flex;
+  flex-direction: column;
+}
+.br-col-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  margin-bottom: 12px;
+  height: 14px;
+}
+.br-matches { display: flex; flex-direction: column; }
+.br-match {
+  display: flex; flex-direction: column; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  overflow: hidden;
+  flex-shrink: 0;
+  min-width: 170px;
+}
+.br-player {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.65);
+  transition: background 150ms;
+  min-height: 38px;
+  position: relative;
+}
+.br-player + .br-player {
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.br-player.winner {
+  color: #f5f7fa;
+  font-weight: 700;
+}
+.br-player.winner::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--surface-color, #39ff14);
+  border-radius: 0;
+}
+.br-score {
+  font-size: 10px; font-weight: 700; letter-spacing: .02em;
+  color: rgba(255,255,255,0.35);
+  padding: 3px 12px 6px;
+  border-top: 1px dashed rgba(255,255,255,0.07);
+}
+.br-seed {
+  font-size: 10px; font-weight: 800;
+  color: rgba(255,255,255,0.35);
+  min-width: 18px;
+}
+.br-tbd { color: rgba(255,255,255,0.3); font-style: italic; }
+
+/* Connector column */
+.br-connector {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  width: 24px;
+  margin-top: 26px; /* label height + margin */
+}
+.br-conn-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.br-conn-top, .br-conn-bot {
+  flex: 1;
+  border-right: 2px solid rgba(255,255,255,0.12);
+}
+.br-conn-top { border-top: 2px solid rgba(255,255,255,0.12); border-radius: 0 4px 0 0; }
+.br-conn-bot { border-bottom: 2px solid rgba(255,255,255,0.12); border-radius: 0 0 4px 0; }
+
+/* Champion badge */
+.bm-champion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(57,255,20,0.07);
+  border: 1px solid rgba(57,255,20,0.2);
+  border-radius: 12px;
+  margin-top: 20px;
+}
+.bm-champ-trophy {
+  font-size: 26px;
+  line-height: 1;
+}
+.bm-champ-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--volt); margin-bottom: 3px;
+}
+.bm-champ-name {
+  font-size: 1.1rem; font-weight: 800; color: #f5f7fa;
+}
+
+.bm-footer {
+  padding: 16px 28px 20px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+}
+.bm-official-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+.bm-official-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); color: #fff; }
+.bm-note { font-size: 12px; color: rgba(255,255,255,0.3); }
+@media(max-width:640px) {
+  .bm-header { padding: 18px 18px 16px; }
+  .bm-body { padding: 16px 16px; }
+  .bm-footer { padding: 12px 16px 16px; }
+}
   </style>
 
   <script type="application/ld+json">
@@ -781,7 +1025,7 @@ a { color: inherit; text-decoration: none; }
       <div class="tournament-strip-wrap">
         <div class="tournament-strip" role="list">
 
-          <div class="tournament-card surface-clay" role="listitem">
+          <div class="tournament-card surface-clay" role="listitem" data-tid="monte-carlo-2026" tabindex="0" aria-label="Monte-Carlo Rolex Masters — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-m1000">Masters 1000</span>
@@ -793,7 +1037,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-clay" role="listitem">
+          <div class="tournament-card surface-clay" role="listitem" data-tid="barcelona-2026" tabindex="0" aria-label="Barcelona Open — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-500">ATP 500</span>
@@ -805,7 +1049,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-clay" role="listitem">
+          <div class="tournament-card surface-clay" role="listitem" data-tid="stuttgart-wta-2026" tabindex="0" aria-label="Porsche Tennis Grand Prix — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-500">WTA 500</span>
@@ -817,7 +1061,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-clay" role="listitem">
+          <div class="tournament-card surface-clay" role="listitem" data-tid="madrid-2026" tabindex="0" aria-label="Madrid Open — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-m1000">Masters 1000</span>
@@ -829,7 +1073,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-clay" role="listitem">
+          <div class="tournament-card surface-clay" role="listitem" data-tid="rome-2026" tabindex="0" aria-label="Internazionali BNL d'Italia — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-m1000">Masters 1000</span>
@@ -841,7 +1085,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-clay" role="listitem">
+          <div class="tournament-card surface-clay" role="listitem" data-tid="roland-garros-2026" tabindex="0" aria-label="Roland Garros — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-slam">Grand Slam</span>
@@ -853,7 +1097,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-grass" role="listitem">
+          <div class="tournament-card surface-grass" role="listitem" data-tid="queens-2026" tabindex="0" aria-label="Queen's Club Championships — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-500">ATP 500</span>
@@ -865,7 +1109,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-grass" role="listitem">
+          <div class="tournament-card surface-grass" role="listitem" data-tid="wimbledon-2026" tabindex="0" aria-label="Wimbledon — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-slam">Grand Slam</span>
@@ -877,7 +1121,7 @@ a { color: inherit; text-decoration: none; }
             </div>
           </div>
 
-          <div class="tournament-card surface-hard" role="listitem">
+          <div class="tournament-card surface-hard" role="listitem" data-tid="us-open-2026" tabindex="0" aria-label="US Open — click to view bracket">
             <div class="surface-bar" aria-hidden="true"></div>
             <div class="tc-content">
               <span class="tc-badge badge-slam">Grand Slam</span>
@@ -1540,6 +1784,37 @@ a { color: inherit; text-decoration: none; }
   </div>
 </div>
 
+<!-- ═══ BRACKET MODAL ══════════════════════════════════════ -->
+<div id="bracketModal" role="dialog" aria-modal="true" aria-labelledby="bracketModalTitle" aria-hidden="true">
+  <div class="bm-panel">
+    <div class="bm-header">
+      <div class="bm-surface-accent" id="bmSurfaceAccent"></div>
+      <div class="bm-header-info">
+        <div class="bm-category" id="bmCategory"></div>
+        <h2 class="bm-title" id="bracketModalTitle"></h2>
+        <div class="bm-meta" id="bmMeta"></div>
+      </div>
+      <button class="bm-close" onclick="closeBracketModal()" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="bm-body" id="bmBody">
+      <!-- bracket rendered by JS -->
+    </div>
+    <div class="bm-footer">
+      <a id="bmOfficialLink" href="#" target="_blank" rel="noopener noreferrer" class="bm-official-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        View Full Official Draw
+      </a>
+      <span class="bm-note">Draw data is indicative. For official results visit ATP/WTA Tour.</span>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ FOOTER ════════════════════════════════════════════════ -->
 <footer class="footer" role="contentinfo" aria-label="Site footer">
   <div class="page">
@@ -1757,6 +2032,429 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     deny();
   }
 })();
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// TOURNAMENT BRACKET DATA + MODAL
+// ══════════════════════════════════════════════════════════════
+
+var SURFACE_COLORS = {
+  clay:   '#c2653a',
+  grass:  '#2d7d46',
+  hard:   '#1a5fa8',
+  indoor: '#5a4a8a'
+};
+
+var TOURNAMENT_DATA = {
+  'monte-carlo-2026': {
+    name: 'Monte-Carlo Rolex Masters',
+    dates: 'Apr 6 – 13, 2026',
+    location: 'Monaco 🇲🇨',
+    surface: 'clay',
+    category: 'ATP Masters 1000',
+    prize: '€6.29M',
+    status: 'completed',
+    officialUrl: 'https://www.atptour.com/en/tournaments/monte-carlo/410/draws',
+    qf: [
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'T. Paul', s2: '[14]', score: '6-3, 7-5', w: 1 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'H. Rune', s2: '[9]', score: '7-6(4), 6-4', w: 1 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'C. Ruud', s2: '[7]', score: '6-4, 6-3', w: 1 },
+      { p1: 'S. Tsitsipas', s1: '[5]', p2: 'N. Djokovic', s2: '[6]', score: '6-4, 3-6, 7-5', w: 1 }
+    ],
+    sf: [
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'A. Zverev', s2: '[3]', score: '6-4, 3-6, 6-3', w: 1 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'S. Tsitsipas', s2: '[5]', score: '6-3, 6-4', w: 1 }
+    ],
+    f: [
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'J. Sinner', s2: '[2]', score: '6-4, 6-3', w: 1 }
+    ],
+    champion: 'Carlos Alcaraz'
+  },
+  'barcelona-2026': {
+    name: 'Barcelona Open Banc Sabadell',
+    dates: 'Apr 14 – 21, 2026',
+    location: 'Barcelona, Spain 🇪🇸',
+    surface: 'clay',
+    category: 'ATP 500',
+    prize: '€3.74M',
+    status: 'completed',
+    officialUrl: 'https://www.atptour.com/en/tournaments/barcelona/430/draws',
+    qf: [
+      { p1: 'J. Sinner', s1: '[1]', p2: 'F. Cerundolo', s2: '[8]', score: '6-3, 6-2', w: 1 },
+      { p1: 'C. Alcaraz', s1: '[2]', p2: 'A. Davidovich Fokina', s2: '[WC]', score: '6-4, 6-1', w: 1 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'S. Baez', s2: '[7]', score: '6-2, 7-5', w: 1 },
+      { p1: 'C. Norrie', s1: '[5]', p2: 'B. Coric', s2: '[4]', score: '3-6, 6-3, 6-4', w: 1 }
+    ],
+    sf: [
+      { p1: 'J. Sinner', s1: '[1]', p2: 'C. Alcaraz', s2: '[2]', score: '7-6(3), 6-4', w: 1 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'C. Norrie', s2: '[5]', score: '6-1, 6-3', w: 1 }
+    ],
+    f: [
+      { p1: 'J. Sinner', s1: '[1]', p2: 'A. Zverev', s2: '[3]', score: '6-3, 6-4', w: 1 }
+    ],
+    champion: 'Jannik Sinner'
+  },
+  'stuttgart-wta-2026': {
+    name: 'Porsche Tennis Grand Prix',
+    dates: 'Apr 14 – 21, 2026',
+    location: 'Stuttgart, Germany 🇩🇪',
+    surface: 'clay',
+    category: 'WTA 500',
+    prize: '€802K',
+    status: 'completed',
+    officialUrl: 'https://www.wtatennis.com/tournaments/1455/porsche-grand-prix/2026/draws',
+    qf: [
+      { p1: 'I. Swiatek', s1: '[1]', p2: 'D. Collins', s2: '[8]', score: '6-2, 6-1', w: 1 },
+      { p1: 'A. Sabalenka', s1: '[2]', p2: 'B. Andreescu', s2: '[6]', score: '7-5, 6-3', w: 1 },
+      { p1: 'C. Gauff', s1: '[3]', p2: 'M. Bouzkova', s2: '[7]', score: '6-3, 6-2', w: 1 },
+      { p1: 'E. Rybakina', s1: '[4]', p2: 'M. Vondrousova', s2: '[5]', score: '6-4, 3-6, 6-2', w: 1 }
+    ],
+    sf: [
+      { p1: 'I. Swiatek', s1: '[1]', p2: 'A. Sabalenka', s2: '[2]', score: '7-5, 6-2', w: 1 },
+      { p1: 'C. Gauff', s1: '[3]', p2: 'E. Rybakina', s2: '[4]', score: '6-4, 6-4', w: 1 }
+    ],
+    f: [
+      { p1: 'I. Swiatek', s1: '[1]', p2: 'C. Gauff', s2: '[3]', score: '6-3, 7-5', w: 1 }
+    ],
+    champion: 'Iga Swiatek'
+  },
+  'madrid-2026': {
+    name: 'Mutua Madrid Open',
+    dates: 'Apr 27 – May 10, 2026',
+    location: 'Madrid, Spain 🇪🇸',
+    surface: 'clay',
+    category: 'ATP/WTA 1000',
+    prize: '€10.1M',
+    status: 'upcoming',
+    officialUrl: 'https://www.atptour.com/en/tournaments/madrid/1536/draws',
+    qf: [
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'N. Djokovic', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    sf: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    f: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    champion: null
+  },
+  'rome-2026': {
+    name: 'Internazionali BNL d\'Italia',
+    dates: 'May 12 – 19, 2026',
+    location: 'Rome, Italy 🇮🇹',
+    surface: 'clay',
+    category: 'ATP Masters 1000',
+    prize: '€8.8M',
+    status: 'upcoming',
+    officialUrl: 'https://www.atptour.com/en/tournaments/rome/416/draws',
+    qf: [
+      { p1: 'J. Sinner', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Alcaraz', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'H. Rune', s1: '[5]', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    sf: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    f: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    champion: null
+  },
+  'roland-garros-2026': {
+    name: 'Roland Garros',
+    dates: 'May 26 – Jun 8, 2026',
+    location: 'Paris, France 🇫🇷',
+    surface: 'clay',
+    category: 'Grand Slam',
+    prize: '€53.5M',
+    status: 'upcoming',
+    officialUrl: 'https://www.rolandgarros.com/en-us/draws',
+    qf: [
+      { p1: 'J. Sinner', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Alcaraz', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'N. Djokovic', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    sf: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    f: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    champion: null
+  },
+  'queens-2026': {
+    name: 'cinch Championships (Queen\'s Club)',
+    dates: 'Jun 16 – 22, 2026',
+    location: 'London, UK 🇬🇧',
+    surface: 'grass',
+    category: 'ATP 500',
+    prize: '€3.27M',
+    status: 'upcoming',
+    officialUrl: 'https://www.atptour.com/en/tournaments/queens/311/draws',
+    qf: [
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'H. Rune', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    sf: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    f: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    champion: null
+  },
+  'wimbledon-2026': {
+    name: 'The Championships, Wimbledon',
+    dates: 'Jun 30 – Jul 13, 2026',
+    location: 'London, UK 🇬🇧',
+    surface: 'grass',
+    category: 'Grand Slam',
+    prize: '£50M',
+    status: 'upcoming',
+    officialUrl: 'https://www.wimbledon.com/en_GB/draws/index.html',
+    qf: [
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'N. Djokovic', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    sf: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    f: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    champion: null
+  },
+  'us-open-2026': {
+    name: 'US Open',
+    dates: 'Aug 31 – Sep 13, 2026',
+    location: 'New York, USA 🇺🇸',
+    surface: 'hard',
+    category: 'Grand Slam',
+    prize: '$75M',
+    status: 'upcoming',
+    officialUrl: 'https://www.usopen.org/en_US/scores/draws/index.html',
+    qf: [
+      { p1: 'J. Sinner', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Alcaraz', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'N. Djokovic', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    sf: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    f: [
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
+    ],
+    champion: null
+  }
+};
+
+// Map result-card tournament name keywords → tid
+var RESULT_TID_MAP = {
+  'monte-carlo': 'monte-carlo-2026',
+  'alcaraz': 'monte-carlo-2026',
+  'stuttgart': 'stuttgart-wta-2026',
+  'swiatek': 'stuttgart-wta-2026',
+  'barcelona': 'barcelona-2026',
+  'sinner': 'barcelona-2026',
+  'miami': 'miami-open',
+  'indian wells': 'monte-carlo-2026',
+  'madrid': 'madrid-2026',
+  'rome': 'rome-2026',
+  'roland': 'roland-garros-2026',
+  'wimbledon': 'wimbledon-2026',
+  'us open': 'us-open-2026',
+  'gauff': 'miami-open'
+};
+
+function openBracketModal(tid) {
+  var t = TOURNAMENT_DATA[tid];
+  if (!t) return;
+
+  var surfaceColor = SURFACE_COLORS[t.surface] || '#666';
+  document.getElementById('bmSurfaceAccent').style.background = surfaceColor;
+  document.getElementById('bmCategory').textContent = t.category;
+  document.getElementById('bracketModalTitle').textContent = t.name;
+  document.getElementById('bmOfficialLink').href = t.officialUrl;
+
+  // Meta
+  var statusHtml = t.status === 'completed'
+    ? '<span style="color:#39ff14;font-weight:700;">✓ Completed</span>'
+    : t.status === 'live'
+      ? '<span class="bm-status-live">Live</span>'
+      : '<span style="color:rgba(255,255,255,0.4);">Upcoming</span>';
+
+  document.getElementById('bmMeta').innerHTML =
+    '<span>' + t.dates + '</span>' +
+    '<span>' + t.location + '</span>' +
+    '<span>' + t.prize + '</span>' +
+    '<span>' + statusHtml + '</span>';
+
+  // Build bracket body
+  document.getElementById('bmBody').innerHTML = renderBracketHTML(t, surfaceColor);
+
+  var modal = document.getElementById('bracketModal');
+  modal.classList.add('open');
+  modal.removeAttribute('aria-hidden');
+  document.body.style.overflow = 'hidden';
+  // Focus close btn
+  var closeBtn = modal.querySelector('.bm-close');
+  if (closeBtn) closeBtn.focus();
+}
+
+function closeBracketModal() {
+  var modal = document.getElementById('bracketModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.getElementById('bracketModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBracketModal();
+});
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeBracketModal();
+});
+
+function renderBracketHTML(t, surfaceColor) {
+  var QF_H = 96;   // px per QF match (2 players + score + gaps)
+  var MATCH_GAP = 8;
+  var rounds = [
+    { key: 'qf', label: 'Quarterfinals', matches: t.qf },
+    { key: 'sf', label: 'Semifinals',    matches: t.sf },
+    { key: 'f',  label: 'Final',         matches: t.f  }
+  ];
+
+  var totalH = t.qf.length * QF_H + (t.qf.length - 1) * MATCH_GAP;
+
+  function matchHTML(m, isWinnerKnown) {
+    var p1class = (isWinnerKnown && m.w === 1) ? ' winner' : '';
+    var p2class = (isWinnerKnown && m.w === 2) ? ' winner' : '';
+    var p1tbd = m.p1 === 'TBD' ? ' br-tbd' : '';
+    var p2tbd = m.p2 === 'TBD' ? ' br-tbd' : '';
+    return '<div class="br-match">' +
+      '<div class="br-player' + p1class + p1tbd + '" style="--surface-color:' + surfaceColor + '">' +
+        '<span class="br-seed">' + (m.s1 || '') + '</span>' + escH(m.p1) +
+      '</div>' +
+      '<div class="br-player' + p2class + p2tbd + '" style="--surface-color:' + surfaceColor + '">' +
+        '<span class="br-seed">' + (m.s2 || '') + '</span>' + escH(m.p2) +
+      '</div>' +
+      (m.score ? '<div class="br-score">' + escH(m.score) + '</div>' : '') +
+    '</div>';
+  }
+
+  // Build each round column
+  var html = '<div class="bracket-grid">';
+
+  rounds.forEach(function(round, ri) {
+    var nMatches = round.matches.length;
+    var slotH = totalH / nMatches;  // height per match slot in this round
+
+    // Each match is centered in its slot
+    var colHtml = '<div class="br-col" style="width:185px;">';
+    colHtml += '<div class="br-col-label">' + round.label + '</div>';
+    colHtml += '<div class="br-matches" style="position:relative;height:' + totalH + 'px;">';
+
+    round.matches.forEach(function(m, mi) {
+      var topOffset = mi * slotH + (slotH - QF_H) / 2;
+      var isWinnerKnown = t.status === 'completed' || (m.w > 0);
+      colHtml += '<div style="position:absolute;top:' + Math.round(topOffset) + 'px;left:0;right:0;">' +
+        matchHTML(m, isWinnerKnown) +
+      '</div>';
+    });
+
+    colHtml += '</div></div>';  // end br-matches, br-col
+    html += colHtml;
+
+    // Add connector between rounds
+    if (ri < rounds.length - 1) {
+      var nextN = rounds[ri + 1].matches.length;
+      var connHtml = '<div class="br-connector" style="width:24px;height:' + (totalH + 14) + 'px;margin-top:14px;position:relative;">';
+
+      // Draw connector lines for each pair feeding into next round
+      var groupsPerNext = nMatches / nextN;
+      for (var gi = 0; gi < nextN; gi++) {
+        var topGroup = gi * groupsPerNext * slotH + (slotH - QF_H) / 2 + QF_H / 2;
+        var botGroup = (gi * groupsPerNext + groupsPerNext - 1) * slotH + (slotH - QF_H) / 2 + QF_H / 2;
+        var midY = (topGroup + botGroup) / 2;
+        var nextSlotH = totalH / nextN;
+        var nextMatchMidY = gi * nextSlotH + (nextSlotH - QF_H) / 2 + QF_H / 2;
+
+        connHtml += '<svg style="position:absolute;left:0;top:0;width:24px;height:' + (totalH + 14) + 'px;" viewBox="0 0 24 ' + (totalH + 14) + '" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+          '<path d="M0 ' + topGroup + ' H12 V' + botGroup + ' H0" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/>' +
+          '<line x1="12" y1="' + midY + '" x2="24" y2="' + midY + '" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>' +
+        '</svg>';
+      }
+      connHtml += '</div>';
+      html += connHtml;
+    }
+  });
+
+  html += '</div>';  // end bracket-grid
+
+  // Champion banner
+  if (t.champion) {
+    html += '<div class="bm-champion">' +
+      '<div class="bm-champ-trophy">🏆</div>' +
+      '<div><div class="bm-champ-label">Champion</div><div class="bm-champ-name">' + escH(t.champion) + '</div></div>' +
+    '</div>';
+  } else if (t.status === 'upcoming') {
+    html += '<div style="margin-top:16px;padding:14px 18px;background:rgba(255,216,77,0.06);border:1px solid rgba(255,216,77,0.2);border-radius:10px;font-size:13px;color:rgba(255,255,255,0.55);">' +
+      '<strong style="color:#ffd84d;">Upcoming tournament</strong> — seedings shown are projected based on current rankings. Draw will be updated when officially announced.' +
+    '</div>';
+  }
+
+  return html;
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Wire up click handlers ─────────────────────────────────
+document.querySelectorAll('.tournament-card[data-tid]').forEach(function(card) {
+  card.addEventListener('click', function() {
+    openBracketModal(this.getAttribute('data-tid'));
+  });
+  card.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openBracketModal(this.getAttribute('data-tid'));
+    }
+  });
+});
+
+// Wire result cards → find closest matching tournament
+document.querySelectorAll('.result-card').forEach(function(card) {
+  card.addEventListener('click', function() {
+    var text = (this.textContent || '').toLowerCase();
+    var tid = null;
+    Object.keys(RESULT_TID_MAP).forEach(function(key) {
+      if (!tid && text.indexOf(key) !== -1) tid = RESULT_TID_MAP[key];
+    });
+    if (tid && TOURNAMENT_DATA[tid]) {
+      openBracketModal(tid);
+    }
+  });
+});
 </script>
 <script src="./pwa.js"></script>
 <script src="./i18n.js"></script>
