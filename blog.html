@@ -498,6 +498,181 @@ a { color: inherit; text-decoration: none; }
   .footer-grid { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
 }
+
+/* ─── AUTH GATE ──────────────────────────────────────────── */
+#blog-main { display: none; }
+#blog-gate { display: none; }
+
+.gate-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 24px 80px;
+  background:
+    radial-gradient(circle at 60% 20%, rgba(57,255,20,0.07), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(255,216,77,0.05), transparent 35%);
+}
+.gate-card {
+  width: 100%;
+  max-width: 720px;
+  background: rgba(18,22,28,0.95);
+  border: 1px solid rgba(57,255,20,0.2);
+  border-radius: 28px;
+  padding: 52px 48px;
+  box-shadow: 0 0 80px rgba(57,255,20,0.06), 0 40px 100px rgba(0,0,0,0.5);
+  text-align: center;
+}
+.gate-lock {
+  width: 56px; height: 56px;
+  background: rgba(57,255,20,0.1);
+  border: 1px solid rgba(57,255,20,0.25);
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.gate-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(57,255,20,0.1);
+  border: 1px solid rgba(57,255,20,0.3);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #39ff14;
+  margin-bottom: 24px;
+}
+.gate-card h2 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  color: #f5f7fa;
+}
+.gate-card h2 span { color: #39ff14; }
+.gate-sub {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.7;
+  max-width: 480px;
+  margin: 0 auto 32px;
+}
+.gate-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  margin: 0 auto 36px;
+  max-width: 500px;
+  text-align: left;
+}
+.gate-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.4;
+}
+.gate-feat-icon {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  background: rgba(57,255,20,0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.gate-preview {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 36px;
+  overflow: hidden;
+  border-radius: 14px;
+  height: 80px;
+  position: relative;
+}
+.gate-preview-card {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+  filter: blur(2.5px);
+  opacity: 0.45;
+}
+.gate-preview-card .gp-tag {
+  width: 40px; height: 6px;
+  background: #39ff14;
+  border-radius: 3px;
+  margin-bottom: 6px;
+}
+.gate-preview-card .gp-line {
+  height: 5px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+  margin-bottom: 4px;
+}
+.gate-preview-card .gp-line.short { width: 60%; }
+.gate-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(12,16,20,0.9));
+  pointer-events: none;
+  border-radius: 14px;
+}
+.gate-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 36px;
+  background: #39ff14;
+  color: #0a0a0a;
+  font-weight: 800;
+  font-size: 1rem;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: background 180ms, transform 180ms, box-shadow 180ms;
+  margin-bottom: 14px;
+}
+.gate-cta-primary:hover {
+  background: #2bcc0f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(57,255,20,0.3);
+}
+.gate-cta-price {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.7;
+  display: block;
+  margin-top: 2px;
+}
+.gate-cta-secondary {
+  display: block;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 6px;
+}
+.gate-cta-secondary a {
+  color: rgba(255,255,255,0.75);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 180ms;
+}
+.gate-cta-secondary a:hover { color: #39ff14; }
+@media(max-width:600px) {
+  .gate-card { padding: 36px 24px; }
+  .gate-features { grid-template-columns: 1fr; }
+  .gate-preview { display: none; }
+}
   </style>
 
   <script type="application/ld+json">
@@ -543,7 +718,7 @@ a { color: inherit; text-decoration: none; }
   </div>
 </nav>
 
-<main id="main-content">
+<main id="blog-main">
 
   <!-- ═══ A. HERO ══════════════════════════════════════════ -->
   <section class="blog-hero">
@@ -1262,6 +1437,109 @@ a { color: inherit; text-decoration: none; }
 
 </main>
 
+<!-- ═══ AUTH GATE — shown to non-Performance users ══════════ -->
+<div id="blog-gate" role="main" aria-label="Upgrade required">
+  <div class="gate-wrap">
+    <div class="gate-card">
+
+      <div class="gate-lock" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="5" y="11" width="14" height="10" rx="3" fill="none" stroke="#39ff14" stroke-width="1.8"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#39ff14" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="1.5" fill="#39ff14"/>
+        </svg>
+      </div>
+
+      <div class="gate-plan-badge">
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#39ff14"/></svg>
+        Performance Plan Exclusive
+      </div>
+
+      <h2>Tennis <span>Intelligence Hub</span><br>is a premium benefit.</h2>
+      <p class="gate-sub">Live tournament results, SMART-goal training protocols, pro biomechanics breakdowns, and science-backed deep dives — exclusively for Performance plan members.</p>
+
+      <!-- Blurred preview of what's inside -->
+      <div class="gate-preview" aria-hidden="true">
+        <div class="gate-preview-card">
+          <div class="gp-tag"></div>
+          <div class="gp-line"></div>
+          <div class="gp-line short"></div>
+        </div>
+        <div class="gate-preview-card">
+          <div class="gp-tag" style="background:#ffd84d"></div>
+          <div class="gp-line"></div>
+          <div class="gp-line short"></div>
+        </div>
+        <div class="gate-preview-card">
+          <div class="gp-tag" style="background:#60a5fa"></div>
+          <div class="gp-line"></div>
+          <div class="gp-line short"></div>
+        </div>
+        <div class="gate-preview-card">
+          <div class="gp-tag" style="background:#a78bfa"></div>
+          <div class="gp-line"></div>
+          <div class="gp-line short"></div>
+        </div>
+      </div>
+
+      <!-- Feature checklist -->
+      <ul class="gate-features" role="list">
+        <li class="gate-feat">
+          <span class="gate-feat-icon" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          Live tournament results &amp; calendar
+        </li>
+        <li class="gate-feat">
+          <span class="gate-feat-icon" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          8 full SMART-goal training protocols
+        </li>
+        <li class="gate-feat">
+          <span class="gate-feat-icon" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          Pro biomechanics breakdowns
+        </li>
+        <li class="gate-feat">
+          <span class="gate-feat-icon" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          Topspin science &amp; physics deep-dives
+        </li>
+        <li class="gate-feat">
+          <span class="gate-feat-icon" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          Djokovic &amp; Alcaraz technique analysis
+        </li>
+        <li class="gate-feat">
+          <span class="gate-feat-icon" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#39ff14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </span>
+          Weekly new articles every Monday
+        </li>
+      </ul>
+
+      <a href="./checkout.html?plan=pro&interval=monthly" class="gate-cta-primary">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="8" stroke="#0a0a0a" stroke-width="1.5"/>
+          <path d="M6 9h6M9 6v6" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        Upgrade to Performance
+        <span class="gate-cta-price">$19.99/mo · cancel anytime</span>
+      </a>
+
+      <p class="gate-cta-secondary">
+        Already a Performance member?
+        <a href="./login.html?return=blog.html">Sign in to access →</a>
+      </p>
+
+    </div>
+  </div>
+</div>
+
 <!-- ═══ FOOTER ════════════════════════════════════════════════ -->
 <footer class="footer" role="contentinfo" aria-label="Site footer">
   <div class="page">
@@ -1439,6 +1717,47 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 <!-- sr-only utility (inline since no shared CSS reset guaranteed) -->
 <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}</style>
 
+<script src="./public-app-config.js"></script>
+<script src="/api/runtime-config.js"></script>
+<script src="./app-data.js"></script>
+<script>
+// ── Blog access gate ──────────────────────────────────────────────────────
+// Runs synchronously after app-data.js loads (localStorage-backed, no flicker).
+// Access: planId === 'pro' (Performance) or 'elite' (Tournament Pro) or 'coach'.
+(function blogAccessGate() {
+  var ALLOWED_PLANS = ['pro', 'elite', 'coach'];
+  var store = window.SmartSwingStore;
+
+  function allow() {
+    var el = document.getElementById('blog-main');
+    if (el) el.style.display = '';
+  }
+  function deny() {
+    var gate = document.getElementById('blog-gate');
+    if (gate) gate.style.display = '';
+    // Update nav CTA buttons to reflect state
+    var signInBtn = document.querySelector('.nav-cta .btn-ghost[href*="login"]');
+    if (signInBtn) signInBtn.textContent = 'Sign In to Access';
+  }
+
+  if (!store) { allow(); return; }            // store not available → fail open (demo mode)
+
+  var user = store.getCurrentUser ? store.getCurrentUser() : null;
+
+  if (!user) {
+    // Not logged in: save return destination then show gate
+    deny();
+    return;
+  }
+
+  var planId = String(user.planId || user.plan || 'free').toLowerCase();
+  if (ALLOWED_PLANS.indexOf(planId) !== -1) {
+    allow();
+  } else {
+    deny();
+  }
+})();
+</script>
 <script src="./pwa.js"></script>
 <script src="./i18n.js"></script>
 <script src="./mobile-nav.js"></script>
