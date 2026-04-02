@@ -147,6 +147,63 @@
 .focus-bar-track{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;}
 .focus-bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--orange));transition:width .6s ease;}
 @media(max-width:720px){.insight-grid{grid-template-columns:1fr;}.stats-mini-row{grid-template-columns:1fr 1fr;}}
+/* ── Perf Visual Panel ── */
+.perf-visual{min-height:340px;border-radius:22px;border:1px solid rgba(57,255,20,.15);background:linear-gradient(135deg,rgba(10,14,12,.98),rgba(8,18,12,.98));display:flex;flex-direction:column;padding:20px;position:relative;overflow:hidden;}
+.perf-visual::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(57,255,20,.07),transparent 60%);pointer-events:none;}
+.pv-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.pv-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.12);color:var(--green);border:1px solid rgba(57,255,20,.25);}
+.pv-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulseDot 2s ease-in-out infinite;}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+.pv-chart-wrap{flex:1;display:flex;align-items:center;justify-content:center;}
+.pv-footer{margin-top:12px;}
+.pv-metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.pv-metric{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 12px;text-align:center;}
+.pv-metric-val{font-family:"Sora",sans-serif;font-size:18px;font-weight:800;color:var(--orange);line-height:1;}
+.pv-metric-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.3);margin-top:3px;}
+/* ── Recent Reports ── */
+.report-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;cursor:default;transition:border-color .18s,background .18s;}
+.report-card:hover{border-color:rgba(57,255,20,.2);background:rgba(57,255,20,.03);}
+.report-score-badge{width:44px;height:44px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.report-score-val{font-family:"Sora",sans-serif;font-size:16px;font-weight:800;line-height:1;}
+.report-score-pct{font-size:9px;font-weight:700;opacity:.7;}
+.report-info{flex:1;min-width:0;}
+.report-title{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.report-meta{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.report-delta{font-size:12px;font-weight:800;white-space:nowrap;}
+/* ── Enhanced Action Plan ── */
+.plan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.plan-week-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em;}
+.plan-progress-ring{width:48px;height:48px;flex-shrink:0;}
+.action-item-v2{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;cursor:pointer;transition:border-color .18s,background .18s;margin-bottom:8px;}
+.action-item-v2:last-child{margin-bottom:0;}
+.action-item-v2:hover{border-color:rgba(57,255,20,.22);background:rgba(57,255,20,.04);}
+.action-item-v2.done{opacity:.5;}
+.action-item-v2.done .ai2-title{text-decoration:line-through;}
+.action-cb2{width:24px;height:24px;border-radius:7px;border:2px solid rgba(255,255,255,.18);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s;margin-top:1px;}
+.action-item-v2.done .action-cb2{border-color:var(--green);background:var(--green);}
+.action-cb2 svg{display:none;}
+.action-item-v2.done .action-cb2 svg{display:block;}
+.ai2-priority{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:2px 8px;border-radius:999px;display:inline-block;margin-bottom:5px;}
+.ai2-priority.high{background:rgba(255,82,82,.12);color:#ff7070;}
+.ai2-priority.medium{background:rgba(255,216,77,.12);color:var(--orange);}
+.ai2-priority.low{background:rgba(57,255,20,.1);color:var(--green);}
+.ai2-priority.goal{background:rgba(129,140,248,.12);color:#818cf8;}
+.ai2-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.4;}
+.ai2-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;}
+.ai2-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;align-items:center;}
+.ai2-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(57,255,20,.08);color:var(--green);border:1px solid rgba(57,255,20,.15);}
+.ai2-time{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);display:flex;align-items:center;gap:3px;}
+/* ── Insight Cards Enhanced ── */
+.insight-card-v2{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px;position:relative;overflow:hidden;transition:border-color .18s;}
+.insight-card-v2::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.06;pointer-events:none;}
+.insight-card-v2.green::before{background:var(--green);}
+.insight-card-v2.orange::before{background:var(--orange);}
+.insight-card-v2.teal::before{background:#00d4aa;}
+.insight-card-v2:hover{border-color:rgba(255,255,255,.14);}
+.insight-val{font-family:"Sora",sans-serif;font-size:28px;font-weight:800;line-height:1;margin:8px 0 4px;}
+.insight-val.green{color:var(--green);}
+.insight-val.orange{color:var(--orange);}
+.insight-val.teal{color:#00d4aa;}
     </style>
 </head>
 <body>
@@ -192,11 +249,27 @@
           <div class="stats-mini"><div class="sm-label">Trend</div><div class="sm-value" id="smTrend">—</div><div class="sm-delta" id="smDelta"></div></div>
         </div>
       </article>
-      <article class="hero-art" id="heroArt">
-        <div class="card" style="border-color:rgba(57,255,20,0.2);background:rgba(57,255,20,0.05);">
-          <div class="mini" style="color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Next Session Focus</div>
-          <h3 id="heroTitle" style="font-size:17px;margin-bottom:8px;">Use the same camera angle.</h3>
-          <p class="muted" id="heroCopy" style="font-size:13px;line-height:1.6;">Consistent setup keeps your score changes trustworthy and gives your coach a clean comparison.</p>
+      <article class="perf-visual" id="perfVisual">
+        <div class="pv-top">
+          <div>
+            <div class="eyebrow" style="color:var(--orange);font-size:10px;margin-bottom:2px;">Performance Radar</div>
+            <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--text);">Shot Mechanics Overview</div>
+          </div>
+          <div class="pv-badge"><span class="pv-badge-dot"></span><span id="pvStatus">AI Analysis</span></div>
+        </div>
+        <div class="pv-chart-wrap" id="pvChartWrap">
+          <!-- Radar SVG rendered by JS -->
+        </div>
+        <div class="pv-footer">
+          <div style="padding:12px 14px;background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.12);border-radius:12px;margin-bottom:10px;" id="pvFocusTip">
+            <div class="mini" style="color:var(--green);margin-bottom:4px;display:flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Next Session Focus</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text);" id="pvFocusTitle">Run your first analysis to get a personalised focus tip.</div>
+          </div>
+          <div class="pv-metric-row" id="pvMetricRow">
+            <div class="pv-metric"><div class="pv-metric-val" id="pvM1">—</div><div class="pv-metric-lbl">Timing</div></div>
+            <div class="pv-metric"><div class="pv-metric-val" id="pvM2">—</div><div class="pv-metric-lbl">Footwork</div></div>
+            <div class="pv-metric"><div class="pv-metric-val" id="pvM3">—</div><div class="pv-metric-lbl">Positioning</div></div>
+          </div>
         </div>
       </article>
     </section>
@@ -214,11 +287,22 @@
       <!-- Row 1: Action Plan + Focus Areas -->
       <div class="grid">
         <article class="panel">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <h2 style="margin:0;">Weekly Action Plan</h2>
-            <span class="pill" id="actionProgress">0/0 done</span>
+          <div class="plan-header">
+            <div>
+              <h2 style="margin:0 0 2px;">Weekly Action Plan</h2>
+              <div class="plan-week-label" id="planWeekLabel">This Week</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="pill" id="actionProgress">0/0 done</span>
+              <svg class="plan-progress-ring" id="planRingSvg" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+                <circle cx="24" cy="24" r="19" fill="none" stroke="var(--green)" stroke-width="4"
+                  stroke-linecap="round" stroke-dasharray="119" stroke-dashoffset="119" id="planArc"
+                  transform="rotate(-90 24 24)"/>
+              </svg>
+            </div>
           </div>
-          <div class="list" id="weeklyPlan" style="gap:10px;display:flex;flex-direction:column;"></div>
+          <div id="weeklyPlan"></div>
         </article>
         <article class="panel">
           <h2>Focus Areas</h2>
@@ -238,10 +322,36 @@
           <div class="pill" id="trendPill">No trend yet</div>
         </div>
         <p class="muted" style="font-size:13px;margin-bottom:16px;">AI-generated insights compiled from all your reports.</p>
-        <div class="insight-grid" id="insightGrid">
-          <div class="insight-card"><div class="insight-icon" style="background:rgba(57,255,20,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="insight-title">Score Trend</div><div class="insight-body" id="insightTrend">Complete analyses to see your score trajectory.</div></div>
-          <div class="insight-card"><div class="insight-icon" style="background:rgba(255,216,77,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21.02 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="insight-title">Strongest Shot</div><div class="insight-body" id="insightStrong">Run more analyses to identify your best shot type.</div></div>
-          <div class="insight-card"><div class="insight-icon" style="background:rgba(0,212,170,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="insight-title">Consistency</div><div class="insight-body" id="insightConsistency">Your session consistency index will appear here after 3+ analyses.</div></div>
+        <div class="insight-grid">
+          <div class="insight-card-v2 green">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span class="insight-title" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.4);">Score Trend</span>
+            </div>
+            <div class="insight-val green" id="insightTrendVal">—</div>
+            <div class="insight-body" id="insightTrend" style="font-size:12px;">Complete analyses to see your score trajectory.</div>
+          </div>
+          <div class="insight-card-v2 orange">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffd84d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21.02 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span class="insight-title" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.4);">Best Shot</span>
+            </div>
+            <div class="insight-val orange" id="insightStrongVal">—</div>
+            <div class="insight-body" id="insightStrong" style="font-size:12px;">Run more analyses to identify your best shot type.</div>
+          </div>
+          <div class="insight-card-v2 teal">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              <span class="insight-title" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.4);">Consistency</span>
+            </div>
+            <div class="insight-val teal" id="insightConsVal">—</div>
+            <div class="insight-body" id="insightConsistency" style="font-size:12px;">Your session consistency index will appear here after 3+ analyses.</div>
+          </div>
+        </div>
+        <!-- Recent Reports Strip -->
+        <div style="margin-top:18px;">
+          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin-bottom:10px;">Recent Reports</div>
+          <div id="recentReportsList"></div>
         </div>
       </article>
 
@@ -576,30 +686,64 @@
       return items;
     }
 
+    // ── Plan week label ────────────────────────────────────────────────────
+    (function setPlanWeekLabel() {
+      const el = document.getElementById('planWeekLabel');
+      if (!el) return;
+      const today = new Date();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+      const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+      const opts = {month:'short',day:'numeric'};
+      el.textContent = `Week of ${monday.toLocaleDateString('en-US',opts)} – ${sunday.toLocaleDateString('en-US',opts)}`;
+    })();
+
     function renderPlan() {
       const planEl = document.getElementById('weeklyPlan');
       const progressEl = document.getElementById('actionProgress');
+      const planArc = document.getElementById('planArc');
       const items = buildPlanItems();
       const doneCount = items.filter(i => planDone[i.id]).length;
       if (progressEl) progressEl.textContent = `${doneCount}/${items.length} done`;
 
+      // Animate progress ring
+      if (planArc && items.length > 0) {
+        const pct = doneCount / items.length;
+        const circ = 119;
+        const offset = circ - pct * circ;
+        setTimeout(() => { planArc.style.transition = 'stroke-dashoffset .5s ease'; planArc.setAttribute('stroke-dashoffset', offset); }, 100);
+      }
+
+      const PRIORITY_MAP = {
+        'HIGH IMPACT': {cls:'high', time:'15 min'},
+        'DRILL BLOCK': {cls:'medium', time:'20 min'},
+        'MATCH PATTERN': {cls:'medium', time:'30 min'},
+        'CONSISTENCY': {cls:'low', time:'10 min'},
+        'GET STARTED': {cls:'goal', time:'5 min'},
+        'WEEKLY GOAL': {cls:'goal', time:'Throughout week'}
+      };
+
       planEl.innerHTML = items.map((item) => {
         const isDone = !!planDone[item.id];
-        const scoreHTML = item.score != null ? `<span class="pill" style="margin-left:auto;flex-shrink:0;">${item.score}%</span>` : '';
-        return `<div class="action-item${isDone ? ' done' : ''}" data-id="${item.id}" onclick="togglePlanItem('${item.id}')">
-          <div class="action-checkbox">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        const pm = PRIORITY_MAP[item.priority] || {cls:'low', time:'15 min'};
+        const scoreHTML = item.score != null ? `<span style="font-size:11px;font-weight:800;color:${item.score >= 80?'#39ff14':item.score>=60?'#ffd84d':'#ff7070'};background:${item.score>=80?'rgba(57,255,20,.1)':item.score>=60?'rgba(255,216,77,.1)':'rgba(255,112,112,.1)'};padding:2px 8px;border-radius:999px;">${item.score}%</span>` : '';
+        return `<div class="action-item-v2${isDone ? ' done' : ''}" data-id="${item.id}" onclick="togglePlanItem('${item.id}')">
+          <div class="action-cb2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
           <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;">
-              <div class="mini" style="color:var(--orange);">${item.priority}</div>${scoreHTML}
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px;">
+              <span class="ai2-priority ${pm.cls}">${item.priority}</span>${scoreHTML}
             </div>
-            <div class="ai-title">${item.title}</div>
-            <div class="ai-desc">${item.desc}</div>
-            <div class="ai-tags">${item.tags.map(t => `<span class="ai-tag">${t}</span>`).join('')}</div>
+            <div class="ai2-title">${item.title}</div>
+            <div class="ai2-desc">${item.desc}</div>
+            <div class="ai2-meta">
+              ${item.tags.map(t => `<span class="ai2-tag">${t}</span>`).join('')}
+              <span class="ai2-time"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${pm.time}</span>
+            </div>
           </div>
         </div>`;
-      }).join('') || '<p class="muted" style="font-size:13px;padding:12px;">Run your first analysis to unlock your action plan.</p>';
+      }).join('') || '<p class="muted" style="font-size:13px;padding:12px;">Run your first analysis to unlock your personalised action plan.</p>';
     }
     renderPlan();
 
@@ -610,20 +754,126 @@
       renderPlan();
     };
 
-    // ── Performance Insights ──────────────────────────────────────────────
+    // ── Performance Radar SVG ───────────────────────────────────────────────
+    (function renderPerfRadar() {
+      const wrap = document.getElementById('pvChartWrap');
+      if (!wrap) return;
+
+      const kpis = latest?.performanceKpis || {};
+      const metricComps = latest?.metricComparisons || [];
+
+      // Build 6-axis radar data from available metrics
+      const axes = [
+        { label: 'Timing',      value: Math.round(kpis.timingConsistency || metricComps.find(m=>m.metric==='timing_consistency')?.score || 0) },
+        { label: 'Footwork',    value: Math.round(kpis.footworkScore     || metricComps.find(m=>m.metric==='footwork')?.score           || 0) },
+        { label: 'Position',    value: Math.round(kpis.positioningScore  || metricComps.find(m=>m.metric==='positioning')?.score        || 0) },
+        { label: 'Power',       value: Math.round(metricComps.find(m=>m.metric==='power'||m.metric==='swing_speed')?.score              || (avgScore > 0 ? Math.round(avgScore * 0.95) : 0)) },
+        { label: 'Control',     value: Math.round(metricComps.find(m=>m.metric==='control'||m.metric==='accuracy')?.score              || (avgScore > 0 ? Math.round(avgScore * 0.9) : 0)) },
+        { label: 'Consistency', value: Math.round(metricComps.find(m=>m.metric==='consistency')?.score                               || (avgScore > 0 ? Math.round(avgScore * 0.85) : 0)) }
+      ];
+
+      const hasData = avgScore > 0;
+
+      // Update KPI footer metrics
+      const pvM1 = document.getElementById('pvM1');
+      const pvM2 = document.getElementById('pvM2');
+      const pvM3 = document.getElementById('pvM3');
+      if (pvM1) pvM1.textContent = axes[0].value > 0 ? axes[0].value + '%' : '—';
+      if (pvM2) pvM2.textContent = axes[1].value > 0 ? axes[1].value + '%' : '—';
+      if (pvM3) pvM3.textContent = axes[2].value > 0 ? axes[2].value + '%' : '—';
+
+      // Update focus tip
+      const pvFocusTitle = document.getElementById('pvFocusTitle');
+      if (pvFocusTitle) {
+        if (latest?.coachSummary?.nextCoachFocus) {
+          pvFocusTitle.textContent = latest.coachSummary.nextCoachFocus;
+        } else if (topFocusAreas[0]) {
+          const fa = topFocusAreas[0];
+          pvFocusTitle.textContent = `Focus on ${(fa.metric||'technique').replace(/_/g,' ')} — your lowest metric at ${Math.round(fa.score||0)}%.`;
+        } else if (!hasData) {
+          pvFocusTitle.textContent = 'Run your first analysis to get a personalised focus tip.';
+        }
+      }
+
+      // Update PV status badge
+      const pvStatus = document.getElementById('pvStatus');
+      if (pvStatus) pvStatus.textContent = hasData ? `${sessionCount} Session${sessionCount !== 1 ? 's' : ''} Analysed` : 'AI Analysis Ready';
+
+      // Draw radar SVG
+      const S = 200, cx = S/2, cy = S/2, R = 78, n = axes.length;
+      function polarPt(idx, val) {
+        const angle = (Math.PI * 2 * idx / n) - Math.PI / 2;
+        const r = (val / 100) * R;
+        return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+      }
+      function labelPt(idx) {
+        const angle = (Math.PI * 2 * idx / n) - Math.PI / 2;
+        const lr = R + 22;
+        return [cx + lr * Math.cos(angle), cy + lr * Math.sin(angle)];
+      }
+
+      // Grid rings
+      const rings = [25, 50, 75, 100].map(v => {
+        const pts = axes.map((_, i) => polarPt(i, v));
+        return `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1"/>`;
+      }).join('');
+
+      // Axis spokes
+      const spokes = axes.map((_, i) => {
+        const [x, y] = polarPt(i, 100);
+        return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`;
+      }).join('');
+
+      // Data polygon (with animation placeholder)
+      const dataPts = axes.map((a, i) => polarPt(i, hasData ? a.value : 0));
+      const dataPath = dataPts.map((p, i) => (i===0?'M':'L') + p.join(',')).join(' ') + 'Z';
+
+      // Axis labels
+      const labels = axes.map((a, i) => {
+        const [lx, ly] = labelPt(i);
+        const anchor = lx < cx - 5 ? 'end' : lx > cx + 5 ? 'start' : 'middle';
+        const color = hasData ? (a.value >= 80 ? '#39ff14' : a.value >= 60 ? '#ffd84d' : '#ff7070') : 'rgba(255,255,255,.3)';
+        return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-size="9" font-weight="800" fill="${color}" font-family="Plus Jakarta Sans,sans-serif">${a.label}${hasData ? '\n'+a.value+'%' : ''}</text>
+                ${hasData ? `<text x="${lx}" y="${parseFloat(ly)+10}" text-anchor="${anchor}" dominant-baseline="middle" font-size="8" font-weight="700" fill="${color}" opacity=".7" font-family="Plus Jakarta Sans,sans-serif">${a.value}%</text>` : ''}`;
+      }).join('');
+
+      // Dots on data polygon
+      const dots = hasData ? dataPts.map((p, i) => {
+        const color = axes[i].value >= 80 ? '#39ff14' : axes[i].value >= 60 ? '#ffd84d' : '#ff7070';
+        return `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}" stroke="#0a0a0a" stroke-width="1.5"/>`;
+      }).join('') : '';
+
+      wrap.innerHTML = `<svg viewBox="0 0 ${S} ${S}" width="200" height="200" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+        <defs>
+          <linearGradient id="radarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#39ff14" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#ffd84d" stop-opacity="0.1"/>
+          </linearGradient>
+        </defs>
+        ${rings}${spokes}
+        <path d="${dataPath}" fill="url(#radarGrad)" stroke="${hasData ? '#39ff14' : 'rgba(57,255,20,.2)'}" stroke-width="${hasData ? 2 : 1.5}" stroke-linejoin="round"/>
+        ${dots}${labels}
+      </svg>`;
+    })();
+
+    // ── Performance Insights (Enhanced) ────────────────────────────────────
     const insightTrendEl = document.getElementById('insightTrend');
     const insightStrongEl = document.getElementById('insightStrong');
     const insightConsEl = document.getElementById('insightConsistency');
+    const insightTrendVal = document.getElementById('insightTrendVal');
+    const insightStrongVal = document.getElementById('insightStrongVal');
+    const insightConsVal = document.getElementById('insightConsVal');
 
     if (assessments.length >= 2) {
       const oldest = assessments[assessments.length - 1]?.overallScore || 0;
       const newest = assessments[0]?.overallScore || 0;
       const diff = newest - oldest;
+      if (insightTrendVal) insightTrendVal.textContent = (diff >= 0 ? '+' : '') + diff + 'pts';
       if (insightTrendEl) insightTrendEl.textContent = diff >= 0
-        ? `Up ${diff}pts across ${assessments.length} sessions. Keep the consistency — your trajectory is positive.`
-        : `Down ${Math.abs(diff)}pts from your baseline. Focus on the action plan items to reverse the trend.`;
+        ? `Up ${diff} pts across ${assessments.length} sessions — your trajectory is positive.`
+        : `Down ${Math.abs(diff)} pts from baseline. Focus on the action plan to reverse the trend.`;
 
-      // Strongest shot type
+      // Strongest shot
       const byShot = {};
       assessments.forEach(a => {
         const s = (a.shotType || 'forehand').toLowerCase();
@@ -633,7 +883,10 @@
       const avgByShot = Object.entries(byShot).map(([s, arr]) => [s, arr.reduce((a,b)=>a+b,0)/arr.length]);
       avgByShot.sort((a,b) => b[1]-a[1]);
       const best = avgByShot[0];
-      if (best && insightStrongEl) insightStrongEl.textContent = `Your ${best[0]} is your highest-scoring shot at ${Math.round(best[1])}% avg. Build tactical patterns around this strength.`;
+      if (best) {
+        if (insightStrongVal) insightStrongVal.textContent = best[0].charAt(0).toUpperCase() + best[0].slice(1);
+        if (insightStrongEl) insightStrongEl.textContent = `Avg ${Math.round(best[1])}% — your strongest shot. Build tactical patterns around this.`;
+      }
 
       // Consistency
       const scores = assessments.map(a => a.overallScore || 0);
@@ -641,8 +894,46 @@
       const variance = scores.reduce((s,v)=>s+Math.pow(v-mean,2),0)/scores.length;
       const stdDev = Math.sqrt(variance);
       const consScore = Math.max(0, Math.round(100 - stdDev));
-      if (insightConsEl) insightConsEl.textContent = `Session consistency score: ${consScore}/100. ${consScore >= 80 ? 'Very consistent — your technique is stabilising.' : consScore >= 60 ? 'Moderate variance — work on repeatable technique under different conditions.' : 'High variance — focus on one shot type per session for cleaner data.'}`;
+      if (insightConsVal) insightConsVal.textContent = consScore + '/100';
+      if (insightConsEl) insightConsEl.textContent = consScore >= 80 ? 'Very consistent — your technique is stabilising.' : consScore >= 60 ? 'Moderate variance — work on consistent technique.' : 'High variance — focus on one shot type per session.';
+    } else if (assessments.length === 1) {
+      const s = assessments[0]?.overallScore || 0;
+      if (insightTrendVal) insightTrendVal.textContent = s + '%';
+      if (insightTrendEl) insightTrendEl.textContent = 'First session recorded. Run a second analysis to see your trend.';
     }
+
+    // ── Recent Reports Strip ───────────────────────────────────────────────
+    (function renderRecentReports() {
+      const el = document.getElementById('recentReportsList');
+      if (!el) return;
+      const recent = assessments.slice(0, 4);
+      if (!recent.length) {
+        el.innerHTML = '<div class="report-card"><div class="report-info"><div class="report-title" style="color:rgba(255,255,255,.35);">No reports yet — run your first analysis</div></div></div>';
+        return;
+      }
+      const SHOT_COLORS = {forehand:'#39ff14',backhand:'#ffd84d',serve:'#00d4aa',volley:'#818cf8',slice:'#fb923c'};
+      function sc(s){ return SHOT_COLORS[String(s||'').toLowerCase()]||'#9aa5b4'; }
+      el.innerHTML = recent.map((r, i) => {
+        const score = r.overallScore || 0;
+        const prev = recent[i+1]?.overallScore || 0;
+        const delta = i < recent.length - 1 ? score - prev : null;
+        const color = score >= 80 ? '#39ff14' : score >= 60 ? '#ffd84d' : '#ff7070';
+        const shotName = (r.shotType || 'Forehand').charAt(0).toUpperCase() + (r.shotType || 'forehand').slice(1);
+        const dateStr = r.analyzedAt || r.createdAt ? new Date(r.analyzedAt || r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : `Session ${assessments.length - i}`;
+        const deltaHTML = delta !== null ? `<span class="report-delta ${delta >= 0 ? 'delta-up' : 'delta-down'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta)}pts</span>` : '<span class="report-delta delta-flat">Baseline</span>';
+        return `<div class="report-card">
+          <div class="report-score-badge" style="background:${color}18;border:1px solid ${color}33;">
+            <div class="report-score-val" style="color:${color};">${score}</div>
+            <div class="report-score-pct" style="color:${color};">%</div>
+          </div>
+          <div class="report-info">
+            <div class="report-title">${shotName} · ${dateStr}</div>
+            <div class="report-meta">${r.grade || (score >= 80 ? 'Elite' : score >= 70 ? 'Advanced' : score >= 60 ? 'Developing' : 'Building')} · ${r.id ? r.id.slice(-6).toUpperCase() : 'RPT-'+i}</div>
+          </div>
+          ${deltaHTML}
+        </div>`;
+      }).join('');
+    })();
 
     // ── Trend Pill ──────────────────────────────────────────────────────────
     const trendPillEl = document.getElementById('trendPill');
@@ -840,27 +1131,7 @@
 
     document.getElementById('activityList').innerHTML = progressEvents.map((item) => `<div class="card"><div class="row"><div><h3>${item.title}</h3><p class="muted">${item.detail}</p></div><div class="mini">${new Date(item.createdAt).toLocaleDateString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">Saved reports, goals, and drill completions will show here.</p></div>';
 
-    const coachIdEl = document.getElementById('coachId');
-    if (coachIdEl) coachIdEl.innerHTML = store.DEFAULT_COACHES.map((coach) => `<option value="${coach.id}">${coach.name} | ${coach.specialty}</option>`).join('');
-    const sessionListEl = document.getElementById('sessionList');
-    if (sessionListEl) sessionListEl.innerHTML = sessions.slice(0, 6).map((item) => `<div class="card"><div class="row"><div><h3>${item.coachName}</h3><p class="muted">${item.focus} | ${item.format}</p></div><div class="pill">${new Date(item.when).toLocaleString()}</div></div></div>`).join('') || '<div class="card"><p class="muted">No sessions booked yet.</p></div>';
-    const bookingForm = document.getElementById('bookingForm');
-    if (bookingForm) {
-      bookingForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const coach = store.DEFAULT_COACHES.find((entry) => entry.id === document.getElementById('coachId').value) || store.DEFAULT_COACHES[0];
-        try {
-          store.bookCoachSession({ coachId: coach.id, coachName: coach.name, specialty: coach.specialty, when: document.getElementById('when').value, focus: document.getElementById('focus').value || 'Technique review' });
-          window.location.reload();
-        } catch (error) {
-          alert(error.message || 'Unable to book session.');
-        }
-      });
-      if (!access.canBookCoach) {
-        bookingForm.insertAdjacentHTML('beforeend', '<div class="card"><p class="muted">Coach booking unlocks on Performance and Tournament plans.</p></div>');
-        document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm button').forEach((el) => { el.disabled = true; });
-      }
-    }
+    // Coach scheduling removed — will be re-added in a future release.
 
     document.getElementById('drillList').innerHTML = drills.slice(0, 3).map((item, i) => `<details class="detail-card" ${i === 0 ? 'open' : ''}><summary><div><div class="mini">Drill ${i + 1}</div><h3>${item.title}</h3></div><div class="pill">${item.expectedImprovement || 'Focused gain'}</div></summary><div class="detail-body">${item.prescription || item.focus || 'Targeted drill recommendation.'}</div></details>`).join('') || '<div class="card"><p class="muted">Recommended drills will show here after your next report.</p></div>';
     document.getElementById('tacticList').innerHTML = tactics.slice(0, 3).map((item, i) => `<details class="detail-card" ${i === 0 ? 'open' : ''}><summary><div><div class="mini">Tactic ${i + 1}</div><h3>${item.title}</h3></div><div class="pill">Match play</div></summary><div class="detail-body">${item.message || item.summary || 'Tactical recommendation.'}</div></details>`).join('') || '<div class="card"><p class="muted">Recommended tactics will show here after your next report.</p></div>';
