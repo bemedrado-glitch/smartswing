@@ -72,11 +72,12 @@ module.exports = async (req, res) => {
       billing_address_collection: 'auto',
       phone_number_collection: { enabled: true },
       // When a specific coupon code is supplied, apply it via discounts (incompatible with allow_promotion_codes).
-      // STRIPE_COUPON_SWINGAI holds the Stripe coupon ID (e.g. kkB83mnU) — 100% off, once.
-      ...(couponCode === 'SWINGAI' && (process.env.STRIPE_COUPON_SWINGAI || process.env.STRIPE_PROMO_CODE_SWINGAI)
-        ? process.env.STRIPE_COUPON_SWINGAI
-          ? { discounts: [{ coupon: process.env.STRIPE_COUPON_SWINGAI }] }
-          : { discounts: [{ promotion_code: process.env.STRIPE_PROMO_CODE_SWINGAI }] }
+      // Prefer STRIPE_PROMO_CODE_SWINGAI (promotion code ID e.g. promo_xxx) so Stripe shows "SWINGAI" as the
+      // applied code label on the hosted checkout page. Fall back to coupon ID if only that var is set.
+      ...(couponCode === 'SWINGAI' && (process.env.STRIPE_PROMO_CODE_SWINGAI || process.env.STRIPE_COUPON_SWINGAI)
+        ? process.env.STRIPE_PROMO_CODE_SWINGAI
+          ? { discounts: [{ promotion_code: process.env.STRIPE_PROMO_CODE_SWINGAI }] }
+          : { discounts: [{ coupon: process.env.STRIPE_COUPON_SWINGAI }] }
         : { allow_promotion_codes: true }),
       metadata: {
         appPlanId: planId,
