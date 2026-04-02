@@ -123,7 +123,7 @@
   <h1>SmartSwing <span>AI</span><br>Sales Plan &amp; 5-Year Projections</h1>
   <div class="meta-row">
     <span class="meta-pill">Prepared: March 2026</span>
-    <span class="meta-pill" style="border-color:rgba(57,255,20,.4);color:#39ff14;">Updated: April 1, 2026</span>
+    <span class="meta-pill" style="border-color:rgba(57,255,20,.4);color:#39ff14;">Updated: April 1, 2026 (rev 2)</span>
     <span class="meta-pill">Analyst: Claude Sonnet 4.6</span>
     <span class="meta-pill">Market: Tennis + Pickleball / Global</span>
     <span class="meta-pill">Benchmark: SwingVision, Coach's Eye</span>
@@ -352,8 +352,8 @@
 
     <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
       <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
-      <h4>Player Dashboard Visual Overhaul</h4>
-      <p>Dashboard fully rebuilt: editorial hero photo replacing generic avatar, animated SVG score ring with grade pill and 3 mini-stats, data-driven weekly action plan (built from reports: focus areas, drills, tactics, nextFocus) with localStorage 7-day persistence, 3 performance insight cards (trend, strongest shot, consistency), color-coded focus bars, progress timeline. Coaching scheduling tab removed — to be reintroduced as a full feature later. Fully aligned with report visual language.</p>
+      <h4>Player Dashboard Visual Overhaul v2</h4>
+      <p>Dashboard fully rebuilt again with richer data visualization: hero boy image replaced with a live <strong>6-axis SVG performance radar</strong> (Timing, Footwork, Position, Power, Control, Consistency) rendered from real report data with color-coded dots (green/amber/red by score). Animated <strong>progress ring</strong> added to the Weekly Action Plan with week date range label. Action plan items redesigned with colour-coded priority badges (HIGH IMPACT / DRILL BLOCK / MATCH PATTERN / WEEKLY GOAL), time estimates, and an animated ring arc. <strong>Enhanced insight cards</strong> show large metric values — score trend delta, strongest shot name, consistency index — replacing text-only placeholders. New <strong>Recent Reports strip</strong> shows the last 4 sessions with score badges and delta chips. Coach scheduling dead code fully removed. Blog nav link added to header; open to all during soft launch (no PRO badge). Fully aligned with report visual language.</p>
     </div>
 
     <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
@@ -370,8 +370,20 @@
 
     <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
       <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Fixed</span>
-      <h4>SWINGAI Promo Code — 1 Month Free</h4>
-      <p>Stripe coupon <code>kkB83mnU</code> created (100% off, once). <code>STRIPE_COUPON_SWINGAI</code> env var set in Vercel production. Checkout API updated to apply coupon via <code>discounts:[{coupon:}]</code> when user enters SWINGAI, with backward compatibility for the old promotion_code env var. Code now works end-to-end on both our checkout form and Stripe-hosted page.</p>
+      <h4>SWINGAI Promo Code — 1 Month Free (Live Mode Fix)</h4>
+      <p>Root cause identified: previous coupon <code>kkB83mnU</code> was created in Stripe <strong>test mode</strong> — it never existed in the live account. Fixed by creating live Stripe coupon <code>tf4ggInE</code> (100% off, once, max 500 redemptions) and live <strong>Promotion Code</strong> with customer-facing code <code>SWINGAI</code> (ID: <code>promo_1THa0RJxnuJN82q96e126onU</code>). Vercel env updated: <code>STRIPE_COUPON_SWINGAI=tf4ggInE</code> and new <code>STRIPE_PROMO_CODE_SWINGAI=promo_1THa0RJxnuJN82q96e126onU</code>. API updated to prefer <code>promotion_code</code> over <code>coupon</code> so Stripe's hosted checkout displays the "SWINGAI" code label when the discount is applied — not a generic coupon. Works end-to-end in live mode.</p>
+    </div>
+
+    <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
+      <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
+      <h4>Blog — Full Content Redesign + Tournament Bracket Modal</h4>
+      <p>blog.html completely rebuilt: live ATP ticker, tournament calendar strip (9 upcoming / recent events with surface badges), 8 full-length editorial articles (SMART-goal training, serve mechanics, mental game, pickleball transition, etc.), live results section, tennis fun-facts bar, newsletter CTA. <strong>Tournament bracket modal</strong> added: clicking any tournament card or match result opens a visual QF/SF/F bracket with player names, seedings, results, and SVG connector lines. Modal has focus trap, ESC/backdrop close, surface accent colour, and an animated live-dot for in-progress events. Data feeds from TheSportsDB free API (ATP Tour league 4424) with 1h CDN cache and graceful fallback.</p>
+    </div>
+
+    <div class="feature-item" style="border-color:rgba(57,255,20,.35);background:rgba(57,255,20,.04)">
+      <span class="fi-tag" style="background:rgba(57,255,20,.15);color:#39ff14;">✓ Complete — Live</span>
+      <h4>Blog Open Access — Soft Launch Strategy</h4>
+      <p>Blog access gate (previously restricted to Performance plan and above) removed for soft launch. Content is now publicly accessible to any visitor — no login or plan required. Gate logic preserved in comments for one-line re-enable post-launch. Blog nav link added to the player dashboard header. Decision rationale: premium content during soft launch attracts more organic interest, SEO indexing, and social sharing than a hard paywall would allow.</p>
     </div>
 
     <div class="feature-item">
@@ -383,8 +395,8 @@
   </div>
 
   <div class="callout success">
-    <div class="callout-title">✓ Platform Sprint Complete — Apr 1, 2026</div>
-    <p style="margin:0">All revenue-critical blockers resolved. Email automation live (9 templates, Resend, daily cron). Hero redesigned with editorial photography. Dashboard fully visual and data-driven. i18n live in 8 languages. Checkout upgraded with real payment logos and security trust badges. 12 association logos added as brand-colored badges. SWINGAI promo code working end-to-end. <strong>The platform is now conversion-ready. Recommended next step: launch content seeding and paid acquisition in Month 1–2.</strong></p>
+    <div class="callout-title">✓ Soft Launch Ready — Apr 1, 2026 (rev 2)</div>
+    <p style="margin:0">All revenue-critical blockers resolved and soft-launch enhancements complete. Email automation live (9 templates, Resend, daily cron). Hero redesigned with editorial photography. Dashboard v2 with live performance radar, enhanced action plan with progress ring, recent reports strip. i18n live in 8 languages. Checkout upgraded with real payment logos and security trust badges. 12 association logos added. SWINGAI promo code fully operational in live Stripe mode (<code>tf4ggInE</code> + <code>SWINGAI</code> Promotion Code). Blog fully rebuilt with tournament bracket modal, open to all visitors for maximum soft-launch engagement. <strong>The platform is conversion-ready and content-ready. Recommended next step: seed content, activate referral loop, and begin paid acquisition in Month 1–2.</strong></p>
   </div>
 </section>
 
