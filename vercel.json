@@ -103,6 +103,12 @@
       "permanent": false
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/marketing/:_route",
+      "destination": "/api/marketing?_route=:_route"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
