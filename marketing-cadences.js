@@ -805,6 +805,294 @@ P.S. Prefer to self-onboard? https://smartswingai.com/for-clubs.html`
         message: 'Last pilot spot this quarter, {{first_name}}. Closing Friday. 15-min call or self-onboard: https://smartswingai.com/for-clubs.html — reply STOP to opt out'
       }
     ]
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CADENCE 5: Win-Back — Churned Players
+  // Methodology: Neuromarketing + FOMO + Positive Selling
+  // 5 emails over 10 days
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cadence-winback-churned',
+    name: 'Win-Back — Churned Players',
+    methodology: 'Neuromarketing + FOMO + Positive Selling',
+    target_persona: 'player',
+    description: 'Re-engage players who cancelled 30-90 days ago. Uses loss aversion, social proof, and a time-limited offer.',
+    is_active: true,
+    emails: [
+      {
+        sequence_num: 1, delay_days: 0, email_type: 'intro',
+        subject: 'Your swing data is still here — but not for long',
+        body_html: '<p>Hi {{first_name}},</p><p>We noticed you paused your SmartSwing subscription {{days_ago}} days ago.</p><p>Your swing analysis history — every report, every improvement trend, every biomechanical insight — is still saved in your account. <strong>But we archive inactive data after 90 days.</strong></p><p>Since you left, we\'ve shipped 3 major upgrades including real-time video overlay and a new consistency tracker that players are calling a game-changer.</p><p>Just wanted you to know your data is waiting.</p><p>— The SmartSwing Team</p>',
+        body_text: 'Hi {{first_name}},\n\nWe noticed you paused your SmartSwing subscription. Your swing analysis history is still saved — but we archive inactive data after 90 days.\n\nSince you left, we shipped 3 major upgrades including real-time video overlay and a consistency tracker.\n\nYour data is waiting.'
+      },
+      {
+        sequence_num: 2, delay_days: 2, email_type: 'social_proof',
+        subject: '342 players improved their NTRP this quarter — here\'s how',
+        body_html: '<p>{{first_name}},</p><p>Quick stat: <strong>342 SmartSwing users improved their NTRP rating this quarter.</strong> The average improvement was 0.3 points in 60 days.</p><p>The #1 factor? Consistency of analysis. Players who uploaded at least 2 sessions per week saw 4x faster improvement than occasional users.</p><p>Your profile shows you were averaging 1.5 sessions/week before pausing — you were right on the edge of the acceleration curve.</p><p>Worth another look?</p>',
+        body_text: '342 SmartSwing users improved their NTRP rating this quarter. Average improvement: 0.3 points in 60 days. The #1 factor was consistency — 2+ sessions/week = 4x faster improvement. You were averaging 1.5/week before pausing.'
+      },
+      {
+        sequence_num: 3, delay_days: 5, email_type: 'value',
+        subject: 'What changed since you left (it\'s a lot)',
+        body_html: '<p>{{first_name}},</p><p>Here\'s what\'s new since your last session:</p><ul><li><strong>Real-time video overlay</strong> — see biomechanical markers as you replay</li><li><strong>Consistency Tracker</strong> — tracks shot-by-shot improvement over weeks</li><li><strong>Drill Recommendations</strong> — AI suggests drills based on your weakest areas</li><li><strong>Coach Sharing</strong> — share reports with your coach in one click</li></ul><p>These weren\'t available when you were last active. Might be worth 5 minutes to check it out.</p>',
+        body_text: 'What\'s new since you left:\n- Real-time video overlay\n- Consistency Tracker\n- AI Drill Recommendations\n- One-click Coach Sharing\n\nMight be worth 5 minutes to check it out.'
+      },
+      {
+        sequence_num: 4, delay_days: 7, email_type: 'urgency',
+        subject: '48 hours: 40% off to come back',
+        body_html: '<p>{{first_name}},</p><p>I\'m going to be direct: we want you back.</p><p>For the next <strong>48 hours</strong>, use code <strong>COMEBACK40</strong> to get 40% off your first 3 months back on any plan.</p><p>Your swing data, your improvement history, your personalized benchmarks — all still there.</p><p>This offer expires {{expiry_date}} at midnight.</p><p><a href="https://smartswingai.com/pricing.html">Reactivate now →</a></p>',
+        body_text: 'I\'ll be direct: we want you back. For 48 hours, use code COMEBACK40 for 40% off your first 3 months. Your data is still there. Offer expires {{expiry_date}}.'
+      },
+      {
+        sequence_num: 5, delay_days: 10, email_type: 'final',
+        subject: 'Last chance — then we archive your data',
+        body_html: '<p>{{first_name}},</p><p>This is the last email in this series.</p><p>Your swing analysis data — {{report_count}} reports, your improvement trends, your biomechanical benchmarks — will be archived in 14 days if your account stays inactive.</p><p>If tennis improvement is still a priority, <a href="https://smartswingai.com/pricing.html">reactivate here</a>. The COMEBACK40 code is still active for you.</p><p>If not, no hard feelings. We\'ll be here if you change your mind.</p><p>Hit the courts hard either way. 🎾</p>',
+        body_text: 'Last email. Your {{report_count}} reports will be archived in 14 days. Reactivate: https://smartswingai.com/pricing.html — COMEBACK40 still works. No hard feelings if not.'
+      }
+    ],
+    sms: [
+      { sequence_num: 1, delay_days: 3, message: '{{first_name}}, 342 players improved their NTRP this quarter on SmartSwing. Your data is still saved — worth another look? https://smartswingai.com — reply STOP to opt out' },
+      { sequence_num: 2, delay_days: 8, message: '48hrs left: COMEBACK40 = 40% off 3 months. Your swing data is waiting: https://smartswingai.com/pricing.html — reply STOP to opt out' }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CADENCE 6: Parent Onboarding — Junior Players
+  // Methodology: Corporate Visions "Why Change" + Neuroscience of Attention
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cadence-parents-junior',
+    name: 'Parent Onboarding — Junior Players',
+    methodology: 'Corporate Visions + Neuroscience of Attention',
+    target_persona: 'parent',
+    description: 'Educate tennis parents on how AI analysis accelerates junior development. Builds trust through data and social proof.',
+    is_active: true,
+    emails: [
+      {
+        sequence_num: 1, delay_days: 0, email_type: 'intro',
+        subject: 'The #1 thing holding your junior player back (it\'s not practice hours)',
+        body_html: '<p>Hi {{first_name}},</p><p>Most tennis parents assume more practice = faster improvement. The data tells a different story.</p><p><strong>Junior players who get specific, biomechanical feedback improve 2.8x faster than those who just hit more balls.</strong></p><p>Why? Because without feedback, practice reinforces bad habits. Every hour on court without correction is an hour building muscle memory around the wrong mechanics.</p><p>SmartSwing AI gives your child the same biomechanical analysis that tour pros get — from a phone camera.</p><p>Curious how it works? <a href="https://smartswingai.com/for-parents.html">See a sample junior report →</a></p>',
+        body_text: 'Most parents think more practice = faster improvement. Data says otherwise. Juniors with biomechanical feedback improve 2.8x faster. SmartSwing gives your child tour-pro level analysis from a phone camera.'
+      },
+      {
+        sequence_num: 2, delay_days: 2, email_type: 'social_proof',
+        subject: '"My son moved up 2 levels in one season" — here\'s what happened',
+        body_html: '<p>{{first_name}},</p><p>Meet the Rodriguez family. Their son Marcus was stuck at 3.0 NTRP for 18 months. Private lessons weren\'t moving the needle.</p><p>After 8 weeks with SmartSwing, his coach identified a <strong>hip rotation timing issue</strong> that was invisible to the naked eye. Two weeks of targeted drills later, his forehand power jumped 31%.</p><p>Marcus is now rated 3.5 and competing in sectionals.</p><p>Every junior player has hidden inefficiencies. The question is whether you find them early or let them calcify.</p><p><a href="https://smartswingai.com/for-parents.html">Start your child\'s free analysis →</a></p>',
+        body_text: 'Marcus Rodriguez was stuck at 3.0 for 18 months. SmartSwing found a hip rotation timing issue invisible to the eye. 8 weeks later: 3.5 NTRP, competing in sectionals. Every junior has hidden inefficiencies.'
+      },
+      {
+        sequence_num: 3, delay_days: 4, email_type: 'value',
+        subject: 'What your child\'s coach can\'t see (but AI can)',
+        body_html: '<p>{{first_name}},</p><p>Even the best coaches miss things. Here\'s why:</p><ul><li>The human eye processes at ~30fps — a tennis swing takes 0.3 seconds</li><li>Coaches watch from one angle — biomechanics happen in 3D</li><li>Fatigue patterns emerge over 50+ swings — coaches see 5-10 in a lesson</li></ul><p>SmartSwing captures every frame, measures joint angles to 0.5° precision, and tracks trends across hundreds of swings.</p><p>It doesn\'t replace your child\'s coach. It gives their coach superpowers.</p>',
+        body_text: 'Even great coaches miss things. Human eye: 30fps. Tennis swing: 0.3 seconds. SmartSwing captures every frame, measures to 0.5° precision, tracks patterns across hundreds of swings. It gives coaches superpowers.'
+      },
+      {
+        sequence_num: 4, delay_days: 7, email_type: 'urgency',
+        subject: 'Tournament season is coming — is your junior ready?',
+        body_html: '<p>{{first_name}},</p><p>Spring tournament season starts in {{weeks_until}} weeks. Players who start biomechanical training now will have 6-8 weeks of data-driven improvement before their first match.</p><p>That\'s the difference between going in with the same game and going in with a measurably better one.</p><p><strong>Start free today</strong> — upload one swing video, get your child\'s first AI analysis report in under 5 minutes.</p><p><a href="https://smartswingai.com/analyze.html">Upload first swing →</a></p>',
+        body_text: 'Tournament season in {{weeks_until}} weeks. Start biomechanical training now = 6-8 weeks of data-driven improvement. Upload one swing, get first AI report in under 5 minutes.'
+      },
+      {
+        sequence_num: 5, delay_days: 10, email_type: 'cta',
+        subject: 'Free analysis report for {{child_name}} — no credit card needed',
+        body_html: '<p>{{first_name}},</p><p>We\'d love to show you what SmartSwing can do for {{child_name}}\'s game.</p><p>Upload any swing video and get a full biomechanical breakdown — <strong>completely free, no credit card, no commitment.</strong></p><p>If the report is useful, you\'ll know. If not, you\'ve lost nothing but 5 minutes.</p><p><a href="https://smartswingai.com/analyze.html">Get free analysis →</a></p><p>Good luck on the courts! 🎾</p>',
+        body_text: 'Upload any swing video, get a full biomechanical breakdown — free, no credit card, no commitment. 5 minutes is all it takes.'
+      }
+    ],
+    sms: [
+      { sequence_num: 1, delay_days: 5, message: '{{first_name}}, tournament season is coming! Get {{child_name}}\'s free AI swing analysis: https://smartswingai.com/analyze.html — reply STOP to opt out' }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CADENCE 7: Pickleball Players — New Lead
+  // Methodology: SPIN + Mirroring + Virality
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cadence-pickleball-new',
+    name: 'New Lead — Pickleball Players',
+    methodology: 'SPIN + Mirroring + Virality',
+    target_persona: 'pickleball',
+    description: 'Engage the fast-growing pickleball segment. Uses community language mirroring and viral sharing mechanics.',
+    is_active: true,
+    emails: [
+      {
+        sequence_num: 1, delay_days: 0, email_type: 'intro',
+        subject: 'The pickleball shot that separates 3.5 from 4.0 (it\'s not the third shot drop)',
+        body_html: '<p>Hi {{first_name}},</p><p>Everyone talks about the third shot drop. But the data from 4,000+ pickleball analyses tells a different story.</p><p><strong>The #1 differentiator between 3.5 and 4.0 players is reset mechanics — specifically, paddle face angle at contact during speed-up defense.</strong></p><p>Most players are 8-12° off optimal. That\'s the difference between a clean reset and a pop-up your opponent punishes.</p><p>Want to see where your reset stands? Upload any rally clip and get your full analysis.</p>',
+        body_text: 'Everyone focuses on the third shot drop. Data from 4,000+ analyses says the real differentiator is reset mechanics — paddle face angle during speed-up defense. Most players are 8-12° off optimal.'
+      },
+      {
+        sequence_num: 2, delay_days: 2, email_type: 'social_proof',
+        subject: 'This rec player went from 3.5 to 4.5 in 4 months (here\'s the data)',
+        body_html: '<p>{{first_name}},</p><p>Tom uploaded his first SmartSwing analysis in January as a self-rated 3.5. Four months later, he medaled at a 4.5 tournament.</p><p>His secret? He fixed <strong>three specific mechanical issues</strong> that SmartSwing identified in his first session. His coach had never mentioned any of them.</p><p>Pickleball is the fastest-growing sport in America — and the players using data are improving fastest.</p><p><a href="https://smartswingai.com/pickleball.html">See how SmartSwing works for pickleball →</a></p>',
+        body_text: 'Tom went from 3.5 to 4.5 in 4 months by fixing 3 mechanical issues SmartSwing found in his first session. His coach never mentioned them. Data-driven players improve fastest.'
+      },
+      {
+        sequence_num: 3, delay_days: 5, email_type: 'value',
+        subject: '5 things SmartSwing measures that your drill partner can\'t',
+        body_html: '<p>{{first_name}},</p><ol><li><strong>Paddle lag angle</strong> — timing of wrist snap through contact</li><li><strong>Split-step timing</strong> — are you loading 50ms early or late?</li><li><strong>Recovery position</strong> — where you end up after each shot</li><li><strong>Contact height consistency</strong> — the hidden variable in dink rallies</li><li><strong>Swing path efficiency</strong> — are you taking 20% longer paths than needed?</li></ol><p>Each one is measurable, improvable, and invisible to the naked eye.</p>',
+        body_text: '5 things SmartSwing measures: paddle lag angle, split-step timing, recovery position, contact height consistency, swing path efficiency. Each is measurable and invisible to the naked eye.'
+      },
+      {
+        sequence_num: 4, delay_days: 7, email_type: 'viral',
+        subject: 'Challenge your doubles partner — who has better mechanics?',
+        body_html: '<p>{{first_name}},</p><p>Here\'s a fun one: challenge your doubles partner to a SmartSwing-off.</p><p>Both upload a rally clip. Compare your biomechanical scores side by side. Loser buys lunch.</p><p>Share this link with your partner: <a href="https://smartswingai.com/pickleball.html">smartswingai.com/pickleball</a></p><p>We\'ve seen this turn into full-group competitions at clubs. Nothing motivates improvement like friendly competition + data.</p>',
+        body_text: 'Challenge your doubles partner: both upload a clip, compare scores, loser buys lunch. Share: https://smartswingai.com/pickleball.html — clubs are turning this into competitions.'
+      },
+      {
+        sequence_num: 5, delay_days: 10, email_type: 'cta',
+        subject: 'Your free pickleball analysis is ready — just add a video',
+        body_html: '<p>{{first_name}},</p><p>Upload any pickleball rally clip (even from your phone propped against a fence) and get:</p><ul><li>Full biomechanical breakdown of your strokes</li><li>Comparison to 4.0+ player benchmarks</li><li>Top 3 improvement priorities with drills</li></ul><p><strong>Free. No credit card. 5 minutes.</strong></p><p><a href="https://smartswingai.com/analyze.html">Get your free analysis →</a></p>',
+        body_text: 'Upload any pickleball rally clip and get: biomechanical breakdown, 4.0+ benchmarks comparison, top 3 improvement priorities. Free. No credit card. 5 minutes.'
+      }
+    ],
+    sms: [
+      { sequence_num: 1, delay_days: 3, message: '{{first_name}}, the #1 thing separating 3.5 from 4.0 pickleball players? Reset mechanics. See yours free: https://smartswingai.com/pickleball.html — reply STOP to opt out' }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CADENCE 8: Coach Partnership — Advanced Outreach
+  // Methodology: Mirroring + Neuroscience of Attention + SPIN
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cadence-coach-partnership',
+    name: 'Coach Partnership — Advanced',
+    methodology: 'Mirroring + Neuroscience of Attention + SPIN',
+    target_persona: 'coach',
+    description: 'Deep-dive outreach for certified coaches. Positions SmartSwing as revenue multiplier and retention tool.',
+    is_active: true,
+    emails: [
+      {
+        sequence_num: 1, delay_days: 0, email_type: 'intro',
+        subject: 'How 3 coaches added $2,400/month with zero extra court time',
+        body_html: '<p>Hi Coach {{first_name}},</p><p>Three coaches in our early access program found a way to serve more students without adding hours.</p><p>They use SmartSwing AI to provide <strong>between-lesson analysis</strong>. Students upload practice videos, get AI biomechanical reports, and the coach reviews them remotely in 2 minutes per student.</p><p>Result: each coach added 8-12 remote analysis clients at $200-300/month. That\'s $2,400/month in new revenue with ~30 minutes of daily review time.</p><p>Interested in how this could work for your practice?</p>',
+        body_text: '3 coaches added $2,400/month in revenue with zero extra court time. They use SmartSwing for between-lesson analysis — students upload videos, AI analyzes, coach reviews in 2 min. 8-12 remote clients at $200-300/month each.'
+      },
+      {
+        sequence_num: 2, delay_days: 2, email_type: 'value',
+        subject: 'The "remote analysis" model — step by step',
+        body_html: '<p>Coach {{first_name}},</p><p>Here\'s exactly how the remote analysis model works:</p><ol><li><strong>Student records</strong> — phone on a tripod, 3-5 rallies</li><li><strong>SmartSwing analyzes</strong> — full biomechanical report in 60 seconds</li><li><strong>You review</strong> — annotate, add coaching notes (2 min per student)</li><li><strong>Student gets report</strong> — with your personalized guidance layered on AI data</li></ol><p>You\'re not replaced. You\'re amplified. The AI handles measurement, you handle coaching intelligence.</p><p>Most coaches charge $50-75 per remote review. At 8 students × 4 reviews/month = $1,600-2,400/month.</p>',
+        body_text: 'The remote analysis model: Student records → SmartSwing analyzes (60 sec) → You review + annotate (2 min) → Student gets AI report + your coaching notes. $50-75 per review. 8 students × 4/month = $1,600-2,400.'
+      },
+      {
+        sequence_num: 3, delay_days: 4, email_type: 'social_proof',
+        subject: '"My students actually do their homework now" — Coach Maria',
+        body_html: '<p>{{first_name}},</p><p>Coach Maria Gonzalez had a problem every coach knows: students forget everything between lessons.</p><p>After integrating SmartSwing, her students practice with purpose. They upload videos, check their AI reports, and come to the next lesson <strong>already knowing what to work on</strong>.</p><p>"Lesson quality went through the roof because we skip the diagnostic phase and go straight to improvement," Maria says.</p><p>Her student retention? Up 40% since she started.</p>',
+        body_text: 'Coach Maria\'s students now practice with purpose — they upload videos, check AI reports, and come to lessons already knowing what to work on. Her retention: up 40%.'
+      },
+      {
+        sequence_num: 4, delay_days: 7, email_type: 'urgency',
+        subject: 'We\'re onboarding 10 coaches this quarter — 4 spots left',
+        body_html: '<p>Coach {{first_name}},</p><p>We\'re limiting our coach partnership program to 10 new coaches this quarter so we can provide hands-on onboarding and support.</p><p><strong>4 spots remain.</strong></p><p>What you get:</p><ul><li>Free Pro account for the quarter</li><li>Branded reports with your logo and contact info</li><li>Dedicated coach dashboard to track all students</li><li>1-on-1 onboarding call to set up your workflow</li></ul><p><a href="https://smartswingai.com/for-coaches.html">Apply for coach partnership →</a></p>',
+        body_text: '4 spots left in our coach partnership: free Pro account, branded reports, coach dashboard, 1-on-1 onboarding. Apply: https://smartswingai.com/for-coaches.html'
+      },
+      {
+        sequence_num: 5, delay_days: 10, email_type: 'final',
+        subject: 'Quick question about your coaching practice',
+        body_html: '<p>Coach {{first_name}},</p><p>I\'ve sent a few emails about how coaches are using SmartSwing AI. Before I stop, one honest question:</p><p><em>What\'s the biggest bottleneck in your coaching practice right now?</em></p><p>If it\'s time, student retention, between-lesson engagement, or scaling beyond court hours — SmartSwing was built for exactly that.</p><p>If it\'s something else entirely, I\'d genuinely love to hear. Reply to this email and let me know.</p><p>Either way, best of luck this season. 🎾</p>',
+        body_text: 'One question before I stop: what\'s the biggest bottleneck in your coaching practice? If it\'s time, retention, or scaling — SmartSwing was built for that. Reply and let me know.'
+      }
+    ],
+    sms: [
+      { sequence_num: 1, delay_days: 5, message: 'Coach {{first_name}}, 4 spots left in our partnership program — free Pro account + branded reports. Details: https://smartswingai.com/for-coaches.html — reply STOP to opt out' }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CADENCE 9: Newsletter Subscriber — Nurture
+  // Methodology: Neuroscience of Attention + Positive Selling + Virality
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cadence-newsletter-nurture',
+    name: 'Newsletter Subscriber — Nurture',
+    methodology: 'Neuroscience of Attention + Positive Selling + Virality',
+    target_persona: 'player',
+    description: 'Warm nurture sequence for newsletter subscribers who haven\'t signed up. Uses curiosity gaps and progressive disclosure.',
+    is_active: true,
+    emails: [
+      {
+        sequence_num: 1, delay_days: 0, email_type: 'intro',
+        subject: 'Welcome — here\'s the swing mistake 91% of club players make',
+        body_html: '<p>Hi {{first_name}},</p><p>Welcome to the SmartSwing newsletter.</p><p>Since you\'re here, let\'s start with something useful: <strong>91% of club players have the same forehand timing error.</strong></p><p>It\'s a 40-millisecond lag between hip rotation and arm acceleration. Too small to see. Big enough to cost you 15-20% of your power.</p><p>In our next email, I\'ll show you exactly how to test if you have it — and what to do about it.</p><p>Talk soon,<br>The SmartSwing Team</p>',
+        body_text: 'Welcome. 91% of club players have the same forehand timing error: a 40ms lag between hip rotation and arm acceleration. Too small to see, costs 15-20% power. Next email: how to test if you have it.'
+      },
+      {
+        sequence_num: 2, delay_days: 2, email_type: 'value',
+        subject: 'The 40ms test — do you have the timing gap?',
+        body_html: '<p>{{first_name}},</p><p>Here\'s how to check for the 40ms timing gap:</p><ol><li>Record yourself hitting 10 forehands (phone on a fence works fine)</li><li>Watch in slow motion — look at where your hips are when your arm starts forward</li><li>If your hips have already opened past 45° before your arm moves, you have it</li></ol><p>Or… upload the video to SmartSwing and we\'ll measure it to the millisecond.</p><p><a href="https://smartswingai.com/analyze.html">Try free analysis →</a></p><p>Either way, now you know what to look for.</p>',
+        body_text: 'The 40ms test: Record 10 forehands. Watch slow-mo. If hips open past 45° before arm moves forward = you have the timing gap. Or upload to SmartSwing for millisecond-precision measurement.'
+      },
+      {
+        sequence_num: 3, delay_days: 5, email_type: 'social_proof',
+        subject: 'Readers are sharing: "I never knew my serve was doing this"',
+        body_html: '<p>{{first_name}},</p><p>We\'ve been getting replies from newsletter readers who tried the free analysis. A few highlights:</p><ul><li>"I never knew my serve toss was 4 inches too far left. Fixed it, gained 8mph." — Jason T.</li><li>"The backhand report showed I was dropping my elbow on every single shot. 20 years of this." — Karen M.</li><li>"Showed my coach the report. Even he was surprised by the data." — Michael R.</li></ul><p>The common thread? Every one of them discovered something they couldn\'t see on their own.</p>',
+        body_text: 'Readers are discovering things they never knew: misplaced tosses, dropped elbows, inefficient paths. Every one found something invisible to the naked eye.'
+      },
+      {
+        sequence_num: 4, delay_days: 7, email_type: 'viral',
+        subject: 'Share this with your tennis group chat',
+        body_html: '<p>{{first_name}},</p><p>Here\'s a challenge for your tennis group:</p><p><strong>Everyone uploads one serve video. Compare your biomechanical scores. Lowest score buys drinks after the next match.</strong></p><p>It takes 2 minutes per person, and the debates about technique will be legendary.</p><p>Forward this email or share: <a href="https://smartswingai.com/analyze.html">smartswingai.com/analyze</a></p><p>We\'ve seen this spread through entire clubs. Data + competition = addictive.</p>',
+        body_text: 'Challenge: everyone in your group uploads one serve video. Compare biomechanical scores. Lowest score buys drinks. Share: https://smartswingai.com/analyze.html'
+      },
+      {
+        sequence_num: 5, delay_days: 10, email_type: 'cta',
+        subject: 'Your free swing analysis — still waiting for you',
+        body_html: '<p>{{first_name}},</p><p>Just a reminder: you have a free swing analysis available anytime.</p><p>No credit card. No commitment. Just upload a video and see what the AI finds.</p><p>Most people are surprised by at least one thing in their report. The question is: are you curious enough to find out?</p><p><a href="https://smartswingai.com/analyze.html">Get your free analysis →</a></p>',
+        body_text: 'Reminder: free swing analysis available. No credit card. Upload a video, see what the AI finds. Most people are surprised by at least one thing.'
+      }
+    ],
+    sms: []
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CADENCE 10: Influencer / Ambassador Outreach
+  // Methodology: Corporate Visions + Positive Selling + FOMO
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    id: 'cadence-influencer-outreach',
+    name: 'Influencer / Ambassador Outreach',
+    methodology: 'Corporate Visions + Positive Selling + FOMO',
+    target_persona: 'coach',
+    description: 'Recruit tennis/pickleball influencers and content creators as SmartSwing ambassadors. Revenue share + exclusive access.',
+    is_active: true,
+    emails: [
+      {
+        sequence_num: 1, delay_days: 0, email_type: 'intro',
+        subject: 'Partnership opportunity — AI tennis content your audience will love',
+        body_html: '<p>Hi {{first_name}},</p><p>I follow your content on {{platform}} — your {{content_topic}} posts consistently get great engagement.</p><p>I\'m reaching out because SmartSwing AI is building an ambassador program for tennis/pickleball creators, and your audience is exactly who benefits from this.</p><p><strong>The pitch:</strong> You get free lifetime Pro access + 30% revenue share on every subscriber you refer. We provide content ideas, data, and co-branded assets.</p><p>Interested in hearing more? Quick reply is all it takes.</p>',
+        body_text: 'I follow your content — great engagement. SmartSwing is building an ambassador program: free lifetime Pro + 30% revenue share on referrals. We provide content ideas + assets. Interested?'
+      },
+      {
+        sequence_num: 2, delay_days: 3, email_type: 'value',
+        subject: 'What SmartSwing ambassadors get (full breakdown)',
+        body_html: '<p>{{first_name}},</p><p>Here\'s the full ambassador package:</p><ul><li><strong>Free lifetime Pro account</strong> — full access, no limits</li><li><strong>30% recurring commission</strong> — on every subscriber you refer, for as long as they stay</li><li><strong>Co-branded content</strong> — we create graphics, video hooks, and scripts for you</li><li><strong>Early access</strong> — test new features before anyone else</li><li><strong>Exclusive data</strong> — use our analysis stats in your content (with attribution)</li><li><strong>Dedicated Slack channel</strong> — direct access to our product team</li></ul><p>Our top ambassador generated $1,800 in commissions last month from 3 posts.</p>',
+        body_text: 'Ambassador package: Free lifetime Pro, 30% recurring commission, co-branded content, early access, exclusive data, direct Slack access. Top ambassador: $1,800/month from 3 posts.'
+      },
+      {
+        sequence_num: 3, delay_days: 5, email_type: 'social_proof',
+        subject: 'How @TennisTechReview got 12k views with one SmartSwing post',
+        body_html: '<p>{{first_name}},</p><p>Last month, @TennisTechReview posted a side-by-side of their swing analysis vs. a tour pro\'s. <strong>12,400 views and 340 comments in 48 hours.</strong></p><p>Why? Because data-driven tennis content is rare, genuinely useful, and inherently shareable. People tag their partners, debate technique, and try it themselves.</p><p>Every ambassador reports the same thing: SmartSwing content gets 2-5x their normal engagement.</p><p>Your audience would eat this up.</p>',
+        body_text: '@TennisTechReview got 12.4k views from one SmartSwing post. Data-driven tennis content is rare, useful, and shareable. Ambassadors report 2-5x normal engagement.'
+      },
+      {
+        sequence_num: 4, delay_days: 7, email_type: 'urgency',
+        subject: 'We\'re capping ambassadors at 25 — 7 spots open',
+        body_html: '<p>{{first_name}},</p><p>Quick update: we\'re limiting the ambassador program to 25 creators to keep it exclusive and high-value.</p><p><strong>7 spots remain.</strong></p><p>Once we hit 25, we\'re closing applications until Q3.</p><p>If this is something you\'d consider, reply to this email and I\'ll send over the agreement. No pressure, no commitment until you sign.</p>',
+        body_text: '7 of 25 ambassador spots remain. Closing applications when full. Reply for the agreement — no commitment until you sign.'
+      },
+      {
+        sequence_num: 5, delay_days: 10, email_type: 'final',
+        subject: 'Last note — door\'s open whenever you\'re ready',
+        body_html: '<p>{{first_name}},</p><p>This is my last email about the ambassador program. I don\'t want to be that brand that won\'t stop emailing.</p><p>If the timing isn\'t right, no problem. The link below will stay active, and you can apply whenever:</p><p><a href="https://smartswingai.com/contact.html">Ambassador application →</a></p><p>Keep creating great content. Your audience is lucky to have you.</p><p>— SmartSwing Team</p>',
+        body_text: 'Last email. If timing isn\'t right, no problem. Apply whenever: https://smartswingai.com/contact.html. Keep creating great content.'
+      }
+    ],
+    sms: [
+      { sequence_num: 1, delay_days: 4, message: '{{first_name}}, 7 ambassador spots left — free Pro + 30% commission. Details: https://smartswingai.com/contact.html — reply STOP to opt out' }
+    ]
   }
 
 ];
