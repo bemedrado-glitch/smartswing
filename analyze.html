@@ -428,6 +428,81 @@
     @media (max-width: 1200px) {
       .analysis-grid { grid-template-columns: 1fr; }
     }
+
+    @media (max-width: 768px) {
+      .wizard-section { padding: 22px; border-radius: 18px; }
+      .title { font-size: 32px; letter-spacing: -1.5px; }
+      .subtitle { font-size: 14px; }
+      .step-title { font-size: 22px; }
+      .selection-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+      .selection-card { padding: 16px 12px; border-radius: 12px; }
+      .btn { padding: 14px 24px; font-size: 13px; }
+      .btn-group { gap: 10px; margin-top: 28px; }
+      .report-header { padding: 24px; }
+      .smartswing-score { font-size: 80px !important; }
+      .grade-badge { font-size: 18px !important; padding: 8px 20px !important; }
+      .report-section { padding: 20px; border-radius: 16px; margin-bottom: 16px; }
+      .report-section-title { font-size: 18px; margin-bottom: 14px; }
+      .metrics-grid { gap: 12px; }
+      .metric-card { padding: 16px; }
+      .metric-value-large { font-size: 36px !important; }
+      .stats-panel { padding: 20px; border-radius: 18px; }
+      .stat-value { font-size: 28px; }
+      .upload-zone { padding: 40px 20px; }
+      .capture-tabs { flex-wrap: wrap; }
+      .capture-tab { font-size: 13px; padding: 10px 12px; min-height: 44px; }
+      .plan-strip { font-size: 12px; padding: 10px 12px; }
+      .wizard-steps { gap: 6px; }
+      .step-circle { width: 32px; height: 32px; font-size: 13px; }
+      .step-label { font-size: 10px; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 6px; }
+      .wizard-section { padding: 14px; border-radius: 14px; }
+      .title { font-size: 24px; letter-spacing: -1px; margin-bottom: 6px; }
+      .subtitle { font-size: 13px; }
+      .step-title { font-size: 19px; margin-bottom: 16px; }
+      .selection-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 20px 0; }
+      .selection-card { padding: 14px 8px; border-radius: 10px; }
+      .card-title { font-size: 14px; }
+      .card-subtitle { font-size: 11px; }
+      .btn { padding: 12px 18px; font-size: 12px; border-radius: 10px; }
+      .btn-group { gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+      .btn-group .btn { flex: 1; min-width: 120px; text-align: center; }
+      .report-header { padding: 14px; }
+      .smartswing-score { font-size: 56px !important; }
+      .grade-badge { font-size: 14px !important; padding: 6px 14px !important; }
+      .report-section { padding: 14px; border-radius: 12px; margin-bottom: 12px; }
+      .report-section-title { font-size: 16px; margin-bottom: 12px; }
+      .metrics-grid { grid-template-columns: 1fr !important; gap: 10px; }
+      .metric-card { padding: 14px; border-radius: 10px; }
+      .metric-value-large { font-size: 28px !important; }
+      .stats-panel { padding: 14px; border-radius: 14px; }
+      .stat-card { padding: 14px; border-radius: 12px; }
+      .stat-value { font-size: 24px; }
+      .stat-label { font-size: 10px; }
+      .angles-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .angle-item { padding: 10px 8px; border-radius: 10px; }
+      .angle-name { font-size: 9px; }
+      .angle-value { font-size: 13px; }
+      .upload-zone { padding: 30px 14px; border-radius: 14px; margin: 16px 0; }
+      .upload-zone div:first-child { font-size: 24px; }
+      .canvas-container { border-radius: 12px; }
+      .camera-wrap { border-radius: 14px; max-height: 320px; }
+      .share-row { flex-direction: column; }
+      .share-url-input { width: 100%; }
+      .wizard-steps::before { display: none; }
+      .wizard-steps { justify-content: center; }
+      .wizard-step { min-width: auto; flex: 0 0 auto; }
+      .step-circle { width: 28px; height: 28px; font-size: 12px; margin-bottom: 4px; }
+      .step-label { font-size: 9px; letter-spacing: 0; }
+      .plan-strip { font-size: 11px; padding: 8px 10px; border-radius: 10px; }
+      .info-box { padding: 12px; font-size: 13px; border-radius: 10px; }
+      #upgradeModal > div { padding: 20px; border-radius: 18px; }
+      #upgradeModal h2 { font-size: 18px !important; }
+      #upgradeModal .selection-grid { grid-template-columns: 1fr 1fr; }
+    }
     
     .canvas-container {
       position: relative;
@@ -767,6 +842,7 @@
         <div class="capture-tabs">
           <button type="button" class="capture-tab active" id="tabUpload">📁 Upload File</button>
           <button type="button" class="capture-tab" id="tabCamera">📷 Record Now <span id="camRecommendedBadge" style="display:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.18);color:#39ff14;padding:2px 7px;border-radius:999px;margin-left:6px;">Recommended</span></button>
+          <button type="button" class="capture-tab" id="tabYoutube">🔗 YouTube URL</button>
         </div>
 
         <!-- Upload mode -->
@@ -800,6 +876,27 @@
             <button type="button" class="btn btn-primary" id="startRecordBtn">⏺ Start Recording</button>
             <button type="button" class="btn btn-secondary" id="stopRecordBtn" style="display:none;">⏹ Stop</button>
             <button type="button" class="btn btn-secondary" id="retakeBtn" style="display:none;">↩ Retake</button>
+          </div>
+        </div>
+
+        <!-- YouTube URL mode -->
+        <div id="youtubeMode" style="display:none;">
+          <div class="upload-zone" id="youtubeZone" style="cursor:default;">
+            <div style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">🎬</div>
+            <div style="font-weight: 700; font-size: 18px; margin-bottom: 12px;">Paste a YouTube URL</div>
+            <div style="color: var(--gray); font-size: 14px; margin-bottom: 16px;">Analyze your own match footage or study a competitor's technique</div>
+            <input type="url" id="youtubeUrlInput" placeholder="https://www.youtube.com/watch?v=..." style="width:100%;max-width:480px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:var(--text);font:inherit;font-size:15px;text-align:center;">
+            <div id="youtubePreview" style="display:none;margin-top:16px;max-width:480px;width:100%;">
+              <div id="youtubeThumbnail" style="width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#000;"></div>
+              <div id="youtubeTitle" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--text);"></div>
+            </div>
+            <div id="youtubeError" style="display:none;margin-top:12px;color:#ff5252;font-size:13px;font-weight:600;"></div>
+            <div style="margin-top:16px;">
+              <label style="display:flex;gap:10px;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--gray);">
+                <input type="checkbox" id="youtubeIsCompetitor">
+                <span>This is a competitor's video (for comparison analysis)</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -1006,6 +1103,9 @@
       level: null,
       shots: [],
       videoFile: null,
+      youtubeVideoId: null,
+      youtubeUrl: null,
+      isCompetitorVideo: false,
       sessionMode: 'stroke-tune-up',
       sessionGoal: '',
       setupScore: 100
@@ -2313,7 +2413,7 @@
       beginner: { tolerance: 1.45, boost: 7, percentileShift: 9 },
       intermediate: { tolerance: 1.28, boost: 5, percentileShift: 5 },
       advanced: { tolerance: 1.12, boost: 3, percentileShift: 2 },
-      pro: { tolerance: 1, boost: 1, percentileShift: 0 }
+      pro: { tolerance: 1.05, boost: 5, percentileShift: 0 }
     };
 
     const LEVEL_EXPECTATIONS = {
@@ -2369,6 +2469,236 @@
       'drop-shot': 'Capture from side-front angle. Keep grip change, compact prep, and touch release visible.',
       lob: 'Capture from side-rear angle. Keep loading legs, contact elevation, and finish trajectory visible.'
     };
+
+    // ============================================================================
+    // Shot-Specific Feedback Bank — eliminates repetitive generic text
+    // ============================================================================
+    const METRIC_FEEDBACK = {
+      shoulder: {
+        forehand: {
+          excellent: [
+            'Your shoulder rotation is generating real power on this forehand — strong coil and clean unit turn.',
+            'Excellent unit turn. The shoulder is doing exactly what it needs to load energy into the swing.',
+            'Great shoulder rotation — you are coiling deep enough to generate pace without losing control.'
+          ],
+          good: [
+            'Shoulder rotation is solid — you are getting close to the full coil that unlocks more power.',
+            'Good turn, though a bit more depth in the coil could add another gear to this forehand.'
+          ],
+          'needs-work': [
+            'The shoulder is not rotating back far enough. Focus on turning your non-racquet shoulder toward the net post.',
+            'Coil is shallow on this forehand. Think "show your back" to the opponent during the backswing.'
+          ]
+        },
+        backhand: {
+          excellent: ['Excellent shoulder alignment for the backhand — racquet preparation looks textbook.', 'The shoulder turn is setting up a strong two-handed drive. Contact point will benefit from this.'],
+          good: ['Good shoulder preparation, though a bit more rotation would help you generate depth.'],
+          'needs-work': ['Limited shoulder turn is making your backhand compact but weak. Rotate the lead shoulder across more.']
+        },
+        serve: {
+          excellent: ['Great shoulder tilt and rotation — trophy position is strong, letting the arm accelerate naturally.', 'Excellent shoulder loading on the toss side. This sets up a powerful upward drive.'],
+          good: ['Shoulder rotation is decent but could open up more during the wind-up for extra racquet speed.'],
+          'needs-work': ['The shoulder is not opening enough during the serve wind-up. Focus on tilting the shoulders steeper at trophy position.']
+        },
+        _default: {
+          excellent: ['Shoulder rotation is dialed in — this is supporting the shot structure well.'],
+          good: ['Shoulder turn is in a workable range — a bit more depth would help unlock more of the stroke.'],
+          'needs-work': ['The shoulder needs more rotation to properly load the kinetic chain for this shot.']
+        }
+      },
+      elbow: {
+        forehand: {
+          excellent: ['Arm extension through contact is excellent — the elbow is releasing cleanly for maximum racquet speed.', 'Great extension. The elbow is driving through the ball, not blocking it.'],
+          good: ['Elbow extension is close. A bit more reach through contact would add pace and depth.'],
+          'needs-work': ['The elbow is too bent at contact — you are losing racquet speed. Focus on extending the arm forward through the hit.']
+        },
+        backhand: {
+          excellent: ['Elbow position is strong — you are guiding the racquet through a clean contact window.'],
+          good: ['The elbow is in a decent position but could be more relaxed through the follow-through.'],
+          'needs-work': ['The elbow is cramped — open up the arm path to create a wider, smoother swing arc.']
+        },
+        serve: {
+          excellent: ['Elbow snap is generating excellent racquet speed — the arm is accelerating properly above the head.'],
+          good: ['Good arm path, but the elbow could reach higher before snapping down for more spin potential.'],
+          'needs-work': ['The elbow is too low during the serve — focus on getting the hitting arm higher in the trophy position.']
+        },
+        _default: {
+          excellent: ['Elbow mechanics are clean — extension and timing are supporting this shot well.'],
+          good: ['Elbow position is acceptable but has room for improvement in the extension phase.'],
+          'needs-work': ['The elbow is limiting your swing. Focus on cleaner extension through the contact zone.']
+        }
+      },
+      hip: {
+        forehand: {
+          excellent: ['Hip rotation is driving real power — the lower body is leading the kinetic chain exactly right.', 'Excellent hip drive. The rotation is transferring ground force into the racquet cleanly.'],
+          good: ['Good hip rotation, though initiating the turn a fraction earlier would add more effortless power.'],
+          'needs-work': ['The hips are too quiet on this forehand. Focus on driving the hip forward before the arm — let the lower body lead.']
+        },
+        serve: {
+          excellent: ['Excellent hip drive into the court — this is adding both pace and consistency to the serve.'],
+          good: ['Hip rotation is solid but could push further into the court for extra body weight behind the ball.'],
+          'needs-work': ['The hips are not rotating enough into the serve — you are arm-serving. Push the lead hip forward.']
+        },
+        _default: {
+          excellent: ['Hip rotation is a real weapon here — the lower body is doing its job.'],
+          good: ['Hip drive is workable but could contribute more to the overall power chain.'],
+          'needs-work': ['The hips are under-rotating. The lower body needs to initiate the swing, not follow it.']
+        }
+      },
+      knee: {
+        forehand: {
+          excellent: ['Great knee flexion — the legs are loaded and driving upward into the shot for explosive power.'],
+          good: ['Decent knee bend, though a bit more loading before contact would help you push up through the ball.'],
+          'needs-work': ['Your legs are too straight. Bend the knees more to load energy from the ground up — this is your biggest power source.']
+        },
+        serve: {
+          excellent: ['Excellent leg drive — the knee bend is launching you upward into the ball for maximum reach and power.'],
+          good: ['Good leg loading, but you could go a bit deeper to add more upward explosion.'],
+          'needs-work': ['The legs are barely bending on the serve. A deeper knee load will add 10-15% more power instantly.']
+        },
+        _default: {
+          excellent: ['Knee flexion is strong — the legs are contributing to balance and explosiveness.'],
+          good: ['Knee bend is functional but has room for more explosive loading.'],
+          'needs-work': ['The knees are too straight. Load the legs more — power starts from the ground up.']
+        }
+      },
+      trunk: {
+        forehand: {
+          excellent: ['Core rotation is excellent — the torso is sequencing perfectly between lower and upper body.', 'Great trunk rotation — this is the engine of your forehand power.'],
+          good: ['Trunk rotation is solid. A bit more separation between hips and shoulders would create even more whip.'],
+          'needs-work': ['The core is not rotating enough. Focus on rotating the torso as a unit after the hips — this links your lower-body power to the racquet.']
+        },
+        serve: {
+          excellent: ['Trunk rotation and tilt are both strong — the coiling and uncoiling pattern looks efficient.'],
+          good: ['Good core involvement, though more tilt would help get the racquet higher at contact.'],
+          'needs-work': ['The trunk is not rotating or tilting enough on the serve. Think about arching and then snapping forward.']
+        },
+        _default: {
+          excellent: ['Core rotation is clean — the torso is linking the kinetic chain effectively.'],
+          good: ['Trunk rotation is acceptable but could sequence better with the lower body.'],
+          'needs-work': ['The trunk is disconnected from the lower body. Focus on rotational sequencing.']
+        }
+      },
+      wrist: {
+        _default: {
+          excellent: ['Wrist lag and release timing are excellent — this is adding snap and spin to the ball.'],
+          good: ['Wrist position is decent but could release a bit later for more racquet-head speed.'],
+          'needs-work': ['The wrist is too rigid or releasing too early. Focus on a relaxed grip and letting the wrist "whip" through contact.']
+        }
+      },
+      stanceWidth: {
+        _default: {
+          excellent: ['Base width is ideal — stable enough to rotate but not so wide it slows recovery.'],
+          good: ['Stance width is functional — a minor adjustment could improve stability or rotation speed.'],
+          'needs-work': ['Your base is either too narrow (unstable) or too wide (slow rotation). Find the shoulder-width sweet spot.']
+        }
+      },
+      contactHeight: {
+        forehand: {
+          excellent: ['Hitting at the perfect height — waist level on the forehand is the power zone.'],
+          good: ['Contact height is close, but try to meet the ball a touch earlier to stay in the optimal strike zone.'],
+          'needs-work': ['You are hitting too high or too low. On the forehand, aim to contact the ball between hip and waist height.']
+        },
+        serve: {
+          excellent: ['Contact height is maximal — you are reaching full extension and hitting at the peak.'],
+          good: ['Good contact height, but reaching a bit higher would add angle and consistency.'],
+          'needs-work': ['You are contacting the ball too low on the serve. Reach up and snap at full extension.']
+        },
+        _default: {
+          excellent: ['Contact height is in the optimal window for this shot.'],
+          good: ['Contact height is close to optimal — minor adjustment would sharpen consistency.'],
+          'needs-work': ['Contact height is outside the ideal window — adjust your positioning to meet the ball at the right level.']
+        }
+      },
+      reach: {
+        _default: {
+          excellent: ['Spacing from body to contact is clean — you have room to swing without cramping.'],
+          good: ['Reach is workable but you could give yourself slightly more room at contact.'],
+          'needs-work': ['You are either too close (cramped) or too far (reaching). Find comfortable spacing where the arm can extend naturally.']
+        }
+      },
+      balance: {
+        _default: {
+          excellent: ['Balance is rock solid — your center of mass stays stable through the entire stroke.'],
+          good: ['Balance is decent but slight weight shifts are showing up. Focus on staying centered over the base.'],
+          'needs-work': ['Balance is off — you are falling during or after the shot. Widen the base and stay lower through contact.']
+        }
+      }
+    };
+
+    function getContextualFeedback(metric, shotType, status) {
+      const bank = METRIC_FEEDBACK[metric];
+      if (!bank) return null;
+      const shotBank = bank[shotType] || bank._default || {};
+      const normalizedStatus = (status === 'workable') ? 'good' : status;
+      const entries = shotBank[normalizedStatus] || (bank._default || {})[normalizedStatus];
+      if (!entries || !entries.length) return null;
+      return entries[Math.floor(Math.random() * entries.length)];
+    }
+
+    function getContextualFixAdvice(metric, shotType, delta) {
+      const direction = delta > 0 ? 'over' : 'under';
+      const abs = Math.abs(delta);
+      const severity = abs > 15 ? 'significant' : abs > 8 ? 'moderate' : 'minor';
+      const FIX_ADVICE = {
+        shoulder: {
+          over: {
+            forehand: 'Your shoulder is over-rotating past the optimal window. Focus on a controlled unit turn — stop when you feel tension, not when you see the back pocket.',
+            serve: 'Excessive shoulder rotation during the wind-up is creating timing issues. Simplify the motion and focus on a compact trophy position.',
+            _default: 'Over-rotation is causing inconsistency. Dial back the turn slightly and prioritize control over power.'
+          },
+          under: {
+            forehand: 'The shoulder is not coiling enough. In your next practice, exaggerate the turn — feel your lead shoulder point toward the net post.',
+            serve: 'More shoulder tilt is needed at the trophy position. Think about pointing the tossing shoulder higher.',
+            _default: 'Increase the shoulder turn to load more energy. Think "turn more, swing less" — let the coil generate power.'
+          }
+        },
+        elbow: {
+          over: { _default: 'The elbow is too extended — try a more compact arm path to maintain control through contact.' },
+          under: { _default: 'The elbow is too bent at contact. Focus on extending the arm forward through the ball — imagine pushing through the contact zone.' }
+        },
+        hip: {
+          over: { _default: 'The hips are rotating past the optimal window. Focus on stopping the hip turn at the ball — over-rotation pulls the shot wide.' },
+          under: { _default: 'The hips need to drive harder. Start the swing from the ground up — push off the back foot and rotate the lead hip toward the target.' }
+        },
+        knee: {
+          over: { _default: 'Your legs are absorbing too much energy — you are sitting too deep. Explode upward through the ball.' },
+          under: { _default: 'Your legs are too straight. Load the knees before the swing — think "sit and explode" to generate ground-up power.' }
+        },
+        trunk: {
+          over: { _default: 'The trunk is over-rotating. Focus on controlled core sequencing — let the hips lead, then the torso follows.' },
+          under: { _default: 'The core is not contributing enough. Rotate the torso as a single unit after the hip turn — this is where power multiplies.' }
+        },
+        wrist: {
+          over: { _default: 'The wrist is flipping too aggressively. Keep a relaxed but firm grip and let the wrist release naturally.' },
+          under: { _default: 'The wrist is too locked. Relax the grip and allow the racquet head to whip through contact.' }
+        }
+      };
+      const metricAdvice = FIX_ADVICE[metric];
+      const metricLabel = metric.replace(/([A-Z])/g, ' $1').toLowerCase();
+      const fallbackFix = `Adjust your ${metricLabel} — it is ${severity}ly ${direction} the optimal range.`;
+      const dirAdvice = metricAdvice ? (metricAdvice[direction] || metricAdvice.under || {}) : {};
+      const fix = dirAdvice[shotType] || dirAdvice._default || fallbackFix;
+
+      const WHY_MATTERS = {
+        shoulder: 'Shoulder alignment drives the kinetic chain — small errors here cascade into the rest of the swing.',
+        elbow: 'Elbow angle directly controls racquet path and determines whether power reaches the ball cleanly.',
+        hip: 'The hips are the main power generator — they transfer ground force into the upper body rotation.',
+        knee: 'Knee loading is where explosive power originates. Getting this right makes every other link work better.',
+        trunk: 'Core rotation sequences the energy from legs to arm. This is where coordination becomes power.',
+        wrist: 'Wrist action fine-tunes the racquet face at contact — too much or too little changes everything.',
+        stanceWidth: 'Stance width affects your base of support and ability to push off into the shot.',
+        contactHeight: 'Contact height determines the angle of attack and how much spin or drive you can generate.',
+        reach: 'Your reach at contact affects whether you are hitting from a position of control or compensation.',
+        balance: 'Balance is the foundation — without it, good mechanics still produce inconsistent results.'
+      };
+
+      return {
+        fix,
+        why: WHY_MATTERS[metric] || `Fixing just this one thing first will make the biggest difference in how your shots feel and land.`,
+        text: fix
+      };
+    }
 
     function refreshSetupScore() {
       const checks = Array.from(document.querySelectorAll('.setup-check'));
@@ -2789,7 +3119,7 @@
       );
       const readinessScore = Math.round((performanceKpis.readinessIndex * 0.45) + (performanceKpis.trackingReliability * 0.25) + (safeNumber(setupScore, 100) * 0.3));
       const progressContext = getProgressContext(shotType, biomechanicsScore + curve.boost);
-      const levelFloor = { beginner: 66, intermediate: 61, advanced: 58, pro: 55 }[profileContext.level] || 60;
+      const levelFloor = { beginner: 66, intermediate: 61, advanced: 58, pro: 78 }[profileContext.level] || 60;
       const rawScore = Math.round(
         (biomechanicsScore * 0.62) +
         (performanceKpis.timingConsistency * 0.14) +
@@ -3017,10 +3347,12 @@
           <div class="metrics-grid">
             ${strengths.map(st => {
               const pct = Math.min(100, Math.round(st.score || 0));
+              const fb = getContextualFeedback(st.metric, s.shotType, st.status || 'excellent')
+                || `This is a real strength — it's helping your ${s.shotType} stay consistent. Keep doing this!`;
               return `<div class="metric-card" style="border-color:rgba(0,200,83,0.28);">
                 <div class="metric-title">${formatMetricName(st.metric)}</div>
                 <div class="metric-value-large" style="color:#00c853;">${pct}%</div>
-                <div class="metric-label">This is a real strength — it's helping your ${s.shotType} stay consistent. Keep doing this!</div>
+                <div class="metric-label">${fb}</div>
               </div>`;
             }).join('')}
           </div>
@@ -3029,17 +3361,19 @@
         <!-- 3. Your #1 Fix -->
         <div class="report-section" style="border-left:4px solid var(--electric-cyan);">
           <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Your #1 Fix This Week</div>
-          ${topMetrics[0] ? `
-            <div class="metric-card">
+          ${topMetrics[0] ? (() => {
+            const fixAdvice = getContextualFixAdvice(topMetrics[0].metric, s.shotType, topMetrics[0].delta || 0);
+            const fixFb = getContextualFeedback(topMetrics[0].metric, s.shotType, 'needs-work');
+            return `<div class="metric-card">
               <div class="metric-title">${formatMetricName(topMetrics[0].metric)}</div>
               <div class="metric-value-large" style="color:#ff6d00; font-size:38px;">${Math.min(100, Math.round(topMetrics[0].score || 0))}%</div>
               <div style="display:grid; gap:10px; margin-top:12px;">
-                <div style="font-size:14px; color:var(--silver); line-height:1.65;"><strong style="color:var(--text);">What's happening:</strong> Your ${formatMetricName(topMetrics[0].metric).toLowerCase()} is the biggest opportunity to improve your ${s.shotType} right now.</div>
-                <div style="font-size:14px; color:var(--silver); line-height:1.65;"><strong style="color:var(--text);">Why it matters:</strong> Fixing just this one thing first will make the biggest difference in how your shots feel and land.</div>
-                <div style="font-size:14px; color:var(--silver); line-height:1.65;"><strong style="color:var(--text);">How to fix it:</strong> Focus on only this in your next practice. Don't try to fix everything at once — small wins build big games!</div>
+                <div style="font-size:14px; color:var(--silver); line-height:1.65;"><strong style="color:var(--text);">What's happening:</strong> ${fixFb || `Your ${formatMetricName(topMetrics[0].metric).toLowerCase()} is the biggest opportunity to improve your ${s.shotType} right now.`}</div>
+                <div style="font-size:14px; color:var(--silver); line-height:1.65;"><strong style="color:var(--text);">Why it matters:</strong> ${fixAdvice?.why || 'Fixing just this one thing first will make the biggest difference in how your shots feel and land.'}</div>
+                <div style="font-size:14px; color:var(--silver); line-height:1.65;"><strong style="color:var(--text);">How to fix it:</strong> ${fixAdvice?.fix || 'Focus on only this in your next practice. Don\'t try to fix everything at once — small wins build big games!'}</div>
               </div>
-            </div>
-          ` : `<div class="info-box">No major issues detected — great session! Keep building on this consistency.</div>`}
+            </div>`;
+          })() : `<div class="info-box">No major issues detected — great session! Keep building on this consistency.</div>`}
         </div>
 
         <!-- 4. Body Check -->
@@ -3479,16 +3813,19 @@
       return ranked.map((item, index) => {
         const current = avgAngles[item.metric];
         const optimal = bench[item.metric]?.optimal;
-        const trendCopy = item.delta > 0
-          ? `${formatMetricName(item.metric)} is running ahead of target, which can make the stroke leak early or lose shape.`
-          : item.delta < 0
-            ? `${formatMetricName(item.metric)} is coming in below target, which can hold back power and spacing.`
-            : `${formatMetricName(item.metric)} is right on target and is supporting the stroke well.`;
+        const contextFb = getContextualFeedback(item.metric, shotType, item.status || 'needs-work');
+        const fixObj = getContextualFixAdvice(item.metric, shotType, item.delta || 0);
+        const trendCopy = contextFb
+          || (item.delta > 0
+            ? `${formatMetricName(item.metric)} is running ahead of target, which can make the stroke leak early or lose shape.`
+            : item.delta < 0
+              ? `${formatMetricName(item.metric)} is coming in below target, which can hold back power and spacing.`
+              : `${formatMetricName(item.metric)} is right on target and is supporting the stroke well.`);
         return buildExpandableInsight(
           `Priority ${index + 1}: ${formatMetricName(item.metric)}`,
           Math.min(100, Math.round(item.score || 0)),
           `${trendCopy} Current average ${current ?? '-'} deg versus target ${optimal ?? '-'} deg.`,
-          `<strong>Why this matters:</strong> ${TRACKER_DEFINITIONS[item.metric] || 'This metric influences how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> In this ${shotType} sample, the deviation was <strong>${item.delta > 0 ? '+' : ''}${item.delta || 0} deg</strong>. That size is large enough to change contact quality, not just the look of the swing.<br><br><strong>What to do:</strong> Fix this before chasing speed or score. Start with the top drill recommendation, then re-test the same shot and compare the next report side by side.`,
+          `<strong>Why this matters:</strong> ${fixObj?.why || TRACKER_DEFINITIONS[item.metric] || 'This metric influences how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> In this ${shotType} sample, the deviation was <strong>${item.delta > 0 ? '+' : ''}${item.delta || 0} deg</strong>. That size is large enough to change contact quality, not just the look of the swing.<br><br><strong>What to do:</strong> ${fixObj?.fix || 'Fix this before chasing speed or score. Start with the top drill recommendation, then re-test the same shot and compare the next report side by side.'}`,
           'green'
         );
       }).join('');
@@ -3795,7 +4132,11 @@
     });
 
     document.getElementById('nextBtn3').addEventListener('click', async () => {
-      if (playerProfile.setupScore < 70) {
+      if (!playerProfile.videoFile && !playerProfile.youtubeVideoId) {
+        alert('Please upload a video file or paste a YouTube URL to continue.');
+        return;
+      }
+      if (playerProfile.videoFile && playerProfile.setupScore < 70) {
         const proceed = window.confirm('Setup score is below 70/100. Continue anyway? Low capture quality can reduce feedback accuracy.');
         if (!proceed) return;
       }
@@ -3892,14 +4233,60 @@
     function switchCaptureTab(mode) {
       document.getElementById('tabUpload').classList.toggle('active', mode === 'upload');
       document.getElementById('tabCamera').classList.toggle('active', mode === 'camera');
+      document.getElementById('tabYoutube').classList.toggle('active', mode === 'youtube');
       document.getElementById('uploadMode').style.display = mode === 'upload' ? '' : 'none';
       document.getElementById('cameraMode').style.display = mode === 'camera' ? '' : 'none';
+      document.getElementById('youtubeMode').style.display = mode === 'youtube' ? '' : 'none';
       if (mode === 'camera') initCameraCapture();
       else stopCameraCapture();
     }
 
     document.getElementById('tabUpload').addEventListener('click', () => switchCaptureTab('upload'));
     document.getElementById('tabCamera').addEventListener('click', () => switchCaptureTab('camera'));
+    document.getElementById('tabYoutube').addEventListener('click', () => switchCaptureTab('youtube'));
+
+    // ── YouTube URL handling ──
+    function parseYoutubeId(url) {
+      if (!url) return null;
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+        /^([a-zA-Z0-9_-]{11})$/
+      ];
+      for (const p of patterns) {
+        const m = url.match(p);
+        if (m) return m[1];
+      }
+      return null;
+    }
+
+    const youtubeUrlInput = document.getElementById('youtubeUrlInput');
+    let youtubeDebounce = null;
+    youtubeUrlInput.addEventListener('input', () => {
+      clearTimeout(youtubeDebounce);
+      youtubeDebounce = setTimeout(() => {
+        const videoId = parseYoutubeId(youtubeUrlInput.value.trim());
+        const preview = document.getElementById('youtubePreview');
+        const errEl = document.getElementById('youtubeError');
+        errEl.style.display = 'none';
+        if (videoId) {
+          document.getElementById('youtubeThumbnail').innerHTML =
+            `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Video thumbnail">`;
+          document.getElementById('youtubeTitle').textContent = 'YouTube video ready for analysis';
+          preview.style.display = '';
+          playerProfile.youtubeVideoId = videoId;
+          playerProfile.youtubeUrl = youtubeUrlInput.value.trim();
+          playerProfile.isCompetitorVideo = document.getElementById('youtubeIsCompetitor').checked;
+        } else if (youtubeUrlInput.value.trim()) {
+          preview.style.display = 'none';
+          errEl.textContent = 'Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)';
+          errEl.style.display = '';
+          playerProfile.youtubeVideoId = null;
+        } else {
+          preview.style.display = 'none';
+          playerProfile.youtubeVideoId = null;
+        }
+      }, 400);
+    });
 
     // ── Mobile: auto-default to Record Now + orientation guard ────────────
     const _isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
@@ -4264,6 +4651,35 @@
       const canvas = document.getElementById('poseCanvas');
       const playBtn = document.getElementById('playBtn');
       const pauseBtn = document.getElementById('pauseBtn');
+
+      // YouTube URL analysis — embed player and show info
+      if (playerProfile.youtubeVideoId && !playerProfile.videoFile) {
+        const ytId = playerProfile.youtubeVideoId;
+        const isCompetitor = playerProfile.isCompetitorVideo || false;
+        setStep(5);
+        setStatus('YouTube video analysis is a preview feature. For full biomechanics scoring, upload a local video file.', 'info');
+        const reportTarget = document.getElementById('reportTarget');
+        if (reportTarget) {
+          reportTarget.innerHTML = `
+            <div class="report-section" style="text-align:center;">
+              <div style="max-width:640px;margin:0 auto;">
+                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
+                  <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div style="margin-top:20px;padding:18px;background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.2);border-radius:14px;">
+                  <div style="font-size:14px;font-weight:800;color:var(--neon-green);margin-bottom:8px;">${isCompetitor ? '🔍 Competitor Analysis Mode' : '🎬 YouTube Video Review'}</div>
+                  <div style="font-size:13px;color:var(--silver);line-height:1.65;">
+                    ${isCompetitor
+                      ? 'Watch the competitor\'s technique above. To get a full AI biomechanics comparison, record your own version of the same shot and upload it as a local file.'
+                      : 'Watch your footage above. For full AI pose detection and scoring, download and upload the video file directly. YouTube analysis with server-side processing is coming soon.'}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }
+        return;
+      }
+
       const file = playerProfile.videoFile;
 
       // Reset

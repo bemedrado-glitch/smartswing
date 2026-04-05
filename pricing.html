@@ -1165,7 +1165,9 @@
             : PLAN_NOTES[planId];
         }
         if (buttonEl) {
-          buttonEl.href = './signup.html?plan=' + encodeURIComponent(planId) + '&interval=' + encodeURIComponent(activeBillingInterval);
+          const isLoggedIn = !!store.getCurrentUser();
+          const dest = isLoggedIn ? './checkout.html' : './signup.html';
+          buttonEl.href = dest + '?plan=' + encodeURIComponent(planId) + '&interval=' + encodeURIComponent(activeBillingInterval);
           buttonEl.dataset.billingInterval = activeBillingInterval;
         }
         if (copyEl) {
@@ -1181,11 +1183,22 @@
 
     document.getElementById('lessonSpendRange')?.addEventListener('input', renderRoiCalculator);
 
+    // ── Redirect logged-in users' free button to dashboard ──
+    function updateFreeButtonForLoggedIn() {
+      const isLoggedIn = !!store.getCurrentUser();
+      const freeBtn = document.querySelector('[data-plan-select="free"]');
+      if (freeBtn && isLoggedIn) {
+        freeBtn.href = './dashboard.html';
+        freeBtn.textContent = 'Go to Dashboard';
+      }
+    }
+
     // ── Init ──
     renderStatus();
     renderBillingInterval(activeBillingInterval);
     renderLaunchWindow();
     renderRoiCalculator();
+    updateFreeButtonForLoggedIn();
   </script>
 </body>
 </html>
