@@ -302,7 +302,7 @@
         <a href="./blog.html">Blog</a>
       </div>
       <div class="nav-cta">
-        <a href="./cart.html" class="btn-ghost" id="backToCart" style="padding:10px 20px;font-size:14px;">Back to cart</a>
+        <a href="./pricing.html" class="btn-ghost" id="backToCart" style="padding:10px 20px;font-size:14px;">Back to pricing</a>
         <a href="./login.html" class="btn-ghost" style="padding:10px 20px;font-size:14px;">Sign In</a>
         <a href="./signup.html" class="btn-primary" style="padding:10px 20px;font-size:14px;">Get Started Free</a>
       </div>
@@ -558,7 +558,7 @@
 
     const checkoutFlow = document.getElementById('checkoutFlow');
     const checkoutHeading = document.getElementById('checkoutHeading');
-    document.getElementById('backToCart').href = `./cart.html?plan=${encodeURIComponent(planId)}&interval=${encodeURIComponent(billingInterval)}`;
+    document.getElementById('backToCart').href = `./pricing.html`;
 
     function renderAccountCard() {
       const accountLabel = document.getElementById('accountLabel');
@@ -636,7 +636,7 @@
       document.querySelectorAll('#billingToggle [data-interval]').forEach((button) => {
         button.classList.toggle('active', button.dataset.interval === billingInterval);
       });
-      document.getElementById('backToCart').href = `./cart.html?plan=${encodeURIComponent(planId)}&interval=${encodeURIComponent(billingInterval)}`;
+      document.getElementById('backToCart').href = `./pricing.html`;
     }
 
     document.querySelectorAll('#billingToggle [data-interval]').forEach((button) => {

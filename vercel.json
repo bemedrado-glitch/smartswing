@@ -101,6 +101,11 @@
       "source": "/smartswing-ultimate.html",
       "destination": "/",
       "permanent": false
+    },
+    {
+      "source": "/cart.html",
+      "destination": "/pricing.html",
+      "permanent": false
     }
   ],
   "rewrites": [
