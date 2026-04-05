@@ -34,13 +34,13 @@
       monthlyPrice: 0,
       yearlyPrice: 0,
       monthlyReviews: 2,
-      canSaveReport: false,
+      canSaveReport: true,
       canPrintReport: false,
       hasDrillLibrary: false,
       hasTacticLibrary: false,
       canConnectCoaches: false,
       canConnectPlayers: false,
-      perks: ['1 analysis report per month', 'No report save/export']
+      perks: ['2 analysis reports per month', 'Dashboard history tracking']
     },
     starter: {
       id: 'starter',

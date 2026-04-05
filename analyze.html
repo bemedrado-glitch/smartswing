@@ -727,9 +727,251 @@
         display: none !important;
       }
     }
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
+  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; mix-blend-mode: screen; }
+.brand-logo { height: 56px; width: auto; }
+.footer-logo { height: 44px; width: auto; }
+
+    /* ── Match Tracker ────────────────────────────────────────────────── */
+    .mt-panel {
+      background: rgba(13,27,42,.9);
+      border: 1px solid rgba(57,255,20,.18);
+      border-radius: 20px;
+      padding: 20px 22px;
+      backdrop-filter: blur(8px);
+    }
+    .mt-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--neon-green);
+    }
+    /* Scoreboard */
+    .mt-scoreboard { padding: 8px 0; }
+    .mt-names-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .mt-name-cell {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mt-name-input {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid rgba(57,255,20,.3);
+      color: var(--silver);
+      font: 800 18px 'Sora', 'DM Sans', sans-serif;
+      outline: none;
+      width: 100%;
+      padding: 2px 4px;
+      transition: border-color .2s;
+    }
+    .mt-name-input:focus { border-bottom-color: var(--neon-green); }
+    .mt-name-sep {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .mt-serve-dot {
+      font-size: 10px;
+      color: var(--neon-green);
+      flex-shrink: 0;
+      transition: opacity .2s;
+    }
+    /* Sets */
+    .mt-sets-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .mt-set-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .mt-set-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+    .mt-set-scores {
+      display: flex;
+      gap: 12px;
+    }
+    .mt-set-score {
+      font-family: 'Sora', 'DM Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--silver);
+      line-height: 1;
+      min-width: 28px;
+      text-align: center;
+    }
+    .mt-set-score.leading { color: var(--neon-green); }
+    .mt-set-sep {
+      font-size: 24px;
+      font-weight: 400;
+      color: rgba(255,255,255,.2);
+      align-self: center;
+    }
+    /* Current game */
+    .mt-game-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .mt-game-score {
+      font-family: 'Sora', 'DM Sans', sans-serif;
+      font-size: 56px;
+      font-weight: 900;
+      color: var(--silver);
+      line-height: 1;
+      min-width: 80px;
+      text-align: center;
+      transition: color .2s;
+    }
+    .mt-game-score.leading { color: var(--neon-green); }
+    .mt-game-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+    /* Buttons */
+    .mt-pill-btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: var(--silver);
+      font: 700 12px 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .mt-pill-btn:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.3); }
+    .mt-pill-btn.mt-pill-primary { background: rgba(57,255,20,.15); border-color: rgba(57,255,20,.4); color: var(--neon-green); }
+    .mt-pill-btn.mt-pill-primary:hover { background: rgba(57,255,20,.25); }
+    .mt-pill-btn.mt-pill-danger { background: rgba(255,62,108,.1); border-color: rgba(255,62,108,.3); color: #ff3e6c; }
+    .mt-pill-btn.mt-pill-danger:hover { background: rgba(255,62,108,.2); }
+    .mt-btn-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 8px;
+    }
+    .mt-btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .mt-point-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      font: 700 13px 'DM Sans', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all .15s ease;
+      min-height: 44px;
+    }
+    .mt-winner {
+      background: rgba(57,255,20,.1);
+      border-color: rgba(57,255,20,.3);
+      color: var(--neon-green);
+    }
+    .mt-winner:hover { background: rgba(57,255,20,.22); border-color: rgba(57,255,20,.6); transform: translateY(-2px); }
+    .mt-error {
+      background: rgba(255,62,108,.1);
+      border-color: rgba(255,62,108,.25);
+      color: #ff6b8a;
+    }
+    .mt-error:hover { background: rgba(255,62,108,.2); border-color: rgba(255,62,108,.5); transform: translateY(-2px); }
+    .mt-shot-tag {
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--gray);
+      font: 700 12px 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all .15s;
+      min-height: 36px;
+    }
+    .mt-shot-tag:hover { background: rgba(255,216,77,.1); border-color: rgba(255,216,77,.35); color: var(--gold); }
+    .mt-shot-tag.selected { background: rgba(255,216,77,.15); border-color: rgba(255,216,77,.5); color: var(--gold); }
+    /* Live stats */
+    .mt-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 6px;
+    }
+    .mt-stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.03);
+      border-radius: 8px;
+    }
+    .mt-stat-label { font-size: 12px; color: var(--muted); }
+    .mt-stat-val { font-size: 14px; font-weight: 800; color: var(--neon-green); }
+    /* Post-match */
+    .mt-post-panel { border-color: rgba(57,255,20,.28); }
+    .mt-final-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin: 10px 0;
+    }
+    .mt-final-name { font-size: 16px; font-weight: 700; color: var(--silver); }
+    .mt-final-score { font-family: 'Sora', sans-serif; font-size: 40px; font-weight: 900; color: var(--neon-green); }
+    .mt-compare-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 320px; }
+    .mt-compare-table th { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .mt-compare-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--silver); }
+    .mt-compare-table td:nth-child(2), .mt-compare-table td:nth-child(3) { text-align: center; font-weight: 700; }
+    .mt-compare-table tr:last-child td { border-bottom: none; }
+    .mt-ai-insight {
+      padding: 16px 18px;
+      background: linear-gradient(135deg, rgba(57,255,20,.06), rgba(0,212,170,.05));
+      border: 1px solid rgba(57,255,20,.2);
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--silver);
+    }
+    .mt-ai-insight-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--neon-green); margin-bottom: 10px; }
+
+    @media (max-width: 768px) {
+      .mt-game-score { font-size: 40px; min-width: 60px; }
+      .mt-set-score { font-size: 24px; }
+      .mt-stats-grid { grid-template-columns: 1fr 1fr; }
+      .mt-point-btn { padding: 10px 12px; font-size: 12px; }
+    }
+    @media (max-width: 480px) {
+      .mt-game-score { font-size: 34px; min-width: 50px; }
+      .mt-set-score { font-size: 20px; }
+      .mt-name-input { font-size: 15px; }
+      .mt-stats-grid { grid-template-columns: 1fr; }
+      .mt-panel { padding: 14px 14px; }
+      .mt-point-btn { min-height: 48px; font-size: 13px; }
+      .mt-shot-tag { min-height: 40px; }
+    }
     </style>
   <!-- Vercel Web Analytics -->
   <script src="./analytics.js"></script>
@@ -936,6 +1178,7 @@
                 <option value="match-readiness">Match readiness</option>
                 <option value="coach-review">Coach review</option>
                 <option value="injury-safe-rebuild">Injury-safe rebuild</option>
+                <option value="match-mode">Match Mode — Live Score &amp; Shot Tracker</option>
               </select>
             </div>
             <div>
@@ -1023,6 +1266,153 @@
       <!-- Step 5: Report -->
       <div class="step-content" data-step="5">
         <div id="reportContent"></div>
+
+        <!-- ── Match Tracker (shown when sessionMode = match-mode) ────────── -->
+        <div id="matchTracker" style="display:none; margin-top:32px;">
+
+          <!-- Header bar -->
+          <div class="mt-panel" style="padding:20px 24px 16px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+              <div>
+                <div class="mt-label" style="font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--neon-green); font-weight:800; margin-bottom:4px;">Match Mode</div>
+                <div style="font-size:22px; font-weight:900; color:var(--silver);">Live Match Tracker</div>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="mtUndoBtn" class="mt-pill-btn" title="Undo last point">&#8630; Undo</button>
+                <button id="mtEndMatchBtn" class="mt-pill-btn mt-pill-danger">End Match</button>
+                <button id="mtResetBtn" class="mt-pill-btn">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scoreboard -->
+          <div class="mt-panel" style="margin-bottom:16px;">
+            <div class="mt-scoreboard">
+              <!-- Player names row -->
+              <div class="mt-names-row">
+                <div class="mt-name-cell">
+                  <span id="mtServingLeft" class="mt-serve-dot" title="Serving">&#9679;</span>
+                  <input id="mtNameLeft" class="mt-name-input" value="You" aria-label="Your name">
+                </div>
+                <div class="mt-name-sep">vs</div>
+                <div class="mt-name-cell" style="justify-content:flex-end;">
+                  <input id="mtNameRight" class="mt-name-input" value="Opponent" style="text-align:right;" aria-label="Opponent name">
+                  <span id="mtServingRight" class="mt-serve-dot" title="Serving" style="opacity:0;">&#9679;</span>
+                </div>
+              </div>
+
+              <!-- Set scores -->
+              <div class="mt-sets-row" id="mtSetsRow">
+                <!-- Populated by JS -->
+              </div>
+
+              <!-- Game score -->
+              <div class="mt-game-row">
+                <div id="mtGameLeft" class="mt-game-score">0</div>
+                <div class="mt-game-label">GAME</div>
+                <div id="mtGameRight" class="mt-game-score">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Point logger -->
+          <div class="mt-panel" style="margin-bottom:16px;" id="mtPointLogger">
+            <div class="mt-label" style="margin-bottom:12px;">Log point won by <strong id="mtLogByName" style="color:var(--neon-green);">You</strong></div>
+            <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; align-items:center;">
+              <button id="mtSwapServerBtn" class="mt-pill-btn" style="font-size:11px;">&#8646; Swap logger</button>
+              <span style="font-size:12px; color:var(--muted);">— then pick what happened:</span>
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div class="mt-btn-group-label">Winners</div>
+              <div class="mt-btn-row" id="mtWinnerBtns">
+                <button class="mt-point-btn mt-winner" data-type="ace">Ace</button>
+                <button class="mt-point-btn mt-winner" data-type="winner-fh">Winner FH</button>
+                <button class="mt-point-btn mt-winner" data-type="winner-bh">Winner BH</button>
+                <button class="mt-point-btn mt-winner" data-type="volley-winner">Volley Win</button>
+                <button class="mt-point-btn mt-winner" data-type="drop-shot-winner">Drop Shot Win</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px;">
+              <div class="mt-btn-group-label">Errors (opponent wins point)</div>
+              <div class="mt-btn-row" id="mtErrorBtns">
+                <button class="mt-point-btn mt-error" data-type="ue-fh">UFE FH</button>
+                <button class="mt-point-btn mt-error" data-type="ue-bh">UFE BH</button>
+                <button class="mt-point-btn mt-error" data-type="forced-error">Forced Err</button>
+                <button class="mt-point-btn mt-error" data-type="double-fault">Dbl Fault</button>
+              </div>
+            </div>
+
+            <!-- Shot tag (optional) -->
+            <div style="margin-top:4px;">
+              <div class="mt-btn-group-label">Tag shot type <span style="font-weight:400; opacity:.6;">(optional)</span></div>
+              <div class="mt-btn-row" id="mtShotTagBtns">
+                <button class="mt-shot-tag" data-tag="forehand">FH</button>
+                <button class="mt-shot-tag" data-tag="backhand">BH</button>
+                <button class="mt-shot-tag" data-tag="serve">Serve</button>
+                <button class="mt-shot-tag" data-tag="return">Return</button>
+                <button class="mt-shot-tag" data-tag="volley">Volley</button>
+                <button class="mt-shot-tag" data-tag="overhead">OH</button>
+                <button class="mt-shot-tag" data-tag="drop-shot">Drop</button>
+                <button class="mt-shot-tag" data-tag="lob">Lob</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live stats -->
+          <div class="mt-panel" style="margin-bottom:16px;">
+            <div class="mt-label" style="margin-bottom:14px;">Live Stats</div>
+            <div class="mt-stats-grid" id="mtStatsGrid">
+              <div class="mt-stat-row"><span class="mt-stat-label">1st Serve %</span><span id="mts1stServe" class="mt-stat-val">—</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Aces</span><span id="mtsAces" class="mt-stat-val">0</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Double Faults</span><span id="mtsDblFaults" class="mt-stat-val">0</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Winners</span><span id="mtsWinners" class="mt-stat-val">0</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Unforced Errors</span><span id="mtsUFE" class="mt-stat-val">0</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Pts Won on Serve</span><span id="mtsPtsServe" class="mt-stat-val">—</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Pts Won on Return</span><span id="mtsPtsReturn" class="mt-stat-val">—</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Break Pts Saved</span><span id="mtsBPSaved" class="mt-stat-val">—</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Break Pts Converted</span><span id="mtsBPConv" class="mt-stat-val">—</span></div>
+              <div class="mt-stat-row"><span class="mt-stat-label">Total Points</span><span id="mtsTotalPts" class="mt-stat-val">0</span></div>
+            </div>
+          </div>
+
+          <!-- Post-match intelligence report (hidden until match ends) -->
+          <div id="mtPostMatch" style="display:none;">
+            <div class="mt-panel mt-post-panel">
+              <div class="mt-label" style="font-size:16px; margin-bottom:16px;">Post-Match Intelligence Report</div>
+
+              <!-- Final score summary -->
+              <div id="mtFinalScoreDisplay" style="margin-bottom:20px; text-align:center;"></div>
+
+              <!-- Side-by-side stats -->
+              <div class="mt-label" style="margin-bottom:10px;">Key Stats Comparison</div>
+              <div id="mtCompareTable" style="margin-bottom:20px; overflow-x:auto;"></div>
+
+              <!-- Momentum graph -->
+              <div class="mt-label" style="margin-bottom:10px;">Momentum Graph</div>
+              <div style="background:rgba(0,0,0,.3); border-radius:12px; padding:12px; margin-bottom:20px; overflow:hidden;">
+                <svg id="mtMomentumSvg" width="100%" height="100" viewBox="0 0 600 100" preserveAspectRatio="xMidYMid meet" style="display:block;"></svg>
+                <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:var(--muted);">
+                  <span id="mtMomentumLeftLabel">You</span>
+                  <span style="opacity:.5;">← momentum →</span>
+                  <span id="mtMomentumRightLabel">Opponent</span>
+                </div>
+              </div>
+
+              <!-- AI Insight -->
+              <div id="mtAiInsight" class="mt-ai-insight"></div>
+
+              <!-- Export / share -->
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
+                <button id="mtCopyReportBtn" class="mt-pill-btn">Copy Match Summary</button>
+                <button id="mtNewMatchBtn" class="mt-pill-btn mt-pill-primary">New Match</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- /matchTracker -->
 
         <!-- Share with coach card -->
         <div id="shareRow" style="display:none;margin-bottom:20px;background:rgba(22,22,26,.95);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px 24px;">
@@ -1112,7 +1502,17 @@
     };
 
     const store = window.SmartSwingStore;
-    const currentUser = store ? store.getCurrentUser() : null;
+    let currentUser = store ? store.getCurrentUser() : null;
+
+    // Re-check auth periodically — session may restore after page load
+    if (store && !currentUser) {
+      const _authCheck = setInterval(() => {
+        const u = store.getCurrentUser();
+        if (u) { currentUser = u; clearInterval(_authCheck); }
+      }, 1000);
+      // Stop checking after 30s
+      setTimeout(() => clearInterval(_authCheck), 30000);
+    }
     let cachedPlanState = null;
 
     let currentStep = 1;
@@ -3472,6 +3872,14 @@
         </details>
       `;
       document.getElementById('reportContent').innerHTML = html;
+
+      // Store report data for match tracker AI insight
+      window._lastSmartSwingReport = {
+        overallScore: s.score,
+        shotType: s.shotType,
+        grade: s.grade,
+        topIssues: (s.metricComparisons || []).filter(m => m.score < 60).map(m => m.metric),
+      };
     }
 
     function buildExpandableInsight(title, score, summary, details, tone = 'cyan') {
@@ -4046,6 +4454,16 @@
     document.getElementById('sessionMode').addEventListener('change', (event) => {
       playerProfile.sessionMode = event.target.value;
       renderCaptureGuidance();
+      // Show/hide match tracker based on mode
+      if (event.target.value === 'match-mode') {
+        if (typeof window._matchTrackerShow === 'function' && currentStep === 5) {
+          window._matchTrackerShow();
+        }
+      } else {
+        if (typeof window._matchTrackerHide === 'function') {
+          window._matchTrackerHide();
+        }
+      }
     });
 
     document.getElementById('sessionGoal').addEventListener('input', (event) => {
@@ -4080,13 +4498,13 @@
 
     function setStep(step) {
       currentStep = step;
-      
+
       document.querySelectorAll('.wizard-step').forEach(el => {
         const stepNum = parseInt(el.dataset.step);
         el.classList.remove('active', 'completed');
         if (stepNum === step) el.classList.add('active');
         if (stepNum < step) el.classList.add('completed');
-        
+
         const circle = el.querySelector('.step-circle');
         circle.textContent = stepNum < step ? 'OK' : stepNum;
       });
@@ -4094,6 +4512,13 @@
       document.querySelectorAll('.step-content').forEach(el => {
         el.classList.toggle('active', parseInt(el.dataset.step) === step);
       });
+
+      // Show match tracker when entering step 5 in match-mode
+      if (step === 5 && playerProfile.sessionMode === 'match-mode') {
+        if (typeof window._matchTrackerShow === 'function') window._matchTrackerShow();
+      } else if (step !== 5) {
+        if (typeof window._matchTrackerHide === 'function') window._matchTrackerHide();
+      }
     }
 
     document.getElementById('nextBtn1').addEventListener('click', () => {
@@ -4895,14 +5320,19 @@
       lastPersistedSignature = signature;
       localStorage.setItem('smartswing_last_session', JSON.stringify(session));
 
+      // Re-check auth — session may have restored since page load
+      if (store && !currentUser) {
+        currentUser = store.getCurrentUser();
+      }
+
       if (!store || !currentUser) {
+        console.warn('[SmartSwing] No store or user — report saved to localStorage only.');
         return null;
       }
 
-      if (!store.canSaveReport()) {
-        return null;
-      }
-
+      // Always save to store (localStorage + cloud sync) regardless of plan.
+      // canSaveReport() gates cloud storage limits, but we still want local persistence
+      // so the dashboard can display history for all plan tiers.
       return store.saveAssessment({
         overallScore: session.summary.score,
         grade: session.summary.grade,
@@ -4933,9 +5363,9 @@
     }
 
     document.getElementById('saveBtn').addEventListener('click', () => {
-      if (store && currentUser && !store.canSaveReport()) {
-        openUpgradeModal(null);
-        return;
+      // Re-check auth in case session restored after page load
+      if (store && !currentUser) {
+        currentUser = store.getCurrentUser();
       }
       console.log('Save clicked, frames:', analysisData.frames.length);
       console.log('Angles data:', analysisData.angles);
@@ -5086,6 +5516,662 @@
         initPoseEngine().catch(() => null);
       });
     }
+
+    // ── Match Tracker ─────────────────────────────────────────────────────
+    (function initMatchTracker() {
+      // ── State ──────────────────────────────────────────────────────────
+      const POINT_VALUES = [0, 15, 30, 40];
+
+      const mt = {
+        leftName: 'You',
+        rightName: 'Opponent',
+        // server: 'left' | 'right'
+        server: 'left',
+        // logBy: whose winner/error buttons log for
+        logBy: 'left',
+        // Active selected shot tag
+        shotTag: null,
+        // Point log: array of { winner:'left'|'right', type, shot, pointIndex, isBreakPoint, isTiebreak }
+        log: [],
+        // scores: { sets: [{left,right,tiebreak:{left,right}}], currentGame:{left,right}, currentSet:{left,right}, match:{left,right} }
+        sets: [],
+        currentGame: { left: 0, right: 0 },    // index into POINT_VALUES (or tiebreak raw)
+        currentSet: { left: 0, right: 0 },
+        match: { left: 0, right: 0 },
+        inTiebreak: false,
+        tiebreakScore: { left: 0, right: 0 },
+        tiebreakServer: 'left',
+        matchOver: false,
+        pointIndex: 0,  // total points played
+        // Stats
+        stats: {
+          aces: 0, doubleFaults: 0,
+          winners: 0, ufErrors: 0, forcedErrors: 0,
+          firstServeIn: 0, firstServeTotal: 0,
+          secondServeIn: 0, secondServeTotal: 0,
+          ptsWonServe: { left: 0, right: 0 },
+          ptsServe: { left: 0, right: 0 },
+          ptsWonReturn: { left: 0, right: 0 },
+          ptsReturn: { left: 0, right: 0 },
+          breakPtsFaced: { left: 0, right: 0 },
+          breakPtsSaved: { left: 0, right: 0 },
+          breakPtsConv: { left: 0, right: 0 },
+        },
+        // Momentum: array of +1 (left) or -1 (right) per point
+        momentum: [],
+        // Final score string
+        finalScore: '',
+      };
+
+      // Track report data (from biomechanics analysis) for AI insight
+      let bioData = null;
+
+      // ── Helpers ────────────────────────────────────────────────────────
+      function gameDisplay(idx, isTiebreak, tbScore) {
+        if (isTiebreak) return String(tbScore ?? 0);
+        return ['0','15','30','40','Ad'][idx] ?? '?';
+      }
+
+      function isDeuce() {
+        return !mt.inTiebreak && mt.currentGame.left >= 3 && mt.currentGame.right >= 3;
+      }
+
+      function isAdvantage() {
+        if (!isDeuce()) return null;
+        const diff = mt.currentGame.left - mt.currentGame.right;
+        if (diff > 0) return 'left';
+        if (diff < 0) return 'right';
+        return null; // exactly deuce
+      }
+
+      function isBreakPoint() {
+        // Break point: receiver is one point away from winning the game
+        const receiver = mt.server === 'left' ? 'right' : 'left';
+        const rScore = mt.currentGame[receiver];
+        const sScore = mt.currentGame[mt.server];
+        if (mt.inTiebreak) {
+          const tR = mt.tiebreakScore[receiver];
+          const tS = mt.tiebreakScore[mt.server];
+          return (tR >= 6 && tR > tS) || (tR === 6 && tS === 6);
+        }
+        // At deuce or advantage receiver
+        if (rScore >= 3 && rScore > sScore) return true; // advantage receiver = break point
+        if (rScore === 3 && sScore < 3) return true;     // 40-love/15/30
+        return false;
+      }
+
+      function gameWinner() {
+        if (mt.inTiebreak) {
+          const l = mt.tiebreakScore.left;
+          const r = mt.tiebreakScore.right;
+          if (l >= 7 && l - r >= 2) return 'left';
+          if (r >= 7 && r - l >= 2) return 'right';
+          return null;
+        }
+        const l = mt.currentGame.left;
+        const r = mt.currentGame.right;
+        // Deuce / advantage rules
+        if (l >= 4 && l - r >= 2) return 'left';
+        if (r >= 4 && r - l >= 2) return 'right';
+        return null;
+      }
+
+      function setWinner() {
+        const l = mt.currentSet.left;
+        const r = mt.currentSet.right;
+        if (l === 6 && r === 6) return null; // tiebreak pending
+        if (l >= 6 && l - r >= 2) return 'left';
+        if (r >= 6 && r - l >= 2) return 'right';
+        if (l === 7) return 'left';  // tiebreak just won
+        if (r === 7) return 'right';
+        return null;
+      }
+
+      function matchWinner() {
+        if (mt.match.left >= 2) return 'left';
+        if (mt.match.right >= 2) return 'right';
+        return null;
+      }
+
+      function opposite(side) { return side === 'left' ? 'right' : 'left'; }
+
+      function rotateServer() {
+        mt.server = opposite(mt.server);
+      }
+
+      // ── Score a point ──────────────────────────────────────────────────
+      function scorePoint(winner, pointType, shotTag) {
+        if (mt.matchOver) return;
+
+        const isBP = isBreakPoint();
+        // Track break point faced by server
+        if (isBP) mt.stats.breakPtsFaced[mt.server]++;
+
+        mt.log.push({
+          winner, type: pointType, shot: shotTag,
+          pointIndex: mt.pointIndex,
+          isBreakPoint: isBP,
+          isTiebreak: mt.inTiebreak,
+          gameScoreLeft: mt.inTiebreak ? mt.tiebreakScore.left : mt.currentGame.left,
+          gameScoreRight: mt.inTiebreak ? mt.tiebreakScore.right : mt.currentGame.right,
+          setScoreLeft: mt.currentSet.left,
+          setScoreRight: mt.currentSet.right,
+        });
+
+        mt.pointIndex++;
+        mt.momentum.push(winner === 'left' ? 1 : -1);
+
+        // Stats
+        const loser = opposite(winner);
+        if (pointType === 'ace') { mt.stats.aces++; mt.stats.winners++; mt.stats.firstServeIn++; mt.stats.firstServeTotal++; }
+        else if (pointType === 'winner-fh' || pointType === 'winner-bh' || pointType === 'volley-winner' || pointType === 'drop-shot-winner') { mt.stats.winners++; }
+        else if (pointType === 'ue-fh' || pointType === 'ue-bh') { mt.stats.ufErrors++; }
+        else if (pointType === 'forced-error') { mt.stats.forcedErrors++; }
+        else if (pointType === 'double-fault') { mt.stats.doubleFaults++; mt.stats.firstServeTotal++; mt.stats.secondServeTotal++; }
+
+        // Serve/return stats
+        const isServePt = winner === mt.server;
+        mt.stats.ptsServe[mt.server]++;
+        mt.stats.ptsReturn[opposite(mt.server)]++;
+        if (winner === mt.server) mt.stats.ptsWonServe[mt.server]++;
+        else mt.stats.ptsWonReturn[opposite(mt.server)]++;
+
+        // Break point save/convert
+        if (isBP) {
+          if (winner === mt.server) mt.stats.breakPtsSaved[mt.server]++;
+          else mt.stats.breakPtsConv[opposite(mt.server)]++;
+        }
+
+        // Advance game score
+        if (mt.inTiebreak) {
+          mt.tiebreakScore[winner]++;
+          // Alternate serve every 2 points in tiebreak (except first)
+          const totalTbPts = mt.tiebreakScore.left + mt.tiebreakScore.right;
+          if (totalTbPts === 1) { mt.server = opposite(mt.tiebreakServer); }
+          else if (totalTbPts > 1 && totalTbPts % 2 === 1) { mt.server = opposite(mt.server); }
+        } else {
+          mt.currentGame[winner]++;
+        }
+
+        const gWinner = gameWinner();
+        if (gWinner) {
+          // Game over
+          mt.currentSet[gWinner]++;
+
+          // Check for set entry into tiebreak
+          const needTiebreak = mt.currentSet.left === 6 && mt.currentSet.right === 6 && !mt.inTiebreak;
+
+          // Reset game
+          mt.currentGame = { left: 0, right: 0 };
+          mt.tiebreakScore = { left: 0, right: 0 };
+
+          if (needTiebreak) {
+            mt.inTiebreak = true;
+            mt.tiebreakServer = mt.server; // server of the tiebreak
+          } else {
+            mt.inTiebreak = false;
+            const sWinner = setWinner();
+            if (sWinner) {
+              mt.sets.push({ left: mt.currentSet.left, right: mt.currentSet.right, tiebreak: null });
+              mt.currentSet = { left: 0, right: 0 };
+              mt.match[sWinner]++;
+            }
+            // After each game (not tiebreak) rotate server
+            if (!needTiebreak) rotateServer();
+          }
+
+          if (mt.inTiebreak && needTiebreak) {
+            // After tiebreak completes, rotate server
+          } else if (!needTiebreak) {
+            // server already rotated above
+          }
+
+          const mWinner = matchWinner();
+          if (mWinner) {
+            mt.matchOver = true;
+            mt.finalScore = buildFinalScore();
+            renderMatchTracker();
+            showPostMatch();
+            return;
+          }
+        }
+
+        renderMatchTracker();
+      }
+
+      function undoLastPoint() {
+        if (mt.log.length === 0 || mt.matchOver) return;
+        mt.log.pop();
+        mt.momentum.pop();
+        mt.pointIndex = Math.max(0, mt.pointIndex - 1);
+        // Rebuild state from log
+        rebuildFromLog();
+        renderMatchTracker();
+      }
+
+      function rebuildFromLog() {
+        // Reset state
+        mt.currentGame = { left: 0, right: 0 };
+        mt.currentSet = { left: 0, right: 0 };
+        mt.match = { left: 0, right: 0 };
+        mt.sets = [];
+        mt.inTiebreak = false;
+        mt.tiebreakScore = { left: 0, right: 0 };
+        mt.tiebreakServer = 'left';
+        mt.matchOver = false;
+        mt.server = 'left';
+        mt.pointIndex = 0;
+        mt.momentum = [];
+        mt.stats = {
+          aces: 0, doubleFaults: 0, winners: 0, ufErrors: 0, forcedErrors: 0,
+          firstServeIn: 0, firstServeTotal: 0,
+          secondServeIn: 0, secondServeTotal: 0,
+          ptsWonServe: { left: 0, right: 0 }, ptsServe: { left: 0, right: 0 },
+          ptsWonReturn: { left: 0, right: 0 }, ptsReturn: { left: 0, right: 0 },
+          breakPtsFaced: { left: 0, right: 0 }, breakPtsSaved: { left: 0, right: 0 }, breakPtsConv: { left: 0, right: 0 },
+        };
+        const savedLog = [...mt.log];
+        mt.log = [];
+        savedLog.forEach(entry => {
+          scorePoint(entry.winner, entry.type, entry.shot);
+        });
+      }
+
+      function resetMatch() {
+        mt.leftName = document.getElementById('mtNameLeft')?.value || 'You';
+        mt.rightName = document.getElementById('mtNameRight')?.value || 'Opponent';
+        mt.server = 'left';
+        mt.logBy = 'left';
+        mt.shotTag = null;
+        mt.log = [];
+        mt.currentGame = { left: 0, right: 0 };
+        mt.currentSet = { left: 0, right: 0 };
+        mt.match = { left: 0, right: 0 };
+        mt.sets = [];
+        mt.inTiebreak = false;
+        mt.tiebreakScore = { left: 0, right: 0 };
+        mt.tiebreakServer = 'left';
+        mt.matchOver = false;
+        mt.pointIndex = 0;
+        mt.momentum = [];
+        mt.stats = {
+          aces: 0, doubleFaults: 0, winners: 0, ufErrors: 0, forcedErrors: 0,
+          firstServeIn: 0, firstServeTotal: 0,
+          secondServeIn: 0, secondServeTotal: 0,
+          ptsWonServe: { left: 0, right: 0 }, ptsServe: { left: 0, right: 0 },
+          ptsWonReturn: { left: 0, right: 0 }, ptsReturn: { left: 0, right: 0 },
+          breakPtsFaced: { left: 0, right: 0 }, breakPtsSaved: { left: 0, right: 0 }, breakPtsConv: { left: 0, right: 0 },
+        };
+        mt.finalScore = '';
+        document.getElementById('mtPostMatch').style.display = 'none';
+        document.getElementById('mtPointLogger').style.display = '';
+        clearShotTags();
+        renderMatchTracker();
+      }
+
+      function buildFinalScore() {
+        return mt.sets.map(s => `${s.left}-${s.right}`).join(', ');
+      }
+
+      // ── Render ─────────────────────────────────────────────────────────
+      function renderMatchTracker() {
+        renderServeIndicators();
+        renderSets();
+        renderGameScore();
+        renderStats();
+      }
+
+      function renderServeIndicators() {
+        const dotLeft = document.getElementById('mtServingLeft');
+        const dotRight = document.getElementById('mtServingRight');
+        if (!dotLeft || !dotRight) return;
+        if (mt.server === 'left') {
+          dotLeft.style.opacity = '1';
+          dotRight.style.opacity = '0';
+        } else {
+          dotLeft.style.opacity = '0';
+          dotRight.style.opacity = '1';
+        }
+      }
+
+      function renderSets() {
+        const row = document.getElementById('mtSetsRow');
+        if (!row) return;
+        const allSets = [...mt.sets, { left: mt.currentSet.left, right: mt.currentSet.right, current: true }];
+        row.innerHTML = allSets.map((s, i) => {
+          const isCurrent = !!s.current;
+          const lLead = s.left > s.right;
+          const rLead = s.right > s.left;
+          return `<div class="mt-set-cell">
+            <div class="mt-set-label">${isCurrent ? 'Current' : `Set ${i + 1}`}</div>
+            <div class="mt-set-scores">
+              <span class="mt-set-score ${lLead ? 'leading' : ''}">${s.left}</span>
+              <span class="mt-set-sep">-</span>
+              <span class="mt-set-score ${rLead ? 'leading' : ''}">${s.right}</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      function renderGameScore() {
+        const lEl = document.getElementById('mtGameLeft');
+        const rEl = document.getElementById('mtGameRight');
+        if (!lEl || !rEl) return;
+        const adv = isAdvantage();
+        if (mt.inTiebreak) {
+          lEl.textContent = mt.tiebreakScore.left;
+          rEl.textContent = mt.tiebreakScore.right;
+          lEl.classList.toggle('leading', mt.tiebreakScore.left > mt.tiebreakScore.right);
+          rEl.classList.toggle('leading', mt.tiebreakScore.right > mt.tiebreakScore.left);
+        } else if (adv) {
+          lEl.textContent = adv === 'left' ? 'Ad' : '40';
+          rEl.textContent = adv === 'right' ? 'Ad' : '40';
+          lEl.classList.toggle('leading', adv === 'left');
+          rEl.classList.toggle('leading', adv === 'right');
+        } else {
+          lEl.textContent = POINT_VALUES[mt.currentGame.left] ?? '0';
+          rEl.textContent = POINT_VALUES[mt.currentGame.right] ?? '0';
+          lEl.classList.toggle('leading', mt.currentGame.left > mt.currentGame.right);
+          rEl.classList.toggle('leading', mt.currentGame.right > mt.currentGame.left);
+        }
+      }
+
+      function pct(num, den) {
+        if (!den) return '—';
+        return Math.round(100 * num / den) + '%';
+      }
+
+      function renderStats() {
+        const s = mt.stats;
+        const totalPts = mt.log.length;
+        function setVal(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+        setVal('mts1stServe', pct(s.firstServeIn, s.firstServeTotal));
+        setVal('mtsAces', s.aces);
+        setVal('mtsDblFaults', s.doubleFaults);
+        setVal('mtsWinners', s.winners);
+        setVal('mtsUFE', s.ufErrors);
+        setVal('mtsPtsServe', pct(s.ptsWonServe.left, s.ptsServe.left));
+        setVal('mtsPtsReturn', pct(s.ptsWonReturn.left, s.ptsReturn.left));
+        const bpFaced = s.breakPtsFaced.left;
+        const bpSaved = s.breakPtsSaved.left;
+        const bpConv = s.breakPtsConv.left;
+        const bpFacedOpp = s.breakPtsFaced.right;
+        setVal('mtsBPSaved', bpFaced ? `${bpSaved}/${bpFaced}` : '—');
+        setVal('mtsBPConv', bpFacedOpp ? `${bpConv}/${bpFacedOpp}` : '—');
+        setVal('mtsTotalPts', totalPts);
+      }
+
+      function updateLogByLabel() {
+        const el = document.getElementById('mtLogByName');
+        if (el) el.textContent = mt.logBy === 'left'
+          ? (document.getElementById('mtNameLeft')?.value || 'You')
+          : (document.getElementById('mtNameRight')?.value || 'Opponent');
+      }
+
+      function clearShotTags() {
+        mt.shotTag = null;
+        document.querySelectorAll('.mt-shot-tag').forEach(b => b.classList.remove('selected'));
+      }
+
+      // ── Post-match ─────────────────────────────────────────────────────
+      function showPostMatch() {
+        document.getElementById('mtPointLogger').style.display = 'none';
+        const pm = document.getElementById('mtPostMatch');
+        pm.style.display = '';
+
+        const leftName = mt.leftName;
+        const rightName = mt.rightName;
+        const mWinner = matchWinner();
+        const winnerName = mWinner === 'left' ? leftName : rightName;
+
+        // Final score display
+        const finalScoreHtml = `
+          <div style="margin-bottom:8px; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--neon-green);">Match Complete</div>
+          <div style="font-size:20px; font-weight:700; color:var(--silver); margin-bottom:14px;">${winnerName} wins!</div>
+          <div class="mt-final-row">
+            <div>
+              <div class="mt-final-name">${leftName}</div>
+              <div class="mt-final-score">${mt.sets.map(s => s.left).join(' ')}</div>
+            </div>
+            <div style="font-size:28px; color:var(--muted); padding:0 12px;">vs</div>
+            <div>
+              <div class="mt-final-name">${rightName}</div>
+              <div class="mt-final-score">${mt.sets.map(s => s.right).join(' ')}</div>
+            </div>
+          </div>`;
+        document.getElementById('mtFinalScoreDisplay').innerHTML = finalScoreHtml;
+
+        // Stats comparison table
+        const s = mt.stats;
+        const rows = [
+          ['Aces', s.aces, '—'],
+          ['Double Faults', s.doubleFaults, '—'],
+          ['Winners', s.winners, '—'],
+          ['Unforced Errors', s.ufErrors, '—'],
+          ['1st Serve %', pct(s.firstServeIn, s.firstServeTotal), '—'],
+          ['Pts Won on Serve', pct(s.ptsWonServe.left, s.ptsServe.left), pct(s.ptsWonServe.right, s.ptsServe.right)],
+          ['Pts Won on Return', pct(s.ptsWonReturn.left, s.ptsReturn.left), pct(s.ptsWonReturn.right, s.ptsReturn.right)],
+          ['Break Pts Saved', s.breakPtsFaced.left ? `${s.breakPtsSaved.left}/${s.breakPtsFaced.left}` : '—', s.breakPtsFaced.right ? `${s.breakPtsSaved.right}/${s.breakPtsFaced.right}` : '—'],
+          ['Break Pts Converted', s.breakPtsFaced.right ? `${s.breakPtsConv.left}/${s.breakPtsFaced.right}` : '—', s.breakPtsFaced.left ? `${s.breakPtsConv.right}/${s.breakPtsFaced.left}` : '—'],
+          ['Total Points Won', mt.log.filter(p => p.winner === 'left').length, mt.log.filter(p => p.winner === 'right').length],
+        ];
+
+        const tableHtml = `<table class="mt-compare-table">
+          <thead><tr><th>Stat</th><th>${leftName}</th><th>${rightName}</th></tr></thead>
+          <tbody>${rows.map(([label, lv, rv]) => `<tr><td>${label}</td><td>${lv}</td><td>${rv}</td></tr>`).join('')}</tbody>
+        </table>`;
+        document.getElementById('mtCompareTable').innerHTML = tableHtml;
+
+        // Momentum SVG
+        renderMomentumGraph();
+
+        // AI insight
+        renderAiInsight();
+
+        document.getElementById('mtMomentumLeftLabel').textContent = leftName;
+        document.getElementById('mtMomentumRightLabel').textContent = rightName;
+
+        // Scroll to post match
+        pm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function renderMomentumGraph() {
+        const svg = document.getElementById('mtMomentumSvg');
+        if (!svg || mt.momentum.length < 2) { if (svg) svg.innerHTML = '<text x="300" y="50" fill="rgba(255,255,255,.3)" text-anchor="middle" font-size="13">Not enough data</text>'; return; }
+
+        const W = 600, H = 100, MID = 50;
+        const pts = mt.momentum;
+        const n = pts.length;
+
+        // Running cumulative sum, normalized
+        let cumSum = [0];
+        pts.forEach(v => cumSum.push(cumSum[cumSum.length - 1] + v));
+        const maxAbs = Math.max(1, ...cumSum.map(Math.abs));
+        const normalized = cumSum.map(v => v / maxAbs);
+
+        // Build path
+        const xStep = W / (normalized.length - 1);
+        const pathPoints = normalized.map((v, i) => `${i * xStep},${MID - v * (MID - 8)}`).join(' L ');
+        const path = `M ${pathPoints}`;
+
+        // Fill area
+        const fill = normalized.map((v, i) => `${i * xStep},${MID - v * (MID - 8)}`).join(' ');
+        const fillPath = `M 0,${MID} L ${fill} L ${W},${MID} Z`;
+
+        svg.innerHTML = `
+          <defs>
+            <linearGradient id="mtMomGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color:#39ff14; stop-opacity:.35"/>
+              <stop offset="100%" style="stop-color:#39ff14; stop-opacity:.04"/>
+            </linearGradient>
+          </defs>
+          <line x1="0" y1="${MID}" x2="${W}" y2="${MID}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+          <path d="${fillPath}" fill="url(#mtMomGrad)"/>
+          <path d="${path}" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <text x="4" y="${MID - 30}" fill="rgba(57,255,20,.6)" font-size="10" font-weight="700">▲ ${mt.leftName}</text>
+          <text x="4" y="${MID + 38}" fill="rgba(255,62,108,.6)" font-size="10" font-weight="700">▼ ${mt.rightName}</text>
+        `;
+      }
+
+      function renderAiInsight() {
+        const el = document.getElementById('mtAiInsight');
+        if (!el) return;
+
+        const totalPts = mt.log.length;
+        const ptsLeft = mt.log.filter(p => p.winner === 'left').length;
+        const ptsRight = totalPts - ptsLeft;
+        const ufe = mt.stats.ufErrors;
+        const winners = mt.stats.winners;
+        const mWinner = matchWinner();
+        const winnerName = mWinner === 'left' ? mt.leftName : mt.rightName;
+        const leftName = mt.leftName;
+
+        // Base insight
+        let insight = '';
+        const ufeRatio = totalPts > 0 ? ufe / totalPts : 0;
+        const winnerRatio = totalPts > 0 ? winners / totalPts : 0;
+
+        if (ufeRatio > 0.3) {
+          insight += `Your unforced error rate was high (${ufe} UFEs in ${totalPts} points). This matches a pattern where inconsistent biomechanics — especially late contact point or excessive elbow flare — lead to mis-hits under pressure. `;
+        } else if (winners > ufe) {
+          insight += `Strong winner-to-error ratio (${winners} winners vs ${ufe} UFEs). Clean mechanics are translating directly into aggressive play. `;
+        }
+
+        // Tie in biomechanics data if available
+        const report = window._lastSmartSwingReport;
+        if (report && report.overallScore) {
+          const score = report.overallScore;
+          const shotType = report.shotType || 'swing';
+          if (score >= 75) {
+            insight += `Your biomechanics score of ${score}/100 on the ${shotType} analysis aligns with your match performance — high-quality mechanics are supporting point construction. `;
+          } else if (score >= 50) {
+            insight += `Your biomechanics score was ${score}/100 (${shotType}). The technique inconsistencies identified in the analysis — particularly ${report.topIssues?.[0] || 'contact timing'} — likely contributed to unforced errors during the match. `;
+          } else {
+            insight += `Biomechanics score of ${score}/100 on your ${shotType} suggests the movement chain needs work. The errors logged in this match are consistent with the mechanical breakdowns flagged — fixing those first will lower your UFE count. `;
+          }
+        } else {
+          insight += `Combine this match data with a SmartSwing biomechanics analysis of your serve or groundstrokes to pinpoint which mechanical flaws are costing you the most points. `;
+        }
+
+        if (mt.stats.doubleFaults > 0) {
+          insight += `${mt.stats.doubleFaults} double fault${mt.stats.doubleFaults > 1 ? 's' : ''} — review your serve toss height and wrist snap timing in the analyzer for serve-specific coaching.`;
+        }
+
+        el.innerHTML = `<div class="mt-ai-insight-title">AI Match Insight</div><p>${insight || 'Play more points to generate a detailed AI insight.'}</p>`;
+      }
+
+      // ── Event wiring ───────────────────────────────────────────────────
+      function wireEvents() {
+        // Winner / error buttons
+        document.getElementById('mtWinnerBtns')?.addEventListener('click', (e) => {
+          const btn = e.target.closest('.mt-point-btn');
+          if (!btn) return;
+          scorePoint(mt.logBy, btn.dataset.type, mt.shotTag);
+          clearShotTags();
+        });
+
+        document.getElementById('mtErrorBtns')?.addEventListener('click', (e) => {
+          const btn = e.target.closest('.mt-point-btn');
+          if (!btn) return;
+          // Errors = opponent wins
+          scorePoint(opposite(mt.logBy), btn.dataset.type, mt.shotTag);
+          clearShotTags();
+        });
+
+        // Shot tags
+        document.getElementById('mtShotTagBtns')?.addEventListener('click', (e) => {
+          const btn = e.target.closest('.mt-shot-tag');
+          if (!btn) return;
+          const tag = btn.dataset.tag;
+          if (mt.shotTag === tag) {
+            mt.shotTag = null;
+            btn.classList.remove('selected');
+          } else {
+            document.querySelectorAll('.mt-shot-tag').forEach(b => b.classList.remove('selected'));
+            mt.shotTag = tag;
+            btn.classList.add('selected');
+          }
+        });
+
+        // Swap logger
+        document.getElementById('mtSwapServerBtn')?.addEventListener('click', () => {
+          mt.logBy = opposite(mt.logBy);
+          updateLogByLabel();
+        });
+
+        // Undo
+        document.getElementById('mtUndoBtn')?.addEventListener('click', undoLastPoint);
+
+        // End match
+        document.getElementById('mtEndMatchBtn')?.addEventListener('click', () => {
+          if (mt.log.length === 0) { alert('No points logged yet.'); return; }
+          if (!confirm('End match and show report?')) return;
+          mt.matchOver = true;
+          mt.finalScore = buildFinalScore();
+          showPostMatch();
+        });
+
+        // Reset
+        document.getElementById('mtResetBtn')?.addEventListener('click', () => {
+          if (mt.log.length > 0 && !confirm('Reset match? All data will be lost.')) return;
+          resetMatch();
+        });
+
+        // New match (inside post-match panel)
+        document.getElementById('mtNewMatchBtn')?.addEventListener('click', () => {
+          resetMatch();
+        });
+
+        // Copy match summary
+        document.getElementById('mtCopyReportBtn')?.addEventListener('click', () => {
+          const leftName = mt.leftName;
+          const rightName = mt.rightName;
+          const s = mt.stats;
+          const setScores = mt.sets.map(st => `${st.left}-${st.right}`).join(', ');
+          const txt = [
+            `Match Summary — ${leftName} vs ${rightName}`,
+            `Sets: ${setScores || 'In progress'}`,
+            `Total Points: ${mt.log.length}`,
+            `Winners: ${s.winners} | UFEs: ${s.ufErrors} | Aces: ${s.aces} | DFs: ${s.doubleFaults}`,
+            `Pts Won on Serve: ${pct(s.ptsWonServe.left, s.ptsServe.left)}`,
+            `Pts Won on Return: ${pct(s.ptsWonReturn.left, s.ptsReturn.left)}`,
+            `Generated by SmartSwing AI — smartswingai.com`,
+          ].join('\n');
+          navigator.clipboard.writeText(txt).then(() => {
+            const btn = document.getElementById('mtCopyReportBtn');
+            if (btn) { const orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = orig; }, 2000); }
+          }).catch(() => {});
+        });
+
+        // Name inputs update logBy label
+        document.getElementById('mtNameLeft')?.addEventListener('input', updateLogByLabel);
+        document.getElementById('mtNameRight')?.addEventListener('input', () => {
+          mt.rightName = document.getElementById('mtNameRight')?.value || 'Opponent';
+          updateLogByLabel();
+        });
+        document.getElementById('mtNameLeft')?.addEventListener('input', () => {
+          mt.leftName = document.getElementById('mtNameLeft')?.value || 'You';
+          updateLogByLabel();
+        });
+      }
+
+      // ── Public API — show/hide from sessionMode handler ───────────────
+      window._matchTrackerShow = function() {
+        const el = document.getElementById('matchTracker');
+        if (el) el.style.display = '';
+        renderMatchTracker();
+        updateLogByLabel();
+      };
+
+      window._matchTrackerHide = function() {
+        const el = document.getElementById('matchTracker');
+        if (el) el.style.display = 'none';
+      };
+
+      // Init
+      wireEvents();
+      renderMatchTracker();
+    })();
 
     // ── Score Card Modal (analyze.html Step 5) ───────────────────────────
     (function initAnalyzeScoreCard() {
