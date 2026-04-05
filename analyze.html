@@ -1502,7 +1502,17 @@
     };
 
     const store = window.SmartSwingStore;
-    const currentUser = store ? store.getCurrentUser() : null;
+    let currentUser = store ? store.getCurrentUser() : null;
+
+    // Re-check auth periodically — session may restore after page load
+    if (store && !currentUser) {
+      const _authCheck = setInterval(() => {
+        const u = store.getCurrentUser();
+        if (u) { currentUser = u; clearInterval(_authCheck); }
+      }, 1000);
+      // Stop checking after 30s
+      setTimeout(() => clearInterval(_authCheck), 30000);
+    }
     let cachedPlanState = null;
 
     let currentStep = 1;
@@ -5310,14 +5320,19 @@
       lastPersistedSignature = signature;
       localStorage.setItem('smartswing_last_session', JSON.stringify(session));
 
+      // Re-check auth — session may have restored since page load
+      if (store && !currentUser) {
+        currentUser = store.getCurrentUser();
+      }
+
       if (!store || !currentUser) {
+        console.warn('[SmartSwing] No store or user — report saved to localStorage only.');
         return null;
       }
 
-      if (!store.canSaveReport()) {
-        return null;
-      }
-
+      // Always save to store (localStorage + cloud sync) regardless of plan.
+      // canSaveReport() gates cloud storage limits, but we still want local persistence
+      // so the dashboard can display history for all plan tiers.
       return store.saveAssessment({
         overallScore: session.summary.score,
         grade: session.summary.grade,
@@ -5348,9 +5363,9 @@
     }
 
     document.getElementById('saveBtn').addEventListener('click', () => {
-      if (store && currentUser && !store.canSaveReport()) {
-        openUpgradeModal(null);
-        return;
+      // Re-check auth in case session restored after page load
+      if (store && !currentUser) {
+        currentUser = store.getCurrentUser();
       }
       console.log('Save clicked, frames:', analysisData.frames.length);
       console.log('Angles data:', analysisData.angles);
