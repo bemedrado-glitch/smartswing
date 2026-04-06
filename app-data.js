@@ -1061,6 +1061,9 @@
     if (options.pullLatest !== false) {
       await pullRemoteState(local.id);
     }
+    // Hydrate the server-authoritative quota cache so the analyzer's
+    // canGenerateReport check uses Supabase data instead of localStorage.
+    fetchServerReportUsage({ force: true }).catch(() => {});
     return local;
   }
 
@@ -1539,9 +1542,62 @@
     };
   }
 
+  // In-memory cache of the most recent server-authoritative quota response.
+  // The localStorage `reportUsage` array is only a UX hint — the server
+  // RPCs `get_report_usage` / `consume_free_report` are the source of truth
+  // so clearing browser data cannot reset the counter.
+  let serverQuotaCache = null;
+  let serverQuotaFetchedAt = 0;
+  const SERVER_QUOTA_TTL_MS = 60 * 1000;
+
+  async function fetchServerReportUsage({ force = false } = {}) {
+    if (!isSupabaseConfigured()) return null;
+    if (!force && serverQuotaCache && (Date.now() - serverQuotaFetchedAt) < SERVER_QUOTA_TTL_MS) {
+      return serverQuotaCache;
+    }
+    try {
+      const client = await getSupabaseClient();
+      if (!client) return null;
+      const { data, error } = await client.rpc('get_report_usage');
+      if (error) {
+        console.warn('[SmartSwing] get_report_usage RPC failed:', error.message || error);
+        return null;
+      }
+      serverQuotaCache = data || null;
+      serverQuotaFetchedAt = Date.now();
+      return serverQuotaCache;
+    } catch (err) {
+      console.warn('[SmartSwing] get_report_usage threw:', err?.message || err);
+      return null;
+    }
+  }
+
   function canGenerateReport(userId) {
     const plan = getCurrentPlan(userId);
-    // Free users get a lifetime quota (not monthly resets)
+
+    // If we have a fresh server quota response, prefer it as the source of
+    // truth. This blocks the "clear localStorage to get more free reports"
+    // bypass because the count comes from Supabase, not the browser.
+    if (serverQuotaCache) {
+      const sc = serverQuotaCache;
+      if (sc.unlimited === true) {
+        return { allowed: true, remaining: Infinity, used: 0, limit: Infinity, plan, source: 'server' };
+      }
+      const limit = Number.isFinite(sc.limit) ? sc.limit : 0;
+      const used = Number.isFinite(sc.used) ? sc.used : 0;
+      // Layer referral bonus on top of the server limit (referral bonus
+      // currently lives client-side; we treat it as additive for free users).
+      let effectiveLimit = limit;
+      if ((sc.plan_id || plan.id) === 'free' && Number.isFinite(effectiveLimit)) {
+        const resolvedId = userId || getCurrentUser()?.id;
+        const bonusMap = read(KEYS.referralBonus, {});
+        effectiveLimit += safeNumber(bonusMap[resolvedId]);
+      }
+      const remaining = Math.max(0, effectiveLimit - used);
+      return { allowed: remaining > 0, remaining, used, limit: effectiveLimit, plan, source: 'server' };
+    }
+
+    // Local fallback (demo mode or before the first server hydrate)
     const usageKey = plan.id === 'free' ? 'lifetime-free' : undefined;
     const usage = getMonthlyUsage(userId, usageKey);
     let limit = plan.monthlyReviews;
@@ -1555,17 +1611,87 @@
     }
 
     if (!Number.isFinite(limit)) {
-      return { allowed: true, remaining: Infinity, used: usage.count, limit, plan };
+      return { allowed: true, remaining: Infinity, used: usage.count, limit, plan, source: 'local' };
     }
     const remaining = Math.max(0, limit - usage.count);
-    return { allowed: remaining > 0, remaining, used: usage.count, limit, plan };
+    return { allowed: remaining > 0, remaining, used: usage.count, limit, plan, source: 'local' };
   }
 
+  // Server-side gate. Returns the after-state when allowed; throws a paywall
+  // error when the server says the user is out of free reports.
+  async function consumeFreeReportViaServer(user, plan) {
+    const client = await getSupabaseClient();
+    if (!client) return null;
+    const { data: rpcResult, error: rpcError } = await client.rpc('consume_free_report');
+    if (rpcError) {
+      console.warn('[SmartSwing] consume_free_report RPC error:', rpcError.message || rpcError);
+      return null;
+    }
+    if (!rpcResult) return null;
+
+    serverQuotaCache = {
+      allowed: rpcResult.allowed,
+      used: rpcResult.used,
+      limit: rpcResult.limit,
+      remaining: rpcResult.remaining,
+      plan_id: rpcResult.plan_id,
+      unlimited: rpcResult.unlimited === true
+    };
+    serverQuotaFetchedAt = Date.now();
+
+    if (rpcResult.allowed === false) {
+      const planLabel = (plan.name) || 'current';
+      const totalLimit = rpcResult.limit ?? plan.monthlyReviews;
+      const bonusMap = read(KEYS.referralBonus, {});
+      const bonusCount = safeNumber(bonusMap[user.id]);
+      const msg = (rpcResult.plan_id || plan.id) === 'free'
+        ? `You have used all ${totalLimit} of your free analyses${bonusCount > 0 ? ` (including ${bonusCount} referral bonus)` : ''}. Choose a plan to keep analysing your game.`
+        : `Monthly report limit reached for ${planLabel}. Upgrade your plan to continue.`;
+      const err = new Error(msg);
+      err.redirectToPricing = true;
+      err.paywallData = {
+        plan: rpcResult.plan_id || plan.id,
+        used: rpcResult.used,
+        limit: totalLimit,
+        bonusCount,
+        referralCode: getUserReferralCode(user.id)
+      };
+      if ((rpcResult.plan_id || plan.id) === 'free') {
+        recordPaywallHit(user.id).catch(() => {});
+      }
+      throw err;
+    }
+    return rpcResult;
+  }
+
+  // Public entry point. Returns synchronously in local-only/demo mode (so
+  // legacy tests still work) and returns a Promise when Supabase is
+  // configured (so analyze.html can `await` the server gate). Either way,
+  // the caller can `await` the result safely.
   function consumeMonthlyReportCredit(payload) {
     const user = requireUser();
     const plan = getCurrentPlan(user.id);
     // Free users track against a lifetime key so the quota never resets
     const monthKey = plan.id === 'free' ? 'lifetime-free' : getMonthKey();
+
+    // ── Server-authoritative gate ──────────────────────────────────────
+    // Source of truth lives in Supabase via the consume_free_report RPC,
+    // so clearing browser data cannot reset the count.
+    if (isSupabaseConfigured()) {
+      return (async () => {
+        try {
+          await consumeFreeReportViaServer(user, plan);
+        } catch (err) {
+          if (err && err.redirectToPricing) throw err;
+          console.warn('[SmartSwing] consume_free_report RPC threw:', err?.message || err);
+        }
+        return finalizeLocalConsume(user, plan, monthKey, payload);
+      })();
+    }
+    return finalizeLocalConsume(user, plan, monthKey, payload);
+  }
+
+  function finalizeLocalConsume(user, plan, monthKey, payload) {
     const check = canGenerateReport(user.id);
     if (!check.allowed) {
       const planLabel = check.plan.name || 'current';
@@ -3384,6 +3510,7 @@
     getMonthlyUsage,
     canGenerateReport,
     consumeMonthlyReportCredit,
+    fetchServerReportUsage,
     getReferralStats,
     getUserReferralCode,
     setPendingReferral,
