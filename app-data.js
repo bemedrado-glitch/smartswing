@@ -2643,7 +2643,7 @@
 
   function getRetentionSnapshot(userId) {
     const id = userId || requireUser().id;
-    const assessments = getUserAssessments(id);
+    const assessments = getUserAssessments(id).filter((a) => !a.isCompetitor);
     const drills = getUserDrillAssignments(id);
     const goals = getUserGoals(id);
     const sessions = getUserCoachSessions(id);
@@ -2842,12 +2842,16 @@
 
   function saveAssessment(payload) {
     const user = requireUser();
-    const previousSameShot = getAssessments().filter((item) => item.userId === user.id && item.shotType === slugShot(payload.shotType));
+    const isCompetitor = !!payload.isCompetitor || !!payload.playerProfile?.isCompetitorVideo;
+    const competitorName = (payload.competitorName || payload.playerProfile?.competitorName || '').trim() || null;
+    const previousSameShot = getAssessments().filter((item) => item.userId === user.id && !item.isCompetitor && item.shotType === slugShot(payload.shotType));
     const previousBest = previousSameShot.length ? Math.max(...previousSameShot.map((item) => safeNumber(item.overallScore))) : 0;
     const assessment = {
       id: uid('assessment'),
       externalId: uid('assessment_ext'),
       userId: user.id,
+      isCompetitor,
+      competitorName,
       analyzedAt: nowIso(),
       sport: payload.sport || payload.playerProfile?.sport || 'tennis',
       discipline: payload.discipline || payload.playerProfile?.division || null,
@@ -2883,29 +2887,39 @@
       syncedAt: null
     };
     persistAssessments([assessment, ...getAssessments()]);
-    write(KEYS.lastSession, assessment);
-    buildDrillAssignmentsFromAssessment(assessment);
-    createProgressEvent({
-      eventType: 'assessment_saved',
-      title: `${assessment.shotType} assessment saved`,
-      detail: `Score ${assessment.overallScore} | ${assessment.grade}`,
-      payload: {
-        assessmentId: assessment.externalId,
-        score: assessment.overallScore,
-        shotType: assessment.shotType
-      }
-    });
-    if (assessment.overallScore > previousBest) {
+    if (!assessment.isCompetitor) {
+      write(KEYS.lastSession, assessment);
+      buildDrillAssignmentsFromAssessment(assessment);
       createProgressEvent({
-        eventType: 'milestone',
-        title: `${assessment.shotType} personal best`,
-        detail: `New best score ${assessment.overallScore}${assessment.milestone?.current ? ` | ${assessment.milestone.current}` : ''}`,
-        payload: { assessmentId: assessment.externalId, shotType: assessment.shotType, score: assessment.overallScore }
+        eventType: 'assessment_saved',
+        title: `${assessment.shotType} assessment saved`,
+        detail: `Score ${assessment.overallScore} | ${assessment.grade}`,
+        payload: {
+          assessmentId: assessment.externalId,
+          score: assessment.overallScore,
+          shotType: assessment.shotType
+        }
       });
+      if (assessment.overallScore > previousBest) {
+        createProgressEvent({
+          eventType: 'milestone',
+          title: `${assessment.shotType} personal best`,
+          detail: `New best score ${assessment.overallScore}${assessment.milestone?.current ? ` | ${assessment.milestone.current}` : ''}`,
+          payload: { assessmentId: assessment.externalId, shotType: assessment.shotType, score: assessment.overallScore }
+        });
+      }
+      updateGoalsFromAssessment(assessment);
     }
-    updateGoalsFromAssessment(assessment);
     void syncAssessmentToCloud(assessment);
     return assessment;
+  }
+
+  function getOwnAssessments(userId) {
+    return getUserAssessments(userId).filter((a) => !a.isCompetitor);
+  }
+
+  function getCompetitorAssessments(userId) {
+    return getUserAssessments(userId).filter((a) => !!a.isCompetitor);
   }
 
   function getUserAssessments(userId) {
@@ -2916,7 +2930,7 @@
   }
 
   function getMilestoneSnapshot(userId) {
-    const assessments = getUserAssessments(userId);
+    const assessments = getUserAssessments(userId).filter((a) => !a.isCompetitor);
     if (!assessments.length) {
       return {
         currentBand: 'Foundation',
@@ -2941,7 +2955,7 @@
   }
 
   function getDashboardMetrics(userId) {
-    const assessments = getUserAssessments(userId);
+    const assessments = getUserAssessments(userId).filter((a) => !a.isCompetitor);
     const retention = getRetentionSnapshot(userId);
     const milestone = getMilestoneSnapshot(userId);
     if (!assessments.length) {
@@ -2974,7 +2988,7 @@
   }
 
   function getRecommendedFocusAreas(userId) {
-    const latest = getUserAssessments(userId)[0];
+    const latest = getUserAssessments(userId).filter((a) => !a.isCompetitor)[0];
     if (!latest) return [];
     return (latest.metricComparisons || [])
       .filter((item) => item.status === 'needs-work')
@@ -2990,7 +3004,7 @@
     const assessments = getVisibleAssessmentsForCurrentUser().slice().sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt));
     const sessions = getVisibleCoachSessionsForCurrentUser().slice().sort((a, b) => new Date(a.when) - new Date(b.when));
     const byUser = visibleUsers.map((user) => {
-      const userAssessments = assessments.filter((assessment) => assessment.userId === user.id);
+      const userAssessments = assessments.filter((assessment) => assessment.userId === user.id && !assessment.isCompetitor);
       const latest = userAssessments[0] || null;
       const retention = getRetentionSnapshot(user.id);
       const topIssue = (latest?.metricComparisons || []).sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0] || null;
@@ -3345,6 +3359,8 @@
     matchTacticsToProfile,
     saveAssessment,
     getUserAssessments,
+    getOwnAssessments,
+    getCompetitorAssessments,
     getDashboardMetrics,
     getMilestoneSnapshot,
     getRetentionSnapshot,

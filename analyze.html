@@ -1133,12 +1133,18 @@
               <div id="youtubeTitle" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--text);"></div>
             </div>
             <div id="youtubeError" style="display:none;margin-top:12px;color:#ff5252;font-size:13px;font-weight:600;"></div>
-            <div style="margin-top:16px;">
-              <label style="display:flex;gap:10px;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--gray);">
-                <input type="checkbox" id="youtubeIsCompetitor">
-                <span>This is a competitor's video (for comparison analysis)</span>
-              </label>
-            </div>
+          </div>
+        </div>
+
+        <!-- Unified competitor tagging (applies to upload, camera, or YouTube) -->
+        <div id="competitorTagPanel" style="margin-top:16px;padding:14px 16px;border:1px dashed rgba(255,216,77,.35);border-radius:12px;background:rgba(255,216,77,.04);">
+          <label style="display:flex;gap:10px;align-items:center;cursor:pointer;font-size:13px;color:var(--text);font-weight:700;">
+            <input type="checkbox" id="isCompetitorVideo">
+            <span>🎯 This video is a competitor / pro reference (not me)</span>
+          </label>
+          <div id="competitorNameRow" style="display:none;margin-top:10px;">
+            <input type="text" id="competitorName" placeholder="Competitor name (e.g. Carlos Alcaraz)" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:var(--text);font:inherit;font-size:14px;">
+            <div style="margin-top:6px;font-size:12px;color:var(--gray);">Competitor reports are saved for comparison only — they won't affect your weekly progress or averages.</div>
           </div>
         </div>
 
@@ -1496,6 +1502,7 @@
       youtubeVideoId: null,
       youtubeUrl: null,
       isCompetitorVideo: false,
+      competitorName: '',
       sessionMode: 'stroke-tune-up',
       sessionGoal: '',
       setupScore: 100
@@ -4684,6 +4691,26 @@
       return null;
     }
 
+    // Unified competitor checkbox (applies to upload, camera, and YouTube modes)
+    const _competitorCheckbox = document.getElementById('isCompetitorVideo');
+    const _competitorNameRow = document.getElementById('competitorNameRow');
+    const _competitorNameInput = document.getElementById('competitorName');
+    if (_competitorCheckbox) {
+      _competitorCheckbox.addEventListener('change', () => {
+        playerProfile.isCompetitorVideo = _competitorCheckbox.checked;
+        if (_competitorNameRow) _competitorNameRow.style.display = _competitorCheckbox.checked ? '' : 'none';
+        if (!_competitorCheckbox.checked) {
+          playerProfile.competitorName = '';
+          if (_competitorNameInput) _competitorNameInput.value = '';
+        }
+      });
+    }
+    if (_competitorNameInput) {
+      _competitorNameInput.addEventListener('input', () => {
+        playerProfile.competitorName = _competitorNameInput.value.trim();
+      });
+    }
+
     const youtubeUrlInput = document.getElementById('youtubeUrlInput');
     let youtubeDebounce = null;
     youtubeUrlInput.addEventListener('input', () => {
@@ -4700,7 +4727,6 @@
           preview.style.display = '';
           playerProfile.youtubeVideoId = videoId;
           playerProfile.youtubeUrl = youtubeUrlInput.value.trim();
-          playerProfile.isCompetitorVideo = document.getElementById('youtubeIsCompetitor').checked;
         } else if (youtubeUrlInput.value.trim()) {
           preview.style.display = 'none';
           errEl.textContent = 'Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)';
@@ -5358,6 +5384,8 @@
         sessionGoal: session.summary.sessionGoal,
         setupScore: session.summary.setupScore,
         notes: `${session.summary.sessionMode || 'stroke-tune-up'} | ${session.summary.sessionGoal || 'General improvement'} | setup ${session.summary.setupScore || 100}/100`,
+        isCompetitor: !!playerProfile.isCompetitorVideo,
+        competitorName: (playerProfile.competitorName || '').trim() || null,
         playerProfile: session.profile
       });
     }
