@@ -31,7 +31,7 @@
   <link rel="alternate" hreflang="fr" href="https://www.smartswingai.com/?lang=fr">
   <link rel="alternate" hreflang="x-default" href="https://www.smartswingai.com/">
   <link rel="manifest" href="./manifest.json">
-  <link rel="preload" href="./assets/redesign/hero.webp" as="image" fetchpriority="high" type="image/webp">
+  <link rel="preload" href="./assets/redesign/hero-action.webp" as="image" fetchpriority="high" type="image/webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1253,6 +1253,7 @@
 
     /* Image color normalization — reduce blue cast on AI-generated images only */
     img[src*="redesign/hero.webp"],
+    img[src*="redesign/hero-action"],
     img[src*="redesign/ai-breakdown"],
     img[src*="redesign/tactical"],
     img[src*="redesign/personalized"],
@@ -1346,12 +1347,12 @@
 
         <!-- RIGHT: cinematic action shot + AI score overlay -->
         <div class="hero-visual" aria-hidden="true">
-          <img src="./assets/redesign/hero-action.png"
+          <img src="./assets/redesign/hero-action.webp"
                alt="Tennis player executing a powerful backhand with perfect technique"
                class="hero-visual-img"
                loading="eager" fetchpriority="high" decoding="async">
           <!-- floating AI analysis phone -->
-          <img src="./assets/uiux/Smart%203.png"
+          <img src="./assets/uiux/Smart%203.webp"
                alt="SmartSwing AI analysis results — score 88/100"
                class="hero-phone-overlay">
           <!-- badge overlay -->
@@ -1580,7 +1581,7 @@
           </div>
         </div>
         <div class="hook-img reveal" style="transition-delay:120ms">
-          <img src="./assets/redesign/hero-phone.png" alt="Player reviewing their SmartSwing AI analysis results on the court" loading="lazy" style="width:100%;height:440px;object-fit:cover;object-position:center 20%;border-radius:var(--radius-lg);">
+          <img src="./assets/redesign/hero-phone.webp" alt="Player reviewing their SmartSwing AI analysis results on the court" loading="lazy" style="width:100%;height:440px;object-fit:cover;object-position:center 20%;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>
@@ -1597,7 +1598,7 @@
       <div class="steps-grid">
         <div class="step-card reveal">
           <div class="step-img">
-            <img src="./assets/redesign/hero-record.png" alt="Player setting up tripod to record swing for SmartSwing AI analysis" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;">
+            <img src="./assets/redesign/hero-record.webp" alt="Player setting up tripod to record swing for SmartSwing AI analysis" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;">
           </div>
           <div class="step-body">
             <div class="step-num">1</div>
@@ -1607,7 +1608,7 @@
         </div>
         <div class="step-card reveal" style="transition-delay:100ms">
           <div class="step-img">
-            <img src="./assets/uiux/Smart%203.png" alt="SmartSwing AI analysis results showing score and drills" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;">
+            <img src="./assets/uiux/Smart%203.webp" alt="SmartSwing AI analysis results showing score and drills" loading="lazy" style="width:100%;height:100%;object-fit:contain;background:#0a0a0a;">
           </div>
           <div class="step-body">
             <div class="step-num">2</div>
@@ -1617,7 +1618,7 @@
         </div>
         <div class="step-card reveal" style="transition-delay:200ms">
           <div class="step-img">
-            <picture><source srcset="./assets/redesign/personalized.webp" type="image/webp"><img src="./assets/redesign/personalized.webp" alt="Get your personalised plan" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/personalized.png';this.onerror=null"></picture>
+            <picture><source srcset="./assets/redesign/personalized.webp" type="image/webp"><img src="./assets/redesign/personalized.webp" alt="Get your personalised plan" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/personalized.webp';this.onerror=null"></picture>
           </div>
           <div class="step-body">
             <div class="step-num">3</div>
@@ -1649,7 +1650,7 @@
       <div class="bento-grid">
         <a class="bento-card tall reveal" href="./features.html#biomechanics" style="text-decoration:none; color:inherit; cursor:pointer;">
           <div class="bento-card-img">
-            <picture><source srcset="./assets/redesign/ai-breakdown.webp" type="image/webp"><img src="./assets/redesign/ai-breakdown.webp" alt="AI biomechanics breakdown" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/ai-breakdown.png';this.onerror=null"></picture>
+            <picture><source srcset="./assets/redesign/ai-breakdown.webp" type="image/webp"><img src="./assets/redesign/ai-breakdown.webp" alt="AI biomechanics breakdown" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/ai-breakdown.webp';this.onerror=null"></picture>
           </div>
           <div class="bento-card-body">
             <div class="bento-icon">🧬</div>
@@ -1669,7 +1670,7 @@
           </a>
           <a class="bento-card reveal" href="./features.html#tactics" style="transition-delay:160ms; text-decoration:none; color:inherit; cursor:pointer; display:block;">
             <div class="bento-card-img">
-              <picture><source srcset="./assets/redesign/tactical.webp" type="image/webp"><img src="./assets/redesign/tactical.webp" alt="Tactical breakdown" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/tactical.png';this.onerror=null"></picture>
+              <picture><source srcset="./assets/redesign/tactical.webp" type="image/webp"><img src="./assets/redesign/tactical.webp" alt="Tactical breakdown" loading="lazy" onerror="this.parentElement.replaceWith(this);this.src='./assets/redesign/tactical.webp';this.onerror=null"></picture>
             </div>
             <div class="bento-card-body">
               <div class="bento-icon">♟️</div>
@@ -1700,7 +1701,7 @@
           <a href="./coach-dashboard.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.coaches.cta">Explore Coach Tools →</a>
         </div>
         <div class="showcase-img reveal" style="transition-delay:120ms">
-          <img src="./assets/uiux/Smart%205.png" alt="SmartSwing AI coach mode with swing annotation and feedback" loading="lazy" style="width:100%;height:420px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
+          <img src="./assets/uiux/Smart%205.webp" alt="SmartSwing AI coach mode with swing annotation and feedback" loading="lazy" style="width:100%;height:420px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>
@@ -1723,7 +1724,7 @@
           <a href="./dashboard.html" class="btn-primary" style="margin-top:28px;display:inline-flex;" data-i18n="showcase.players.cta">See Player Dashboard →</a>
         </div>
         <div class="showcase-img reveal" style="transition-delay:120ms">
-          <img src="./assets/uiux/Smart%2010.png" alt="SmartSwing AI player progress dashboard showing current level and next practice" loading="lazy" style="width:100%;height:420px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
+          <img src="./assets/uiux/Smart%2010.webp" alt="SmartSwing AI player progress dashboard showing current level and next practice" loading="lazy" style="width:100%;height:420px;object-fit:contain;background:#0d0d0d;border-radius:var(--radius-lg);">
         </div>
       </div>
     </div>
