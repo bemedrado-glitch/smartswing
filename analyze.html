@@ -1133,12 +1133,18 @@
               <div id="youtubeTitle" style="margin-top:8px;font-size:14px;font-weight:700;color:var(--text);"></div>
             </div>
             <div id="youtubeError" style="display:none;margin-top:12px;color:#ff5252;font-size:13px;font-weight:600;"></div>
-            <div style="margin-top:16px;">
-              <label style="display:flex;gap:10px;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--gray);">
-                <input type="checkbox" id="youtubeIsCompetitor">
-                <span>This is a competitor's video (for comparison analysis)</span>
-              </label>
-            </div>
+          </div>
+        </div>
+
+        <!-- Unified competitor tagging (applies to upload, camera, or YouTube) -->
+        <div id="competitorTagPanel" style="margin-top:16px;padding:14px 16px;border:1px dashed rgba(255,216,77,.35);border-radius:12px;background:rgba(255,216,77,.04);">
+          <label style="display:flex;gap:10px;align-items:center;cursor:pointer;font-size:13px;color:var(--text);font-weight:700;">
+            <input type="checkbox" id="isCompetitorVideo">
+            <span>🎯 This video is a competitor / pro reference (not me)</span>
+          </label>
+          <div id="competitorNameRow" style="display:none;margin-top:10px;">
+            <input type="text" id="competitorName" placeholder="Competitor name (e.g. Carlos Alcaraz)" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:var(--text);font:inherit;font-size:14px;">
+            <div style="margin-top:6px;font-size:12px;color:var(--gray);">Competitor reports are saved for comparison only — they won't affect your weekly progress or averages.</div>
           </div>
         </div>
 
@@ -1191,7 +1197,7 @@
         <div class="btn-group">
           <button class="btn btn-secondary" id="backBtn2">Back</button>
           <button class="btn btn-primary" id="nextBtn3" disabled>Next Step</button>
-          <button class="btn btn-secondary" id="demoReportBtn">Generate Demo Report</button>
+          <button class="btn btn-secondary" id="demoReportBtn" hidden style="display:none">Generate Demo Report</button>
         </div>
       </div>
 
@@ -1358,6 +1364,36 @@
                 <button class="mt-shot-tag" data-tag="lob">Lob</button>
               </div>
             </div>
+
+            <!-- Winning shot dropdown (alternative to button row) -->
+            <div style="margin-top:14px;">
+              <div class="mt-btn-group-label">Winning shot <span style="font-weight:400; opacity:.6;">(quick-select)</span></div>
+              <select id="mtWinningShotSelect"
+                style="width:100%; background:rgba(0,0,0,.35); border:1px solid rgba(57,255,20,.25); color:var(--silver); padding:12px 14px; border-radius:10px; font-weight:600;">
+                <option value="">— Choose how the point ended —</option>
+                <optgroup label="Winners (logger wins point)">
+                  <option value="ace">Ace</option>
+                  <option value="winner-fh">Forehand winner</option>
+                  <option value="winner-bh">Backhand winner</option>
+                  <option value="volley-winner">Volley winner</option>
+                  <option value="drop-shot-winner">Drop shot winner</option>
+                  <option value="overhead-winner">Overhead / smash winner</option>
+                  <option value="lob-winner">Lob winner</option>
+                  <option value="passing-shot">Passing shot winner</option>
+                  <option value="return-winner">Return winner</option>
+                  <option value="service-winner">Service winner (unreturned)</option>
+                </optgroup>
+                <optgroup label="Errors (opponent wins point)">
+                  <option value="ue-fh">Unforced error — forehand</option>
+                  <option value="ue-bh">Unforced error — backhand</option>
+                  <option value="ue-volley">Unforced error — volley</option>
+                  <option value="forced-error">Forced error</option>
+                  <option value="double-fault">Double fault</option>
+                  <option value="net-error">Net error</option>
+                  <option value="long-error">Long / out error</option>
+                </optgroup>
+              </select>
+            </div>
           </div>
 
           <!-- Live stats -->
@@ -1496,6 +1532,7 @@
       youtubeVideoId: null,
       youtubeUrl: null,
       isCompetitorVideo: false,
+      competitorName: '',
       sessionMode: 'stroke-tune-up',
       sessionGoal: '',
       setupScore: 100
@@ -4684,6 +4721,26 @@
       return null;
     }
 
+    // Unified competitor checkbox (applies to upload, camera, and YouTube modes)
+    const _competitorCheckbox = document.getElementById('isCompetitorVideo');
+    const _competitorNameRow = document.getElementById('competitorNameRow');
+    const _competitorNameInput = document.getElementById('competitorName');
+    if (_competitorCheckbox) {
+      _competitorCheckbox.addEventListener('change', () => {
+        playerProfile.isCompetitorVideo = _competitorCheckbox.checked;
+        if (_competitorNameRow) _competitorNameRow.style.display = _competitorCheckbox.checked ? '' : 'none';
+        if (!_competitorCheckbox.checked) {
+          playerProfile.competitorName = '';
+          if (_competitorNameInput) _competitorNameInput.value = '';
+        }
+      });
+    }
+    if (_competitorNameInput) {
+      _competitorNameInput.addEventListener('input', () => {
+        playerProfile.competitorName = _competitorNameInput.value.trim();
+      });
+    }
+
     const youtubeUrlInput = document.getElementById('youtubeUrlInput');
     let youtubeDebounce = null;
     youtubeUrlInput.addEventListener('input', () => {
@@ -4700,7 +4757,6 @@
           preview.style.display = '';
           playerProfile.youtubeVideoId = videoId;
           playerProfile.youtubeUrl = youtubeUrlInput.value.trim();
-          playerProfile.isCompetitorVideo = document.getElementById('youtubeIsCompetitor').checked;
         } else if (youtubeUrlInput.value.trim()) {
           preview.style.display = 'none';
           errEl.textContent = 'Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)';
@@ -5071,38 +5127,58 @@
       setStep(5);
     }
 
+    async function resolveYoutubeStreamUrl(videoId) {
+      const resp = await fetch(`/api/marketing/youtube-stream?videoId=${encodeURIComponent(videoId)}`);
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || err.error || `Stream proxy returned ${resp.status}`);
+      }
+      const data = await resp.json();
+      if (!data.streamUrl) throw new Error('No stream URL returned');
+      return data;
+    }
+
     async function startAnalysis() {
       const video = document.getElementById('videoElement');
       const canvas = document.getElementById('poseCanvas');
       const playBtn = document.getElementById('playBtn');
       const pauseBtn = document.getElementById('pauseBtn');
 
-      // YouTube URL analysis — embed player and show info
+      // YouTube URL analysis — fetch direct MP4 stream via proxy and feed
+      // it into the same pose-detection pipeline as local uploads.
+      let youtubeStreamUrl = null;
       if (playerProfile.youtubeVideoId && !playerProfile.videoFile) {
-        const ytId = playerProfile.youtubeVideoId;
-        const isCompetitor = playerProfile.isCompetitorVideo || false;
-        setStep(5);
-        setStatus('YouTube video analysis is a preview feature. For full biomechanics scoring, upload a local video file.', 'info');
-        const reportTarget = document.getElementById('reportTarget');
-        if (reportTarget) {
-          reportTarget.innerHTML = `
-            <div class="report-section" style="text-align:center;">
-              <div style="max-width:640px;margin:0 auto;">
-                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
-                  <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
-                </div>
-                <div style="margin-top:20px;padding:18px;background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.2);border-radius:14px;">
-                  <div style="font-size:14px;font-weight:800;color:var(--neon-green);margin-bottom:8px;">${isCompetitor ? '🔍 Competitor Analysis Mode' : '🎬 YouTube Video Review'}</div>
-                  <div style="font-size:13px;color:var(--silver);line-height:1.65;">
-                    ${isCompetitor
-                      ? 'Watch the competitor\'s technique above. To get a full AI biomechanics comparison, record your own version of the same shot and upload it as a local file.'
-                      : 'Watch your footage above. For full AI pose detection and scoring, download and upload the video file directly. YouTube analysis with server-side processing is coming soon.'}
+        try {
+          setStatus('Fetching YouTube stream for AI analysis...', 'loading');
+          const streamData = await resolveYoutubeStreamUrl(playerProfile.youtubeVideoId);
+          youtubeStreamUrl = streamData.streamUrl;
+          if (streamData.title) {
+            console.log('[SmartSwing] YouTube stream resolved:', streamData.title, '|', streamData.qualityLabel);
+          }
+        } catch (err) {
+          console.error('YouTube stream fetch failed:', err);
+          // Graceful fallback: show embed with explanation
+          const ytId = playerProfile.youtubeVideoId;
+          const isCompetitor = playerProfile.isCompetitorVideo || false;
+          setStep(5);
+          setStatus('Could not fetch YouTube stream for analysis. Showing preview only.', 'error');
+          const reportTarget = document.getElementById('reportTarget');
+          if (reportTarget) {
+            reportTarget.innerHTML = `
+              <div class="report-section" style="text-align:center;">
+                <div style="max-width:640px;margin:0 auto;">
+                  <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
+                    <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
+                  </div>
+                  <div style="margin-top:20px;padding:18px;background:rgba(255,82,82,.06);border:1px solid rgba(255,82,82,.3);border-radius:14px;">
+                    <div style="font-size:14px;font-weight:800;color:#ff5252;margin-bottom:8px;">⚠️ Stream proxy unavailable</div>
+                    <div style="font-size:13px;color:var(--silver);line-height:1.65;">${err.message || 'Unable to reach the YouTube proxy.'} Please try again later, or download the clip and upload it as a local file for guaranteed analysis.</div>
                   </div>
                 </div>
-              </div>
-            </div>`;
+              </div>`;
+          }
+          return;
         }
-        return;
       }
 
       const file = playerProfile.videoFile;
@@ -5128,7 +5204,7 @@
       pauseBtn.style.display = 'none';
       playBtn.style.display = 'inline-block';
 
-      if (!file) {
+      if (!file && !youtubeStreamUrl) {
         setStatus('No video selected. Upload a clip to start analysis.', 'error');
         playBtn.disabled = true;
         return;
@@ -5161,10 +5237,17 @@
       const aiInitPromise = initPoseEngine();
 
       if (activeVideoUrl) {
-        URL.revokeObjectURL(activeVideoUrl);
+        try { URL.revokeObjectURL(activeVideoUrl); } catch (_) {}
       }
-      activeVideoUrl = URL.createObjectURL(file);
-      video.src = activeVideoUrl;
+      if (youtubeStreamUrl) {
+        // Direct stream URL from Invidious — no blob, no revoke needed.
+        activeVideoUrl = null;
+        video.crossOrigin = 'anonymous';
+        video.src = youtubeStreamUrl;
+      } else {
+        activeVideoUrl = URL.createObjectURL(file);
+        video.src = activeVideoUrl;
+      }
       video.load();
 
       try {
@@ -5358,6 +5441,8 @@
         sessionGoal: session.summary.sessionGoal,
         setupScore: session.summary.setupScore,
         notes: `${session.summary.sessionMode || 'stroke-tune-up'} | ${session.summary.sessionGoal || 'General improvement'} | setup ${session.summary.setupScore || 100}/100`,
+        isCompetitor: !!playerProfile.isCompetitorVideo,
+        competitorName: (playerProfile.competitorName || '').trim() || null,
         playerProfile: session.profile
       });
     }
@@ -5514,6 +5599,30 @@
     if (!selfTestMode && !demoMode) {
       requestAnimationFrame(() => {
         initPoseEngine().catch(() => null);
+      });
+    }
+
+    // Auto-launch Match Tracker when ?mode=match (or match-mode) is in URL
+    const requestedMode = (params.get('mode') || '').toLowerCase();
+    if (requestedMode === 'match' || requestedMode === 'match-mode') {
+      requestAnimationFrame(() => {
+        try {
+          playerProfile.sessionMode = 'match-mode';
+          const sel = document.getElementById('sessionMode');
+          if (sel) sel.value = 'match-mode';
+          // Pre-fill required fields so we can leap straight to step 5
+          if (!playerProfile.gender) playerProfile.gender = 'male';
+          if (!playerProfile.age) playerProfile.age = '21-25';
+          if (!playerProfile.level) playerProfile.level = 'intermediate';
+          if (!playerProfile.shots.length) playerProfile.shots = ['forehand'];
+          setStep(5);
+          if (typeof window._matchTrackerShow === 'function') window._matchTrackerShow();
+          // Hide the analysis grid since we're in pure match-tracking mode
+          const grid = document.querySelector('.analysis-grid');
+          if (grid) grid.style.display = 'none';
+        } catch (err) {
+          console.error('Match-mode auto-launch failed:', err);
+        }
       });
     }
 
@@ -6076,6 +6185,22 @@
           // Errors = opponent wins
           scorePoint(opposite(mt.logBy), btn.dataset.type, mt.shotTag);
           clearShotTags();
+        });
+
+        // Winning-shot dropdown — same logic as buttons
+        const ERROR_TYPES = new Set([
+          'ue-fh','ue-bh','ue-volley','forced-error','double-fault','net-error','long-error'
+        ]);
+        document.getElementById('mtWinningShotSelect')?.addEventListener('change', (e) => {
+          const type = e.target.value;
+          if (!type) return;
+          if (ERROR_TYPES.has(type)) {
+            scorePoint(opposite(mt.logBy), type, mt.shotTag);
+          } else {
+            scorePoint(mt.logBy, type, mt.shotTag);
+          }
+          clearShotTags();
+          e.target.value = '';
         });
 
         // Shot tags

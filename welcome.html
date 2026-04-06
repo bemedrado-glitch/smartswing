@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -15,250 +15,403 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
   <style>
     :root {
-      --bg: #071015;
+      --bg: #04070b;
       --panel: rgba(10, 18, 24, 0.92);
-      --line: rgba(255,255,255,0.12);
+      --line: rgba(255,255,255,0.10);
+      --line-strong: rgba(255,255,255,0.18);
       --text: #f6f7fb;
-      --muted: #d7e2eb;
+      --muted: #9aa5b4;
       --green: #39ff14;
+      --green-soft: rgba(57,255,20,0.10);
       --gold: #ffd84d;
       --deep: #0d1117;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     body {
-      font-family: "DM Sans", sans-serif;
+      font-family: "DM Sans", system-ui, -apple-system, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.12), transparent 24%),
-        radial-gradient(circle at top right, rgba(255,216,77,0.1), transparent 20%),
-        linear-gradient(180deg, #04070b 0%, #0c1419 50%, #091116 100%);
+        radial-gradient(900px 600px at 80% -10%, rgba(57,255,20,0.10), transparent 60%),
+        radial-gradient(900px 600px at 0% 100%, rgba(255,216,77,0.06), transparent 60%),
+        linear-gradient(180deg, #04070b 0%, #06101a 100%);
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
-    .page { width: min(1260px, calc(100% - 32px)); margin: 0 auto; padding: 24px 0 64px; }
-    .topbar, .hero, .quiz-layout, .options, .goal-grid, .examples { display: grid; gap: 18px; }
-    .topbar { grid-template-columns: auto 1fr auto; align-items: center; margin-bottom: 20px; }
-    .brand { text-decoration: none; color: var(--green); font-family: "Sora", sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.05em; }
-    .meta-box, .panel, .goal-card, .example-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+
+    /* ── Top bar ──────────────────────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px;
+      background: rgba(4,7,11,0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
     }
-    .meta-box, .panel { padding: 24px; }
-    .hero { grid-template-columns: 1.02fr 0.98fr; margin-bottom: 18px; }
-    .quiz-layout { grid-template-columns: 1.04fr 0.96fr; }
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo { display: block; height: 36px; width: auto; mix-blend-mode: screen; }
+    .plan-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
       border-radius: 999px;
-      padding: 8px 12px;
-      background: rgba(255,216,77,0.12);
-      border: 1px solid rgba(255,216,77,0.28);
-      color: var(--gold);
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.28);
+      color: var(--green);
       font-size: 12px;
       font-weight: 800;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
-    h1 {
-      font-family: "Sora", sans-serif;
-      margin: 18px 0 14px;
-      font-size: clamp(38px, 6vw, 66px);
-      line-height: 0.95;
-      letter-spacing: -0.06em;
-      max-width: 12ch;
+
+    /* ── Progress bar ──────────────────────────────────────────────────── */
+    .progress-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 24px 0;
     }
-    h2 {
-      font-family: "Sora", sans-serif;
-      margin-bottom: 12px;
-      font-size: 28px;
-      color: var(--green);
-      letter-spacing: -0.04em;
+    .progress-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
     }
-    h3 { font-size: 18px; margin-bottom: 8px; }
-    p, li, label { color: var(--muted); line-height: 1.7; }
-    .hero-list { display: grid; gap: 12px; }
-    .hero-list li {
-      list-style: none;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: rgba(255,255,255,0.04);
-      padding: 14px 16px;
-    }
-    .field-group { display: grid; gap: 12px; margin-bottom: 18px; }
-    .field-label { font-size: 15px; font-weight: 800; color: var(--text); }
-    .options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .option, .goal-card, .example-card {
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: rgba(255,255,255,0.04);
-      padding: 16px;
-      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-    }
-    .option:hover, .goal-card:hover, .example-card:hover { transform: translateY(-2px); border-color: rgba(57,255,20,0.28); }
-    .option input, .goal-card input { margin-right: 10px; accent-color: var(--green); }
-    .goal-grid, .examples { grid-template-columns: 1fr 1fr; }
-    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
-    .btn, .btn-primary {
+    .progress-meta strong { color: var(--green); }
+    .progress-track {
+      height: 6px;
       border-radius: 999px;
-      padding: 13px 18px;
-      font: inherit;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), #8aff70);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 380ms cubic-bezier(.22,.61,.36,1);
+    }
+
+    /* ── Stage / question card ─────────────────────────────────────────── */
+    .stage {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 24px 140px;
+      min-height: calc(100vh - 220px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .question {
+      display: none;
+      animation: fadeUp 360ms cubic-bezier(.22,.61,.36,1);
+    }
+    .question.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .q-eyebrow {
+      display: inline-block;
+      font-size: 11px;
       font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+    }
+    .q-title {
+      font-family: "Sora", system-ui, sans-serif;
+      font-size: clamp(28px, 4.6vw, 44px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+      max-width: 18ch;
+    }
+    .q-help {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      max-width: 56ch;
+    }
+
+    /* ── Choice cards ──────────────────────────────────────────────────── */
+    .choices {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+    .choices.two-col { grid-template-columns: repeat(2, 1fr); }
+    .choice {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.025);
       cursor: pointer;
-      text-decoration: none;
-      transition: transform 180ms ease;
+      transition: all 200ms ease;
+      user-select: none;
+    }
+    .choice:hover {
+      border-color: rgba(57,255,20,0.4);
+      background: rgba(57,255,20,0.04);
+      transform: translateY(-1px);
+    }
+    .choice input { position: absolute; opacity: 0; pointer-events: none; }
+    .choice .dot {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--line-strong);
+      display: grid;
+      place-items: center;
+      transition: all 200ms ease;
+    }
+    .choice .check {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--line-strong);
+      display: grid;
+      place-items: center;
+      transition: all 200ms ease;
+    }
+    .choice .label {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .choice input:checked ~ .dot {
+      border-color: var(--green);
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(57,255,20,0.18);
+    }
+    .choice input:checked ~ .dot::after {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--deep);
+    }
+    .choice input:checked ~ .check {
+      border-color: var(--green);
+      background: var(--green);
+    }
+    .choice input:checked ~ .check::after {
+      content: '';
+      width: 5px; height: 10px;
+      border: solid var(--deep);
+      border-width: 0 2.5px 2.5px 0;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+    .choice:has(input:checked) {
+      border-color: var(--green);
+      background: rgba(57,255,20,0.07);
+      box-shadow: 0 0 0 1px rgba(57,255,20,0.32) inset;
+    }
+
+    /* ── Footer nav ────────────────────────────────────────────────────── */
+    .footer-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      padding: 18px 24px;
+      background: rgba(4,7,11,0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--line);
+      z-index: 9;
+    }
+    .footer-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 14px 24px;
+      font: inherit;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      text-decoration: none;
       border: 1px solid var(--line);
       background: rgba(255,255,255,0.04);
       color: var(--text);
+      transition: all 180ms ease;
     }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--line-strong); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary {
-      border: 1px solid rgba(57,255,20,0.34);
-      background: linear-gradient(135deg, var(--green), #92ff72);
+      flex: 1;
+      border: 1px solid rgba(57,255,20,0.5);
+      background: linear-gradient(135deg, var(--green), #8aff70);
       color: var(--deep);
+      box-shadow: 0 8px 32px rgba(57,255,20,0.18);
     }
-    .btn:hover, .btn-primary:hover { transform: translateY(-2px); }
-    .success-box {
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(57,255,20,0.28);
+    }
+    .btn-back { padding: 14px 16px; }
+
+    /* ── Success state ─────────────────────────────────────────────────── */
+    .success-screen {
       display: none;
-      margin-top: 18px;
-      border-radius: 18px;
-      border: 1px solid rgba(57,255,20,0.34);
-      background: rgba(57,255,20,0.1);
-      padding: 16px;
-      color: #dfffd4;
+      text-align: center;
+      animation: fadeUp 420ms cubic-bezier(.22,.61,.36,1);
     }
-    @media (max-width: 960px) {
-      .topbar, .hero, .quiz-layout, .goal-grid, .examples, .options { grid-template-columns: 1fr; }
-      .page { width: min(100%, calc(100% - 24px)); }
+    .success-screen.active { display: block; }
+    .success-icon {
+      width: 84px; height: 84px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: var(--green-soft);
+      border: 1px solid rgba(57,255,20,0.4);
+      display: grid;
+      place-items: center;
+      font-size: 40px;
     }
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
-    </style>
+    .success-title {
+      font-family: "Sora", system-ui, sans-serif;
+      font-size: clamp(28px, 4.6vw, 40px);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+    .success-help { color: var(--muted); margin-bottom: 28px; max-width: 50ch; margin-left: auto; margin-right: auto; }
+    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Mobile ────────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .choices.two-col { grid-template-columns: 1fr; }
+      .stage { padding: 24px 20px 140px; }
+      .progress-wrap { padding: 24px 20px 0; }
+      .topbar { padding: 14px 18px; }
+      .plan-badge { font-size: 11px; padding: 7px 11px; }
+      .q-title { font-size: 28px; }
+      .footer-inner { flex-direction: row; }
+      .btn-back .btn-back-label { display: none; }
+    }
+  </style>
   <script src="./analytics.js"></script>
 </head>
 <body>
-  <main class="page">
-    <header class="topbar">
-      <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
-      <div></div>
-      <div class="meta-box">
-        <strong id="planLabel">Welcome plan</strong>
-        <p id="planCopy">We are preparing your first improvement path.</p>
+  <header class="topbar">
+    <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home">
+      <img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="36">
+    </a>
+    <div class="plan-badge" id="planBadge">Welcome plan</div>
+  </header>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-meta">
+      <span>Step <strong id="stepCurrent">1</strong> of <span id="stepTotal">5</span></span>
+      <span id="stepLabel">Get to know you</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <main class="stage" id="stage">
+    <form id="welcomeForm" autocomplete="off">
+
+      <!-- Q1 — Identity -->
+      <div class="question active" data-q="1" data-name="playerIdentity" data-type="single">
+        <div class="q-eyebrow">About you</div>
+        <h1 class="q-title">Which one sounds most like you?</h1>
+        <p class="q-help">We'll use this to set the tone of your training plan and the language in your reports.</p>
+        <div class="choices">
+          <label class="choice"><input type="radio" name="playerIdentity" value="junior competitor"><span class="dot"></span><span class="label">Junior competitor building a match-ready routine</span></label>
+          <label class="choice"><input type="radio" name="playerIdentity" value="adult improver"><span class="dot"></span><span class="label">Adult improver trying to practice more efficiently</span></label>
+          <label class="choice"><input type="radio" name="playerIdentity" value="club player"><span class="dot"></span><span class="label">Club player focused on consistency and confidence</span></label>
+          <label class="choice"><input type="radio" name="playerIdentity" value="returning player"><span class="dot"></span><span class="label">Returning player rebuilding technique and timing</span></label>
+        </div>
       </div>
-    </header>
 
-    <section class="hero">
-      <article class="panel">
-        <div class="eyebrow">Welcome</div>
-        <h1>One short quiz, then your first real improvement loop starts.</h1>
-        <p>Answer these required questions so SmartSwing AI can tailor the dashboard, drill emphasis, and first-use examples around how you actually play.</p>
-      </article>
-      <article class="panel">
-        <h2>What you can do immediately after this</h2>
-        <ul class="hero-list">
-          <li>Upload a serve or forehand video and get your first clear technical priorities.</li>
-          <li>Start with a favorite shot and use the drill library as a structured weekly routine.</li>
-          <li>Use the dashboard as your personal practice checkpoint instead of guessing what to fix next.</li>
-        </ul>
-      </article>
-    </section>
-
-    <section class="quiz-layout">
-      <article class="panel">
-        <h2>Required onboarding quiz</h2>
-        <form id="welcomeForm">
-          <div class="field-group">
-            <div class="field-label">Tell us more about you</div>
-            <div class="options">
-              <label class="option"><input type="radio" name="playerIdentity" value="junior competitor" required>Junior competitor building a match-ready routine</label>
-              <label class="option"><input type="radio" name="playerIdentity" value="adult improver">Adult improver trying to practice more efficiently</label>
-              <label class="option"><input type="radio" name="playerIdentity" value="club player">Club player focused on consistency and confidence</label>
-              <label class="option"><input type="radio" name="playerIdentity" value="returning player">Returning player rebuilding technique and timing</label>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">My playing style</div>
-            <div class="options">
-              <label class="option"><input type="radio" name="playingStyle" value="aggressive baseliner" required>Aggressive baseliner</label>
-              <label class="option"><input type="radio" name="playingStyle" value="all-court player">All-court player</label>
-              <label class="option"><input type="radio" name="playingStyle" value="counterpuncher">Counterpuncher</label>
-              <label class="option"><input type="radio" name="playingStyle" value="serve and volley">Serve and volley</label>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">How many times do you practice each week?</div>
-            <div class="options">
-              <label class="option"><input type="radio" name="practiceFrequency" value="1-2 sessions" required>1-2 sessions</label>
-              <label class="option"><input type="radio" name="practiceFrequency" value="3-4 sessions">3-4 sessions</label>
-              <label class="option"><input type="radio" name="practiceFrequency" value="5-6 sessions">5-6 sessions</label>
-              <label class="option"><input type="radio" name="practiceFrequency" value="daily">Daily</label>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Favorite shot</div>
-            <div class="options">
-              <label class="option"><input type="radio" name="favoriteShot" value="forehand" required>Forehand</label>
-              <label class="option"><input type="radio" name="favoriteShot" value="backhand">Backhand</label>
-              <label class="option"><input type="radio" name="favoriteShot" value="serve">Serve</label>
-              <label class="option"><input type="radio" name="favoriteShot" value="volley">Volley</label>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label">Main improvement goals</div>
-            <div class="goal-grid">
-              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="more consistency">More consistency</label>
-              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="more power">More power</label>
-              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="cleaner footwork">Cleaner footwork</label>
-              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="better serve">Better serve</label>
-              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="match strategy">Match strategy</label>
-              <label class="goal-card"><input type="checkbox" name="improvementGoals" value="injury-safe mechanics">Injury-safe mechanics</label>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn-primary" type="submit">Save and continue</button>
-            <a class="btn" href="./contact.html">Need help first?</a>
-          </div>
-        </form>
-        <div class="success-box" id="successBox">
-          Your onboarding quiz is complete. Choose your next move below and SmartSwing will keep your profile ready.
+      <!-- Q2 — Playing style -->
+      <div class="question" data-q="2" data-name="playingStyle" data-type="single">
+        <div class="q-eyebrow">Your style</div>
+        <h1 class="q-title">How do you like to play points?</h1>
+        <p class="q-help">Pick the description that feels closest to your natural game today.</p>
+        <div class="choices two-col">
+          <label class="choice"><input type="radio" name="playingStyle" value="aggressive baseliner"><span class="dot"></span><span class="label">Aggressive baseliner</span></label>
+          <label class="choice"><input type="radio" name="playingStyle" value="all-court player"><span class="dot"></span><span class="label">All-court player</span></label>
+          <label class="choice"><input type="radio" name="playingStyle" value="counterpuncher"><span class="dot"></span><span class="label">Counterpuncher</span></label>
+          <label class="choice"><input type="radio" name="playingStyle" value="serve and volley"><span class="dot"></span><span class="label">Serve and volley</span></label>
         </div>
-      </article>
+      </div>
 
-      <article class="panel">
-        <h2>Start with one of these use cases</h2>
-        <div class="examples">
-          <div class="example-card">
-            <h3>Serve tune-up</h3>
-            <p>Upload one side-angle serve clip and use the report to isolate toss, leg drive, and racquet path issues quickly.</p>
-          </div>
-          <div class="example-card">
-            <h3>Forehand rebuild</h3>
-            <p>Use your favorite shot as the entry point, then stack drills and dashboard history to see whether the changes are real.</p>
-          </div>
-          <div class="example-card">
-            <h3>Practice with intent</h3>
-            <p>Turn vague practice into one weekly action plan with a technical focus, a drill block, and one tactical pattern.</p>
-          </div>
-          <div class="example-card">
-            <h3>Coach-ready review</h3>
-            <p>Bring one report to a lesson so the session starts from specific movement evidence instead of a blank slate.</p>
-          </div>
+      <!-- Q3 — Practice frequency -->
+      <div class="question" data-q="3" data-name="practiceFrequency" data-type="single">
+        <div class="q-eyebrow">Your routine</div>
+        <h1 class="q-title">How often are you on court each week?</h1>
+        <p class="q-help">This helps us pace your weekly action plan so it never feels like too much or too little.</p>
+        <div class="choices two-col">
+          <label class="choice"><input type="radio" name="practiceFrequency" value="1-2 sessions"><span class="dot"></span><span class="label">1–2 sessions</span></label>
+          <label class="choice"><input type="radio" name="practiceFrequency" value="3-4 sessions"><span class="dot"></span><span class="label">3–4 sessions</span></label>
+          <label class="choice"><input type="radio" name="practiceFrequency" value="5-6 sessions"><span class="dot"></span><span class="label">5–6 sessions</span></label>
+          <label class="choice"><input type="radio" name="practiceFrequency" value="daily"><span class="dot"></span><span class="label">Daily</span></label>
         </div>
-        <div class="actions" style="margin-top:18px">
-          <a class="btn-primary" id="analyzeLink" href="./analyze.html">Open Analyzer</a>
-          <a class="btn" id="dashboardLink" href="./dashboard.html">Open Dashboard</a>
-          <a class="btn" href="./library.html">Browse Library</a>
+      </div>
+
+      <!-- Q4 — Favorite shot -->
+      <div class="question" data-q="4" data-name="favoriteShot" data-type="single">
+        <div class="q-eyebrow">Your weapon</div>
+        <h1 class="q-title">What's your favorite shot?</h1>
+        <p class="q-help">We'll start your first analysis here so the dashboard feels relevant from day one.</p>
+        <div class="choices two-col">
+          <label class="choice"><input type="radio" name="favoriteShot" value="forehand"><span class="dot"></span><span class="label">Forehand</span></label>
+          <label class="choice"><input type="radio" name="favoriteShot" value="backhand"><span class="dot"></span><span class="label">Backhand</span></label>
+          <label class="choice"><input type="radio" name="favoriteShot" value="serve"><span class="dot"></span><span class="label">Serve</span></label>
+          <label class="choice"><input type="radio" name="favoriteShot" value="volley"><span class="dot"></span><span class="label">Volley</span></label>
         </div>
-      </article>
-    </section>
+      </div>
+
+      <!-- Q5 — Improvement goals (multi) -->
+      <div class="question" data-q="5" data-name="improvementGoals" data-type="multi" data-min="1">
+        <div class="q-eyebrow">Your goals</div>
+        <h1 class="q-title">What do you want to improve first?</h1>
+        <p class="q-help">Pick anything that resonates — at least one to continue. You can change these later.</p>
+        <div class="choices two-col">
+          <label class="choice"><input type="checkbox" name="improvementGoals" value="more consistency"><span class="check"></span><span class="label">More consistency</span></label>
+          <label class="choice"><input type="checkbox" name="improvementGoals" value="more power"><span class="check"></span><span class="label">More power</span></label>
+          <label class="choice"><input type="checkbox" name="improvementGoals" value="cleaner footwork"><span class="check"></span><span class="label">Cleaner footwork</span></label>
+          <label class="choice"><input type="checkbox" name="improvementGoals" value="better serve"><span class="check"></span><span class="label">Better serve</span></label>
+          <label class="choice"><input type="checkbox" name="improvementGoals" value="match strategy"><span class="check"></span><span class="label">Match strategy</span></label>
+          <label class="choice"><input type="checkbox" name="improvementGoals" value="injury-safe mechanics"><span class="check"></span><span class="label">Injury-safe mechanics</span></label>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- Success state shown after submission -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">✓</div>
+      <h1 class="success-title">You're all set.</h1>
+      <p class="success-help">Your profile is tuned. Open the analyzer to record your first swing, or jump into the dashboard to see your starting view.</p>
+      <div class="success-actions">
+        <a class="btn btn-primary" id="analyzeLink" href="./analyze.html" style="flex:initial;padding:14px 28px;">Open Analyzer →</a>
+        <a class="btn" id="dashboardLink" href="./dashboard.html">Go to Dashboard</a>
+      </div>
+    </div>
   </main>
+
+  <nav class="footer-nav" id="footerNav">
+    <div class="footer-inner">
+      <button type="button" class="btn btn-back" id="backBtn" disabled>← <span class="btn-back-label">Back</span></button>
+      <button type="button" class="btn btn-primary" id="nextBtn" disabled>Continue →</button>
+    </div>
+  </nav>
 
   <script src="./public-app-config.js"></script>
   <script src="/api/runtime-config.js"></script>
@@ -274,42 +427,129 @@
     const params = new URLSearchParams(window.location.search);
     const selectedPlanId = params.get('plan') || safeUser.onboardingPlanId || safeUser.planId || 'free';
     const plan = store.getPlanDefinition(selectedPlanId);
-    document.getElementById('planLabel').textContent = `${plan.name} onboarding`;
-    document.getElementById('planCopy').textContent = plan.id === 'free'
-      ? 'Your free access is active. Finish the quiz to personalize your first report.'
-      : `${plan.name} is active. Finish the quiz so SmartSwing can tailor the first training path.`;
+    document.getElementById('planBadge').textContent = `${plan.name} onboarding`;
 
-    if (safeUser.onboardingCompletedAt) {
-      document.getElementById('successBox').style.display = 'block';
+    // ── Stepper logic ───────────────────────────────────────────────────
+    const questions = Array.from(document.querySelectorAll('.question'));
+    const total = questions.length;
+    document.getElementById('stepTotal').textContent = total;
+    const stepLabels = ['Get to know you', 'Your style', 'Your routine', 'Your weapon', 'Your goals'];
+
+    let current = 0;
+    const backBtn = document.getElementById('backBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const progressFill = document.getElementById('progressFill');
+    const stepCurrent = document.getElementById('stepCurrent');
+    const stepLabel = document.getElementById('stepLabel');
+
+    function isQuestionAnswered(q) {
+      const name = q.dataset.name;
+      const type = q.dataset.type;
+      const inputs = q.querySelectorAll(`input[name="${name}"]:checked`);
+      if (type === 'multi') {
+        const min = parseInt(q.dataset.min || '1', 10);
+        return inputs.length >= min;
+      }
+      return inputs.length > 0;
     }
 
-    document.getElementById('welcomeForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const checkedGoals = Array.from(document.querySelectorAll('input[name="improvementGoals"]:checked')).map((input) => input.value);
-      if (!checkedGoals.length) {
-        alert('Select at least one improvement goal.');
+    function updateState() {
+      const q = questions[current];
+      backBtn.disabled = current === 0;
+      nextBtn.disabled = !isQuestionAnswered(q);
+      nextBtn.textContent = current === total - 1 ? 'Finish ✓' : 'Continue →';
+      const pct = ((current + (isQuestionAnswered(q) ? 1 : 0.4)) / total) * 100;
+      progressFill.style.width = `${Math.min(100, pct)}%`;
+      stepCurrent.textContent = current + 1;
+      stepLabel.textContent = stepLabels[current] || '';
+    }
+
+    function showQuestion(idx) {
+      questions.forEach((q, i) => q.classList.toggle('active', i === idx));
+      current = idx;
+      updateState();
+      // Scroll the new question into view on mobile
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Wire change listeners on every input to refresh next-button state
+    document.querySelectorAll('.question input').forEach((input) => {
+      input.addEventListener('change', () => {
+        updateState();
+        // Auto-advance for single-choice radios for that "swipe" feel
+        const q = questions[current];
+        if (q.dataset.type === 'single' && current < total - 1) {
+          setTimeout(() => {
+            if (current < total - 1) showQuestion(current + 1);
+          }, 320);
+        }
+      });
+    });
+
+    backBtn.addEventListener('click', () => {
+      if (current > 0) showQuestion(current - 1);
+    });
+
+    nextBtn.addEventListener('click', async () => {
+      const q = questions[current];
+      if (!isQuestionAnswered(q)) return;
+      if (current < total - 1) {
+        showQuestion(current + 1);
         return;
       }
+      // Final step → submit
+      await submitQuiz();
+    });
+
+    // Keyboard: Enter advances; Esc goes back
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!nextBtn.disabled) nextBtn.click();
+      } else if (e.key === 'Escape') {
+        if (!backBtn.disabled) backBtn.click();
+      }
+    });
+
+    async function submitQuiz() {
+      const goals = Array.from(document.querySelectorAll('input[name="improvementGoals"]:checked')).map((i) => i.value);
       try {
+        nextBtn.disabled = true;
+        nextBtn.textContent = 'Saving...';
         await store.saveOnboardingQuiz({
           playerIdentity: document.querySelector('input[name="playerIdentity"]:checked')?.value || '',
           playingStyle: document.querySelector('input[name="playingStyle"]:checked')?.value || '',
           practiceFrequency: document.querySelector('input[name="practiceFrequency"]:checked')?.value || '',
           favoriteShot: document.querySelector('input[name="favoriteShot"]:checked')?.value || '',
-          improvementGoals: checkedGoals,
+          improvementGoals: goals,
           onboardingPlanId: selectedPlanId,
           onboardingSource: 'welcome-quiz'
         });
-        document.getElementById('successBox').style.display = 'block';
-        document.getElementById('dashboardLink').href = './dashboard.html';
-        document.getElementById('analyzeLink').href = './analyze.html';
-        setTimeout(() => {
-          window.location.href = './dashboard.html';
-        }, 1400);
+        // Show success state
+        document.getElementById('welcomeForm').style.display = 'none';
+        document.getElementById('progressWrap').style.display = 'none';
+        document.getElementById('footerNav').style.display = 'none';
+        document.getElementById('successScreen').classList.add('active');
+        progressFill.style.width = '100%';
+        setTimeout(() => { window.location.href = './analyze.html'; }, 2200);
       } catch (error) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Finish ✓';
         alert(error.message || 'Unable to save your onboarding quiz right now.');
       }
-    });
+    }
+
+    // If user already completed onboarding, skip straight to dashboard
+    if (safeUser.onboardingCompletedAt) {
+      document.getElementById('welcomeForm').style.display = 'none';
+      document.getElementById('progressWrap').style.display = 'none';
+      document.getElementById('footerNav').style.display = 'none';
+      document.getElementById('successScreen').classList.add('active');
+      document.querySelector('.success-title').textContent = 'Welcome back!';
+      document.querySelector('.success-help').textContent = 'You\'ve already finished onboarding. Pick up right where you left off.';
+    }
+
+    updateState();
   </script>
 </body>
 </html>

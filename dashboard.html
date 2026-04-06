@@ -250,6 +250,19 @@
           <div class="stats-mini"><div class="sm-label">Sessions</div><div class="sm-value" id="smSessions">0</div></div>
           <div class="stats-mini"><div class="sm-label">Trend</div><div class="sm-value" id="smTrend">—</div><div class="sm-delta" id="smDelta"></div></div>
         </div>
+        <!-- Live Match Tracker quick-launch (Player + Performance plans) -->
+        <div id="liveMatchCta" style="display:none;margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(57,255,20,0.08),rgba(57,255,20,0.02));border:1px solid rgba(57,255,20,0.25);border-radius:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+              <div class="mini" style="color:var(--green);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Live Match Tracker
+              </div>
+              <div style="font-size:13px;font-weight:600;color:var(--text);">Score your match point-by-point and tag the winning shot for every rally.</div>
+            </div>
+            <a href="./analyze.html?mode=match" class="btn" style="background:var(--green);color:#000;font-weight:800;font-size:13px;padding:10px 18px;border-radius:10px;text-decoration:none;white-space:nowrap;">Start Tracking →</a>
+          </div>
+        </div>
       </article>
       <article class="perf-visual" id="perfVisual">
         <div class="pv-top">
@@ -427,13 +440,24 @@
     <section class="tab-panel" id="tab-compare">
       <!-- Section A: Analysis Comparison -->
       <article class="panel">
-        <h2>Before / After Comparison</h2>
-        <p class="muted" style="margin-bottom:16px;">Select two analyses to compare scores, grades, and biomechanics metrics side by side.</p>
+        <h2>Compare Analyses</h2>
+        <p class="muted" style="margin-bottom:12px;">Compare your own progress over time, or benchmark yourself against a saved competitor / pro reference video.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <button class="btn" id="compareModeSelf" style="background:var(--green);color:#000;border:none;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;">My Progress</button>
+          <button class="btn" id="compareModeVs" style="background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.15);padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;">vs Competitor</button>
+        </div>
         <div class="compare-selects">
-          <div><label for="compareEarlier">Earlier Analysis</label><select id="compareEarlier"></select></div>
-          <div><label for="compareLater">Later Analysis</label><select id="compareLater"></select></div>
+          <div><label for="compareEarlier" id="compareEarlierLabel">Earlier Analysis</label><select id="compareEarlier"></select></div>
+          <div><label for="compareLater" id="compareLaterLabel">Later Analysis</label><select id="compareLater"></select></div>
         </div>
         <div id="compareResult"></div>
+      </article>
+
+      <!-- Section A2: Competitor / Pro Reference Library -->
+      <article class="panel" id="competitorLibraryPanel" style="display:none;">
+        <h2>🎯 Competitor &amp; Pro Reference Library</h2>
+        <p class="muted" style="margin-bottom:16px;">Reference videos you tagged as "competitor" in the analyzer. These never affect your score average — they're saved purely for benchmarking.</p>
+        <div id="competitorLibraryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;"></div>
       </article>
 
       <!-- Section B: Score Card Generator -->
@@ -497,7 +521,11 @@
     // Blog nav: open to all during soft launch — no badge needed.
 
     const metrics = store.getDashboardMetrics(user.id);
-    const assessments = store.getVisibleAssessmentsForCurrentUser(user.id);
+    const _allVisibleAssessments = store.getVisibleAssessmentsForCurrentUser(user.id);
+    // Separate own assessments from competitor reference videos so they never
+    // mix into score averages, weekly progress, or "your sessions" lists.
+    const assessments = _allVisibleAssessments.filter((a) => !a.isCompetitor);
+    const competitorAssessments = _allVisibleAssessments.filter((a) => !!a.isCompetitor);
     const latest = assessments[0] || null;
     const focusAreas = store.getRecommendedFocusAreas(user.id);
     const sessions = store.getVisibleCoachSessionsForCurrentUser(user.id);
@@ -533,6 +561,12 @@
     document.getElementById('userName').textContent = user.fullName || 'Player';
     const billingLabel = access.plan.id === 'free' ? 'free' : (access.plan.billingInterval === 'yearly' ? 'yearly' : 'monthly');
     document.getElementById('userMeta').textContent = `${access.plan.name}${access.isTrial ? ' trial' : ''} | ${billingLabel} | ${access.usage.used}/${Number.isFinite(access.usage.limit) ? access.usage.limit : 'Unlimited'} reports used`;
+
+    // Live Match Tracker CTA — visible on Player and Performance plans (also Coach/Club)
+    const liveMatchCta = document.getElementById('liveMatchCta');
+    if (liveMatchCta && access.plan.id && access.plan.id !== 'free') {
+      liveMatchCta.style.display = 'block';
+    }
 
     // ── Free Plan Referral Nudge ────────────────────────────────────────────
     if (access.plan.id === 'free') {
@@ -1200,12 +1234,40 @@
       });
     }
 
+    // ── Competitor / Pro Reference Library ────────────────────────────────
+    (function initCompetitorLibrary() {
+      const panel = document.getElementById('competitorLibraryPanel');
+      const grid = document.getElementById('competitorLibraryGrid');
+      if (!panel || !grid || !competitorAssessments.length) return;
+      panel.style.display = '';
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
+      grid.innerHTML = competitorAssessments.map((c) => {
+        const score = c.overallScore || 0;
+        const color = score >= 90 ? '#39ff14' : score >= 75 ? '#ffd84d' : '#fb923c';
+        const ytId = c.playerProfile?.youtubeVideoId;
+        const thumb = ytId
+          ? `<div style="width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;margin-bottom:10px;"><img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt=""></div>`
+          : `<div style="width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#1a2236,#0a0a0a);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:10px;">🎾</div>`;
+        return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;">
+          ${thumb}
+          <div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:4px;">${(c.competitorName || 'Competitor').replace(/[<>]/g,'')}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cap(c.shotType || 'shot')} · ${fmtDate(c.analyzedAt)}</div>
+          <div style="display:flex;align-items:baseline;gap:6px;"><span style="font-size:24px;font-weight:900;color:${color};">${score}</span><span style="font-size:12px;color:var(--muted);">/ 100</span><span style="margin-left:auto;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:${color}22;color:${color};">${c.grade || '—'}</span></div>
+        </div>`;
+      }).join('');
+    })();
+
     // ── Before / After Comparison ─────────────────────────────────────────
     (function initCompare() {
-      const allA = assessments.slice(); // newest first from store
-      if (!allA.length) {
+      const ownA = assessments.slice(); // newest first, own only
+      const compA = competitorAssessments.slice(); // competitor reference videos
+      if (!ownA.length) {
         const res = document.getElementById('compareResult');
-        if (res) res.innerHTML = '<div class="card"><p class="muted">Run at least one analysis to use the comparison view.</p></div>';
+        if (res) res.innerHTML = '<div class="card"><p class="muted">Run at least one of your own analyses to use the comparison view.</p></div>';
         return;
       }
 
@@ -1219,31 +1281,75 @@
         const d = fmtDate(item.analyzedAt || item.createdAt);
         const shot = cap(item.shotType || 'shot');
         const score = item.overallScore || 0;
-        return `${d} · ${shot} · ${score}/100`;
+        const tag = item.isCompetitor ? ` · ${item.competitorName || 'Competitor'}` : '';
+        return `${d} · ${shot} · ${score}/100${tag}`;
       }
 
       const earlierSel = document.getElementById('compareEarlier');
       const laterSel   = document.getElementById('compareLater');
+      const earlierLbl = document.getElementById('compareEarlierLabel');
+      const laterLbl   = document.getElementById('compareLaterLabel');
+      const modeSelfBtn = document.getElementById('compareModeSelf');
+      const modeVsBtn = document.getElementById('compareModeVs');
       if (!earlierSel || !laterSel) return;
 
-      // Oldest first for earlier, newest first for later
-      const byOldest = allA.slice().reverse();
-      byOldest.forEach((item, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = optLabel(item);
-        earlierSel.appendChild(opt);
-      });
-      allA.forEach((item, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = optLabel(item);
-        laterSel.appendChild(opt);
-      });
+      let mode = 'self'; // 'self' | 'vs'
+      // Holds the working datasets for left/right selects keyed by mode.
+      let leftData = [];
+      let rightData = [];
 
-      // Default: earliest vs latest
-      earlierSel.value = '0';
-      laterSel.value   = '0';
+      function fillSelect(sel, items) {
+        sel.innerHTML = '';
+        items.forEach((item, i) => {
+          const opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = optLabel(item);
+          sel.appendChild(opt);
+        });
+      }
+
+      function applyMode(nextMode) {
+        mode = nextMode;
+        if (mode === 'self') {
+          modeSelfBtn.style.background = 'var(--green)';
+          modeSelfBtn.style.color = '#000';
+          modeSelfBtn.style.border = 'none';
+          modeVsBtn.style.background = 'rgba(255,255,255,.06)';
+          modeVsBtn.style.color = 'var(--text)';
+          modeVsBtn.style.border = '1px solid rgba(255,255,255,.15)';
+          earlierLbl.textContent = 'Earlier (You)';
+          laterLbl.textContent = 'Later (You)';
+          // Earlier = oldest-first, Later = newest-first (own only)
+          leftData = ownA.slice().reverse();
+          rightData = ownA.slice();
+        } else {
+          modeVsBtn.style.background = 'var(--green)';
+          modeVsBtn.style.color = '#000';
+          modeVsBtn.style.border = 'none';
+          modeSelfBtn.style.background = 'rgba(255,255,255,.06)';
+          modeSelfBtn.style.color = 'var(--text)';
+          modeSelfBtn.style.border = '1px solid rgba(255,255,255,.15)';
+          earlierLbl.textContent = 'Competitor / Pro';
+          laterLbl.textContent = 'You (latest)';
+          if (!compA.length) {
+            const res = document.getElementById('compareResult');
+            if (res) res.innerHTML = '<div class="card"><p class="muted">No competitor or pro reference videos saved yet. In the analyzer, tick <strong>"This video is a competitor / pro reference"</strong> when you analyze a YouTube clip or upload to add one here.</p></div>';
+            earlierSel.innerHTML = '';
+            laterSel.innerHTML = '';
+            return;
+          }
+          leftData = compA.slice();
+          rightData = ownA.slice();
+        }
+        fillSelect(earlierSel, leftData);
+        fillSelect(laterSel, rightData);
+        earlierSel.value = '0';
+        laterSel.value = '0';
+        renderCompare();
+      }
+
+      modeSelfBtn.addEventListener('click', () => applyMode('self'));
+      modeVsBtn.addEventListener('click', () => applyMode('vs'));
 
       function gradeColor(g) {
         const s = String(g || '').toUpperCase();
@@ -1254,8 +1360,8 @@
       }
 
       function renderCompare() {
-        const eItem = byOldest[parseInt(earlierSel.value, 10)];
-        const lItem = allA[parseInt(laterSel.value, 10)];
+        const eItem = leftData[parseInt(earlierSel.value, 10)];
+        const lItem = rightData[parseInt(laterSel.value, 10)];
         const res   = document.getElementById('compareResult');
         if (!res) return;
         if (!eItem || !lItem) { res.innerHTML = ''; return; }
@@ -1294,16 +1400,18 @@
           ? `<div class="best-improvement"><div class="bi-label">Biggest improvement</div><strong>${cap(bestImprovement.name)}</strong> improved by <strong style="color:var(--green)">+${bestImprovement.d} pts</strong></div>`
           : '';
 
+        const leftLbl = mode === 'vs' ? (eItem.competitorName || 'Competitor') : 'Earlier';
+        const rightLbl = mode === 'vs' ? 'You' : 'Later';
         res.innerHTML = `
           <div class="compare-card">
             <div class="compare-side">
-              <div class="mini" style="margin-bottom:6px;">Earlier</div>
+              <div class="mini" style="margin-bottom:6px;">${leftLbl}</div>
               <div class="compare-score" style="color:var(--muted)">${eScore}</div>
               <div><span class="compare-grade-pill" style="background:${gradeColor(eItem.grade)}22;color:${gradeColor(eItem.grade)}">${eItem.grade || '—'}</span></div>
               <div style="font-size:13px;color:var(--muted);margin-top:4px;">${cap(eItem.shotType || 'shot')} · ${fmtDate(eItem.analyzedAt || eItem.createdAt)}</div>
             </div>
             <div class="compare-side">
-              <div class="mini" style="margin-bottom:6px;">Later <span class="delta-chip ${deltaClass}" style="margin-left:6px;">${deltaText}</span></div>
+              <div class="mini" style="margin-bottom:6px;">${rightLbl} <span class="delta-chip ${deltaClass}" style="margin-left:6px;">${deltaText}</span></div>
               <div class="compare-score" style="color:var(--green)">${lScore}</div>
               <div><span class="compare-grade-pill" style="background:${gradeColor(lItem.grade)}22;color:${gradeColor(lItem.grade)}">${lItem.grade || '—'}</span></div>
               <div style="font-size:13px;color:var(--muted);margin-top:4px;">${cap(lItem.shotType || 'shot')} · ${fmtDate(lItem.analyzedAt || lItem.createdAt)}</div>
@@ -1321,7 +1429,7 @@
 
       earlierSel.addEventListener('change', renderCompare);
       laterSel.addEventListener('change', renderCompare);
-      renderCompare();
+      applyMode('self');
     })();
 
     // ── Score Card Generator ──────────────────────────────────────────────

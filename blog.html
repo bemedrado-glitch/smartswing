@@ -2427,6 +2427,71 @@ document.querySelectorAll('.result-card').forEach(function(card) {
     }
   });
 });
+
+// ══════════════════════════════════════════════════════════════
+// LIVE TOURNAMENT STRIP — replaces hardcoded cards with real
+// data fetched from /api/tennis-feed (TheSportsDB ATP league).
+// Falls back silently to the hardcoded cards if fetch fails.
+// ══════════════════════════════════════════════════════════════
+(function loadLiveTournamentStrip() {
+  var strip = document.querySelector('.tournament-strip');
+  if (!strip) return;
+
+  function inferSurface(name) {
+    var n = (name || '').toLowerCase();
+    if (n.indexOf('wimbledon') !== -1 || n.indexOf('queen') !== -1 || n.indexOf('halle') !== -1 || n.indexOf('eastbourne') !== -1 || n.indexOf('newport') !== -1) return 'grass';
+    if (n.indexOf('roland') !== -1 || n.indexOf('french') !== -1 || n.indexOf('madrid') !== -1 || n.indexOf('rome') !== -1 || n.indexOf('monte') !== -1 || n.indexOf('barcelona') !== -1 || n.indexOf('hamburg') !== -1 || n.indexOf('estoril') !== -1 || n.indexOf('houston') !== -1 || n.indexOf('munich') !== -1 || n.indexOf('rio') !== -1 || n.indexOf('buenos') !== -1 || n.indexOf('santiago') !== -1) return 'clay';
+    if (n.indexOf('indoor') !== -1 || n.indexOf('paris masters') !== -1 || n.indexOf('rotterdam') !== -1 || n.indexOf('vienna') !== -1 || n.indexOf('basel') !== -1 || n.indexOf('atp finals') !== -1) return 'indoor';
+    return 'hard';
+  }
+
+  function badge(name) {
+    var n = (name || '').toLowerCase();
+    if (n.indexOf('roland') !== -1 || n.indexOf('wimbledon') !== -1 || n.indexOf('us open') !== -1 || n.indexOf('australian open') !== -1) return { cls: 'badge-slam', label: 'Grand Slam' };
+    if (n.indexOf('masters') !== -1 || n.indexOf('madrid') !== -1 || n.indexOf('rome') !== -1 || n.indexOf('monte') !== -1 || n.indexOf('indian wells') !== -1 || n.indexOf('miami') !== -1 || n.indexOf('canadian') !== -1 || n.indexOf('cincinnati') !== -1 || n.indexOf('shanghai') !== -1) return { cls: 'badge-m1000', label: 'Masters 1000' };
+    return { cls: 'badge-500', label: 'ATP Tour' };
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch (e) { return iso; }
+  }
+
+  function renderCard(ev) {
+    var surface = inferSurface(ev.name);
+    var bd = badge(ev.name);
+    var dates = fmtDate(ev.date);
+    var loc = ev.city || ev.country || ev.venue || '';
+    var officialUrl = 'https://www.google.com/search?q=' + encodeURIComponent((ev.name || 'ATP tour') + ' draw bracket');
+    return '<a class="tournament-card surface-' + surface + '" href="' + officialUrl + '" target="_blank" rel="noopener" role="listitem" aria-label="' + escH(ev.name) + ' — view official draw">' +
+      '<div class="surface-bar" aria-hidden="true"></div>' +
+      '<div class="tc-content">' +
+      '<span class="tc-badge ' + bd.cls + '">' + bd.label + '</span>' +
+      '<div class="tc-name">' + escH(ev.name || 'Tournament') + '</div>' +
+      '<div class="tc-dates">' + escH(dates) + '</div>' +
+      '<div class="tc-location">' + escH(loc) + '</div>' +
+      '<div class="tc-prize" style="opacity:.7;font-size:11px;">Live · ATP</div>' +
+      '<span class="surface-label">' + surface.charAt(0).toUpperCase() + surface.slice(1) + '</span>' +
+      '</div></a>';
+  }
+
+  fetch('/api/tennis-feed').then(function(r) {
+    return r.ok ? r.json() : null;
+  }).then(function(data) {
+    if (!data || !Array.isArray(data.upcoming) || data.upcoming.length === 0) return;
+    var cards = data.upcoming.slice(0, 12).map(renderCard).join('');
+    if (cards) {
+      strip.innerHTML = cards;
+      var head = document.getElementById('calendar-heading');
+      if (head && head.nextElementSibling) {
+        head.nextElementSibling.textContent = 'Live · ATP';
+      }
+    }
+  }).catch(function() { /* keep fallback cards */ });
+})();
 </script>
 <script src="./pwa.js"></script>
 <script src="./i18n.js"></script>
