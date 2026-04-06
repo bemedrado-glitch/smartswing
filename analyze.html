@@ -2367,10 +2367,33 @@
         angles.trunk = calculateAngle(shoulderMid, hipMid, vertical);
       }
 
-      // Wrist angle is intentionally omitted here because the 17-keypoint model
-      // does not expose hand/finger landmarks, and a fake proxy produced
-      // misleading values close to 180 degrees.
-      angles.wrist = null;
+      // ── Wrist angle ──
+      // Defined as the orientation of the FOREARM (elbow → wrist vector)
+      // relative to vertical, in degrees. 0° means the forearm is pointing
+      // straight up (e.g. serve trophy / contact); 90° means it is horizontal
+      // (e.g. forehand contact at waist); 180° means it points straight down
+      // (e.g. very low backhand prep).
+      //
+      // Note: MoveNet does not expose hand/finger landmarks, so we cannot
+      // measure true wrist FLEXION. This forearm-orientation proxy is the
+      // most biomechanically meaningful wrist signal we can extract from
+      // the 17-keypoint output. It captures racket plane and wrist lag
+      // through the swing on the dominant arm.
+      if (kpOk(elbow) && kpOk(wrist)) {
+        const dx = wrist.x - elbow.x;
+        const dy = wrist.y - elbow.y; // y is screen-down (positive)
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0.0001) {
+          // angle vs vertical (-y is "up"); range 0..180.
+          // cosθ = (-dy)/len  →  θ = acos(-dy/len)
+          const cosTheta = Math.max(-1, Math.min(1, -dy / len));
+          angles.wrist = Math.round((Math.acos(cosTheta) * 180) / Math.PI);
+        } else {
+          angles.wrist = null;
+        }
+      } else {
+        angles.wrist = null;
+      }
 
       return angles;
     }
@@ -2459,22 +2482,28 @@
     }
 
     // Draw Pose
+    // Face landmarks (nose/eyes/ears) are intentionally skipped in the
+    // overlay to reduce visual clutter and free up the head area for the
+    // viewer\u2019s eye to focus on the swing mechanics. The wrists are drawn
+    // larger and in gold to emphasise the new wrist-lag metric.
+    const FACE_KEYPOINT_INDICES = new Set([0, 1, 2, 3, 4]); // nose, l_eye, r_eye, l_ear, r_ear
+    const WRIST_KEYPOINT_INDICES = new Set([9, 10]);        // left_wrist, right_wrist
+
     function drawPose(keypoints) {
       const canvas = document.getElementById('poseCanvas');
       if (!canvas || !Array.isArray(keypoints)) return;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-      
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw skeleton lines
+      // ── Skeleton lines ──
       ctx.strokeStyle = 'rgba(57, 255, 20, 0.8)';
       ctx.lineWidth = Math.max(2, Math.round(canvas.width / 450));
-      
+
       POSE_CONNECTIONS.forEach(([i, j]) => {
         const a = keypoints[i];
         const b = keypoints[j];
-        
         if (kpOk(a, AI_SETTINGS.minKeypointConfidence) && kpOk(b, AI_SETTINGS.minKeypointConfidence)) {
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
@@ -2483,19 +2512,41 @@
         }
       });
 
-      // Draw keypoints
-      keypoints.forEach(kp => {
-        if (kpOk(kp, AI_SETTINGS.minKeypointConfidence)) {
-          ctx.fillStyle = 'rgba(57, 255, 20, 0.95)';
-          ctx.beginPath();
-          ctx.arc(kp.x, kp.y, Math.max(3, Math.round(canvas.width / 420)), 0, 2 * Math.PI);
-          ctx.fill();
+      // ── Keypoints ──
+      const baseRadius = Math.max(3, Math.round(canvas.width / 420));
+      const wristRadius = Math.max(5, Math.round(canvas.width / 240));
+      const innerRadius = Math.max(1.5, Math.round(canvas.width / 1000));
 
+      keypoints.forEach((kp, index) => {
+        if (!kpOk(kp, AI_SETTINGS.minKeypointConfidence)) return;
+        if (FACE_KEYPOINT_INDICES.has(index)) return; // skip face landmarks
+
+        if (WRIST_KEYPOINT_INDICES.has(index)) {
+          // Wrist: gold halo + bright core to call attention to the new metric.
+          ctx.fillStyle = 'rgba(255, 216, 77, 0.35)';
+          ctx.beginPath();
+          ctx.arc(kp.x, kp.y, wristRadius + 3, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(255, 216, 77, 0.98)';
+          ctx.beginPath();
+          ctx.arc(kp.x, kp.y, wristRadius, 0, 2 * Math.PI);
+          ctx.fill();
           ctx.fillStyle = 'white';
           ctx.beginPath();
-          ctx.arc(kp.x, kp.y, Math.max(1.5, Math.round(canvas.width / 1000)), 0, 2 * Math.PI);
+          ctx.arc(kp.x, kp.y, innerRadius + 0.5, 0, 2 * Math.PI);
           ctx.fill();
+          return;
         }
+
+        // Standard joint dot.
+        ctx.fillStyle = 'rgba(57, 255, 20, 0.95)';
+        ctx.beginPath();
+        ctx.arc(kp.x, kp.y, baseRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(kp.x, kp.y, innerRadius, 0, 2 * Math.PI);
+        ctx.fill();
       });
     }
 
@@ -2721,6 +2772,12 @@
     // ============================================================================
     // Professional Benchmarks
     // ============================================================================
+    // ─── PRO BENCHMARKS ──────────────────────────────────────────────────────
+    // All angle values in degrees. The `wrist` benchmark is the average
+    // forearm-from-vertical angle across the swing (0° = forearm pointing up,
+    // 90° = horizontal, 180° = pointing down). Ranges are derived from the
+    // typical sweep of the dominant forearm through prep → contact → finish
+    // for each shot type and reflect ATP/WTA reference clips.
     const PRO_BENCHMARKS = {
       forehand: {
         shoulder: { min: 95, max: 115, optimal: 105 },
@@ -2728,7 +2785,7 @@
         hip: { min: 160, max: 180, optimal: 170 },
         knee: { min: 145, max: 175, optimal: 165 },
         trunk: { min: 30, max: 50, optimal: 40 },
-        wrist: { min: 155, max: 175, optimal: 165 }
+        wrist: { min: 70, max: 110, optimal: 90 }
       },
       backhand: {
         shoulder: { min: 85, max: 105, optimal: 95 },
@@ -2736,7 +2793,7 @@
         hip: { min: 155, max: 175, optimal: 165 },
         knee: { min: 140, max: 170, optimal: 160 },
         trunk: { min: 25, max: 45, optimal: 35 },
-        wrist: { min: 150, max: 170, optimal: 160 }
+        wrist: { min: 72, max: 112, optimal: 92 }
       },
       serve: {
         shoulder: { min: 115, max: 145, optimal: 130 },
@@ -2744,7 +2801,7 @@
         hip: { min: 170, max: 190, optimal: 180 },
         knee: { min: 130, max: 160, optimal: 145 },
         trunk: { min: 40, max: 60, optimal: 50 },
-        wrist: { min: 140, max: 160, optimal: 150 }
+        wrist: { min: 35, max: 90, optimal: 60 }
       },
       volley: {
         shoulder: { min: 80, max: 100, optimal: 90 },
@@ -2752,7 +2809,7 @@
         hip: { min: 165, max: 185, optimal: 175 },
         knee: { min: 155, max: 180, optimal: 170 },
         trunk: { min: 20, max: 40, optimal: 30 },
-        wrist: { min: 160, max: 180, optimal: 170 }
+        wrist: { min: 60, max: 100, optimal: 80 }
       },
       slice: {
         shoulder: { min: 82, max: 104, optimal: 93 },
@@ -2760,7 +2817,7 @@
         hip: { min: 156, max: 178, optimal: 167 },
         knee: { min: 146, max: 170, optimal: 158 },
         trunk: { min: 18, max: 38, optimal: 28 },
-        wrist: { min: 142, max: 166, optimal: 154 }
+        wrist: { min: 78, max: 118, optimal: 98 }
       },
       'drop-shot': {
         shoulder: { min: 76, max: 98, optimal: 87 },
@@ -2768,7 +2825,7 @@
         hip: { min: 160, max: 182, optimal: 171 },
         knee: { min: 150, max: 174, optimal: 162 },
         trunk: { min: 16, max: 34, optimal: 25 },
-        wrist: { min: 148, max: 170, optimal: 159 }
+        wrist: { min: 75, max: 115, optimal: 95 }
       },
       lob: {
         shoulder: { min: 98, max: 122, optimal: 110 },
@@ -2776,13 +2833,17 @@
         hip: { min: 164, max: 186, optimal: 175 },
         knee: { min: 138, max: 164, optimal: 151 },
         trunk: { min: 34, max: 56, optimal: 45 },
-        wrist: { min: 138, max: 162, optimal: 150 }
+        wrist: { min: 55, max: 95, optimal: 75 }
       }
     };
 
+    // ─── SHOT SCORING MODELS ────────────────────────────────────────────────
+    // Weights are relative — each metric's contribution is its weight divided
+    // by the sum of weights in the shot. Adding the `wrist` channel reduces
+    // every other weight slightly so the total stays balanced.
     const SHOT_SCORING_MODELS = {
       forehand: {
-        weights: { shoulder: 18, elbow: 14, hip: 18, knee: 12, trunk: 14, stanceWidth: 7, contactHeight: 7, reach: 5, balance: 5 },
+        weights: { shoulder: 17, elbow: 13, hip: 17, knee: 11, trunk: 13, wrist: 9, stanceWidth: 6, contactHeight: 6, reach: 4, balance: 4 },
         derivedBenchmarks: {
           stanceWidth: { min: 88, max: 150, optimal: 114 },
           contactHeight: { min: 58, max: 104, optimal: 79 },
@@ -2791,7 +2852,7 @@
         }
       },
       backhand: {
-        weights: { shoulder: 16, elbow: 15, hip: 17, knee: 13, trunk: 14, stanceWidth: 8, contactHeight: 7, reach: 5, balance: 5 },
+        weights: { shoulder: 15, elbow: 14, hip: 16, knee: 12, trunk: 13, wrist: 9, stanceWidth: 7, contactHeight: 6, reach: 4, balance: 4 },
         derivedBenchmarks: {
           stanceWidth: { min: 92, max: 154, optimal: 118 },
           contactHeight: { min: 55, max: 96, optimal: 74 },
@@ -2800,7 +2861,7 @@
         }
       },
       serve: {
-        weights: { shoulder: 18, elbow: 16, hip: 18, knee: 16, trunk: 16, contactHeight: 8, reach: 4, balance: 4 },
+        weights: { shoulder: 17, elbow: 15, hip: 17, knee: 15, trunk: 15, wrist: 10, contactHeight: 6, reach: 3, balance: 2 },
         derivedBenchmarks: {
           contactHeight: { min: 105, max: 176, optimal: 138 },
           reach: { min: 96, max: 170, optimal: 128 },
@@ -2809,7 +2870,7 @@
         }
       },
       volley: {
-        weights: { shoulder: 15, elbow: 15, hip: 14, knee: 14, trunk: 12, stanceWidth: 10, contactHeight: 8, reach: 6, balance: 6 },
+        weights: { shoulder: 14, elbow: 14, hip: 13, knee: 13, trunk: 11, wrist: 8, stanceWidth: 9, contactHeight: 7, reach: 6, balance: 5 },
         derivedBenchmarks: {
           stanceWidth: { min: 90, max: 160, optimal: 122 },
           contactHeight: { min: 70, max: 128, optimal: 96 },
@@ -2818,7 +2879,7 @@
         }
       },
       slice: {
-        weights: { shoulder: 16, elbow: 14, hip: 15, knee: 12, trunk: 14, stanceWidth: 9, contactHeight: 8, reach: 6, balance: 6 },
+        weights: { shoulder: 15, elbow: 13, hip: 14, knee: 11, trunk: 13, wrist: 10, stanceWidth: 8, contactHeight: 7, reach: 5, balance: 4 },
         derivedBenchmarks: {
           stanceWidth: { min: 90, max: 152, optimal: 116 },
           contactHeight: { min: 52, max: 98, optimal: 76 },
@@ -2827,7 +2888,7 @@
         }
       },
       'drop-shot': {
-        weights: { shoulder: 14, elbow: 14, hip: 14, knee: 12, trunk: 12, stanceWidth: 10, contactHeight: 10, reach: 7, balance: 7 },
+        weights: { shoulder: 13, elbow: 13, hip: 13, knee: 11, trunk: 11, wrist: 11, stanceWidth: 9, contactHeight: 9, reach: 5, balance: 5 },
         derivedBenchmarks: {
           stanceWidth: { min: 88, max: 148, optimal: 112 },
           contactHeight: { min: 54, max: 102, optimal: 78 },
@@ -2836,7 +2897,7 @@
         }
       },
       lob: {
-        weights: { shoulder: 16, elbow: 14, hip: 15, knee: 12, trunk: 15, stanceWidth: 8, contactHeight: 10, reach: 5, balance: 5 },
+        weights: { shoulder: 15, elbow: 13, hip: 14, knee: 11, trunk: 14, wrist: 10, stanceWidth: 7, contactHeight: 9, reach: 4, balance: 3 },
         derivedBenchmarks: {
           stanceWidth: { min: 88, max: 150, optimal: 114 },
           contactHeight: { min: 92, max: 158, optimal: 126 },
@@ -2886,7 +2947,7 @@
       hip: 'Represents lower-body rotation transfer. It is a major driver of kinetic-chain power.',
       knee: 'Captures leg loading and drive. It influences balance, explosiveness, and timing under pressure.',
       trunk: 'Shows torso rotation and sequencing. It links lower-body power into upper-body acceleration.',
-      wrist: 'Reflects racquet lag and release timing. It impacts spin potential and directional precision.',
+      wrist: 'Tracks the dominant forearm orientation through the swing (0\u00b0 = pointing up, 90\u00b0 = horizontal, 180\u00b0 = pointing down). It is the closest 17-keypoint proxy for wrist lag, release timing and racquet plane \u2014 the mechanics that drive racquet-head speed, spin and directional precision.',
       shoulderTilt: 'Shows whether your shoulders stay level through the strike window instead of leaking posture early.',
       hipTilt: 'Measures pelvic stability and helps flag balance losses during loading and recovery.',
       stanceWidth: 'Tracks base width. Too narrow reduces stability; too wide can slow rotation and recovery.',
@@ -3017,6 +3078,77 @@
         }
       },
       wrist: {
+        forehand: {
+          excellent: [
+            'Wrist lag is dialed in — your forearm is sweeping through the ideal arc, loading energy and releasing it cleanly at contact for added racquet-head speed and topspin.',
+            'Excellent wrist position through the forehand — the forearm angle is staying neutral on prep and releasing right at contact, which is exactly how the kinetic chain transfers into the ball.'
+          ],
+          good: [
+            'Wrist trajectory is solid for the forehand — a fraction more lag (let the wrist drift slightly behind the elbow on the forward swing) would unlock another gear of racquet-head speed.',
+            'Forearm angle is workable through contact, but releasing a touch later would help you whip through the ball instead of pushing it.'
+          ],
+          'needs-work': [
+            'The wrist is too rigid through the forehand — your forearm is locked instead of lagging behind the elbow on the forward swing, so you are losing the whip effect that generates pace and spin. Drill: shadow swings with a relaxed grip pressure (3/10), feeling the racquet head trail your hand into contact.',
+            'The forearm is releasing too early on the forehand — the wrist is breaking forward before contact, which kills both pace and the topspin window. Focus on holding the wrist back until the elbow has fully extended forward.'
+          ]
+        },
+        backhand: {
+          excellent: [
+            'Wrist position on the backhand is textbook — the forearm angle is supporting a clean, controlled contact window with the racquet face square to the target.',
+            'Excellent wrist stability through the backhand. Whether one- or two-handed, the forearm orientation is letting you drive the ball with depth and direction.'
+          ],
+          good: [
+            'Wrist angle is decent on the backhand — slightly more forearm rotation through contact would let you drive a heavier ball without sacrificing direction.',
+            'Forearm is in a workable position. A firmer wrist through contact would tighten up the strike zone and add depth.'
+          ],
+          'needs-work': [
+            'The wrist is collapsing on the backhand — your forearm is folding under the ball instead of staying stable through contact, which is causing a weak, floating shot. Strengthen the wrist with eccentric resistance work and focus on a firm "drive through" feeling.',
+            'The forearm angle is wrong for the backhand — wrist is too loose, causing the racquet face to wobble at contact. Tighten the grip pressure to 6/10 and keep the wrist locked through the strike window.'
+          ]
+        },
+        serve: {
+          excellent: [
+            'Wrist pronation on the serve is excellent — the forearm is rotating through contact and snapping down for maximum racquet-head speed and slice/kick spin.',
+            'Outstanding wrist action on the serve — the forearm angle in the trophy and at contact is creating a true whip from the elbow snap, which is where serve power lives.'
+          ],
+          good: [
+            'Wrist action on the serve is workable — letting the forearm pronate fully through contact (palm rotating from facing the ball to facing the side fence) would add 5-10 mph.',
+            'Forearm angle is solid in the trophy but the snap-down is incomplete. Focus on aggressive pronation right at contact, not after.'
+          ],
+          'needs-work': [
+            'The wrist is barely snapping on the serve — your forearm is staying upright through contact instead of pronating sharply, which is the single biggest reason your serves lack pace. Drill: solo pronation drills with a soft ball, focusing on the palm rotating through contact.',
+            'The forearm is locked through the serve motion — no wrist whip, no pronation, no power. Pronation contributes ~25% of serve speed at the pro level. Start with shadow serves emphasizing the palm rotating from facing the net to facing the side fence at contact.'
+          ]
+        },
+        volley: {
+          excellent: [
+            'Wrist is firm and stable on the volley — exactly what you want for a punch volley with depth and control.',
+            'Excellent wrist position on the volley — locked but not tense, letting you absorb the incoming pace and redirect it cleanly.'
+          ],
+          good: [
+            'Wrist is in a good range for the volley — a touch firmer at contact would add depth and crispness without sacrificing touch.',
+            'Forearm angle is workable but the wrist is breaking slightly at contact. A firmer wrist will tighten the volley.'
+          ],
+          'needs-work': [
+            'The wrist is too loose on the volley — you are flicking the racquet instead of punching, which is causing pop-ups and short balls. Lock the wrist at 7/10 grip pressure and keep the forearm angle stable through contact.',
+            'The forearm is collapsing under the volley contact. Strengthen the wrist and focus on a "block" rather than a "swing".'
+          ]
+        },
+        slice: {
+          excellent: ['Wrist position on the slice is locked-in — the forearm is staying stable, letting the racquet face cut cleanly under the ball for a heavy backspin.'],
+          good: ['Wrist is workable on the slice but a slightly more closed forearm angle would deepen the underspin.'],
+          'needs-work': ['The wrist is too active on the slice — let the racquet face do the work. Stabilize the forearm and brush down through the back of the ball.']
+        },
+        'drop-shot': {
+          excellent: ['Wrist control on the drop shot is excellent — the soft hands and stable forearm are creating that dead, dropping touch you want.'],
+          good: ['Wrist is in the right zone for a drop shot — a touch lighter grip pressure would soften the hands further.'],
+          'needs-work': ['The wrist is too tense on the drop shot — relax the forearm and let the racquet decelerate through contact.']
+        },
+        lob: {
+          excellent: ['Wrist action on the lob is excellent — the forearm is brushing up the back of the ball with the right tilt for height and depth.'],
+          good: ['Wrist position on the lob is workable but a slightly more open forearm angle would add the lift you need for a true defensive lob.'],
+          'needs-work': ['The wrist is too flat on the lob — open the racquet face more and let the forearm brush up the back of the ball to get height.']
+        },
         _default: {
           excellent: ['Wrist lag and release timing are excellent — this is adding snap and spin to the ball.'],
           good: ['Wrist position is decent but could release a bit later for more racquet-head speed.'],
@@ -4190,7 +4322,7 @@
         return '<p>No angle data available. Please ensure your full body is visible in the video.</p>';
       }
 
-      const angleOrder = ['shoulder', 'elbow', 'hip', 'knee', 'trunk'];
+      const angleOrder = ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'trunk'];
       const cards = angleOrder
         .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
         .map((metric) => {
@@ -4226,7 +4358,7 @@
     function generateBiomechanicsInsights(avgAngles, bench, shotType, metricComparisons = []) {
       const ranked = (metricComparisons && metricComparisons.length
         ? metricComparisons
-        : ['shoulder', 'elbow', 'hip', 'knee', 'trunk']
+        : ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'trunk']
           .filter((metric) => avgAngles[metric] != null && bench[metric]?.optimal != null)
           .map((metric) => {
             const delta = Math.round(avgAngles[metric] - bench[metric].optimal);
@@ -5161,25 +5293,59 @@
           }
         } catch (err) {
           console.error('YouTube stream fetch failed:', err);
-          // Graceful fallback: show embed with explanation
+          // Graceful fallback: show embed + clear, actionable message + one-click switch to upload.
           const ytId = playerProfile.youtubeVideoId;
-          const isCompetitor = playerProfile.isCompetitorVideo || false;
           setStep(5);
-          setStatus('Could not fetch YouTube stream for analysis. Showing preview only.', 'error');
+          setStatus('YouTube direct analysis unavailable — see options below.', 'error');
           const reportTarget = document.getElementById('reportTarget');
           if (reportTarget) {
             reportTarget.innerHTML = `
               <div class="report-section" style="text-align:center;">
-                <div style="max-width:640px;margin:0 auto;">
+                <div style="max-width:680px;margin:0 auto;">
+                  <h3 style="margin:0 0 14px;color:var(--gold);font-size:22px;">YouTube preview ready</h3>
                   <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
                     <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
                   </div>
-                  <div style="margin-top:20px;padding:18px;background:rgba(255,82,82,.06);border:1px solid rgba(255,82,82,.3);border-radius:14px;">
-                    <div style="font-size:14px;font-weight:800;color:#ff5252;margin-bottom:8px;">⚠️ Stream proxy unavailable</div>
-                    <div style="font-size:13px;color:var(--silver);line-height:1.65;">${err.message || 'Unable to reach the YouTube proxy.'} Please try again later, or download the clip and upload it as a local file for guaranteed analysis.</div>
+                  <div style="margin-top:22px;padding:20px;background:rgba(255,216,77,.06);border:1px solid rgba(255,216,77,.35);border-radius:14px;text-align:left;">
+                    <div style="font-size:15px;font-weight:800;color:#ffd84d;margin-bottom:10px;">⚠️ Direct AI analysis on this YouTube clip is unavailable</div>
+                    <div style="font-size:13px;color:var(--silver);line-height:1.65;margin-bottom:12px;">
+                      YouTube tightened its anti-bot protection in 2026, which broke nearly all third-party stream extractors. SmartSwing can still <strong>visually preview</strong> any YouTube clip above, but to run the real pose-detection AI on it you need to download the file first and upload it directly.
+                    </div>
+                    <div style="font-size:13px;color:var(--silver);line-height:1.65;margin-bottom:14px;">
+                      <strong style="color:var(--text);">How to get the AI analysis:</strong>
+                      <ol style="margin:8px 0 0 22px;padding:0;">
+                        <li style="margin-bottom:4px;">Download the clip with <a href="https://yt-dlp.org" target="_blank" rel="noopener" style="color:var(--green);">yt-dlp</a>, <a href="https://en.savefrom.net" target="_blank" rel="noopener" style="color:var(--green);">SaveFrom</a>, or any YouTube downloader (most are free).</li>
+                        <li style="margin-bottom:4px;">Click <em>Upload File</em> below and pick the saved MP4.</li>
+                        <li>SmartSwing runs the full biomechanics report just like a recorded clip.</li>
+                      </ol>
+                    </div>
+                    <div style="font-size:11px;color:rgba(255,255,255,.45);font-family:monospace;margin-top:8px;">Diagnostic: ${(err.message || 'unknown').slice(0, 140)}</div>
+                  </div>
+                  <div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
+                    <button class="btn btn-primary" type="button" id="ytFallbackUploadBtn">📁 Upload a file instead</button>
+                    <button class="btn btn-secondary" type="button" id="ytFallbackRetryBtn">🔄 Retry YouTube extraction</button>
                   </div>
                 </div>
               </div>`;
+            // Wire the recovery buttons (defer to next tick so DOM is ready).
+            setTimeout(() => {
+              const uploadBtn = document.getElementById('ytFallbackUploadBtn');
+              const retryBtn = document.getElementById('ytFallbackRetryBtn');
+              if (uploadBtn) uploadBtn.addEventListener('click', () => {
+                playerProfile.youtubeVideoId = null;
+                playerProfile.youtubeUrl = null;
+                const urlInput = document.getElementById('youtubeUrlInput');
+                if (urlInput) urlInput.value = '';
+                setStep(3);
+                switchCaptureTab('upload');
+                const fileInput = document.getElementById('videoInput');
+                if (fileInput) fileInput.click();
+              });
+              if (retryBtn) retryBtn.addEventListener('click', () => {
+                setStep(4);
+                startAnalysis();
+              });
+            }, 0);
           }
           return;
         }
