@@ -623,7 +623,13 @@
     };
   }
 
-  async function getOAuthProviderAvailability(provider) {
+  // Cache successful OAuth availability probes for 5 minutes so a click on
+  // "Sign in with Google" doesn't re-hit Supabase /auth/v1/authorize before
+  // redirecting. The init probe on page load primes this cache.
+  const oauthAvailabilityCache = new Map();
+  const OAUTH_AVAILABILITY_TTL_MS = 5 * 60 * 1000;
+
+  async function getOAuthProviderAvailability(provider, options = {}) {
     const normalizedProvider = String(provider || '').trim().toLowerCase();
     const providerLabel = normalizedProvider === 'facebook'
       ? 'Meta'
@@ -637,6 +643,13 @@
         available: false,
         reason: `${providerLabel} sign-in is unavailable because the Supabase public configuration is incomplete.`
       };
+    }
+
+    if (!options.force) {
+      const cached = oauthAvailabilityCache.get(normalizedProvider);
+      if (cached && cached.available && (Date.now() - cached.cachedAt) < OAUTH_AVAILABILITY_TTL_MS) {
+        return cached.result;
+      }
     }
 
     const probeUrl = new URL('/auth/v1/authorize', cfg.url);
@@ -654,11 +667,16 @@
       });
 
       if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400) || response.ok) {
-        return {
+        const result = {
           provider: normalizedProvider,
           available: true,
           reason: ''
         };
+        oauthAvailabilityCache.set(normalizedProvider, { result, available: true, cachedAt: Date.now() });
+        // Warm up the Supabase JS client in the background so the click→redirect
+        // doesn't have to load the SDK and instantiate the client first.
+        getSupabaseClient().catch(() => {});
+        return result;
       }
 
       let payload = null;
@@ -2197,9 +2215,14 @@
     if (!isSupabaseConfigured()) {
       throw new Error(`${String(provider || 'OAuth')} OAuth requires Supabase configuration.`);
     }
-    const availability = await getOAuthProviderAvailability(provider);
-    if (!availability.available) {
-      throw new Error(availability.reason || `${String(provider || 'OAuth')} sign-in is unavailable right now.`);
+    const normalized = String(provider || '').trim().toLowerCase();
+    const cached = oauthAvailabilityCache.get(normalized);
+    const cacheHot = cached && cached.available && (Date.now() - cached.cachedAt) < OAUTH_AVAILABILITY_TTL_MS;
+    if (!cacheHot) {
+      const availability = await getOAuthProviderAvailability(provider);
+      if (!availability.available) {
+        throw new Error(availability.reason || `${String(provider || 'OAuth')} sign-in is unavailable right now.`);
+      }
     }
     const client = await getSupabaseClient();
     if (!client) throw new Error('Supabase client unavailable.');
@@ -3295,6 +3318,20 @@
   seedDemoUser();
   ensureDefaultSession();
 
+  // Eagerly warm the Supabase JS SDK + client at module load so the first
+  // OAuth click can redirect immediately instead of waiting for the CDN
+  // script and createClient round-trip.
+  function preloadSupabaseClient() {
+    if (!isSupabaseConfigured()) return Promise.resolve(null);
+    return getSupabaseClient().catch(() => null);
+  }
+  try {
+    if (typeof window !== 'undefined' && isSupabaseConfigured()) {
+      // Defer slightly so we don't fight the page's critical render path.
+      setTimeout(() => { preloadSupabaseClient(); }, 0);
+    }
+  } catch (_) { /* non-fatal */ }
+
   window.SmartSwingStore = {
     DEFAULT_COACHES,
     PLAN_DEFINITIONS,
@@ -3392,6 +3429,7 @@
     uploadSessionArtifacts,
     saveContactMessage,
     getSupabaseClient,
+    preloadSupabaseClient,
     restoreSupabaseSession,
     getOAuthCallbackUrl,
     getPostAuthDestinationForUser,
