@@ -1932,6 +1932,8 @@
           setupScore: safeNumber(row.setup_score, 100),
           videoPath: row.video_path || '',
           notes: row.notes || '',
+          isCompetitor: !!row.is_competitor,
+          competitorName: row.competitor_name || null,
           syncedAt: nowIso()
         });
       });
@@ -2781,6 +2783,8 @@
       setup_score: assessment.setupScore || null,
       video_path: assessment.videoPath || null,
       notes: assessment.notes || null,
+      is_competitor: !!assessment.isCompetitor,
+      competitor_name: assessment.competitorName || null,
       analyzed_at: assessment.analyzedAt
     }, { onConflict: 'external_id' }).select('id, external_id').single();
     if (error) return;
