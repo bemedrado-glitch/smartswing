@@ -878,6 +878,98 @@ async function handlePublishWebhook(req, res) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN ROUTER
 // ═══════════════════════════════════════════════════════════════════════════════
+// YOUTUBE-STREAM — resolves a YouTube video ID to a direct MP4/stream URL
+// using public Invidious instances. Used by analyze.html to feed real
+// pose-detection on YouTube clips without bundling ytdl-core (which would
+// push us over the Vercel Hobby 12-function limit).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Rotated list of public Invidious mirrors. Falls back through them if any
+// instance is down or rate-limited.
+const INVIDIOUS_INSTANCES = [
+  'https://invidious.nerdvpn.de',
+  'https://inv.nadeko.net',
+  'https://invidious.privacyredirect.com',
+  'https://yewtu.be',
+  'https://invidious.fdn.fr'
+];
+
+function isValidYoutubeId(id) {
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id);
+}
+
+async function fetchInvidiousVideo(videoId) {
+  let lastErr = null;
+  for (const base of INVIDIOUS_INSTANCES) {
+    try {
+      const resp = await fetch(`${base}/api/v1/videos/${videoId}?fields=videoId,title,lengthSeconds,formatStreams,adaptiveFormats`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 SmartSwingAI/1.0' }
+      });
+      if (!resp.ok) {
+        lastErr = new Error(`${base} returned ${resp.status}`);
+        continue;
+      }
+      const data = await resp.json();
+      if (data && data.videoId) return { instance: base, data };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('All Invidious instances failed');
+}
+
+function pickBestStream(formatStreams = [], adaptiveFormats = []) {
+  // Prefer progressive (audio+video in one file) MP4 streams — cleanest for
+  // <video> playback. Fall back to adaptive video-only MP4 if needed.
+  const progressive = formatStreams
+    .filter((f) => (f.container || '').toLowerCase() === 'mp4')
+    .sort((a, b) => parseInt(b.qualityLabel || '0', 10) - parseInt(a.qualityLabel || '0', 10));
+  if (progressive.length) return progressive[0];
+
+  const adaptive = adaptiveFormats
+    .filter((f) => (f.type || '').startsWith('video/mp4'))
+    .sort((a, b) => parseInt(b.qualityLabel || '0', 10) - parseInt(a.qualityLabel || '0', 10));
+  return adaptive[0] || null;
+}
+
+async function handleYoutubeStream(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const videoId = (req.query.videoId || req.query.id || '').toString().trim();
+  if (!isValidYoutubeId(videoId)) {
+    return res.status(400).json({ error: 'Invalid or missing videoId (must be the 11-char YouTube ID)' });
+  }
+
+  try {
+    const { data, instance } = await fetchInvidiousVideo(videoId);
+    const stream = pickBestStream(data.formatStreams, data.adaptiveFormats);
+    if (!stream || !stream.url) {
+      return res.status(404).json({ error: 'No usable MP4 stream found for this video' });
+    }
+    return res.status(200).json({
+      videoId: data.videoId,
+      title: data.title || null,
+      lengthSeconds: data.lengthSeconds || null,
+      streamUrl: stream.url,
+      qualityLabel: stream.qualityLabel || null,
+      container: stream.container || 'mp4',
+      mimeType: stream.type || 'video/mp4',
+      source: instance
+    });
+  } catch (err) {
+    console.error('youtube-stream error:', err);
+    return res.status(502).json({
+      error: 'Could not resolve YouTube stream',
+      message: err.message || String(err)
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -887,7 +979,8 @@ const ROUTES = {
   'next-action':     handleNextAction,
   'export-leads':    handleExportLeads,
   'auto-enroll':     handleAutoEnroll,
-  'publish-webhook': handlePublishWebhook
+  'publish-webhook': handlePublishWebhook,
+  'youtube-stream':  handleYoutubeStream
 };
 
 module.exports = async function handler(req, res) {
