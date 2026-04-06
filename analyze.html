@@ -5097,38 +5097,58 @@
       setStep(5);
     }
 
+    async function resolveYoutubeStreamUrl(videoId) {
+      const resp = await fetch(`/api/marketing/youtube-stream?videoId=${encodeURIComponent(videoId)}`);
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || err.error || `Stream proxy returned ${resp.status}`);
+      }
+      const data = await resp.json();
+      if (!data.streamUrl) throw new Error('No stream URL returned');
+      return data;
+    }
+
     async function startAnalysis() {
       const video = document.getElementById('videoElement');
       const canvas = document.getElementById('poseCanvas');
       const playBtn = document.getElementById('playBtn');
       const pauseBtn = document.getElementById('pauseBtn');
 
-      // YouTube URL analysis — embed player and show info
+      // YouTube URL analysis — fetch direct MP4 stream via proxy and feed
+      // it into the same pose-detection pipeline as local uploads.
+      let youtubeStreamUrl = null;
       if (playerProfile.youtubeVideoId && !playerProfile.videoFile) {
-        const ytId = playerProfile.youtubeVideoId;
-        const isCompetitor = playerProfile.isCompetitorVideo || false;
-        setStep(5);
-        setStatus('YouTube video analysis is a preview feature. For full biomechanics scoring, upload a local video file.', 'info');
-        const reportTarget = document.getElementById('reportTarget');
-        if (reportTarget) {
-          reportTarget.innerHTML = `
-            <div class="report-section" style="text-align:center;">
-              <div style="max-width:640px;margin:0 auto;">
-                <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
-                  <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
-                </div>
-                <div style="margin-top:20px;padding:18px;background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.2);border-radius:14px;">
-                  <div style="font-size:14px;font-weight:800;color:var(--neon-green);margin-bottom:8px;">${isCompetitor ? '🔍 Competitor Analysis Mode' : '🎬 YouTube Video Review'}</div>
-                  <div style="font-size:13px;color:var(--silver);line-height:1.65;">
-                    ${isCompetitor
-                      ? 'Watch the competitor\'s technique above. To get a full AI biomechanics comparison, record your own version of the same shot and upload it as a local file.'
-                      : 'Watch your footage above. For full AI pose detection and scoring, download and upload the video file directly. YouTube analysis with server-side processing is coming soon.'}
+        try {
+          setStatus('Fetching YouTube stream for AI analysis...', 'loading');
+          const streamData = await resolveYoutubeStreamUrl(playerProfile.youtubeVideoId);
+          youtubeStreamUrl = streamData.streamUrl;
+          if (streamData.title) {
+            console.log('[SmartSwing] YouTube stream resolved:', streamData.title, '|', streamData.qualityLabel);
+          }
+        } catch (err) {
+          console.error('YouTube stream fetch failed:', err);
+          // Graceful fallback: show embed with explanation
+          const ytId = playerProfile.youtubeVideoId;
+          const isCompetitor = playerProfile.isCompetitorVideo || false;
+          setStep(5);
+          setStatus('Could not fetch YouTube stream for analysis. Showing preview only.', 'error');
+          const reportTarget = document.getElementById('reportTarget');
+          if (reportTarget) {
+            reportTarget.innerHTML = `
+              <div class="report-section" style="text-align:center;">
+                <div style="max-width:640px;margin:0 auto;">
+                  <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,0.1);">
+                    <iframe src="https://www.youtube.com/embed/${ytId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>
+                  </div>
+                  <div style="margin-top:20px;padding:18px;background:rgba(255,82,82,.06);border:1px solid rgba(255,82,82,.3);border-radius:14px;">
+                    <div style="font-size:14px;font-weight:800;color:#ff5252;margin-bottom:8px;">⚠️ Stream proxy unavailable</div>
+                    <div style="font-size:13px;color:var(--silver);line-height:1.65;">${err.message || 'Unable to reach the YouTube proxy.'} Please try again later, or download the clip and upload it as a local file for guaranteed analysis.</div>
                   </div>
                 </div>
-              </div>
-            </div>`;
+              </div>`;
+          }
+          return;
         }
-        return;
       }
 
       const file = playerProfile.videoFile;
@@ -5154,7 +5174,7 @@
       pauseBtn.style.display = 'none';
       playBtn.style.display = 'inline-block';
 
-      if (!file) {
+      if (!file && !youtubeStreamUrl) {
         setStatus('No video selected. Upload a clip to start analysis.', 'error');
         playBtn.disabled = true;
         return;
@@ -5187,10 +5207,17 @@
       const aiInitPromise = initPoseEngine();
 
       if (activeVideoUrl) {
-        URL.revokeObjectURL(activeVideoUrl);
+        try { URL.revokeObjectURL(activeVideoUrl); } catch (_) {}
       }
-      activeVideoUrl = URL.createObjectURL(file);
-      video.src = activeVideoUrl;
+      if (youtubeStreamUrl) {
+        // Direct stream URL from Invidious — no blob, no revoke needed.
+        activeVideoUrl = null;
+        video.crossOrigin = 'anonymous';
+        video.src = youtubeStreamUrl;
+      } else {
+        activeVideoUrl = URL.createObjectURL(file);
+        video.src = activeVideoUrl;
+      }
       video.load();
 
       try {

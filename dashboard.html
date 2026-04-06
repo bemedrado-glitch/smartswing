@@ -440,6 +440,13 @@
         <div id="compareResult"></div>
       </article>
 
+      <!-- Section A2: Competitor / Pro Reference Library -->
+      <article class="panel" id="competitorLibraryPanel" style="display:none;">
+        <h2>🎯 Competitor &amp; Pro Reference Library</h2>
+        <p class="muted" style="margin-bottom:16px;">Reference videos you tagged as "competitor" in the analyzer. These never affect your score average — they're saved purely for benchmarking.</p>
+        <div id="competitorLibraryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;"></div>
+      </article>
+
       <!-- Section B: Score Card Generator -->
       <article class="panel">
         <h2>Score Card Generator</h2>
@@ -1207,6 +1214,33 @@
         if (button) button.style.opacity = '0.65';
       });
     }
+
+    // ── Competitor / Pro Reference Library ────────────────────────────────
+    (function initCompetitorLibrary() {
+      const panel = document.getElementById('competitorLibraryPanel');
+      const grid = document.getElementById('competitorLibraryGrid');
+      if (!panel || !grid || !competitorAssessments.length) return;
+      panel.style.display = '';
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      function cap(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
+      grid.innerHTML = competitorAssessments.map((c) => {
+        const score = c.overallScore || 0;
+        const color = score >= 90 ? '#39ff14' : score >= 75 ? '#ffd84d' : '#fb923c';
+        const ytId = c.playerProfile?.youtubeVideoId;
+        const thumb = ytId
+          ? `<div style="width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;margin-bottom:10px;"><img src="https://img.youtube.com/vi/${ytId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt=""></div>`
+          : `<div style="width:100%;aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,#1a2236,#0a0a0a);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:10px;">🎾</div>`;
+        return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;">
+          ${thumb}
+          <div style="font-weight:800;font-size:15px;color:var(--text);margin-bottom:4px;">${(c.competitorName || 'Competitor').replace(/[<>]/g,'')}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">${cap(c.shotType || 'shot')} · ${fmtDate(c.analyzedAt)}</div>
+          <div style="display:flex;align-items:baseline;gap:6px;"><span style="font-size:24px;font-weight:900;color:${color};">${score}</span><span style="font-size:12px;color:var(--muted);">/ 100</span><span style="margin-left:auto;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:${color}22;color:${color};">${c.grade || '—'}</span></div>
+        </div>`;
+      }).join('');
+    })();
 
     // ── Before / After Comparison ─────────────────────────────────────────
     (function initCompare() {
