@@ -876,64 +876,96 @@ async function handlePublishWebhook(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MAIN ROUTER
-// ═══════════════════════════════════════════════════════════════════════════════
 // YOUTUBE-STREAM — resolves a YouTube video ID to a direct MP4/stream URL
-// using public Invidious instances. Used by analyze.html to feed real
-// pose-detection on YouTube clips without bundling ytdl-core (which would
-// push us over the Vercel Hobby 12-function limit).
+// via public Piped instances. (Invidious public APIs were disabled in 2026
+// after YouTube's bot-detection crackdown; Piped's NewPipe extractor is the
+// only third-party option that still occasionally works for popular clips.)
+//
+// We deliberately do NOT bundle ytdl-core / yt-dlp — both push past the Vercel
+// Hobby 50MB function limit. When the extractor fails (which is common in
+// 2026), the front-end falls back to an iframe preview + clear message asking
+// the user to upload the clip directly for guaranteed AI analysis.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Rotated list of public Invidious mirrors. Falls back through them if any
-// instance is down or rate-limited.
-const INVIDIOUS_INSTANCES = [
-  'https://invidious.nerdvpn.de',
-  'https://inv.nadeko.net',
-  'https://invidious.privacyredirect.com',
-  'https://yewtu.be',
-  'https://invidious.fdn.fr'
+// Rotated list of public Piped API instances. Try them in order until one
+// returns a usable progressive (audio+video) MP4 stream. Update this list
+// when an instance dies — the official Piped instance list lives at
+// https://piped-instances.kavin.rocks/
+const PIPED_INSTANCES = [
+  'https://api.piped.private.coffee',
+  'https://pipedapi.in.projectsegfau.lt',
+  'https://pipedapi.kavin.rocks',
+  'https://pipedapi.adminforge.de',
+  'https://api-piped.mha.fi',
+  'https://pipedapi.tokhmi.xyz'
 ];
 
 function isValidYoutubeId(id) {
   return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id);
 }
 
-async function fetchInvidiousVideo(videoId) {
-  let lastErr = null;
-  for (const base of INVIDIOUS_INSTANCES) {
+async function fetchPipedVideo(videoId) {
+  const errors = [];
+  for (const base of PIPED_INSTANCES) {
     try {
-      const resp = await fetch(`${base}/api/v1/videos/${videoId}?fields=videoId,title,lengthSeconds,formatStreams,adaptiveFormats`, {
-        headers: { 'User-Agent': 'Mozilla/5.0 SmartSwingAI/1.0' }
-      });
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 7000);
+      let resp;
+      try {
+        resp = await fetch(`${base}/streams/${videoId}`, {
+          headers: { 'User-Agent': 'Mozilla/5.0 SmartSwingAI/1.0', Accept: 'application/json' },
+          signal: ctrl.signal
+        });
+      } finally {
+        clearTimeout(timer);
+      }
       if (!resp.ok) {
-        lastErr = new Error(`${base} returned ${resp.status}`);
+        errors.push(`${base}:${resp.status}`);
         continue;
       }
-      const data = await resp.json();
-      if (data && data.videoId) return { instance: base, data };
+      const data = await resp.json().catch(() => null);
+      if (!data || data.error) {
+        errors.push(`${base}:${data?.error ? 'extractor-error' : 'parse-error'}`);
+        continue;
+      }
+      if (Array.isArray(data.videoStreams) && data.videoStreams.length) {
+        return { instance: base, data };
+      }
+      errors.push(`${base}:no-streams`);
     } catch (err) {
-      lastErr = err;
+      errors.push(`${base}:${err.name === 'AbortError' ? 'timeout' : (err.message || 'fetch-fail').slice(0, 40)}`);
     }
   }
-  throw lastErr || new Error('All Invidious instances failed');
+  const aggErr = new Error(`All Piped instances failed → ${errors.join(' | ')}`);
+  aggErr.attempts = errors;
+  throw aggErr;
 }
 
-function pickBestStream(formatStreams = [], adaptiveFormats = []) {
-  // Prefer progressive (audio+video in one file) MP4 streams — cleanest for
-  // <video> playback. Fall back to adaptive video-only MP4 if needed.
-  const progressive = formatStreams
-    .filter((f) => (f.container || '').toLowerCase() === 'mp4')
-    .sort((a, b) => parseInt(b.qualityLabel || '0', 10) - parseInt(a.qualityLabel || '0', 10));
+function pickBestPipedStream(videoStreams = []) {
+  // 1. Prefer progressive (audio+video in one file) — cleanest for <video>.
+  //    Sort by numeric quality DESC.
+  const qNum = (s) => parseInt((s.quality || '').replace(/[^\d]/g, ''), 10) || 0;
+  const progressive = videoStreams
+    .filter((s) => !s.videoOnly && s.url && (s.format || '').match(/MP4|MPEG_4/i))
+    .sort((a, b) => qNum(b) - qNum(a));
   if (progressive.length) return progressive[0];
 
-  const adaptive = adaptiveFormats
-    .filter((f) => (f.type || '').startsWith('video/mp4'))
-    .sort((a, b) => parseInt(b.qualityLabel || '0', 10) - parseInt(a.qualityLabel || '0', 10));
+  // 2. Fall back to ANY progressive stream (even non-MP4 like LBRY/HLS).
+  const anyProgressive = videoStreams
+    .filter((s) => !s.videoOnly && s.url)
+    .sort((a, b) => qNum(b) - qNum(a));
+  if (anyProgressive.length) return anyProgressive[0];
+
+  // 3. Last resort: video-only adaptive MP4 (no audio — fine for pose detection).
+  const adaptive = videoStreams
+    .filter((s) => s.videoOnly && s.url && (s.format || '').match(/MP4|MPEG_4/i))
+    .sort((a, b) => qNum(b) - qNum(a));
   return adaptive[0] || null;
 }
 
 async function handleYoutubeStream(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -945,26 +977,31 @@ async function handleYoutubeStream(req, res) {
   }
 
   try {
-    const { data, instance } = await fetchInvidiousVideo(videoId);
-    const stream = pickBestStream(data.formatStreams, data.adaptiveFormats);
+    const { data, instance } = await fetchPipedVideo(videoId);
+    const stream = pickBestPipedStream(data.videoStreams || []);
     if (!stream || !stream.url) {
-      return res.status(404).json({ error: 'No usable MP4 stream found for this video' });
+      return res.status(404).json({
+        error: 'No playable stream available',
+        message: 'YouTube\'s bot-detection blocked stream extraction for this video. Please download the clip and upload it directly for guaranteed AI analysis.'
+      });
     }
     return res.status(200).json({
-      videoId: data.videoId,
+      videoId,
       title: data.title || null,
-      lengthSeconds: data.lengthSeconds || null,
+      lengthSeconds: data.duration || null,
       streamUrl: stream.url,
-      qualityLabel: stream.qualityLabel || null,
-      container: stream.container || 'mp4',
-      mimeType: stream.type || 'video/mp4',
+      qualityLabel: stream.quality || null,
+      container: stream.format || 'mp4',
+      mimeType: stream.mimeType || 'video/mp4',
+      videoOnly: !!stream.videoOnly,
       source: instance
     });
   } catch (err) {
     console.error('youtube-stream error:', err);
     return res.status(502).json({
-      error: 'Could not resolve YouTube stream',
-      message: err.message || String(err)
+      error: 'YouTube stream extraction unavailable',
+      message: 'YouTube\'s 2026 anti-bot measures broke all public extractors. Please download the clip (yt-dlp / SaveFrom / 4K Video Downloader) and upload it directly for guaranteed AI analysis.',
+      attempts: err.attempts || []
     });
   }
 }
