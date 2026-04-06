@@ -4750,6 +4750,7 @@
         const preview = document.getElementById('youtubePreview');
         const errEl = document.getElementById('youtubeError');
         errEl.style.display = 'none';
+        const nextBtn3El = document.getElementById('nextBtn3');
         if (videoId) {
           document.getElementById('youtubeThumbnail').innerHTML =
             `<img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;" alt="Video thumbnail">`;
@@ -4757,14 +4758,17 @@
           preview.style.display = '';
           playerProfile.youtubeVideoId = videoId;
           playerProfile.youtubeUrl = youtubeUrlInput.value.trim();
+          if (nextBtn3El) nextBtn3El.disabled = false;
         } else if (youtubeUrlInput.value.trim()) {
           preview.style.display = 'none';
           errEl.textContent = 'Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)';
           errEl.style.display = '';
           playerProfile.youtubeVideoId = null;
+          if (nextBtn3El && !playerProfile.videoFile) nextBtn3El.disabled = true;
         } else {
           preview.style.display = 'none';
           playerProfile.youtubeVideoId = null;
+          if (nextBtn3El && !playerProfile.videoFile) nextBtn3El.disabled = true;
         }
       }, 400);
     });
