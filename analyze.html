@@ -1197,7 +1197,7 @@
         <div class="btn-group">
           <button class="btn btn-secondary" id="backBtn2">Back</button>
           <button class="btn btn-primary" id="nextBtn3" disabled>Next Step</button>
-          <button class="btn btn-secondary" id="demoReportBtn">Generate Demo Report</button>
+          <button class="btn btn-secondary" id="demoReportBtn" hidden style="display:none">Generate Demo Report</button>
         </div>
       </div>
 
@@ -1363,6 +1363,36 @@
                 <button class="mt-shot-tag" data-tag="drop-shot">Drop</button>
                 <button class="mt-shot-tag" data-tag="lob">Lob</button>
               </div>
+            </div>
+
+            <!-- Winning shot dropdown (alternative to button row) -->
+            <div style="margin-top:14px;">
+              <div class="mt-btn-group-label">Winning shot <span style="font-weight:400; opacity:.6;">(quick-select)</span></div>
+              <select id="mtWinningShotSelect"
+                style="width:100%; background:rgba(0,0,0,.35); border:1px solid rgba(57,255,20,.25); color:var(--silver); padding:12px 14px; border-radius:10px; font-weight:600;">
+                <option value="">— Choose how the point ended —</option>
+                <optgroup label="Winners (logger wins point)">
+                  <option value="ace">Ace</option>
+                  <option value="winner-fh">Forehand winner</option>
+                  <option value="winner-bh">Backhand winner</option>
+                  <option value="volley-winner">Volley winner</option>
+                  <option value="drop-shot-winner">Drop shot winner</option>
+                  <option value="overhead-winner">Overhead / smash winner</option>
+                  <option value="lob-winner">Lob winner</option>
+                  <option value="passing-shot">Passing shot winner</option>
+                  <option value="return-winner">Return winner</option>
+                  <option value="service-winner">Service winner (unreturned)</option>
+                </optgroup>
+                <optgroup label="Errors (opponent wins point)">
+                  <option value="ue-fh">Unforced error — forehand</option>
+                  <option value="ue-bh">Unforced error — backhand</option>
+                  <option value="ue-volley">Unforced error — volley</option>
+                  <option value="forced-error">Forced error</option>
+                  <option value="double-fault">Double fault</option>
+                  <option value="net-error">Net error</option>
+                  <option value="long-error">Long / out error</option>
+                </optgroup>
+              </select>
             </div>
           </div>
 
@@ -5572,6 +5602,30 @@
       });
     }
 
+    // Auto-launch Match Tracker when ?mode=match (or match-mode) is in URL
+    const requestedMode = (params.get('mode') || '').toLowerCase();
+    if (requestedMode === 'match' || requestedMode === 'match-mode') {
+      requestAnimationFrame(() => {
+        try {
+          playerProfile.sessionMode = 'match-mode';
+          const sel = document.getElementById('sessionMode');
+          if (sel) sel.value = 'match-mode';
+          // Pre-fill required fields so we can leap straight to step 5
+          if (!playerProfile.gender) playerProfile.gender = 'male';
+          if (!playerProfile.age) playerProfile.age = '21-25';
+          if (!playerProfile.level) playerProfile.level = 'intermediate';
+          if (!playerProfile.shots.length) playerProfile.shots = ['forehand'];
+          setStep(5);
+          if (typeof window._matchTrackerShow === 'function') window._matchTrackerShow();
+          // Hide the analysis grid since we're in pure match-tracking mode
+          const grid = document.querySelector('.analysis-grid');
+          if (grid) grid.style.display = 'none';
+        } catch (err) {
+          console.error('Match-mode auto-launch failed:', err);
+        }
+      });
+    }
+
     // ── Match Tracker ─────────────────────────────────────────────────────
     (function initMatchTracker() {
       // ── State ──────────────────────────────────────────────────────────
@@ -6131,6 +6185,22 @@
           // Errors = opponent wins
           scorePoint(opposite(mt.logBy), btn.dataset.type, mt.shotTag);
           clearShotTags();
+        });
+
+        // Winning-shot dropdown — same logic as buttons
+        const ERROR_TYPES = new Set([
+          'ue-fh','ue-bh','ue-volley','forced-error','double-fault','net-error','long-error'
+        ]);
+        document.getElementById('mtWinningShotSelect')?.addEventListener('change', (e) => {
+          const type = e.target.value;
+          if (!type) return;
+          if (ERROR_TYPES.has(type)) {
+            scorePoint(opposite(mt.logBy), type, mt.shotTag);
+          } else {
+            scorePoint(mt.logBy, type, mt.shotTag);
+          }
+          clearShotTags();
+          e.target.value = '';
         });
 
         // Shot tags
