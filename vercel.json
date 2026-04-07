@@ -171,6 +171,15 @@
           "value": "no-cache"
         }
       ]
+    },
+    {
+      "source": "/assets/(.*)\\.(webp|png|jpg|jpeg|svg|ico|gif|mp4|webm|woff|woff2|ttf)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000, stale-while-revalidate=86400"
+        }
+      ]
     }
   ]
 }

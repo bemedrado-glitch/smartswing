@@ -1011,10 +1011,10 @@
       }
     }
 
-    function consumeReportCreditOrAlert(shotType) {
+    async function consumeReportCreditOrAlert(shotType) {
       if (!store || !currentUser) return true;
       try {
-        cachedPlanState = store.consumeMonthlyReportCredit({ shotType, source: 'analyzer-report' });
+        cachedPlanState = await store.consumeMonthlyReportCredit({ shotType, source: 'analyzer-report' });
         refreshPlanStrip();
         return true;
       } catch (error) {
@@ -3888,7 +3888,7 @@
     });
 
     // Generate Report Button
-    document.getElementById('generateReportBtn').addEventListener('click', () => {
+    document.getElementById('generateReportBtn').addEventListener('click', async () => {
       console.log('🎯 Generate Report button clicked!');
       console.log('   Frames:', analysisData.frames.length);
       console.log('   Angle data keys:', Object.keys(analysisData.angles));
@@ -3903,7 +3903,7 @@
       }
 
       const targetShot = playerProfile.shots[0] || 'forehand';
-      if (!consumeReportCreditOrAlert(targetShot)) {
+      if (!(await consumeReportCreditOrAlert(targetShot))) {
         return;
       }
 
