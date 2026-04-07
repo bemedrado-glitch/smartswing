@@ -884,38 +884,60 @@ async function handlePublishWebhook(req, res) {
 // push us over the Vercel Hobby 12-function limit).
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Rotated list of public Invidious mirrors. Falls back through them if any
-// instance is down or rate-limited.
+// Rotated list of public Invidious mirrors. Raced in parallel — first to
+// respond wins. Keep this list current; instances come and go frequently.
 const INVIDIOUS_INSTANCES = [
-  'https://invidious.nerdvpn.de',
   'https://inv.nadeko.net',
-  'https://invidious.privacyredirect.com',
   'https://yewtu.be',
-  'https://invidious.fdn.fr'
+  'https://invidious.privacyredirect.com',
+  'https://invidious.nerdvpn.de',
+  'https://invidious.fdn.fr',
+  'https://yt.artemislena.eu',
+  'https://invidious.incogniweb.net',
+  'https://invidious.perennialte.ch'
 ];
+
+// Per-instance timeout (ms). Vercel Hobby functions have a 10s wall-clock
+// limit, so keep this well under that.
+const INVIDIOUS_TIMEOUT_MS = 6000;
 
 function isValidYoutubeId(id) {
   return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id);
 }
 
-async function fetchInvidiousVideo(videoId) {
-  let lastErr = null;
-  for (const base of INVIDIOUS_INSTANCES) {
-    try {
-      const resp = await fetch(`${base}/api/v1/videos/${videoId}?fields=videoId,title,lengthSeconds,formatStreams,adaptiveFormats`, {
-        headers: { 'User-Agent': 'Mozilla/5.0 SmartSwingAI/1.0' }
-      });
-      if (!resp.ok) {
-        lastErr = new Error(`${base} returned ${resp.status}`);
-        continue;
-      }
-      const data = await resp.json();
-      if (data && data.videoId) return { instance: base, data };
-    } catch (err) {
-      lastErr = err;
-    }
+// Fetch video metadata from a single Invidious instance with a hard timeout.
+// local=true asks Invidious to return proxied stream URLs (same-origin to the
+// instance), which serve proper CORS headers needed for canvas pose detection.
+async function fetchFromInstance(base, videoId) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), INVIDIOUS_TIMEOUT_MS);
+  try {
+    const resp = await fetch(
+      `${base}/api/v1/videos/${videoId}?local=true&fields=videoId,title,lengthSeconds,formatStreams,adaptiveFormats`,
+      { headers: { 'User-Agent': 'Mozilla/5.0 SmartSwingAI/1.0' }, signal: controller.signal }
+    );
+    if (!resp.ok) throw new Error(`${base} returned ${resp.status}`);
+    const data = await resp.json();
+    if (!data || !data.videoId) throw new Error(`${base} returned no videoId`);
+    return { instance: base, data };
+  } finally {
+    clearTimeout(timer);
   }
-  throw lastErr || new Error('All Invidious instances failed');
+}
+
+// Race all instances in parallel; resolve as soon as ONE succeeds.
+// Promise.any cancels the wait the moment a winner is found — much faster
+// than allSettled which would sit through every timeout.
+async function fetchInvidiousVideo(videoId) {
+  try {
+    return await Promise.any(
+      INVIDIOUS_INSTANCES.map((base) => fetchFromInstance(base, videoId))
+    );
+  } catch (err) {
+    // AggregateError — every instance failed
+    const messages = (err.errors || [err]).map((e) => e && e.message).filter(Boolean);
+    throw new Error('All Invidious instances failed: ' + messages.slice(0, 3).join('; '));
+  }
 }
 
 function pickBestStream(formatStreams = [], adaptiveFormats = []) {
