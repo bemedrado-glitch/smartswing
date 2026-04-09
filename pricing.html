@@ -1193,6 +1193,35 @@
 
     document.getElementById('lessonSpendRange')?.addEventListener('input', renderRoiCalculator);
 
+    // ── Fast checkout: logged-in users skip checkout.html and go straight to Stripe ──
+    // Saves a click + a page load. Falls back to checkout.html if Stripe session creation fails.
+    ['starter', 'pro', 'elite'].forEach((planId) => {
+      const btn = document.querySelector('[data-plan-button="' + planId + '"]');
+      if (!btn) return;
+      btn.addEventListener('click', async (event) => {
+        if (!store.getCurrentUser()) return; // logged-out users keep normal signup flow
+        event.preventDefault();
+        const originalLabel = btn.textContent;
+        btn.setAttribute('aria-busy', 'true');
+        btn.textContent = 'Opening secure checkout…';
+        try {
+          const session = await store.createStripeCheckout(planId, {
+            billingInterval: activeBillingInterval,
+            source: 'pricing-page',
+            returnTo: './payment-success.html',
+            cancelTo: './payment-cancelled.html'
+          });
+          window.location.href = session.url;
+        } catch (err) {
+          console.error('Fast checkout failed, falling back to checkout.html:', err);
+          window.location.href = './checkout.html?plan=' + encodeURIComponent(planId) + '&interval=' + encodeURIComponent(activeBillingInterval);
+        } finally {
+          btn.removeAttribute('aria-busy');
+          btn.textContent = originalLabel;
+        }
+      });
+    });
+
     // ── Redirect logged-in users' free button to dashboard ──
     function updateFreeButtonForLoggedIn() {
       const isLoggedIn = !!store.getCurrentUser();

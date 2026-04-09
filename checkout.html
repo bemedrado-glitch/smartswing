@@ -613,14 +613,9 @@
           <strong>Recurring billing is hosted by Stripe</strong>
           You will leave SmartSwing briefly to complete the secure subscription checkout, then return automatically for payment verification.
         </div>
-        <div style="display:grid;gap:6px;">
-          <label for="couponCode" style="font-size:13px;font-weight:700;color:var(--muted);">Coupon code <span style="font-weight:400;opacity:.7;">(optional)</span></label>
-          <input id="couponCode" type="text" placeholder="e.g. SWINGAI" style="width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;text-transform:uppercase;" autocomplete="off" spellcheck="false">
-          <div id="couponMsg" style="font-size:13px;min-height:18px;"></div>
-        </div>
         <div class="error-banner" id="checkoutError"></div>
         <button class="btn-primary" id="submitBtn" type="submit">Continue to Stripe checkout &rarr;</button>
-        <div class="micro">Visa, Mastercard, Apple Pay, Google Pay, and more. Availability varies by country.</div>
+        <div class="micro">Visa, Mastercard, Apple Pay, Google Pay, and more. Availability varies by country. Have a promo code? Enter it on the next step.</div>
       ` : `
         <div class="summary-card">
           <strong>Stripe checkout is not fully configured yet</strong>
@@ -698,14 +693,11 @@
       submitBtn.innerHTML = '<span class="spinner"></span>Opening Stripe…';
 
       try {
-        const couponInput = document.getElementById('couponCode');
-        const couponCode = couponInput ? couponInput.value.trim().toUpperCase() : '';
         const session = await store.createStripeCheckout(planId, {
           billingInterval,
           source: 'checkout-page',
           returnTo: './payment-success.html',
-          cancelTo: './payment-cancelled.html',
-          couponCode
+          cancelTo: './payment-cancelled.html'
         });
         window.location.href = session.url;
       } catch (error) {

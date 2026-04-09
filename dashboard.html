@@ -90,15 +90,15 @@
     @media (max-width:1024px){.hero,.grid,.stats,.tabs,.chart{grid-template-columns:1fr 1fr}.topbar{grid-template-columns:1fr}}
     @media (max-width:720px){.grid,.stats,.tabs,.chart{grid-template-columns:1fr}h1{font-size:34px}.hero{grid-template-columns:1fr}.hero-art{min-height:200px}.stats{grid-template-columns:1fr 1fr}.tabs{grid-template-columns:1fr 1fr}.btn,.tab{padding:9px 12px;font-size:13px}.panel,.card{padding:16px;border-radius:18px}.page{padding:16px 12px 96px}.compare-card,.compare-selects{grid-template-columns:1fr}.compare-score{font-size:32px}.sc-controls{flex-direction:column}.sc-controls label{min-width:unset;width:100%}.pv-metric-row{grid-template-columns:1fr 1fr}}
     @media (max-width:480px){h1{font-size:26px}h2{font-size:18px}h3{font-size:15px}.page{padding:10px 8px 96px}.panel,.card{padding:12px;border-radius:14px}.stats{grid-template-columns:1fr}.stat .value{font-size:24px}.tabs{grid-template-columns:1fr}.hero-art{min-height:160px;border-radius:14px}.btn,.tab{padding:8px 10px;font-size:12px;border-radius:10px}.score-ring-value{font-size:36px}.stats-mini-row{grid-template-columns:1fr}.stats-mini .sm-value{font-size:18px}.insight-grid{grid-template-columns:1fr}.user{padding:6px 8px;gap:8px}.avatar{width:36px;height:36px}.logo{font-size:22px}.pv-metric-row{grid-template-columns:1fr}.compare-score{font-size:26px}.nudge-ref-row{flex-direction:column}.nudge-ref-input{min-width:unset;width:100%}.sc-preview{max-width:100%}#aiChatWindow{width:calc(100vw - 24px);right:-12px;bottom:56px}}
-    /* ── Mobile header: hide desktop nav, show hamburger ── */
-    @media (max-width:768px){.topbar-desktop-nav{display:none!important}.topbar-hamburger{display:flex!important}}
+    /* ── Tablet + Mobile header: hide desktop nav, show hamburger ── */
+    @media (max-width:1024px){.topbar-desktop-nav{display:none!important}.topbar-hamburger{display:flex!important}}
     /* ── Bottom tab nav (mobile only) ── */
     .app-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(5,5,5,0.97);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.1);height:64px;padding:0 4px;safe-area-inset-bottom:env(safe-area-inset-bottom);}
     .app-bottom-nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:rgba(245,245,247,0.45);text-decoration:none;font-size:10px;font-weight:700;letter-spacing:.03em;padding:4px 0;transition:color .18s;}
     .app-bottom-nav a svg{opacity:.5;transition:opacity .18s;}
     .app-bottom-nav a.active,.app-bottom-nav a:hover{color:#39ff14;}
     .app-bottom-nav a.active svg,.app-bottom-nav a:hover svg{opacity:1;}
-    @media (max-width:768px){.app-bottom-nav{display:flex!important}#aiChat{bottom:76px;}}
+    @media (max-width:1024px){.app-bottom-nav{display:flex!important}#aiChat{bottom:76px;}}
     /* ── Mobile nav drawer ── */
     #appMobileDrawer{position:fixed;inset:0;z-index:999;background:rgba(5,5,5,0.97);backdrop-filter:blur(24px);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding:80px 28px 40px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;}
     #appMobileDrawer.open{transform:translateX(0);}
@@ -382,6 +382,28 @@
         </article>
       </div>
 
+      <!-- Row 1b: Grip Analysis Snapshot -->
+      <article class="panel" id="gripPanel" style="display:none;margin-top:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap;">
+          <h2 style="margin:0;">Grip Analysis</h2>
+          <div class="pill" id="gripSeverityPill">—</div>
+        </div>
+        <p class="muted" style="font-size:13px;margin-bottom:16px;">Detected grip at contact across your last 5 swings — with coaching notes when the grip doesn't match the shot.</p>
+        <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(260px,1.2fr);gap:18px;align-items:start;" id="gripGrid">
+          <div>
+            <div class="mini" style="color:rgba(255,255,255,.45);margin-bottom:4px;">Latest detected grip</div>
+            <div id="gripLatestLabel" style="font-size:28px;font-weight:900;line-height:1.1;color:var(--green);">—</div>
+            <div id="gripLatestMeta" class="muted" style="font-size:12px;margin-top:4px;">Run an analysis to see your grip.</div>
+            <div id="gripTrend" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div>
+            <div class="mini" style="color:rgba(255,255,255,.45);margin-bottom:6px;">Coaching note</div>
+            <div id="gripCoachNote" class="muted" style="font-size:13px;line-height:1.65;padding:12px 14px;border-left:3px solid var(--green);background:rgba(57,255,20,.05);border-radius:0 10px 10px 0;">—</div>
+            <a href="./analyze.html" class="btn-ghost" style="margin-top:12px;display:inline-block;font-size:13px;">Re-analyze a swing</a>
+          </div>
+        </div>
+      </article>
+
       <!-- Row 2: Trends & Insights -->
       <article class="panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -562,13 +584,31 @@
   <script src="./pwa.js"></script>
   <script>
     const store = window.SmartSwingStore;
-    const access = store.getAccessContext();
-    const user = access.user;
+    let access = store.getAccessContext();
+    let user = access.user;
     if (!user) window.location.href = './login.html';
     if (store.isOnboardingRequired?.(user.id)) {
       window.location.href = store.getOnboardingRoute(user);
     }
     if (access.canAccessCoachDashboard) document.getElementById('coachNavBtn').classList.remove('hide');
+
+    // Re-sync plan from Supabase so webhook-updated subscription_tier is
+    // reflected locally (fixes "paid but still shows Free" after checkout).
+    (async () => {
+      try {
+        const refreshed = await store.restoreSupabaseSession();
+        if (refreshed) {
+          access = store.getAccessContext();
+          user = access.user;
+          // Update plan badge in topbar
+          const metaEl = document.getElementById('userMeta');
+          if (metaEl) {
+            const plan = store.getCurrentPlan(user.id);
+            metaEl.textContent = plan.name + (plan.isTrial ? ' trial' : '') + ' plan';
+          }
+        }
+      } catch (_) { /* fallback to localStorage values */ }
+    })();
 
     // Blog nav: open to all during soft launch — no badge needed.
 
@@ -718,6 +758,76 @@
         ? `Focus your next session on ${(firstFocus2.metric||'technique').replace(/_/g,' ')}. This is the highest-leverage area for score improvement based on your latest report.`
         : 'Complete your next analysis with the same camera angle to start building reliable trend data.';
     }
+
+    // ── Grip Analysis Snapshot ─────────────────────────────────────────────
+    // Shows detected grip from the latest assessment, a trend strip of the
+    // last 5 assessments' grips, a severity pill, and the top coaching note.
+    (function renderGripSnapshot() {
+      const gripPanel = document.getElementById('gripPanel');
+      if (!gripPanel) return;
+      const withGrip = assessments.filter((a) => a && a.gripAssessment && a.gripAssessment.detected_grip);
+      if (!withGrip.length) { gripPanel.style.display = 'none'; return; }
+
+      const GRIP_LABELS = {
+        'continental': 'Continental',
+        'eastern': 'Eastern',
+        'semi-western': 'Semi-Western',
+        'western': 'Western',
+        'eastern-backhand': 'Eastern Backhand',
+        'two-handed-backhand': 'Two-Handed Backhand'
+      };
+      const SEV = {
+        'none':     { color: '#39ff14', bg: 'rgba(57,255,20,.12)', label: 'Great match' },
+        'low':      { color: '#a0e85a', bg: 'rgba(160,232,90,.12)', label: 'Minor note' },
+        'medium':   { color: '#ffd84d', bg: 'rgba(255,216,77,.14)', label: 'Coaching tip' },
+        'high':     { color: '#ff9c33', bg: 'rgba(255,156,51,.14)', label: 'Reconsider' },
+        'critical': { color: '#ff6d00', bg: 'rgba(255,109,0,.14)', label: 'Important fix' }
+      };
+
+      const latestGrip = withGrip[0].gripAssessment;
+      const sev = SEV[(latestGrip.shot_match && latestGrip.shot_match.severity) || 'none'] || SEV.none;
+      const label = GRIP_LABELS[latestGrip.detected_grip] || latestGrip.detected_grip;
+      const conf = Math.round((latestGrip.confidence || 0) * 100);
+
+      gripPanel.style.display = '';
+      const latestEl = document.getElementById('gripLatestLabel');
+      const metaEl = document.getElementById('gripLatestMeta');
+      const pillEl = document.getElementById('gripSeverityPill');
+      const noteEl = document.getElementById('gripCoachNote');
+      const trendEl = document.getElementById('gripTrend');
+
+      if (latestEl) { latestEl.textContent = label; latestEl.style.color = sev.color; }
+      if (metaEl) {
+        const shot = (withGrip[0].shotType || 'forehand').replace(/-/g, ' ');
+        metaEl.textContent = `${conf}% confidence · detected on your ${shot}`;
+      }
+      if (pillEl) {
+        pillEl.textContent = sev.label;
+        pillEl.style.color = sev.color;
+        pillEl.style.background = sev.bg;
+        pillEl.style.borderColor = sev.color + '55';
+      }
+      if (noteEl) {
+        const topRec = (latestGrip.recommendations || [])[0];
+        if (topRec) {
+          noteEl.innerHTML = `<strong style="color:${sev.color};">${topRec.title}</strong><br>${topRec.why}`;
+          noteEl.style.borderLeftColor = sev.color;
+          noteEl.style.background = sev.bg;
+        } else {
+          noteEl.textContent = 'Your grip looks consistent across recent swings.';
+        }
+      }
+      if (trendEl) {
+        const last5 = withGrip.slice(0, 5);
+        trendEl.innerHTML = last5.map((a) => {
+          const g = a.gripAssessment;
+          const s = SEV[(g.shot_match && g.shot_match.severity) || 'none'] || SEV.none;
+          const gl = GRIP_LABELS[g.detected_grip] || g.detected_grip;
+          const shot = (a.shotType || 'shot').replace(/-/g, ' ');
+          return `<div title="${shot} · ${gl}" style="padding:6px 10px;border-radius:999px;background:${s.bg};border:1px solid ${s.color}55;font-size:11px;font-weight:800;color:${s.color};text-transform:uppercase;letter-spacing:.03em;">${gl}</div>`;
+        }).join('');
+      }
+    })();
 
     // ── Weekly Action Plan (data-driven) ─────────────────────────────────
     const PLAN_KEY = 'ss_weekly_plan_' + (user.id || 'guest');
@@ -955,13 +1065,43 @@
     const insightConsVal = document.getElementById('insightConsVal');
 
     if (assessments.length >= 2) {
-      const oldest = assessments[assessments.length - 1]?.overallScore || 0;
-      const newest = assessments[0]?.overallScore || 0;
-      const diff = newest - oldest;
-      if (insightTrendVal) insightTrendVal.textContent = (diff >= 0 ? '+' : '') + diff + 'pts';
-      if (insightTrendEl) insightTrendEl.textContent = diff >= 0
-        ? `Up ${diff} pts across ${assessments.length} sessions — your trajectory is positive.`
-        : `Down ${Math.abs(diff)} pts from baseline. Focus on the action plan to reverse the trend.`;
+      // Group assessments by shot type for per-shot trend analysis
+      const shotGroups = {};
+      assessments.forEach(a => {
+        const s = (a.shotType || 'forehand').toLowerCase();
+        if (!shotGroups[s]) shotGroups[s] = [];
+        shotGroups[s].push(a);
+      });
+      // Find the shot type with the most sessions for the headline trend
+      const shotEntries = Object.entries(shotGroups).filter(([,arr]) => arr.length >= 2);
+      if (shotEntries.length) {
+        // Build per-shot trend summaries
+        const trendParts = shotEntries.map(([shot, arr]) => {
+          const oldest = arr[arr.length - 1]?.overallScore || 0;
+          const newest = arr[0]?.overallScore || 0;
+          return { shot, diff: newest - oldest, count: arr.length };
+        });
+        // Headline: show the shot with the most sessions
+        trendParts.sort((a, b) => b.count - a.count);
+        const primary = trendParts[0];
+        if (insightTrendVal) insightTrendVal.textContent = (primary.diff >= 0 ? '+' : '') + primary.diff + 'pts';
+        // Build multi-line trend summary
+        const lines = trendParts.map(t => {
+          const shotLabel = t.shot.charAt(0).toUpperCase() + t.shot.slice(1);
+          const arrow = t.diff >= 0 ? '↑' : '↓';
+          return `${shotLabel}: ${arrow}${Math.abs(t.diff)}pts (${t.count} sessions)`;
+        });
+        if (insightTrendEl) insightTrendEl.textContent = lines.join(' · ');
+      } else {
+        // Not enough per-shot data, show overall
+        const oldest = assessments[assessments.length - 1]?.overallScore || 0;
+        const newest = assessments[0]?.overallScore || 0;
+        const diff = newest - oldest;
+        if (insightTrendVal) insightTrendVal.textContent = (diff >= 0 ? '+' : '') + diff + 'pts';
+        if (insightTrendEl) insightTrendEl.textContent = diff >= 0
+          ? `Up ${diff} pts across ${assessments.length} sessions — your trajectory is positive.`
+          : `Down ${Math.abs(diff)} pts from baseline. Focus on the action plan to reverse the trend.`;
+      }
 
       // Strongest shot
       const byShot = {};

@@ -181,6 +181,10 @@
             }, 1200);
           } else if (isSmartFlip) {
             setPrimaryDestination('./smartflip-dashboard.html', 'Open SmartFlip dashboard');
+            setTimeout(() => { window.location.href = './smartflip-dashboard.html'; }, 2500);
+          } else {
+            // Auto-redirect to dashboard after showing success briefly
+            setTimeout(() => { window.location.href = './dashboard.html'; }, 2500);
           }
         } else {
           titleEl.textContent = 'Stripe payment verified';
