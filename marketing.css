@@ -439,7 +439,6 @@
 .mkt-badge--coach       { background: #fef9c3; color: #854d0e; }
 .mkt-badge--club        { background: #f0fdf4; color: #166534; }
 .mkt-badge--parent      { background: #fdf4ff; color: #6b21a8; }
-.mkt-badge--pickleball  { background: #fff7ed; color: #c2410c; }
 .mkt-badge--active      { background: #dcfce7; color: #15803d; }
 .mkt-badge--draft       { background: var(--bg-soft); color: var(--muted); }
 .mkt-badge--scheduled   { background: #dbeafe; color: #1d4ed8; }

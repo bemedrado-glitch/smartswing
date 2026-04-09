@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI — Technical Documentation &amp; Proprietary Engine Reference</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="Complete technical reference for the SmartSwing AI biomechanics analysis engine — formulas, scoring, grip inference, architecture, and academic foundations.">
+  <style>
+    :root{--bg:#0a0c10;--panel:#12151c;--border:rgba(255,255,255,.1);--text:#e8eaed;--muted:#9aa5b4;--green:#39ff14;--gold:#ffd84d;--teal:#00d4aa;--red:#ff6b6b;--purple:#818cf8;--code-bg:#1a1e28;--font-body:"Inter",system-ui,-apple-system,sans-serif;--font-mono:"JetBrains Mono","Fira Code",monospace;--font-heading:"Plus Jakarta Sans","Inter",sans-serif}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--font-body);color:var(--text);background:var(--bg);line-height:1.7;font-size:15px}
+    ::selection{background:rgba(57,255,20,.25);color:#fff}
+    a{color:var(--green);text-decoration:none;transition:opacity .15s}a:hover{opacity:.75}
+    /* Layout */
+    .doc-grid{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--panel);border-right:1px solid var(--border);padding:24px 0;z-index:10}
+    .sidebar-logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-logo h2{font-family:var(--font-heading);font-size:18px;font-weight:800;color:var(--green)}
+    .sidebar-logo p{font-size:11px;color:var(--muted);margin-top:2px}
+    .sidebar nav{padding:0 12px}
+    .sidebar nav a{display:block;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--muted);transition:all .15s}
+    .sidebar nav a:hover,.sidebar nav a.active{color:var(--green);background:rgba(57,255,20,.06)}
+    .sidebar nav .section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.25);padding:16px 12px 6px;pointer-events:none}
+    .main{padding:40px 48px 80px;max-width:960px}
+    /* Typography */
+    h1{font-family:var(--font-heading);font-size:36px;font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:8px}
+    h2{font-family:var(--font-heading);font-size:24px;font-weight:800;color:var(--green);margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+    h3{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--gold);margin:32px 0 12px}
+    h4{font-size:15px;font-weight:700;color:var(--teal);margin:20px 0 8px}
+    p{margin-bottom:14px;color:var(--muted)}
+    ul,ol{margin:0 0 16px 20px;color:var(--muted)}li{margin-bottom:6px}
+    strong{color:var(--text)}
+    /* Code */
+    code{font-family:var(--font-mono);font-size:13px;background:var(--code-bg);padding:2px 6px;border-radius:4px;color:var(--gold)}
+    pre{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;overflow-x:auto;margin:12px 0 20px;line-height:1.55}
+    pre code{background:none;padding:0;font-size:13px;color:var(--text)}
+    .comment{color:#6a737d}
+    .keyword{color:var(--purple)}
+    .number{color:var(--gold)}
+    .string{color:var(--green)}
+    /* Cards and tables */
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin:16px 0}
+    .card-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:10px}
+    table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:13px}
+    th{text-align:left;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--green);padding:10px 12px;border-bottom:2px solid var(--border);background:rgba(57,255,20,.04)}
+    td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--muted)}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    /* Formula blocks */
+    .formula{background:linear-gradient(135deg,rgba(57,255,20,.04),rgba(0,212,170,.03));border:1px solid rgba(57,255,20,.15);border-radius:12px;padding:16px 20px;margin:12px 0 20px;font-family:var(--font-mono);font-size:14px;color:var(--text);line-height:1.8}
+    .formula .label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);margin-bottom:6px;font-family:var(--font-body)}
+    /* Badges */
+    .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.04em}
+    .badge-green{background:rgba(57,255,20,.12);color:var(--green);border:1px solid rgba(57,255,20,.25)}
+    .badge-gold{background:rgba(255,216,77,.12);color:var(--gold);border:1px solid rgba(255,216,77,.25)}
+    .badge-red{background:rgba(255,107,107,.12);color:var(--red);border:1px solid rgba(255,107,107,.25)}
+    .badge-purple{background:rgba(129,140,248,.12);color:var(--purple);border:1px solid rgba(129,140,248,.25)}
+    /* Back to top */
+    .back-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:50%;background:var(--green);color:#0a0a0a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;box-shadow:0 8px 24px rgba(57,255,20,.3);transition:transform .18s;z-index:99}
+    .back-top:hover{transform:translateY(-3px)}
+    /* Responsive */
+    @media(max-width:900px){.doc-grid{grid-template-columns:1fr}.sidebar{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--border)}.sidebar nav{display:flex;flex-wrap:wrap;gap:4px;padding:0 16px 16px}.sidebar nav .section-label{display:none}.sidebar nav a{padding:6px 12px;font-size:12px}.main{padding:24px 16px 64px}}
+    /* Print */
+    @media print{.sidebar,.back-top{display:none}.doc-grid{grid-template-columns:1fr}.main{max-width:100%;padding:0}body{background:#fff;color:#222}h2{color:#1a5c00}h3{color:#8b6914}.card{border:1px solid #ddd}pre,.formula{border:1px solid #ccc;background:#f8f8f8}code{background:#eee;color:#333}}
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- SECURITY GATE — 6-digit code required -->
+<div id="securityGate" style="position:fixed;inset:0;z-index:99999;background:#0a0c10;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;max-width:380px;padding:40px;">
+    <div style="width:56px;height:56px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:24px;color:#0a0a0a;font-weight:900;">SS</div>
+    <h1 style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:6px;">Technical Documentation</h1>
+    <p style="font-size:13px;color:#888;margin-bottom:28px;">Enter the 6-digit security code to continue.</p>
+    <div id="gateCodeWrap" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="0">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="1">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="2">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="3">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="4">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="5">
+    </div>
+    <div id="gateError" style="font-size:12px;color:#ff4d4f;min-height:20px;"></div>
+    <style>
+      .gate-digit{width:44px;height:52px;border:2px solid #333;border-radius:10px;background:#181818;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;transition:border-color .15s;}
+      .gate-digit:focus{border-color:var(--green);}
+      .gate-digit.shake{animation:gshake .4s ease;}
+      @keyframes gshake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+    </style>
+  </div>
+</div>
+<script>
+(function securityGateInit(){
+  var DEFAULT_CODE = '182410';
+  var gate = document.getElementById('securityGate');
+  var digits = gate.querySelectorAll('.gate-digit');
+  var errEl = document.getElementById('gateError');
+  if (sessionStorage.getItem('techdocs_unlocked') === '1') { gate.remove(); return; }
+  digits[0].focus();
+  digits.forEach(function(inp, i){
+    inp.addEventListener('input', function(){
+      inp.value = inp.value.replace(/\D/g,'').slice(0,1);
+      if (inp.value && i < 5) digits[i+1].focus();
+      checkCode();
+    });
+    inp.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !inp.value && i > 0) { digits[i-1].focus(); digits[i-1].value = ''; }
+    });
+    inp.addEventListener('paste', function(e){
+      e.preventDefault();
+      var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      for(var j=0;j<6;j++){ digits[j].value = pasted[j]||''; }
+      if(pasted.length>=6) digits[5].focus();
+      checkCode();
+    });
+  });
+  function checkCode(){
+    var code = '';
+    digits.forEach(function(d){ code += d.value; });
+    if(code.length < 6) return;
+    if(code === DEFAULT_CODE){
+      sessionStorage.setItem('techdocs_unlocked','1');
+      gate.style.transition='opacity .3s';
+      gate.style.opacity='0';
+      setTimeout(function(){ gate.remove(); },300);
+    } else {
+      errEl.textContent = 'Invalid code. Try again.';
+      digits.forEach(function(d){ d.classList.add('shake'); d.value=''; });
+      setTimeout(function(){ digits.forEach(function(d){ d.classList.remove('shake'); }); digits[0].focus(); },400);
+    }
+  }
+})();
+</script>
+
+<div class="doc-grid">
+
+<!-- ═══════════════════════════════════════════════════ SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h2>SmartSwing AI</h2>
+    <p>Proprietary Engine Reference v2.0</p>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#overview">System Overview</a>
+    <a href="#architecture">Technical Architecture</a>
+    <a href="#data-flow">Data Flow Pipeline</a>
+
+    <div class="section-label">Pose Detection</div>
+    <a href="#keypoints">Keypoint Model</a>
+    <a href="#calibration">Calibration</a>
+
+    <div class="section-label">Biomechanics Engine</div>
+    <a href="#geometry">Core Geometry</a>
+    <a href="#joint-angles">Joint Angles</a>
+    <a href="#rotations">Rotations &amp; X-Factor</a>
+    <a href="#stability">Stability &amp; Balance</a>
+    <a href="#kinematic-chain">Kinematic Chain</a>
+    <a href="#contact-quality">Contact Quality</a>
+    <a href="#power">Power Generation</a>
+    <a href="#efficiency">Efficiency Score</a>
+
+    <div class="section-label">Scoring System</div>
+    <a href="#overall-score">Overall Score</a>
+    <a href="#component-scores">Component Scores</a>
+    <a href="#shot-models">Shot-Type Models</a>
+    <a href="#grading">Grading &amp; Percentiles</a>
+    <a href="#benchmarks">Benchmarks</a>
+    <a href="#kpis">KPI Calculations</a>
+
+    <div class="section-label">Grip Analysis</div>
+    <a href="#grip-overview">Grip Engine Overview</a>
+    <a href="#grip-indicators">5 Kinematic Indicators</a>
+    <a href="#grip-classifier">Gaussian Classifier</a>
+    <a href="#grip-tables">Grip Parameter Tables</a>
+    <a href="#grip-matching">Shot-Grip Matching</a>
+    <a href="#grip-recs">Coaching Recommendations</a>
+
+    <div class="section-label">Report &amp; AI Coach</div>
+    <a href="#report">Report Structure</a>
+    <a href="#ai-coach">AI Coach Narrative</a>
+
+    <div class="section-label">Infrastructure</div>
+    <a href="#stack">Stack &amp; Hosting</a>
+    <a href="#database">Database Schema</a>
+    <a href="#auth">Auth &amp; Billing</a>
+
+    <div class="section-label">References</div>
+    <a href="#papers">Academic Papers</a>
+    <a href="#glossary">Glossary</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════ MAIN -->
+<main class="main">
+
+<!-- ── OVERVIEW ──────────────────────────────────────────── -->
+<section id="overview">
+  <span class="badge badge-green">PROPRIETARY &amp; CONFIDENTIAL</span>
+  <h1>SmartSwing AI Technical Documentation</h1>
+  <p>Complete reference for the SmartSwing AI biomechanics analysis engine — covering every formula, correlation, analysis workflow, scoring model, grip inference algorithm, and architectural decision that powers the platform. This document serves as the <strong>"central brain"</strong> backup of the proprietary analyzer.</p>
+  <p><strong>Last updated:</strong> April 8, 2026 &nbsp;|&nbsp; <strong>Engine version:</strong> 2.0 &nbsp;|&nbsp; <strong>Author:</strong> SmartSwing AI Engineering</p>
+</section>
+
+<!-- ── ARCHITECTURE ──────────────────────────────────────── -->
+<section id="architecture">
+  <h2>Technical Architecture</h2>
+  <p>SmartSwing AI is a multi-page static web application with serverless backend functions, designed for real-time biomechanical analysis in the browser.</p>
+
+  <div class="card">
+    <div class="card-title">Stack Components</div>
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+      <tr><td>Frontend</td><td>HTML + CSS + Vanilla JS</td><td>Zero-framework, maximum compatibility</td></tr>
+      <tr><td>Pose Detection</td><td>MoveNet / MediaPipe (17-keypoint)</td><td>Real-time body landmark tracking</td></tr>
+      <tr><td>Biomechanics</td><td>advanced-biomechanics-engine.js</td><td>Joint angles, kinematics, scoring</td></tr>
+      <tr><td>Grip Analysis</td><td>grip-analysis-engine.js</td><td>Grip inference from body kinematics</td></tr>
+      <tr><td>State</td><td>app-data.js (SmartSwingStore)</td><td>Client-side store + Supabase sync</td></tr>
+      <tr><td>Hosting</td><td>Vercel</td><td>Static hosting + serverless functions</td></tr>
+      <tr><td>Database</td><td>Supabase (PostgreSQL)</td><td>Auth, profiles, assessments, reports</td></tr>
+      <tr><td>Payments</td><td>Stripe</td><td>Hosted checkout + webhook sync</td></tr>
+      <tr><td>AI Coach</td><td>Claude API (Anthropic)</td><td>Personalized coaching narratives</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ── DATA FLOW ─────────────────────────────────────────── -->
+<section id="data-flow">
+  <h2>Data Flow Pipeline</h2>
+  <div class="card">
+    <div class="card-title">Analysis Pipeline (End-to-End)</div>
+<pre><code>Video Input (upload / YouTube URL / webcam)
+    |
+    v
+Pose Detection (MoveNet Thunder / MediaPipe)
+    |  Outputs: 17 keypoints × N frames
+    |  Each keypoint: { x, y, score }
+    v
+Frame Processing (per-frame metrics)
+    |  Joint angles, velocities, rotations
+    |  Head stability, balance, COM tracking
+    v
+Contact Frame Detection (peak wrist speed)
+    v
+Grip Analysis Engine (5 indicators → Gaussian classifier)
+    |  Output: detected_grip, confidence, distribution
+    v
+Sequence Analysis (kinematic chain, power, efficiency)
+    v
+Session Aggregation (means, stdDevs, ranges)
+    v
+Scoring Pipeline (component → weighted → overall)
+    |  Level-adjusted benchmarks, grade, percentile
+    v
+AI Coach Narrative (Claude API call)
+    v
+Report Generation (HTML template assembly)
+    v
+Persistence (localStorage + Supabase cloud sync)
+</code></pre>
+  </div>
+</section>
+
+<!-- ── KEYPOINTS ──────────────────────────────────────────── -->
+<section id="keypoints">
+  <h2>Keypoint Model (MoveNet 17-Point)</h2>
+  <p>SmartSwing uses the MoveNet Thunder model (or MediaPipe equivalent) that produces 17 body keypoints per frame. Each keypoint provides <code>(x, y, confidence_score)</code>.</p>
+
+  <table>
+    <tr><th>Index</th><th>Keypoint</th><th>Body Part</th><th>Usage</th></tr>
+    <tr><td>0</td><td>NOSE</td><td>Head</td><td>Head stability tracking</td></tr>
+    <tr><td>1</td><td>LEFT_EYE</td><td>Head</td><td>Head orientation</td></tr>
+    <tr><td>2</td><td>RIGHT_EYE</td><td>Head</td><td>Head orientation</td></tr>
+    <tr><td>3</td><td>LEFT_EAR</td><td>Head</td><td>Head rotation proxy</td></tr>
+    <tr><td>4</td><td>RIGHT_EAR</td><td>Head</td><td>Head rotation proxy</td></tr>
+    <tr><td>5</td><td>LEFT_SHOULDER</td><td>Upper body</td><td>Shoulder rotation, joint angles</td></tr>
+    <tr><td>6</td><td>RIGHT_SHOULDER</td><td>Upper body</td><td>Shoulder rotation, joint angles</td></tr>
+    <tr><td>7</td><td>LEFT_ELBOW</td><td>Arm</td><td>Elbow angle, kinematic chain</td></tr>
+    <tr><td>8</td><td>RIGHT_ELBOW</td><td>Arm</td><td>Elbow angle, kinematic chain</td></tr>
+    <tr><td>9</td><td>LEFT_WRIST</td><td>Arm</td><td>Racquet speed proxy, grip analysis</td></tr>
+    <tr><td>10</td><td>RIGHT_WRIST</td><td>Arm</td><td>Racquet speed proxy, grip analysis</td></tr>
+    <tr><td>11</td><td>LEFT_HIP</td><td>Core</td><td>Hip rotation, COM, balance</td></tr>
+    <tr><td>12</td><td>RIGHT_HIP</td><td>Core</td><td>Hip rotation, COM, balance</td></tr>
+    <tr><td>13</td><td>LEFT_KNEE</td><td>Lower body</td><td>Knee bend, power generation</td></tr>
+    <tr><td>14</td><td>RIGHT_KNEE</td><td>Lower body</td><td>Knee bend, power generation</td></tr>
+    <tr><td>15</td><td>LEFT_ANKLE</td><td>Lower body</td><td>Footwork, base width, balance</td></tr>
+    <tr><td>16</td><td>RIGHT_ANKLE</td><td>Lower body</td><td>Footwork, base width, balance</td></tr>
+  </table>
+
+  <p>Dominant side is auto-detected by comparing confidence score sums for left vs right arm keypoints. Minimum keypoint confidence threshold: <code>0.3</code>.</p>
+</section>
+
+<!-- ── CALIBRATION ────────────────────────────────────────── -->
+<section id="calibration">
+  <h2>Calibration (Pixel-to-Metric Conversion)</h2>
+
+  <h3>Auto-Calibration (Player Height)</h3>
+  <div class="formula">
+    <div class="label">Calibration Formula</div>
+    heightPixels = |shoulder.y - ankle.y|<br>
+    estimatedTorsoHeight = 0.9 m<br>
+    <strong>pixelsToMeters = 0.9 / heightPixels</strong>
+  </div>
+
+  <h3>Manual Calibration (Court Lines)</h3>
+  <div class="formula">
+    <div class="label">Manual Override</div>
+    <strong>pixelsToMeters = realWorldDistance / pixelDistance</strong>
+  </div>
+</section>
+
+<!-- ── CORE GEOMETRY ──────────────────────────────────────── -->
+<section id="geometry">
+  <h2>Core Geometry Formulas</h2>
+
+  <h3>Euclidean Distance</h3>
+  <div class="formula">
+    <div class="label">distance(A, B)</div>
+    d = sqrt( (B.x - A.x)^2 + (B.y - A.y)^2 )
+  </div>
+
+  <h3>3-Point Angle</h3>
+  <div class="formula">
+    <div class="label">angle3Points(A, B, C) — angle at vertex B</div>
+    u = B → A = (A.x - B.x, A.y - B.y)<br>
+    v = B → C = (C.x - B.x, C.y - B.y)<br>
+    cos(angle) = dot(u, v) / (|u| × |v|)<br>
+    <strong>angle = acos( clamp(cos, -1, 1) ) × (180 / pi)</strong>
+  </div>
+
+  <h3>Signed Angle (Rotation)</h3>
+  <div class="formula">
+    <div class="label">signedAngle(u, v)</div>
+    cross = u.x × v.y - u.y × v.x<br>
+    <strong>angle = atan2(cross, dot(u, v)) × (180 / pi)</strong>
+  </div>
+
+  <h3>Velocity Calculation</h3>
+  <div class="formula">
+    <div class="label">Keypoint Velocity (m/s → mph)</div>
+    distPixels = distance(wrist[t-1], wrist[t])<br>
+    distMeters = distPixels × pixelsToMeters<br>
+    speedMS = distMeters / timeDelta <span class="comment">// timeDelta default = 1/30 s</span><br>
+    <strong>speedMPH = speedMS × 2.237</strong><br>
+    speedKPH = speedMS × 3.6
+  </div>
+</section>
+
+<!-- ── JOINT ANGLES ───────────────────────────────────────── -->
+<section id="joint-angles">
+  <h2>Joint Angle Calculations</h2>
+  <p>All joint angles use the 3-point angle formula with the joint as vertex B:</p>
+
+  <table>
+    <tr><th>Joint</th><th>Point A</th><th>Vertex B</th><th>Point C</th><th>Optimal Range</th></tr>
+    <tr><td>Elbow</td><td>Shoulder</td><td>Elbow</td><td>Wrist</td><td>140-170 deg</td></tr>
+    <tr><td>Shoulder</td><td>Hip</td><td>Shoulder</td><td>Elbow</td><td>80-120 deg</td></tr>
+    <tr><td>Hip</td><td>Shoulder</td><td>Hip</td><td>Knee</td><td>150-175 deg</td></tr>
+    <tr><td>Knee</td><td>Hip</td><td>Knee</td><td>Ankle</td><td>145-165 deg</td></tr>
+  </table>
+
+  <p>Angular velocity is calculated between consecutive frames:</p>
+  <div class="formula">
+    <div class="label">Angular Velocity</div>
+    angularVelocity = (angle[t] - angle[t-1]) / timeDelta <span class="comment">// deg/s</span>
+  </div>
+</section>
+
+<!-- ── ROTATIONS ──────────────────────────────────────────── -->
+<section id="rotations">
+  <h2>Rotations &amp; X-Factor</h2>
+
+  <h3>Hip Rotation</h3>
+  <div class="formula">
+    <div class="label">Hip line angle vs horizontal</div>
+    hipLine = leftHip → rightHip<br>
+    <strong>hipRotation = signedAngle(hipLine, horizontalAxis)</strong>
+  </div>
+
+  <h3>Shoulder Rotation</h3>
+  <div class="formula">
+    <div class="label">Shoulder line angle vs horizontal</div>
+    shoulderLine = leftShoulder → rightShoulder<br>
+    <strong>shoulderRotation = signedAngle(shoulderLine, horizontalAxis)</strong>
+  </div>
+
+  <h3>X-Factor (Hip-Shoulder Separation)</h3>
+  <div class="formula">
+    <div class="label">Key Power Indicator</div>
+    separation = |shoulderRotation - hipRotation|<br>
+    <strong>xFactor = abs( wrapAngle(separation) )</strong><br>
+    Optimal range: 30-50 degrees
+  </div>
+  <p>The X-Factor measures the rotational separation between hips and shoulders during the swing. Greater separation stores elastic energy in the trunk musculature, enabling more powerful rotation through the kinetic chain. Professional players typically achieve 40-55 degrees of X-Factor at peak loading.</p>
+
+  <h3>Trunk Tilt</h3>
+  <div class="formula">
+    <div class="label">Lateral Body Tilt</div>
+    hipMid = midpoint(leftHip, rightHip)<br>
+    shoulderMid = midpoint(leftShoulder, rightShoulder)<br>
+    verticalRef = (hipMid.x, hipMid.y - 100)<br>
+    <strong>trunkTilt = angle3Points(verticalRef, hipMid, shoulderMid)</strong>
+  </div>
+</section>
+
+<!-- ── STABILITY ──────────────────────────────────────────── -->
+<section id="stability">
+  <h2>Stability &amp; Balance</h2>
+
+  <h3>Center of Mass (COM)</h3>
+  <div class="formula">
+    <div class="label">Weighted COM Approximation</div>
+    shoulderMid = midpoint(leftShoulder, rightShoulder)<br>
+    hipMid = midpoint(leftHip, rightHip)<br>
+    <strong>COM.x = 0.4 × shoulderMid.x + 0.6 × hipMid.x</strong><br>
+    <strong>COM.y = 0.4 × shoulderMid.y + 0.6 × hipMid.y</strong><br>
+    <span class="comment">// Hips weighted 60%, shoulders 40%</span>
+  </div>
+
+  <h3>Head Stability (Rolling Window = 10 frames)</h3>
+  <div class="formula">
+    <div class="label">Stability Score</div>
+    variance = sum(pixelOffset^2) / historyLength<br>
+    <strong>stability = max(0, 100 - variance)</strong><br>
+    displacement = sqrt(variance) × pixelsToMeters × 100 <span class="comment">// in cm</span>
+  </div>
+
+  <h3>Balance Score</h3>
+  <div class="formula">
+    <div class="label">COM vs Base of Support</div>
+    baseWidth = |rightAnkle.x - leftAnkle.x|<br>
+    anklesMidX = (rightAnkle.x + leftAnkle.x) / 2<br>
+    comOffset = |COM.x - anklesMidX|<br>
+    balanceRatio = 1 - (comOffset / (baseWidth / 2))<br>
+    <strong>balanceScore = max(0, min(100, balanceRatio × 100))</strong>
+  </div>
+</section>
+
+<!-- ── KINEMATIC CHAIN ────────────────────────────────────── -->
+<section id="kinematic-chain">
+  <h2>Kinematic Chain Sequencing</h2>
+  <p>The kinetic chain principle states that efficient power transfer requires proximal-to-distal activation: hips first, then shoulders, then elbow, then wrist. SmartSwing detects peak velocity timing for each segment.</p>
+
+  <div class="formula">
+    <div class="label">Peak Velocity Detection</div>
+    For each segment (hip, shoulder, elbow, wrist):<br>
+    &nbsp;&nbsp;peakIdx = argmax(velocity[segment]) across all frames<br><br>
+    Delays:<br>
+    &nbsp;&nbsp;hipToShoulder = peakShoulder - peakHip<br>
+    &nbsp;&nbsp;shoulderToElbow = peakElbow - peakShoulder<br>
+    &nbsp;&nbsp;elbowToWrist = peakWrist - peakElbow<br><br>
+    <strong>Proper sequence: ALL delays > 0</strong><br>
+    efficiency = 100 <span class="comment">if proper</span>, else 50
+  </div>
+</section>
+
+<!-- ── CONTACT QUALITY ────────────────────────────────────── -->
+<section id="contact-quality">
+  <h2>Contact Point Quality</h2>
+
+  <div class="formula">
+    <div class="label">Contact Position (Dominant Hand)</div>
+    inFront = wrist.x > hip.x <span class="comment">// for right-handed; flipped for left</span><br>
+    distance = |wrist.x - hip.x| × pixelsToMeters × 100 <span class="comment">// cm</span><br><br>
+    Optimal range: 25-45 cm in front<br>
+    <strong>quality = 100</strong> <span class="comment">if optimal</span><br>
+    <strong>quality = max(0, 100 - |distance - 35| × 2)</strong> <span class="comment">if outside</span>
+  </div>
+</section>
+
+<!-- ── POWER ──────────────────────────────────────────────── -->
+<section id="power">
+  <h2>Power Generation Score</h2>
+  <p>Composite score from three weighted factors:</p>
+
+  <div class="formula">
+    <div class="label">Factor 1: X-Factor Score</div>
+    Optimal: 30-50 degrees<br>
+    <strong>xScore = 100</strong> <span class="comment">if in range</span><br>
+    <strong>xScore = max(0, 100 - |xFactor - 40| × 2)</strong> <span class="comment">if outside</span>
+  </div>
+
+  <div class="formula">
+    <div class="label">Factor 2: Knee Angle Score</div>
+    Optimal: 145-165 degrees<br>
+    <strong>kneeScore = 100</strong> <span class="comment">if in range</span><br>
+    <strong>kneeScore = max(0, 100 - |kneeAngle - 155|)</strong> <span class="comment">if outside</span>
+  </div>
+
+  <div class="formula">
+    <div class="label">Factor 3: Racquet Speed Score</div>
+    Baseline: 85 mph<br>
+    <strong>speedScore = min(100, (maxRacquetSpeed / 85) × 100)</strong>
+  </div>
+
+  <div class="formula">
+    <div class="label">Final Power Score</div>
+    <strong>powerScore = average(xScore, kneeScore, speedScore)</strong>
+  </div>
+</section>
+
+<!-- ── EFFICIENCY ─────────────────────────────────────────── -->
+<section id="efficiency">
+  <h2>Efficiency Score</h2>
+
+  <div class="formula">
+    <div class="label">Deduction-Based Scoring</div>
+    baseScore = 100<br><br>
+    Deductions:<br>
+    &nbsp;&nbsp;Poor kinematic sequence: -20<br>
+    &nbsp;&nbsp;Low balance (&lt; 70): -(70 - balance) × 0.5<br>
+    &nbsp;&nbsp;High head displacement (&gt; 5 cm): -displacement<br><br>
+    <strong>efficiencyScore = max(0, min(100, baseScore - deductions))</strong>
+  </div>
+</section>
+
+<!-- ── OVERALL SCORE ──────────────────────────────────────── -->
+<section id="overall-score">
+  <h2>Overall Score Calculation</h2>
+
+  <h3>Component Weighting (Default)</h3>
+  <div class="formula">
+    <div class="label">Raw Score Formula</div>
+    rawScore = biomechanics × 0.62<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + timing × 0.14<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + footwork × 0.08<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + positioning × 0.08<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + readiness × 0.08
+  </div>
+
+  <h3>Level Adjustment</h3>
+  <div class="formula">
+    <div class="label">Floor + Boost</div>
+    Minimum floors: Beginner = 30, Intermediate = 40, Advanced = 50<br>
+    Profile boost: Beginner = 1.0x, Intermediate = 1.05x, Advanced = 1.10x<br><br>
+    adjustedScore = max(floor, rawScore × boost)<br>
+    progressBonus = min(5, improvement_delta) <span class="comment">// up to +5 pts</span><br>
+    <strong>overallScore = min(100, adjustedScore + progressBonus)</strong>
+  </div>
+</section>
+
+<!-- ── COMPONENT SCORES ──────────────────────────────────── -->
+<section id="component-scores">
+  <h2>Component Scores</h2>
+
+  <table>
+    <tr><th>Component</th><th>Weight</th><th>Inputs</th></tr>
+    <tr><td><strong>Biomechanics</strong></td><td>62%</td><td>Racquet speed, acceleration, wrist lag, knee bend, shoulder/hip rotation</td></tr>
+    <tr><td><strong>Timing</strong></td><td>14%</td><td>Contact timing consistency vs optimal swing phase</td></tr>
+    <tr><td><strong>Footwork</strong></td><td>8%</td><td>Stride length, base width, movement smoothness</td></tr>
+    <tr><td><strong>Positioning</strong></td><td>8%</td><td>Distance from baseline, angle to ball, recovery position</td></tr>
+    <tr><td><strong>Readiness</strong></td><td>8%</td><td>Preparation time, racket position pre-contact, stance</td></tr>
+  </table>
+
+  <p>Each component uses <code>scoreMetricAgainstBenchmark()</code> with three deviation windows:</p>
+  <ul>
+    <li><strong>Soft</strong> (within 20%): Score 80-100</li>
+    <li><strong>Good</strong> (within 15%): Score 60-80</li>
+    <li><strong>Fair</strong> (within 10%): Score 40-60</li>
+  </ul>
+</section>
+
+<!-- ── SHOT MODELS ────────────────────────────────────────── -->
+<section id="shot-models">
+  <h2>Shot-Type Scoring Models</h2>
+  <p>Each shot type uses custom component weights (via <code>SHOT_SCORING_MODELS</code>):</p>
+
+  <table>
+    <tr><th>Shot Type</th><th>Biomechanics</th><th>Timing</th><th>Positioning</th><th>Footwork</th><th>Readiness</th></tr>
+    <tr><td><strong>Forehand</strong></td><td>70%</td><td>10%</td><td>10%</td><td>5%</td><td>5%</td></tr>
+    <tr><td><strong>Backhand</strong></td><td>65%</td><td>12%</td><td>12%</td><td>6%</td><td>5%</td></tr>
+    <tr><td><strong>Serve</strong></td><td>75%</td><td>15%</td><td>5%</td><td>3%</td><td>2%</td></tr>
+    <tr><td><strong>Volley</strong></td><td>60%</td><td>20%</td><td>10%</td><td>5%</td><td>5%</td></tr>
+    <tr><td><strong>Slice</strong></td><td>68%</td><td>12%</td><td>10%</td><td>5%</td><td>5%</td></tr>
+    <tr><td><strong>Drop Shot</strong></td><td>55%</td><td>20%</td><td>15%</td><td>5%</td><td>5%</td></tr>
+    <tr><td><strong>Lob</strong></td><td>58%</td><td>15%</td><td>18%</td><td>5%</td><td>4%</td></tr>
+  </table>
+</section>
+
+<!-- ── GRADING ────────────────────────────────────────────── -->
+<section id="grading">
+  <h2>Grading &amp; Percentiles</h2>
+
+  <h3>Letter Grade Thresholds</h3>
+  <table>
+    <tr><th>Grade</th><th>Score Range</th><th>Meaning</th></tr>
+    <tr><td><span class="badge badge-green">A+</span></td><td>95-100</td><td>Elite execution</td></tr>
+    <tr><td><span class="badge badge-green">A</span></td><td>90-94</td><td>Excellent</td></tr>
+    <tr><td><span class="badge badge-gold">B+</span></td><td>85-89</td><td>Very good</td></tr>
+    <tr><td><span class="badge badge-gold">B</span></td><td>80-84</td><td>Good</td></tr>
+    <tr><td><span class="badge badge-gold">C+</span></td><td>75-79</td><td>Above average</td></tr>
+    <tr><td><span class="badge badge-purple">C</span></td><td>70-74</td><td>Average</td></tr>
+    <tr><td><span class="badge badge-red">D</span></td><td>60-69</td><td>Below average</td></tr>
+    <tr><td><span class="badge badge-red">F</span></td><td>&lt;40</td><td>Needs significant work</td></tr>
+  </table>
+
+  <h3>Percentile Calculation</h3>
+  <div class="formula">
+    <div class="label">Hyperbolic Tangent Z-Score Transform</div>
+    z = (playerScore - levelMean) / levelStdDev<br>
+    <strong>percentile = 50 × (1 + tanh(z / 1.7))</strong><br><br>
+    Level shifts: Beginner +5%, Intermediate 0%, Advanced -5%
+  </div>
+  <p>The <code>1.7</code> divisor compresses the distribution to match typical tournament bell curves, ensuring meaningful differentiation across the 0-100 percentile range.</p>
+</section>
+
+<!-- ── BENCHMARKS ─────────────────────────────────────────── -->
+<section id="benchmarks">
+  <h2>Benchmark System</h2>
+
+  <h3>Level-Specific Tolerance Multipliers</h3>
+  <table>
+    <tr><th>Level</th><th>Tolerance</th><th>Effect</th></tr>
+    <tr><td>Beginner</td><td>1.5x</td><td>More forgiving — wider acceptable range</td></tr>
+    <tr><td>Intermediate</td><td>1.0x</td><td>Standard benchmark expectations</td></tr>
+    <tr><td>Advanced</td><td>0.7x</td><td>Stricter — narrow acceptable range</td></tr>
+  </table>
+
+  <p>Additional adjustment factors:</p>
+  <ul>
+    <li><strong>AGE_ADJUSTMENTS:</strong> Modifies benchmark expectations by age bracket</li>
+    <li><strong>GENDER_ADJUSTMENTS:</strong> Adjusts power-related benchmarks by gender</li>
+  </ul>
+</section>
+
+<!-- ── KPIS ───────────────────────────────────────────────── -->
+<section id="kpis">
+  <h2>KPI Calculations</h2>
+
+  <table>
+    <tr><th>KPI</th><th>Calculation</th><th>Interpretation</th></tr>
+    <tr><td>Timing Consistency</td><td>StdDev of contact timing (ms) within benchmark window</td><td>Lower = more consistent</td></tr>
+    <tr><td>Footwork Efficiency</td><td>Stride length variance + base width consistency</td><td>Lower variance = better</td></tr>
+    <tr><td>Positioning Score</td><td>Avg distance from ideal court position, normalized 0-100</td><td>Higher = better positioning</td></tr>
+    <tr><td>Contact Height</td><td>Consistency of strike height above court surface</td><td>Lower variance = better</td></tr>
+    <tr><td>Speed Consistency</td><td>Racquet velocity StdDev as % of benchmark mean</td><td>Lower = more repeatable</td></tr>
+  </table>
+</section>
+
+<!-- ── GRIP OVERVIEW ──────────────────────────────────────── -->
+<section id="grip-overview">
+  <h2>Grip Analysis Engine</h2>
+  <p>The grip analysis engine infers the player's grip type from <strong>body-only kinematic signals at the contact frame</strong>. Since MoveNet provides only body landmarks (no finger or hand detail), the engine uses five proxy indicators that correlate strongly with grip type according to biomechanics literature.</p>
+
+  <div class="card">
+    <div class="card-title">Key Innovation</div>
+    <p style="margin:0">Traditional grip detection requires high-resolution hand imaging. SmartSwing's approach uses <strong>inferential kinematics</strong> — the body's configuration at contact frame strongly constrains which grip the player must be using. For example, a Western forehand grip forces high wrist extension, elevated contact point, and steep swing plane — detectable from shoulder/elbow/wrist positions alone.</p>
+  </div>
+
+  <h3>Contact Frame Detection</h3>
+  <div class="formula">
+    <div class="label">Peak Wrist Speed Method</div>
+    For i = 1 to frames.length:<br>
+    &nbsp;&nbsp;speed[i] = distance(wrist[i-1], wrist[i]) / timeDelta[i]<br>
+    <strong>contactIdx = argmax(speed)</strong><br><br>
+    timeDelta = (frames[i].timestamp - frames[i-1].timestamp) || (1/30)<br>
+    Minimum: 3 frames required, wrist confidence >= 0.3
+  </div>
+</section>
+
+<!-- ── GRIP INDICATORS ────────────────────────────────────── -->
+<section id="grip-indicators">
+  <h2>Five Kinematic Indicators</h2>
+
+  <h3>1. Wrist Extension Angle (degrees)</h3>
+  <div class="formula">
+    <div class="label">Forearm vs Hand Velocity Direction</div>
+    forearm = elbow → wrist<br>
+    handDir = avg wrist displacement over ±2 frames around contact<br>
+    angle = |atan2(cross2(forearm, handDir), dot(forearm, handDir))|<br>
+    <strong>If angle > 90: fold to (180 - angle)</strong><br><br>
+    Continental: 0-15 deg | Eastern: 15-25 deg | Semi-Western: 25-40 deg | Western: 40-60 deg
+  </div>
+
+  <h3>2. Contact Height Ratio (normalized)</h3>
+  <div class="formula">
+    <div class="label">Wrist Position Relative to Torso</div>
+    <strong>heightRatio = (hip_y - wrist_y) / (hip_y - shoulder_y)</strong><br><br>
+    0 = wrist at hip level | 1 = wrist at shoulder | >1 = above shoulder<br>
+    Continental → low contact | Western → high contact
+  </div>
+
+  <h3>3. Swing Plane Angle (degrees above horizontal)</h3>
+  <div class="formula">
+    <div class="label">6-Frame Lookback Trajectory</div>
+    wristPath = wrist[contactIdx-6] → wrist[contactIdx]<br>
+    <strong>swingPlane = atan2(deltaY_upward, |deltaX|)</strong><br><br>
+    Continental: ~5-15 deg | Western: ~40-55 deg
+  </div>
+
+  <h3>4. Elbow Angle at Contact (degrees, 0-180)</h3>
+  <div class="formula">
+    <div class="label">Standard 3-Point Angle</div>
+    u = shoulder → elbow, v = elbow → wrist<br>
+    <strong>elbowAngle = acos(clamp(dot(u,v) / (|u| × |v|), -1, 1))</strong><br><br>
+    Extended arm → larger angle (serve/volley) | Bent → smaller (Western forehand)
+  </div>
+
+  <h3>5. Forearm Pronation Proxy (normalized 0-1)</h3>
+  <div class="formula">
+    <div class="label">Forearm vs Trunk Angle</div>
+    forearm = wrist - elbow<br>
+    trunk = mean_hip - shoulder<br>
+    angle = acos(clamp(dot(forearm, trunk) / (|forearm| × |trunk|), -1, 1))<br>
+    <strong>pronation = clamp(angle / 90, 0, 1)</strong><br><br>
+    0 = parallel (neutral) | 1 = perpendicular (fully pronated)
+  </div>
+</section>
+
+<!-- ── GRIP CLASSIFIER ────────────────────────────────────── -->
+<section id="grip-classifier">
+  <h2>Gaussian Classifier</h2>
+  <p>Each grip type is modeled as a diagonal-covariance Gaussian in 5D indicator space. Classification scores are computed as the product of per-indicator Gaussian likelihoods:</p>
+
+  <div class="formula">
+    <div class="label">Per-Indicator Gaussian Score</div>
+    z = (observedValue - center) / sigma<br>
+    <strong>gScore = exp(-(z^2) / 2)</strong><br>
+    Floor: max(0.01, gScore) <span class="comment">// prevents single-indicator zero-killing</span>
+  </div>
+
+  <div class="formula">
+    <div class="label">Per-Grip Total Score</div>
+    <strong>gripScore = product( gScore(indicator[i]) ) for all valid indicators</strong><br>
+    Minimum 2 valid indicators required
+  </div>
+
+  <div class="formula">
+    <div class="label">Probability Distribution</div>
+    <strong>distribution[grip] = gripScore[grip] / sum(all gripScores)</strong><br>
+    confidence = max(distribution) <span class="comment">// rounded to 3 decimal places</span>
+  </div>
+</section>
+
+<!-- ── GRIP TABLES ─────────────────────────────────────────── -->
+<section id="grip-tables">
+  <h2>Grip Parameter Tables</h2>
+  <p>Each cell shows <code>[center, sigma]</code> for the Gaussian classifier.</p>
+
+  <h3>Forehand Grips</h3>
+  <table>
+    <tr><th>Grip</th><th>Wrist Ext</th><th>Height</th><th>Swing Plane</th><th>Elbow</th><th>Pronation</th></tr>
+    <tr><td>Continental</td><td>[10, 8]</td><td>[0.45, 0.20]</td><td>[10, 10]</td><td>[165, 12]</td><td>[0.20, 0.20]</td></tr>
+    <tr><td>Eastern</td><td>[20, 8]</td><td>[0.75, 0.15]</td><td>[20, 10]</td><td>[158, 12]</td><td>[0.40, 0.20]</td></tr>
+    <tr><td>Semi-Western</td><td>[33, 10]</td><td>[0.95, 0.15]</td><td>[32, 10]</td><td>[148, 12]</td><td>[0.60, 0.20]</td></tr>
+    <tr><td>Western</td><td>[50, 12]</td><td>[1.15, 0.20]</td><td>[48, 12]</td><td>[140, 12]</td><td>[0.80, 0.20]</td></tr>
+  </table>
+
+  <h3>Backhand Grips</h3>
+  <table>
+    <tr><th>Grip</th><th>Wrist Ext</th><th>Height</th><th>Swing Plane</th><th>Elbow</th><th>Pronation</th></tr>
+    <tr><td>Continental</td><td>[12, 8]</td><td>[0.55, 0.20]</td><td>[12, 10]</td><td>[165, 12]</td><td>[0.25, 0.20]</td></tr>
+    <tr><td>Eastern BH</td><td>[22, 10]</td><td>[0.85, 0.18]</td><td>[22, 10]</td><td>[155, 14]</td><td>[0.45, 0.20]</td></tr>
+    <tr><td>Two-Handed BH</td><td>[18, 10]</td><td>[0.85, 0.20]</td><td>[24, 12]</td><td>[150, 15]</td><td>[0.50, 0.25]</td></tr>
+  </table>
+
+  <h3>Serve Grips</h3>
+  <table>
+    <tr><th>Grip</th><th>Wrist Ext</th><th>Height</th><th>Swing Plane</th><th>Elbow</th><th>Pronation</th></tr>
+    <tr><td>Continental</td><td>[15, 10]</td><td>[1.35, 0.30]</td><td>[30, 20]</td><td>[155, 15]</td><td>[0.30, 0.25]</td></tr>
+    <tr><td>Eastern</td><td>[25, 12]</td><td>[1.30, 0.30]</td><td>[28, 20]</td><td>[155, 15]</td><td>[0.45, 0.25]</td></tr>
+    <tr><td>Semi-Western</td><td>[35, 14]</td><td>[1.25, 0.30]</td><td>[26, 20]</td><td>[150, 15]</td><td>[0.60, 0.25]</td></tr>
+  </table>
+</section>
+
+<!-- ── GRIP MATCHING ──────────────────────────────────────── -->
+<section id="grip-matching">
+  <h2>Shot-Grip Appropriateness Mapping</h2>
+
+  <table>
+    <tr><th>Shot Type</th><th>Expected Grips</th><th>Mismatches &amp; Severity</th></tr>
+    <tr><td><strong>Forehand</strong></td><td>Eastern, Semi-Western, Western</td><td>Continental = <span class="badge badge-gold">medium</span></td></tr>
+    <tr><td><strong>Serve</strong></td><td>Continental</td><td>Eastern = <span class="badge badge-red">high</span>, Semi-W = <span class="badge badge-red">critical</span>, Western = <span class="badge badge-red">critical</span></td></tr>
+    <tr><td><strong>Volley</strong></td><td>Continental</td><td>Eastern = <span class="badge badge-gold">medium</span>, Semi-W/Western = <span class="badge badge-red">high</span></td></tr>
+    <tr><td><strong>Slice</strong></td><td>Continental</td><td>Eastern = <span class="badge badge-gold">medium</span>, Semi-W/Western = <span class="badge badge-red">high</span></td></tr>
+    <tr><td><strong>Drop Shot</strong></td><td>Continental</td><td>Eastern = <span class="badge badge-gold">medium</span>, Semi-W/Western = <span class="badge badge-red">high</span></td></tr>
+    <tr><td><strong>Backhand</strong></td><td>Continental, Eastern BH, Two-Handed</td><td>Eastern = <span class="badge badge-gold">medium</span>, Semi-W = <span class="badge badge-gold">medium</span>, Western = <span class="badge badge-red">high</span></td></tr>
+    <tr><td><strong>Lob / Return</strong></td><td>All grips accepted</td><td>No mismatches</td></tr>
+  </table>
+
+  <p><strong>Permissive coaching mode:</strong> Grip mismatches generate coaching callouts but do NOT penalize the overall score. This ensures players receive actionable guidance without being unfairly scored.</p>
+</section>
+
+<!-- ── GRIP RECS ──────────────────────────────────────────── -->
+<section id="grip-recs">
+  <h2>Coaching Recommendations</h2>
+  <p>The engine generates structured recommendations based on detected grip vs shot type:</p>
+
+  <div class="card">
+    <div class="card-title">Critical Mismatch Rules</div>
+    <table>
+      <tr><th>Trigger</th><th>Recommendation</th><th>Drills</th></tr>
+      <tr><td>Serve + non-Continental</td><td>Switch to Continental — unlocks forearm pronation for slice/kick serves</td><td>grip-bevel-check-continental, shadow-serve-pronation-snap</td></tr>
+      <tr><td>Volley/Slice/Drop + non-Continental</td><td>Use Continental — only grip for both FH+BH punch volleys</td><td>grip-bevel-check-continental, punch-volley-no-switch</td></tr>
+      <tr><td>Forehand + Continental</td><td>Move to Eastern or Semi-Western — caps topspin ceiling</td><td>grip-bevel-check-eastern, low-to-high-shadow-swing</td></tr>
+      <tr><td>Forehand + Western (beginner)</td><td>Consider Semi-Western — Western is difficult for low balls</td><td>—</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ── REPORT ─────────────────────────────────────────────── -->
+<section id="report">
+  <h2>Report Structure</h2>
+  <p>The analysis report is generated as an HTML template assembled from session data:</p>
+
+  <ol>
+    <li><strong>Session Header</strong> — Date, duration, shot count by type, overall grade</li>
+    <li><strong>Score Breakdown</strong> — Biomechanics, timing, footwork, positioning, readiness (bar charts)</li>
+    <li><strong>Grade Details</strong> — Per-shot-type grades with percentile rankings</li>
+    <li><strong>Grip Analysis</strong> — Detected grip, confidence, distribution bars, severity badge, coaching notes</li>
+    <li><strong>Benchmark Comparison</strong> — Player metrics vs profile-adjusted benchmarks</li>
+    <li><strong>Progress Context</strong> — Personal best tracking, session-over-session delta, streaks</li>
+    <li><strong>Milestone Achievements</strong> — Level-specific unlocked badges based on score thresholds</li>
+    <li><strong>KPI Summary</strong> — Timing consistency, footwork efficiency, positioning, contact height</li>
+    <li><strong>AI Coaching Narrative</strong> — Swing Story, Analogy, Feel This, Your Potential</li>
+    <li><strong>Tailored Drills</strong> — Shot-type-specific drills based on weakest component scores</li>
+    <li><strong>Tactical Suggestions</strong> — Pattern-based playing recommendations</li>
+    <li><strong>Consistency Analysis</strong> — Standard deviation visualization across metrics</li>
+  </ol>
+</section>
+
+<!-- ── AI COACH ───────────────────────────────────────────── -->
+<section id="ai-coach">
+  <h2>AI Coach Narrative</h2>
+  <p>SmartSwing uses Claude (Anthropic) to generate personalized coaching insights. The prompt includes session data, shot type, score, and player profile. The response follows a strict four-section format:</p>
+
+  <div class="card">
+    <div class="card-title">Narrative Format</div>
+    <p><strong>Swing Story</strong> — 2-3 sentences describing what happened in plain English</p>
+    <p><strong>The Analogy</strong> — One clear metaphor or everyday comparison (max 2 sentences)</p>
+    <p><strong>Feel This</strong> — Specific physical sensation/cue for next practice (2-3 sentences)</p>
+    <p style="margin:0"><strong>Your Potential</strong> — One sentence about what's achievable in 2-4 weeks</p>
+  </div>
+
+  <p>Rules: Calibrate language to player level (beginner = simple analogies, pro = technical precision). Be honest but encouraging. Never use generic filler. Total: 150-220 words.</p>
+</section>
+
+<!-- ── STACK ──────────────────────────────────────────────── -->
+<section id="stack">
+  <h2>Stack &amp; Hosting</h2>
+
+  <table>
+    <tr><th>Service</th><th>Provider</th><th>Purpose</th></tr>
+    <tr><td>Hosting</td><td>Vercel</td><td>Static files + serverless /api/*.js</td></tr>
+    <tr><td>Database</td><td>Supabase (PostgreSQL)</td><td>Auth, profiles, assessments, reports</td></tr>
+    <tr><td>Storage</td><td>Supabase Storage</td><td>Buckets: tennis-videos, analysis-reports</td></tr>
+    <tr><td>Payments</td><td>Stripe</td><td>Checkout sessions + webhook sync</td></tr>
+    <tr><td>AI</td><td>Anthropic (Claude)</td><td>Coaching narratives</td></tr>
+    <tr><td>CI/CD</td><td>GitHub Actions</td><td>Auto-deploy to Vercel on push</td></tr>
+  </table>
+</section>
+
+<!-- ── DATABASE ───────────────────────────────────────────── -->
+<section id="database">
+  <h2>Database Schema (Supabase)</h2>
+
+  <h3>Core Tables</h3>
+  <table>
+    <tr><th>Table</th><th>Purpose</th></tr>
+    <tr><td><code>profiles</code></td><td>User profiles, subscription_tier, stripe IDs, player settings</td></tr>
+    <tr><td><code>assessments</code></td><td>Saved analysis results — scores, angles, metrics, grip_assessment (JSONB)</td></tr>
+    <tr><td><code>coach_sessions</code></td><td>Booked coaching sessions</td></tr>
+    <tr><td><code>contact_messages</code></td><td>Contact form submissions</td></tr>
+    <tr><td><code>player_goals</code></td><td>Player-set improvement targets</td></tr>
+    <tr><td><code>progress_events</code></td><td>Timeline entries (milestones, achievements)</td></tr>
+    <tr><td><code>drill_assignments</code></td><td>Auto-generated drill plans from assessments</td></tr>
+    <tr><td><code>analysis_reports</code></td><td>Full report HTML/data</td></tr>
+    <tr><td><code>shot_benchmarks</code></td><td>Reference benchmarks by level/age/gender</td></tr>
+    <tr><td><code>drill_library</code></td><td>Curated drill database</td></tr>
+    <tr><td><code>tactic_library</code></td><td>Tactical pattern database</td></tr>
+    <tr><td><code>customer_subscriptions</code></td><td>Stripe subscription state mirror</td></tr>
+    <tr><td><code>report_usage_monthly</code></td><td>Server-authoritative free report quota</td></tr>
+  </table>
+
+  <h3>Grip Assessment Column</h3>
+  <p>The <code>assessments.grip_assessment</code> column (JSONB) stores:</p>
+  <pre><code>{
+  "detected_grip": "semi-western",
+  "confidence": 0.847,
+  "distribution": { "continental": 0.02, "eastern": 0.11, ... },
+  "indicators": { "wrist_extension": 31.4, "contact_height": 0.92, ... },
+  "shot_match": { "expected": ["eastern","semi-western","western"], "severity": null },
+  "recommendations": [{ "action": "maintain", "title": "...", "why": "...", "how_steps": [] }],
+  "drill_ids": [],
+  "contact_frame_index": 42,
+  "handedness": "right",
+  "notes": []
+}</code></pre>
+</section>
+
+<!-- ── AUTH ────────────────────────────────────────────────── -->
+<section id="auth">
+  <h2>Auth &amp; Billing Flow</h2>
+
+  <h3>Authentication</h3>
+  <p>Supabase Auth handles email/password + Google/Apple OAuth. Flow: <code>signup.html</code> → <code>auth-callback.html</code> → <code>welcome.html</code> → <code>dashboard.html</code>. Local browser fallback (demo mode) activates when Supabase config is missing.</p>
+
+  <h3>Billing</h3>
+  <p>Stripe Checkout sessions created via <code>api/create-checkout-session.js</code>. Webhook (<code>api/stripe-webhook.js</code>) updates Supabase <code>profiles.subscription_tier</code>. Client syncs via <code>restoreSupabaseSession()</code> on dashboard load.</p>
+
+  <h3>Plan Definitions</h3>
+  <table>
+    <tr><th>Plan</th><th>Reports</th><th>Drills</th><th>Coaching</th></tr>
+    <tr><td>Free</td><td>3 lifetime</td><td>Basic</td><td>None</td></tr>
+    <tr><td>Starter</td><td>10/month</td><td>Full library</td><td>AI coach</td></tr>
+    <tr><td>Pro</td><td>Unlimited</td><td>Full + custom</td><td>AI + human</td></tr>
+    <tr><td>Elite</td><td>Unlimited</td><td>Full + custom</td><td>Priority 1-on-1</td></tr>
+  </table>
+</section>
+
+<!-- ── PAPERS ─────────────────────────────────────────────── -->
+<section id="papers">
+  <h2>Academic References &amp; Studies</h2>
+  <p>The SmartSwing AI engine draws from established sports biomechanics research:</p>
+
+  <h3>Pose Estimation &amp; Motion Analysis</h3>
+  <ol>
+    <li><strong>Cao, Z. et al. (2019)</strong> — "OpenPose: Realtime Multi-Person 2D Pose Estimation using Part Affinity Fields." <em>IEEE TPAMI</em>. Foundation for real-time multi-keypoint body tracking.</li>
+    <li><strong>Google Research (2021)</strong> — "MoveNet: Ultra fast and accurate pose detection model." TensorFlow Hub. The primary pose model used by SmartSwing for 17-keypoint detection.</li>
+    <li><strong>Bazarevsky, V. et al. (2020)</strong> — "BlazePose: On-device Real-time Body Pose tracking." <em>CVPR Workshop</em>. Alternative MediaPipe pose model for cross-platform fallback.</li>
+  </ol>
+
+  <h3>Tennis Biomechanics</h3>
+  <ol start="4">
+    <li><strong>Elliott, B. (2006)</strong> — "Biomechanics and Tennis." <em>British Journal of Sports Medicine, 40(5)</em>. Comprehensive review of tennis stroke mechanics, kinetic chain principles, and injury prevention. Key source for joint angle benchmarks and optimal ranges.</li>
+    <li><strong>Reid, M., Elliott, B., & Crespo, M. (2013)</strong> — "Mechanics and Learning Practices Associated with the Tennis Forehand: A Review." <em>Journal of Sports Science & Medicine, 12(2)</em>. Source for forehand grip-specific mechanics and wrist extension patterns.</li>
+    <li><strong>Knudson, D. & Blackwell, J. (2005)</strong> — "Upper Extremity Angular Kinematics of the One-Handed Backhand Drive in Tennis Players With and Without Tennis Elbow." <em>International Journal of Sports Medicine</em>. Elbow angle and wrist lag benchmarks for backhand analysis.</li>
+    <li><strong>Abrams, G. et al. (2011)</strong> — "Biomechanics of the Tennis Serve." <em>Sports Health, 3(6)</em>. Serve kinematic chain timing, shoulder rotation, and pronation mechanics. Foundation for serve-specific scoring weights and Continental grip enforcement.</li>
+    <li><strong>Landlinger, J. et al. (2010)</strong> — "Key Performance Indicators for Tennis." <em>Journal of Sports Science & Medicine, 9</em>. Source for KPI definitions and benchmark calibration across skill levels.</li>
+  </ol>
+
+  <h3>Grip Biomechanics</h3>
+  <ol start="9">
+    <li><strong>Groppel, J.L. (1992)</strong> — "High Tech Tennis." <em>Leisure Press</em>. Foundational reference on grip mechanics and their effect on ball contact, spin production, and shot selection.</li>
+    <li><strong>Brody, H. (2002)</strong> — "The Physics and Technology of Tennis." <em>Racquet Tech Publishing</em>. Physics of grip pressure, wrist action, and contact geometry. Source for grip-contact height correlations.</li>
+    <li><strong>Vergauwen, L. et al. (1998)</strong> — "Wrist and Forearm Muscle Activity in Tennis." <em>British Journal of Sports Medicine, 32</em>. EMG studies of forearm pronation across grip types. Foundation for the pronation proxy indicator.</li>
+  </ol>
+
+  <h3>Kinetic Chain &amp; Power Transfer</h3>
+  <ol start="12">
+    <li><strong>Kibler, W.B. (1995)</strong> — "Biomechanical Analysis of the Shoulder During Tennis Activities." <em>Clinics in Sports Medicine, 14(1)</em>. Hip-shoulder separation (X-Factor) research and proximal-to-distal sequencing principles.</li>
+    <li><strong>Fleisig, G. et al. (2003)</strong> — "Kinematic and Kinetic Comparison Between Baseball Pitching and Football Passing." <em>Journal of Applied Biomechanics</em>. Cross-sport validation of kinetic chain principles applied to tennis serve mechanics.</li>
+    <li><strong>Putnam, C.A. (1993)</strong> — "Sequential Motions of Body Segments in Striking and Throwing Skills." <em>Journal of Biomechanics, 26</em>. Theoretical foundation for proximal-to-distal activation sequencing used in kinematic chain scoring.</li>
+  </ol>
+
+  <h3>Scoring &amp; Performance Assessment</h3>
+  <ol start="15">
+    <li><strong>Hughes, M. & Franks, I. (2004)</strong> — "Notational Analysis of Sport." <em>Routledge</em>. Framework for performance quantification and statistical analysis in racquet sports.</li>
+    <li><strong>O'Donoghue, P. (2010)</strong> — "Research Methods for Sports Performance Analysis." <em>Routledge</em>. Methodological foundation for z-score percentile calculations and benchmark normalization.</li>
+  </ol>
+</section>
+
+<!-- ── GLOSSARY ───────────────────────────────────────────── -->
+<section id="glossary">
+  <h2>Glossary</h2>
+
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td>X-Factor</td><td>Angular separation between hip and shoulder rotation axes during the swing loading phase</td></tr>
+    <tr><td>Kinetic Chain</td><td>Sequential activation of body segments from proximal (hips) to distal (wrist) for power transfer</td></tr>
+    <tr><td>Contact Frame</td><td>The frame at which peak wrist speed occurs — proxy for ball-racquet contact moment</td></tr>
+    <tr><td>COM</td><td>Center of Mass — weighted average of shoulder and hip midpoints (40/60 split)</td></tr>
+    <tr><td>Pronation</td><td>Inward rotation of the forearm — critical for serve power and spin</td></tr>
+    <tr><td>Continental Grip</td><td>Base knuckle on bevel 2 — the universal grip for serves, volleys, and slices</td></tr>
+    <tr><td>Semi-Western Grip</td><td>Base knuckle on bevel 4 — default modern forehand grip for topspin</td></tr>
+    <tr><td>Swing Plane</td><td>Angle of the racquet path relative to horizontal — steeper planes produce more topspin</td></tr>
+    <tr><td>SmartSwing Score</td><td>Composite 0-100 metric combining biomechanics (62%), timing (14%), footwork (8%), positioning (8%), readiness (8%)</td></tr>
+    <tr><td>Diagonal Covariance</td><td>Gaussian classifier that treats each indicator independently — assumes no cross-indicator correlation</td></tr>
+  </table>
+</section>
+
+<div style="margin-top:64px;padding:24px;border-top:1px solid var(--border);text-align:center">
+  <p style="font-size:12px;color:rgba(255,255,255,.25)">SmartSwing AI — Proprietary &amp; Confidential. This document is for internal engineering reference only.<br>Generated April 8, 2026. Engine v2.0.</p>
+</div>
+
+</main>
+</div>
+
+<button class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8593;</button>
+
+<script>
+// Sidebar active state tracking
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.sidebar nav a[href^="#"]');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -60% 0px' });
+sections.forEach(section => observer.observe(section));
+</script>
+</body>
+</html>

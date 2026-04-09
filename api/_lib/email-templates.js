@@ -55,7 +55,7 @@ ${preheader ? `<div style="display:none;font-size:1px;line-height:1px;max-height
         <!-- Footer -->
         <tr>
           <td style="padding:24px 0 0 0;text-align:center;font-size:12px;color:${C.muted};line-height:1.7;">
-            SmartSwing AI &bull; AI-Powered Tennis &amp; Pickleball Coaching<br>
+            SmartSwing AI &bull; AI-Powered Tennis Coaching<br>
             <a href="${APP_URL}/privacy-policy.html" style="color:${C.muted};text-decoration:underline;">Privacy Policy</a> &nbsp;&bull;&nbsp;
             <a href="${APP_URL}/user-agreement.html" style="color:${C.muted};text-decoration:underline;">Terms</a> &nbsp;&bull;&nbsp;
             <a href="${APP_URL}/settings.html" style="color:${C.muted};text-decoration:underline;">Manage preferences</a>

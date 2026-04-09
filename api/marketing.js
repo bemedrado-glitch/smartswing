@@ -121,12 +121,12 @@ function todayUTC() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const SYSTEM_PROMPTS = {
-  copywriter: `You are a world-class direct response copywriter specializing in sports technology, tennis, and pickleball.
+  copywriter: `You are a world-class direct response copywriter specializing in sports technology and tennis.
 Your copy uses Corporate Visions methodology (provocative insight, status quo disruption, "Why Change / Why You / Why Now") and SPIN Selling (Situation, Problem, Implication, Need-Payoff questions).
 Always write with clarity, specificity, and urgency. Avoid jargon. Use short sentences for impact.
 Formats you write: email sequences, landing page headlines, ad copy, SMS messages, social captions, sales page sections.
 Brand voice: confident, expert, direct — never pushy. Think Nike x McKinsey.
-SmartSwing AI is an AI-powered tennis and pickleball swing analysis platform. Users upload a video, get biomechanics AI feedback, personalized drills, and a coaching plan in 60 seconds.
+SmartSwing AI is an AI-powered tennis swing analysis platform. Users upload a video, get biomechanics AI feedback, personalized drills, and a coaching plan in 60 seconds.
 Pricing: Starter (free), Player ($9.99/mo), Performance ($19.99/mo), Tournament Pro ($49.99/mo), Coach plans from $29/mo, Club plans from $299/mo.`,
 
   social_media: `You are SmartSwing AI's social media manager.
@@ -173,7 +173,7 @@ Your responsibilities:
 - Team task assignment: tell which agent (copywriter, social, content, design) handles which task
 - Market positioning: competitive analysis, messaging hierarchy, ICP definition
 Always provide: actionable next steps with specific deadlines, assigned owners, and success metrics.
-SmartSwing AI target personas: recreational tennis players (3.0-4.5 NTRP), tennis coaches (USPTA/PTR certified), tennis clubs/academies, tennis parents, pickleball players.
+SmartSwing AI target personas: recreational tennis players (3.0-4.5 NTRP), tennis coaches (USPTA/PTR certified), tennis clubs/academies, tennis parents.
 Current growth stage: early traction, moving to scale. Focus on referral loops, content SEO, and coach/club B2B outreach.`
 };
 
@@ -1007,124 +1007,10 @@ async function handleYoutubeStream(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// YOUTUBE-STREAM — resolves a YouTube video ID to a direct MP4/stream URL
-// using public Invidious instances. Used by analyze.html to feed real
-// pose-detection on YouTube clips without bundling ytdl-core (which would
-// push us over the Vercel Hobby 12-function limit).
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// Rotated list of public Invidious mirrors. Raced in parallel — first to
-// respond wins. Keep this list current; instances come and go frequently.
-const INVIDIOUS_INSTANCES = [
-  'https://inv.nadeko.net',
-  'https://yewtu.be',
-  'https://invidious.privacyredirect.com',
-  'https://invidious.nerdvpn.de',
-  'https://invidious.fdn.fr',
-  'https://yt.artemislena.eu',
-  'https://invidious.incogniweb.net',
-  'https://invidious.perennialte.ch'
-];
-
-// Per-instance timeout (ms). Vercel Hobby functions have a 10s wall-clock
-// limit, so keep this well under that.
-const INVIDIOUS_TIMEOUT_MS = 6000;
-
-function isValidYoutubeId(id) {
-  return typeof id === 'string' && /^[A-Za-z0-9_-]{11}$/.test(id);
-}
-
-// Fetch video metadata from a single Invidious instance with a hard timeout.
-// local=true asks Invidious to return proxied stream URLs (same-origin to the
-// instance), which serve proper CORS headers needed for canvas pose detection.
-async function fetchFromInstance(base, videoId) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), INVIDIOUS_TIMEOUT_MS);
-  try {
-    const resp = await fetch(
-      `${base}/api/v1/videos/${videoId}?local=true&fields=videoId,title,lengthSeconds,formatStreams,adaptiveFormats`,
-      { headers: { 'User-Agent': 'Mozilla/5.0 SmartSwingAI/1.0' }, signal: controller.signal }
-    );
-    if (!resp.ok) throw new Error(`${base} returned ${resp.status}`);
-    const data = await resp.json();
-    if (!data || !data.videoId) throw new Error(`${base} returned no videoId`);
-    return { instance: base, data };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// Race all instances in parallel; resolve as soon as ONE succeeds.
-// Promise.any cancels the wait the moment a winner is found — much faster
-// than allSettled which would sit through every timeout.
-async function fetchInvidiousVideo(videoId) {
-  try {
-    return await Promise.any(
-      INVIDIOUS_INSTANCES.map((base) => fetchFromInstance(base, videoId))
-    );
-  } catch (err) {
-    // AggregateError — every instance failed
-    const messages = (err.errors || [err]).map((e) => e && e.message).filter(Boolean);
-    throw new Error('All Invidious instances failed: ' + messages.slice(0, 3).join('; '));
-  }
-}
-
-function pickBestStream(formatStreams = [], adaptiveFormats = []) {
-  // Prefer progressive (audio+video in one file) MP4 streams — cleanest for
-  // <video> playback. Fall back to adaptive video-only MP4 if needed.
-  const progressive = formatStreams
-    .filter((f) => (f.container || '').toLowerCase() === 'mp4')
-    .sort((a, b) => parseInt(b.qualityLabel || '0', 10) - parseInt(a.qualityLabel || '0', 10));
-  if (progressive.length) return progressive[0];
-
-  const adaptive = adaptiveFormats
-    .filter((f) => (f.type || '').startsWith('video/mp4'))
-    .sort((a, b) => parseInt(b.qualityLabel || '0', 10) - parseInt(a.qualityLabel || '0', 10));
-  return adaptive[0] || null;
-}
-
-async function handleYoutubeStream(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const videoId = (req.query.videoId || req.query.id || '').toString().trim();
-  if (!isValidYoutubeId(videoId)) {
-    return res.status(400).json({ error: 'Invalid or missing videoId (must be the 11-char YouTube ID)' });
-  }
-
-  try {
-    const { data, instance } = await fetchInvidiousVideo(videoId);
-    const stream = pickBestStream(data.formatStreams, data.adaptiveFormats);
-    if (!stream || !stream.url) {
-      return res.status(404).json({ error: 'No usable MP4 stream found for this video' });
-    }
-    return res.status(200).json({
-      videoId: data.videoId,
-      title: data.title || null,
-      lengthSeconds: data.lengthSeconds || null,
-      streamUrl: stream.url,
-      qualityLabel: stream.qualityLabel || null,
-      container: stream.container || 'mp4',
-      mimeType: stream.type || 'video/mp4',
-      source: instance
-    });
-  } catch (err) {
-    console.error('youtube-stream error:', err);
-    return res.status(502).json({
-      error: 'Could not resolve YouTube stream',
-      message: err.message || String(err)
-    });
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // AI-COACH — Personalized biomechanical coaching narrative via Claude
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const AI_COACH_SYSTEM_PROMPT = `You are a world-class tennis and pickleball coach with deep biomechanics expertise. When given a player's swing analysis data, write a concise, personalized coaching insight using EXACTLY this format with these four headers on their own lines:
+const AI_COACH_SYSTEM_PROMPT = `You are a world-class tennis coach with deep biomechanics expertise. When given a player's swing analysis data, write a concise, personalized coaching insight using EXACTLY this format with these four headers on their own lines:
 
 **Swing Story**
 2-3 sentences describing what actually happened in this swing in plain English, as if speaking directly to the player. Reference the specific shot type and the most significant finding.
