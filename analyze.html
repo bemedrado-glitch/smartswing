@@ -3212,35 +3212,123 @@
       const FIX_ADVICE = {
         shoulder: {
           over: {
-            forehand: 'Your shoulder is over-rotating past the optimal window. Focus on a controlled unit turn — stop when you feel tension, not when you see the back pocket.',
-            serve: 'Excessive shoulder rotation during the wind-up is creating timing issues. Simplify the motion and focus on a compact trophy position.',
-            _default: 'Over-rotation is causing inconsistency. Dial back the turn slightly and prioritize control over power.'
+            forehand: 'Shoulder is over-rotating past the optimal window. Use a controlled unit turn — stop when you feel shoulder tension, not when you see the back pocket. The coil is loaded before that point.',
+            backhand: 'Shoulder is turning too far on the backhand. The shoulder should point to the net at contact, not past it — over-rotation pulls the shot crosscourt uncontrollably.',
+            serve: 'Excessive shoulder wind-up is creating timing issues. Compact the trophy position — shoulder tilt, not full rotation, is what drives serve power.',
+            volley: 'Shoulder is turning too much on the volley — volleys need a shoulder block, not a rotation. Set sideways and punch; stop the rotation there.',
+            'drop-shot': 'The shoulder is over-turning for the drop shot, removing the disguise. Match your shoulder turn to a regular groundstroke — the deceleration comes from the arm, not a shorter turn.',
+            lob: 'Over-rotating the shoulder on a lob pushes the ball forward, not upward. Keep the shoulder turn compact and let the arm redirect upward at contact.',
+            _default: 'Over-rotation is causing inconsistency. Dial back the turn and prioritize control over power.'
           },
           under: {
-            forehand: 'The shoulder is not coiling enough. In your next practice, exaggerate the turn — feel your lead shoulder point toward the net post.',
-            serve: 'More shoulder tilt is needed at the trophy position. Think about pointing the tossing shoulder higher.',
-            _default: 'Increase the shoulder turn to load more energy. Think "turn more, swing less" — let the coil generate power.'
+            forehand: 'The shoulder is not coiling enough — the forehand is starting arm-first. Exaggerate the turn: feel your lead shoulder point toward the back fence before the forward swing begins.',
+            backhand: 'The backhand shoulder isn\'t loading far enough. Turn until your back faces the net — only from that position can the shoulder drive through contact with real power.',
+            serve: 'More shoulder tilt is needed at trophy position. Think "tossing shoulder points at the sky" — that tilt is the power source for the serve.',
+            volley: 'Shoulder block is too small on the volley. Set your shoulder fully sideways to the net at the split step — that\'s your entire preparation.',
+            'drop-shot': 'A smaller shoulder turn on the drop shot kills the disguise. Match the full preparation of a groundstroke, then decelerate through the arm.',
+            lob: 'Not enough shoulder turn means the lob starts flat. Turn as fully as you would for a groundstroke, then redirect the arm upward at contact.',
+            _default: 'Increase the shoulder turn to load more energy. "Turn more, swing less" — let the coil generate power.'
           }
         },
         elbow: {
-          over: { _default: 'The elbow is too extended — try a more compact arm path to maintain control through contact.' },
-          under: { _default: 'The elbow is too bent at contact. Focus on extending the arm forward through the ball — imagine pushing through the contact zone.' }
+          over: {
+            forehand: 'Elbow is too extended at contact — the arm is reaching past the optimal impact position. Keep a slight bend through the contact zone; full extension happens in follow-through.',
+            backhand: 'Elbow is hyper-extending on the backhand. For a two-hander, both elbows should be soft through contact. For a one-hander, extend but don\'t lock.',
+            serve: 'Elbow is snapping too early — the classic "chicken wing" on serve. Let the shoulder open first, then the elbow snaps naturally as the racket drops behind.',
+            volley: 'Elbow too far from the body on the volley — it should stay close to your hip, acting as a hinge for the punch.',
+            'drop-shot': 'Elbow over-extends on the drop shot, creating too much swing. Keep the elbow bent and close to the body; the deceleration comes from slowing the forearm, not shortening the arm.',
+            lob: 'Elbow locking out too early on the lob limits the upward redirect. Stay soft through the elbow until the ball leaves the strings.',
+            _default: 'Elbow is too extended — use a more compact arm path to maintain control through contact.'
+          },
+          under: {
+            forehand: 'Elbow is too bent at contact — the shot is being pushed rather than swung. Extend the arm forward through the ball; feel like you\'re reaching toward the target at contact.',
+            backhand: 'Elbow not extending enough through the backhand contact zone. Drive both arms through the ball until they reach near-full extension — that extension generates the depth.',
+            serve: 'Elbow not straightening through the serve contact — the snap is absent. After the shoulder opens, feel the elbow kick forward and up, like throwing the racket at the ball.',
+            volley: 'Elbow not extending forward on the volley — the punch has no range. Drive the elbow forward through contact; the arm extends 6-8 inches through the ball.',
+            'drop-shot': 'Elbow is too locked for a drop shot — you need some fluidity to decelerate naturally. Relax the elbow slightly and let the arm "breathe" through contact.',
+            lob: 'Elbow not extending enough on the lob finish — the ball stays low. Let the arm extend fully upward through follow-through; reach for the sky with the racket.',
+            _default: 'Elbow is too bent at contact. Extend the arm forward through the ball — imagine pushing through the contact zone.'
+          }
         },
         hip: {
-          over: { _default: 'The hips are rotating past the optimal window. Focus on stopping the hip turn at the ball — over-rotation pulls the shot wide.' },
-          under: { _default: 'The hips need to drive harder. Start the swing from the ground up — push off the back foot and rotate the lead hip toward the target.' }
+          over: {
+            forehand: 'Hips are rotating past the ball — over-rotation pulls the forehand wide or into the net. Stop the hip rotation AT the ball; the follow-through is for the arm, not the hips.',
+            backhand: 'Hips rotating too far on the backhand opens the body before contact. Stay sideways through the hit; hip rotation completes AFTER the ball leaves the strings.',
+            serve: 'Hip rotation on the serve is happening too early, disrupting the kinetic chain sequence. Let the legs push first, then the hip rises and rotates — not the other way around.',
+            volley: 'Hip rotation at the net is almost always too much. Volleys need minimal hip turn — it\'s a shoulder-and-arm shot. Keep your hips quiet.',
+            'drop-shot': 'Over-rotating hips on the drop shot signals the shot early. Keep the hips stable — this is a controlled deceleration shot, not a power swing.',
+            lob: 'Hip over-rotation pushes the lob forward instead of upward. Stop the hip drive at contact and let the arm redirect upward.',
+            _default: 'Hips are rotating past the optimal window. Stop the hip turn at ball contact — over-rotation pulls the shot.'
+          },
+          under: {
+            forehand: 'The hips are not driving the forehand — the arm is carrying everything. Push off the back foot and rotate the lead hip toward the target before the arm swings.',
+            backhand: 'Hip drive is missing on the backhand — the shot lacks depth. For a two-hander, rotate both hips through. For a one-hander, the hip clears the path for the shoulder.',
+            serve: 'The serve has no hip contribution — it\'s an arm-only serve. As the toss arm goes up, feel the hips begin to rotate and the body rise simultaneously.',
+            volley: 'Slight hip drive toward the net on a volley creates forward momentum. Step through the volley and feel the hip push forward into the shot.',
+            'drop-shot': 'No hip engagement makes the drop shot too arm-dependent. Even on a touch shot, a stable hip position gives the arm a platform to decelerate from.',
+            lob: 'The lob needs hip drive just like a groundstroke — without it, the shot is arm-only and goes flat. Drive the hips through as you would for a full forehand, then redirect upward.',
+            _default: 'Hips need to drive harder. Push off the back foot and rotate the lead hip toward the target to generate ground-up power.'
+          }
         },
         knee: {
-          over: { _default: 'Your legs are absorbing too much energy — you are sitting too deep. Explode upward through the ball.' },
-          under: { _default: 'Your legs are too straight. Load the knees before the swing — think "sit and explode" to generate ground-up power.' }
+          over: {
+            forehand: 'Sitting too deep in the knees for the forehand — energy is being absorbed rather than transferred. Load to about 120-130° bend then drive upward through the ball.',
+            backhand: 'Over-bending the knees on the backhand drops the contact point too low. Stay athletic but not too deep — you should be able to explode upward from your loaded position.',
+            serve: 'Too much knee bend before the serve disrupts the trophy position and toss. Load moderately — enough to push, not so much that the toss is unstable.',
+            volley: 'Too deep in the knees at the net slows movement and makes the punch position awkward. Stay light and athletic — quick feet need a higher center of gravity.',
+            'drop-shot': 'Over-bending for the drop shot drops the racket path too low. Stay upright enough to swing from the right contact height.',
+            lob: 'Too deep a knee bend pushes the swing angle downward. For the lob, load lightly and push upward — the knee drive goes vertical, not horizontal.',
+            _default: 'Sitting too deep — you are absorbing energy that should transfer into the shot. Explode upward through the ball from a shallower load.'
+          },
+          under: {
+            forehand: 'Legs are too straight on the forehand — all ground force is missing. Load the knees to about 120° before the swing, then drive upward. "Sit and explode" is the feeling.',
+            backhand: 'Straight legs on the backhand flatten the shot and remove power. Bend into the shot and push off the back leg through contact — the power comes from the ground up.',
+            serve: 'No knee bend means no leg drive on the serve. Exaggerate the knee load in practice — even if it feels extreme, you\'ll hit the serve harder and more consistently.',
+            volley: 'Staying too upright at the net means no athletic position. Bend the knees slightly at the split step — this gives you the push-off needed to close or recover.',
+            'drop-shot': 'Straight legs on a drop shot means you\'re leaning rather than balanced. Soft knees give you control; rigid legs create involuntary arm movement.',
+            lob: 'Legs too straight on the lob removes the upward push. Bend then drive upward — the leg push is what propels the swing direction toward the sky.',
+            _default: 'Legs are too straight. Load the knees before the swing — "sit and explode" to generate ground-up power.'
+          }
         },
         trunk: {
-          over: { _default: 'The trunk is over-rotating. Focus on controlled core sequencing — let the hips lead, then the torso follows.' },
-          under: { _default: 'The core is not contributing enough. Rotate the torso as a single unit after the hip turn — this is where power multiplies.' }
+          over: {
+            forehand: 'The trunk is over-rotating on the forehand — the core is turning past the ball, pulling the shot crosscourt. Let the hips lead first, then the torso follows only until contact.',
+            backhand: 'Trunk over-rotation on the backhand opens the body too early — the chest faces the net before the ball is hit. Stay sideways in the core until after contact.',
+            serve: 'Trunk rotating too early on the serve disconnects the upper body from the leg push. Let the legs fire and the hips rise before the trunk opens.',
+            volley: 'Trunk rotation on a volley creates unpredictable angles. Volleys are punched with the arm from a stable core — the trunk should not rotate.',
+            'drop-shot': 'Trunk over-rotation on a drop shot telegraphs the shot and removes touch. Keep the core still; only the arm decelerates through the ball.',
+            lob: 'Trunk rotating too far horizontally pushes the lob sideways instead of upward. Stop the trunk rotation at contact and let the arm redirect the finish.',
+            _default: 'Trunk is over-rotating. Let the hips lead, then the torso follows in a controlled sequence.'
+          },
+          under: {
+            forehand: 'The core isn\'t contributing to the forehand — it\'s an arm-only swing. After the hip fires, feel the torso rotate as a single solid unit and multiply the power into the arm.',
+            backhand: 'Trunk not engaging on the backhand makes the shot weak and easily pushed around. Rotate the core through the shot — feel your chest face the target at contact.',
+            serve: 'Core not rotating through the serve leaves pace on the table. After the hips rise, feel the chest open toward the target — that rotation is the power multiplier.',
+            volley: 'A slight core engagement gives the volley more punch. Even though volleys are compact, a small forward lean from the core adds weight to the ball.',
+            'drop-shot': 'Core engagement on the drop shot provides the platform from which the arm decelerates. Even for a soft shot, the core must be active to give the arm control.',
+            lob: 'Core not rotating enough on the lob makes the ball go flat. The trunk drives through just like a groundstroke — the upward finish comes from the arm, not from removing core drive.',
+            _default: 'Core is not contributing enough. Rotate the torso as a unit after the hip turn — this is where power multiplies.'
+          }
         },
         wrist: {
-          over: { _default: 'The wrist is flipping too aggressively. Keep a relaxed but firm grip and let the wrist release naturally.' },
-          under: { _default: 'The wrist is too locked. Relax the grip and allow the racquet head to whip through contact.' }
+          over: {
+            forehand: 'Wrist is flipping too aggressively on the forehand — the racket face is closing through contact. Keep a loose grip but let the release happen naturally in the follow-through, not at the ball.',
+            backhand: 'Wrist flip on the backhand pushes the ball crosscourt unintentionally (two-hander) or pops it up for the opponent (one-hander). Firm the wrist through contact; release only in follow-through.',
+            serve: 'Wrist flipping before contact on the serve kills the snap. The pronation should happen AT contact — turning the door handle — not before the ball is struck.',
+            volley: 'Wrist movement on the volley equals no control. Lock the wrist completely — the elbow and shoulder do all the work; the wrist is frozen.',
+            'drop-shot': 'Too much wrist action on the drop shot creates unpredictable spin. Soften the grip but don\'t flip — the wrist should breathe, not snap.',
+            lob: 'Wrist flipping on the lob sends it long or without control. Let the wrist rotate smoothly upward through contact, like lifting a book off a shelf — no snap.',
+            _default: 'Wrist is flipping too aggressively. Keep a relaxed grip and let the release happen naturally in follow-through, not at contact.'
+          },
+          under: {
+            forehand: 'The wrist is too locked on the forehand — the windshield-wiper finish is missing. Relax the grip by 30% and let the racket head whip through contact naturally.',
+            backhand: 'Two-hander: the bottom wrist needs to push more aggressively — it\'s the power source. One-hander: relax the wrist tension slightly in the approach so the release at follow-through is smooth.',
+            serve: 'No wrist pronation on the serve removes the "snap" that generates pace and spin. Practice the key-turn motion in slow motion — forearm rotates through contact like turning a lock.',
+            volley: 'This is correct on volleys — the wrist should be firm. If scoring suggests wrist issues, check that the firmness isn\'t causing the elbow to compensate.',
+            'drop-shot': 'Wrist too rigid makes the drop shot pop off the strings with too much pace. Soften the grip to "egg pressure" — let the wrist breathe and the ball will die.',
+            lob: 'Wrist too rigid produces a flat lob that stays at smash height. Let the wrist rotate slightly upward through contact — this adds the arc that makes the lob effective.',
+            _default: 'Wrist is too locked. Relax the grip and allow the racket head to whip through contact.'
+          }
         }
       };
       const metricAdvice = FIX_ADVICE[metric];
@@ -3780,6 +3868,293 @@
     }
 
     // ============================================================================
+    // Advanced Biomechanical Analysis Engine
+    // ============================================================================
+
+    // Compute per-metric temporal statistics from frames.
+    // Returns { [metric]: { mean, std, min, max, range, cv, consistencyPct } }
+    function computeTemporalStats(frames) {
+      if (!frames || frames.length < 5) return {};
+      const allKeys = [...Object.keys(analysisData.angles), ...Object.keys(analysisData.derivedMetrics)];
+      const stats = {};
+      for (const key of allKeys) {
+        const values = frames.map(f => getFrameMetric(f, key)).filter(Number.isFinite);
+        if (values.length < 3) { stats[key] = null; continue; }
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
+        const std = Math.sqrt(variance);
+        stats[key] = {
+          mean: roundMetric(mean, 1),
+          std: roundMetric(std, 1),
+          min: roundMetric(Math.min(...values), 1),
+          max: roundMetric(Math.max(...values), 1),
+          range: roundMetric(Math.max(...values) - Math.min(...values), 1),
+          cv: Math.abs(mean) > 0 ? roundMetric(std / Math.abs(mean) * 100, 1) : 0,
+          // Lower std = more consistent. Scale: std < 5 = 100%, std 20 = ~50%
+          consistencyPct: Math.min(100, Math.max(0, Math.round(100 - std * 2.5)))
+        };
+      }
+      return stats;
+    }
+
+    // Detect when each kinetic chain link peaks during the swing.
+    // Chain should fire in order: legs → hips → trunk → shoulder → arm → wrist.
+    function analyzeKineticChain(frames, shotType) {
+      if (!frames || frames.length < 15) return null;
+      const CHAIN_CONFIG = {
+        forehand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: { knee:30, hip:45, trunk:60, shoulder:72, elbow:82, wrist:92 } },
+        backhand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: { knee:28, hip:42, trunk:58, shoulder:70, elbow:80, wrist:90 } },
+        serve:       { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: { knee:25, hip:38, trunk:52, shoulder:65, elbow:78, wrist:90 } },
+        volley:      { order: ['shoulder','elbow','wrist'],                      ideal: { shoulder:40, elbow:60, wrist:75 } },
+        'drop-shot': { order: ['knee','hip','shoulder','elbow','wrist'],          ideal: { knee:25, hip:40, shoulder:58, elbow:72, wrist:85 } },
+        lob:         { order: ['knee','hip','trunk','shoulder','wrist'],          ideal: { knee:30, hip:45, trunk:60, shoulder:73, wrist:90 } }
+      };
+      const config = CHAIN_CONFIG[shotType] || CHAIN_CONFIG.forehand;
+      const { order, ideal } = config;
+      const peakPcts = {};
+      for (const key of order) {
+        const values = frames.map(f => getFrameMetric(f, key)).filter(Number.isFinite);
+        if (values.length < 5) { peakPcts[key] = null; continue; }
+        const maxVal = Math.max(...values);
+        peakPcts[key] = Math.round(values.indexOf(maxVal) / values.length * 100);
+      }
+      const linkScores = {};
+      const chainBreaks = [];
+      let prevKey = null;
+      for (const key of order) {
+        const pct = peakPcts[key];
+        if (pct == null) { linkScores[key] = null; continue; }
+        linkScores[key] = Math.max(0, Math.round(100 - Math.abs(pct - ideal[key]) * 1.8));
+        if (prevKey && peakPcts[prevKey] != null && pct < peakPcts[prevKey] - 8) {
+          chainBreaks.push({ link: key, prevLink: prevKey });
+        }
+        prevKey = key;
+      }
+      const valid = Object.values(linkScores).filter(v => v != null);
+      const avgScore = valid.length ? Math.round(valid.reduce((a,b)=>a+b,0)/valid.length) : 0;
+      return { peakPcts, linkScores, chainBreaks, avgScore, primaryBreak: chainBreaks[0] || null, isWellSequenced: chainBreaks.length === 0 && avgScore >= 65 };
+    }
+
+    // Shot-specific root cause definitions — each cause maps to per-shot explanations.
+    const ROOT_CAUSE_DEFS = {
+      base_instability: {
+        label: 'Base Instability',
+        headline: "Your foundation is limiting everything else",
+        shots: {
+          forehand: { description: "Your balance and footwork are undermining the forehand before the swing begins. An unstable base forces the arm to compensate for positional errors — making each forehand slightly different from the last.", cascade: "Unstable base → trunk tilts to compensate → shoulder timing varies → wrist scrambles at contact → inconsistent topspin direction.", feelCue: "Plant both feet before you swing. Feel equal weight through both at the split step, then push off the back foot INTO the ball. If you feel yourself leaning sideways mid-swing, your feet moved late.", fixFirst: "Footwork-only drills — split step, load, and hold position without hitting. Build the movement pattern before adding the ball." },
+          backhand: { description: "Footwork puts your backhand in a compromised position. Reaching with unstable footing forces a compensatory arm swing that robs depth and consistency.", cascade: "Late foot placement → contact too close or far → shoulder can't lead → arm pulls instead of drives → direction unpredictable.", feelCue: "Your outside foot must land before the shoulder turn begins. Feel it plant, then rotate.", fixFirst: "Shadow the footwork pattern only — no racket, no ball. Repeat 30 times until arriving to the backhand corner is automatic." },
+          serve: { description: "Leg drive is the engine of the serve. Without a stable push-off, the entire serve becomes arm-only — slower, less consistent, and harder on the shoulder.", cascade: "No leg push → no upward force → arm compensates → shoulder absorbs extra load → timing varies across reps.", feelCue: "Feel your body RISE before you swing — like jumping in slow motion. If you stay flat-footed, the arm does all the work.", fixFirst: "Jump serves — exaggerate by leaving the ground as you hit. The leg-drive habit is worth more than a few misfired balls." },
+          volley: { description: "At the net, footwork IS the volley. Late feet mean the arm compensates — and compensation at the net shows instantly.", cascade: "Late split step → wrong contact zone → arm reaches → wrist loses firmness → ball goes anywhere.", feelCue: "Feet hit the ground THE SAME MOMENT the ball hits your strings. Split step first — always, no exceptions.", fixFirst: "Partner tosses wide: split step first, then move. No movement until the split step fires." },
+          'drop-shot': { description: "A drop shot needs precise setup to create touch. When the base is off, the arm over-swings to cover the distance — eliminating the deceleration the shot requires.", cascade: "Late footwork → wrong contact point → arm swings instead of touches → ball pops up → opponent reads it.", feelCue: "Arrive to the drop shot zone early — give yourself time to stop and control. The shot is made in how you set your feet, not how you swing.", fixFirst: "Approach the drop shot zone and stop completely before hitting. No running drop shots until the stopped version is controlled." },
+          lob: { description: "Lob footwork positions you to swing upward rather than forward. Late feet force a horizontal swing that can't generate the height needed.", cascade: "Wrong position → swing direction too flat → ball stays low → opponent smashes → lob becomes no weapon.", feelCue: "Weight on your back foot as you swing — this naturally tilts the racket upward. If weight shifts forward, the lob goes flat.", fixFirst: "Lobs from a stationary position first, grooving the upward swing. Add footwork only when the swing shape is right." }
+        }
+      },
+      late_unit_turn: {
+        label: 'Late Unit Turn / Preparation',
+        headline: "The swing is starting too late — body hasn't loaded",
+        shots: {
+          forehand: { description: "Your shoulder turn initiates after it should — the swing starts arm-first instead of body-first. This forces the arm to generate power on its own, which is less efficient and inconsistent.", cascade: "Late turn → shoulder plays catch-up → elbow and wrist compensate → reduced topspin → shorter margins.", feelCue: "Turn before the ball bounces. Feel your lead shoulder point to the back fence — that's your loaded position. The swing is just releasing that coil.", fixFirst: "Shadow drills: turn as the opponent hits, not when the ball arrives. 50 repetitions before adding the swing." },
+          backhand: { description: "For the backhand, the turn needs to happen even earlier than the forehand. Late preparation is the most common backhand power killer.", cascade: "Late shoulder turn → arm must carry the shot → trunk disconnects → no coil to release → pace dies at contact.", feelCue: "Turn your back to the net earlier than feels comfortable. If you can't see the net post with your hitting shoulder, you haven't turned enough.", fixFirst: "Extreme turn drills: turn until your back fully faces the net. Start every backhand from there — you'll never be late again." },
+          serve: { description: "Your tossing arm and racket arm aren't coiling together — the motion is disjointed rather than a synchronized wind-up into trophy position.", cascade: "Disconnected arms → trophy position unstable → racket drops instead of accelerating → serve is arm-only → inconsistent toss tracking.", feelCue: "Both arms move together in the take-back — like opening a book. Feel them mirror each other until the toss arm goes up and the racket arm goes back.", fixFirst: "Toss-only drills without hitting: work on the synchronized take-back rhythm. The timing of the two arms is the foundation." },
+          volley: { description: "On volleys, the shoulder should block forward — not turn. Late shoulder block means a swing appears instead of a punch.", cascade: "Shoulder not set → arm swings → timing off → ball pops off frame or flies long → net rushes become hesitant.", feelCue: "Shoulder sideways to the net at the split step — that's your entire preparation for a volley. No body turn, just the shoulder block.", fixFirst: "Side-to-net drills: hold shoulder sideways, punch with the arm only. Zero body rotation." },
+          'drop-shot': { description: "Late preparation on a drop shot kills the disguise — your opponent reads it coming. The setup must look identical to a regular groundstroke.", cascade: "Late setup → body signals the drop shot early → opponent sprints → touch rushed → ball pops short but opponent retrieves it.", feelCue: "Prepare identically to a regular forehand. The deceleration happens AFTER the full take-back, not instead of it.", fixFirst: "Alternate groundstrokes and drop shots from the same preparation. The preparation must look identical from the outside." },
+          lob: { description: "A late unit turn on a lob forces a rushed swing that rarely gets enough height. The lob needs full preparation time — it's not a reaction flick.", cascade: "Late turn → rushed swing → too flat → lob falls short → opponent smashes at height.", feelCue: "Turn as if you're hitting a regular groundstroke. Only change: the finish goes straight up, not across.", fixFirst: "Hit groundstrokes and lobs alternating with the same preparation turn. The timing is identical." }
+        }
+      },
+      arm_dominant: {
+        label: 'Arm-Dominant Swing Pattern',
+        headline: "Your arm is doing the work your body should do",
+        shots: {
+          forehand: { description: "Hip and trunk rotation scores are lower than arm metrics — the upper body swings before the lower body fires. This is a major power leak that leaves pace and topspin on the table.", cascade: "Arm-first swing → hips too late → core disconnects → arm generates speed alone → fatigue, elbow strain, inconsistency.", feelCue: "Think 'hip, then hand.' Feel the hip pocket lead — imagine grabbing it and pulling it forward. The hand follows automatically.", fixFirst: "10 shadow swings focusing only on hip drive before adding the arm. Don't hit balls until the hip-led pattern feels natural." },
+          backhand: { description: "Your backhand relies too heavily on the arm pulling through, without enough hip and trunk drive to support it.", cascade: "Arm pull without body drive → elbow absorbs instead of transmits → contact lacks depth → rallies become defensive.", feelCue: "Two-hander: both hands push through, not pull. One-hander: feel the shoulder drive forward, not the arm.", fixFirst: "Wall rallies focusing on hip rotation. After each shot, tap the wall with your non-dominant hand — if you can't reach, hips didn't fire." },
+          serve: { description: "Your serve is arm-dominant — leg push and body rise aren't contributing their share. The serve slows down and becomes unpredictable over a match.", cascade: "No body rise → reduced racket height → more arm needed → toss adjusts to suit the arm → double faults increase.", feelCue: "Feel your body RISE as you swing — that's the body's contribution. Flat-footed = arm-only.", fixFirst: "Exaggerate leg bend and jump with every serve, even if balls go out. The body-contribution habit is worth more than makes right now." },
+          volley: { description: "Volleys should use the arm — but from the shoulder and elbow, not a wrist flick. Over-use of wrist loses control at net.", cascade: "Wrist-dominant volley → direction inconsistent → net errors spike → confidence at net drops.", feelCue: "Lock the wrist — it should feel rigid. The entire punch comes from elbow forward, not wrist.", fixFirst: "Hold your wrist stiff with your non-dominant hand for 10 volleys. Feel the difference the lock makes." },
+          'drop-shot': { description: "Drop shots are arm-executed — but the arm must decelerate, not accelerate. If the arm swings through, there's too much pace.", cascade: "Arm accelerates → too much ball speed → ball lands deep instead of short → opponent defends.", feelCue: "Swing forward but slow down through the ball — like pushing through water. The arm moves, but gently.", fixFirst: "Place a small target 3 feet inside the service box. Only balls landing on the target count. This forces controlled deceleration." },
+          lob: { description: "Your lob uses arm elevation instead of body drive. An effective lob uses the same hip and trunk drive as a groundstroke, with an upward finish.", cascade: "Arm-only lob → less pace → easy to read → one type of lob → limited surprise value.", feelCue: "Drive with the hips as if hitting a groundstroke, then at the last moment redirect the racket upward. Body drives; arm guides the direction.", fixFirst: "Alternate groundstrokes and lobs with identical hip drive. Feel the same body mechanics — only the arm finish differs." }
+        }
+      },
+      contact_point_deficit: {
+        label: 'Contact Point & Positioning',
+        headline: "You're hitting from outside your optimal strike zone",
+        shots: {
+          forehand: { description: "Contact height and reach metrics show the forehand is struck outside the optimal zone — too close, too far, too high, or too low. Every contact point error forces compensations through the entire chain.", cascade: "Wrong contact → stance shifts → trunk tilts → shoulder adjusts → wrist forced off-plane → direction and depth inconsistent.", feelCue: "Visualize a box at the height of your front hip, 18 inches forward. Every forehand must contact inside that box. If the ball arrives outside it, move your feet.", fixFirst: "Ball machine at consistent height and distance. Groove the contact zone before adding variation." },
+          backhand: { description: "Your backhand contact point is inconsistent — reach and height metrics show you're outside your optimal zone. Backhand contact errors are more costly because the shoulder has less range to adjust.", cascade: "Wrong contact → shoulder hunches or hyper-extends → elbow drops → ball nets or sails.", feelCue: "Two-hander: contact level with your front hip, waist-high. One-hander: just in front of your front hip, arm extended about 80%.", fixFirst: "Mark your ideal contact zone on the court. Only swing at balls arriving in that zone until the contact point is automatic." },
+          serve: { description: "The serve contact point changes with every toss, and each toss variation forces a different swing angle. Fix the toss, fix the serve.", cascade: "Inconsistent toss → contact point varies → swing angle changes → spin and direction unpredictable → double faults rise.", feelCue: "Toss to ONE spot: just inside your hitting shoulder, at full comfortable reach. If it lands anywhere else, catch it and re-toss.", fixFirst: "20 toss-only reps: throw the ball to the correct spot and catch it as it falls. No swing. Perfect the toss position first." },
+          volley: { description: "Volley contact must happen in front of the body at the right height — there's no swing to correct. The zone is small and precise.", cascade: "Wrong contact zone → arm extends or retracts → ball direction uncontrolled → volleys become unpredictable.", feelCue: "Contact the ball in front of your lead foot, at elbow height. If the ball gets past your lead foot, you've let it through.", fixFirst: "Hand-fed volleys at one specific height and distance. Repeat until the contact zone is muscle memory before adding variety." },
+          'drop-shot': { description: "Drop shot contact height is everything — too high and the ball pops up, too low and it nets. The ideal is just below waist height, slightly in front.", cascade: "Wrong height → trajectory wrong → ball pops up (too high) or nets (too low) → unreliable shot.", feelCue: "Contact just below your front hip — feel like you're scooping slightly under the ball. The racket face opens through contact.", fixFirst: "Hand-fed drop shots at exactly the right height only. Don't attempt drop shots from wrong bounce heights in matches." },
+          lob: { description: "Lob contact point determines trajectory quality. Topspin lob: waist-height contact. Slice lob: below-waist contact. Wrong height creates the wrong shot.", cascade: "Wrong contact height → trajectory angle wrong → lob too short (gets smashed) or too deep (goes out) → not a reliable option.", feelCue: "Waist-high for topspin, knee-high for slice. Set your racket at the target height before swinging as a reference point.", fixFirst: "Lobbing from stationary positions at exact heights. Topspin lobs from waist-high balls only. Slice lobs from low balls only. 20 reps each." }
+        }
+      },
+      release_timing: {
+        label: 'Release & Wrist Timing',
+        headline: "The wrist and arm release is off-cue",
+        shots: {
+          forehand: { description: "Elbow and wrist scores show timing irregularities in the release phase — either releasing too early (flipping) or holding too long (blocked shot). The windshield-wiper finish should feel effortless.", cascade: "Poor release → racket face angle varies → topspin inconsistent → direction shifts → can't sustain deep rally balls.", feelCue: "Imagine the racket is a whip. The handle leads, the head follows. You should feel the ball leaving the strings — not the racket face.", fixFirst: "Slow-motion shadow swings at 30% speed focusing only on the release. Reduce grip pressure by 30% — the release happens naturally when loose." },
+          backhand: { description: "Wrist and elbow timing is off. Two-hander: bottom hand drives; top hand follows. One-hander: wrist stays firm through contact, releases only in follow-through.", cascade: "Two-hander wrist flip → ball goes crosscourt unintentionally. One-hander wrist flip → ball pops up and sits for opponent.", feelCue: "Two-hander: bottom hand is the whip — it pushes and the top follows. One-hander: wrist firm for 2 feet through the ball, THEN release.", fixFirst: "Two-hander: bottom-hand-only shadow swings. One-hander: hit with very light grip and feel the wrist stay firm at contact." },
+          serve: { description: "The serve's wrist pronation — the key-turning motion at contact — is the final power multiplier. Missing or early pronation removes the serve's snap.", cascade: "No pronation → flat serve only → less pace and spin → serve predictable → hold percentages drop.", feelCue: "Turn a key in a lock at contact — the racket face turns from angled to flat through the strike. Crisp pop, not a thud.", fixFirst: "Pronation shadow swings: forearm turns over slowly for 50 reps before hitting a ball." },
+          volley: { description: "Volley wrist timing is the opposite of groundstrokes — the wrist must NOT release. A moving wrist at volley contact means control is gone.", cascade: "Wrist movement at contact → racket face tilts → direction unpredictable → net rushes become hesitant.", feelCue: "Grip firmly enough that no one could pry your wrist loose. The entire motion comes from elbow and shoulder — the wrist is frozen.", fixFirst: "Partner pushes against the racket face at contact. Your wrist must not move. Build the lock before any live ball work." },
+          'drop-shot': { description: "The drop shot needs controlled wrist softness — not a flip, but an open-face deceleration. Too much wrist action creates unpredictable spin.", cascade: "Wrong wrist action → too much pace or spin → ball bounces high → opponent reads it → shot wasted.", feelCue: "Hold an egg in your hand — that's the grip pressure. Let the wrist breathe through contact, not hold rigid or flip.", fixFirst: "Drop shots into a small target (waste basket works). The precision required forces correct wrist deceleration naturally." },
+          lob: { description: "The lob's wrist must guide the ball upward through a smooth release. Rigid wrist = flat lob. Too much wrist = topspin overshoots.", cascade: "Too rigid → flat lob, easy to smash. Too loose → topspin overshoots baseline. Neither is effective.", feelCue: "Wrist rotates slightly upward through contact — like lifting a book off a shelf. Smooth and continuous, no snap, no lock.", fixFirst: "Alternate slice lobs (firmer wrist) and topspin lobs (smoother upward release) from identical preparation. Feel the wrist difference." }
+        }
+      },
+      kinetic_chain_break: {
+        label: 'Kinetic Chain Sequencing Break',
+        headline: "Energy has a gap between body segments",
+        shots: {
+          forehand: { description: "The kinetic chain — feet to racket — has a break. Energy built in the legs and hips isn't transferring cleanly through the core and arm. Like a cracked whip: the end loses all speed.", cascade: "Chain break → segment before over-works → segment after under-fires → power and direction both suffer → fatigue builds faster.", feelCue: "Think of the forehand as a wave from your back foot to the racket. Every body part should surge before the next one. If any part feels 'still' during the swing, that's where the chain breaks.", fixFirst: "Isolate the break point. If it's hip-to-trunk: hip-only swings for 10 reps, then add trunk, then add arm. Reconnect each link separately." },
+          backhand: { description: "Your backhand kinetic chain has a break — most commonly between hip rotation and shoulder drive. Energy from the legs isn't making it through to the arm.", cascade: "Hip-trunk break → shoulder over-rotates to compensate → arm arrives too early → backhand loses depth and direction.", feelCue: "Feel it as: feet push → hips turn → shoulders follow → arms extend. Like passing a ball down a line — each step feeds the next.", fixFirst: "Hip-only backhand swings: 10 reps with no arm, just hip-to-trunk. Then add the arm and feel the connection between hip drive and shoulder arrival." },
+          serve: { description: "Your serve chain — legs → body rise → shoulder → elbow snap → wrist pronation — has a gap. Most common break: between leg push and body rise, disconnecting lower and upper body.", cascade: "Serve chain break → arm-only serve → pace loss → double faults increase → serving becomes a liability.", feelCue: "Count the phases as you hit: 1=legs push, 2=body rises, 3=shoulder opens, 4=elbow snaps, 5=wrist turns. Each should flow into the next.", fixFirst: "Serve with upper body only first (shoulder→elbow→wrist). Then add leg push only when the upper chain is automatic." },
+          volley: { description: "Volley chain is short by design: shoulder block → elbow punch → firm wrist. A break means the elbow isn't leading the punch.", cascade: "Elbow not leading → wrist compensates → volley becomes a flick → depth and direction inconsistent.", feelCue: "Point your elbow at the oncoming ball, then let the racket follow. Elbow arrives before the racket face.", fixFirst: "Elbow-lead drill: point your elbow at the ball as it approaches, then punch. 20 reps." },
+          'drop-shot': { description: "Drop shot chain break appears as arm moving before the lower body has set. Without core stability, the drop shot becomes a desperate tap rather than controlled placement.", cascade: "Unstable base in drop shot → arm compensates for position → deceleration rushed → ball pops up → shot telegraphed.", feelCue: "Set your feet completely before the arm moves. Feel total stillness in your body as the drop shot executes — arm is the only thing moving.", fixFirst: "Drop shots only from a fully stopped, stationary position. Arrive, pause, then hit. No running drop shots until this is controlled." },
+          lob: { description: "The lob chain must redirect upward at the last moment. A break between trunk drive and arm redirect produces a flat ball that stays at smash height.", cascade: "Poor redirect → lob flat → sits at overhead height → opponent has easy smash → lob becomes predictable.", feelCue: "Feel the trunk drive forward like a groundstroke, then the arm redirect upward through contact. Two distinct sensations, one smooth motion.", fixFirst: "Alternate deep groundstrokes and lobs. Feel the chain firing identically — only the arm redirect changes at the end." }
+        }
+      }
+    };
+
+    function getRootCauseForShot(id, shotType) {
+      const def = ROOT_CAUSE_DEFS[id];
+      if (!def) return null;
+      const shotData = def.shots[shotType] || def.shots.forehand;
+      return { label: def.label, headline: def.headline, ...shotData };
+    }
+
+    function detectRootCause(metricComparisons, temporalStats, kpis, chainAnalysis, shotType) {
+      const sc = {};
+      for (const m of (metricComparisons || [])) sc[m.metric] = m.score ?? 100;
+      const hip = sc.hip ?? 100, knee = sc.knee ?? 100, trunk = sc.trunk ?? 100;
+      const shoulder = sc.shoulder ?? 100, elbow = sc.elbow ?? 100, wrist = sc.wrist ?? 100;
+      const balance = sc.balance ?? (kpis.positioningScore ?? 100);
+      const footwork = sc.footworkLoad ?? (kpis.footworkScore ?? 100);
+      const contact = sc.contactHeight ?? 100, reach = sc.reach ?? 100;
+
+      if (shotType === 'volley') {
+        if (balance < 65 || footwork < 65) return getRootCauseForShot('base_instability', shotType);
+        if (contact < 62 || reach < 62) return getRootCauseForShot('contact_point_deficit', shotType);
+        if (elbow < 65) return getRootCauseForShot('release_timing', shotType);
+        if (shoulder < 65) return getRootCauseForShot('late_unit_turn', shotType);
+        return getRootCauseForShot('kinetic_chain_break', shotType);
+      }
+      if (shotType === 'serve') {
+        if (knee < 65) return getRootCauseForShot('base_instability', shotType);
+        if (shoulder < 65 && hip < 65) return getRootCauseForShot('late_unit_turn', shotType);
+        if (wrist < 65 || elbow < 65) return getRootCauseForShot('release_timing', shotType);
+      }
+      if (balance < 65 && footwork < 65) return getRootCauseForShot('base_instability', shotType);
+      if (contact < 62 && reach < 62) return getRootCauseForShot('contact_point_deficit', shotType);
+      const armAvg = (shoulder + elbow) / 2, bodyAvg = (hip + trunk + knee) / 3;
+      if (bodyAvg < 66 && armAvg > bodyAvg + 15) return getRootCauseForShot('arm_dominant', shotType);
+      if (hip < 65 && shoulder < 65) return getRootCauseForShot('late_unit_turn', shotType);
+      if (elbow < 65 && wrist < 65 && hip >= 65) return getRootCauseForShot('release_timing', shotType);
+      if (chainAnalysis && chainAnalysis.chainBreaks.length >= 2) return getRootCauseForShot('kinetic_chain_break', shotType);
+      const worst = [...(metricComparisons || [])].sort((a, b) => a.score - b.score)[0];
+      if (!worst) return null;
+      const map = { hip:'late_unit_turn', trunk:'arm_dominant', knee:'base_instability', shoulder:'late_unit_turn', elbow:'release_timing', wrist:'release_timing', balance:'base_instability', contactHeight:'contact_point_deficit', reach:'contact_point_deficit', footworkLoad:'base_instability' };
+      return getRootCauseForShot(map[worst.metric] || 'kinetic_chain_break', shotType);
+    }
+
+    // ── Report-building helpers ────────────────────────────────────────────────
+
+    function buildSwingStory(s, rootCause) {
+      const { shotType, score, metricComparisons } = s;
+      const top = (metricComparisons || [])[0];
+      const best = [...(metricComparisons || [])].sort((a, b) => b.score - a.score)[0];
+      const OPENINGS = {
+        forehand:    [['elite-forehand mechanics', 85], ['solid forehand with clear room to unlock more', 70], ['forehand fundamentals in place, but specific gaps are limiting the ceiling', 55], ['forehand mechanics with significant gaps affecting consistency and power', 0]],
+        backhand:    [['strong rotational backhand mechanics and clean contact', 85], ['functional backhand with room to add pace and depth', 70], ['developing backhand with patterns holding back the shot', 55], ['backhand showing fundamental gaps that make rallying harder than it needs to be', 0]],
+        serve:       [['serve mechanics firing on all cylinders — powerful and sequenced', 85], ['effective serve leaving pace and consistency on the table', 70], ['serve foundation with mechanical blockers to address', 55], ['serve mechanics making it harder than it should be', 0]],
+        volley:      [['excellent volley punch and net positioning', 85], ['solid net game with opportunities for sharper execution', 70], ['right instincts at net, needs mechanical refinement', 55], ['volley mechanics with gaps costing net points', 0]],
+        'drop-shot': [['excellent drop shot touch and disguise', 85], ['drop shot weapon in development — needs refinement', 70], ['drop shot right idea, but needs cleaner execution to be reliable', 55], ['drop shot needing significant refinement before it becomes reliable', 0]],
+        lob:         [['excellent lob trajectory control and deception', 85], ['functional lob with clear opportunities for consistency', 70], ['lob with right intention but patterns reducing effectiveness', 55], ['lob mechanics needing work — currently more predictable than effective', 0]]
+      };
+      const openingList = OPENINGS[shotType] || OPENINGS.forehand;
+      const opener = (openingList.find(([, thresh]) => score >= thresh) || openingList[openingList.length - 1])[0];
+      const opening = `This session captured ${opener}.`;
+      const strengthNote = best && best.score >= 75 ? `Your ${formatMetricName(best.metric).toLowerCase()} is a genuine asset — it's providing a reliable platform that the rest of the shot can build from.` : '';
+      const rootNote = rootCause ? `The central finding: ${rootCause.headline.toLowerCase()}. ${rootCause.description.split('.')[0]}.` : top ? `The biggest opportunity is your ${formatMetricName(top.metric).toLowerCase()}, which is directly limiting the shot's ceiling.` : '';
+      return [opening, strengthNote, rootNote].filter(Boolean).join(' ');
+    }
+
+    const SHOT_METRIC_LABELS = {
+      forehand:    { shoulder:'Unit Turn', elbow:'Arm Extension', hip:'Hip Drive', knee:'Leg Load', trunk:'Core Rotation', wrist:'Wrist Release' },
+      backhand:    { shoulder:'Shoulder Drive', elbow:'Elbow Extension', hip:'Hip Rotation', knee:'Leg Stabilization', trunk:'Core Transfer', wrist:'Wrist Firmness' },
+      serve:       { shoulder:'Shoulder Rotation', elbow:'Elbow Snap', hip:'Body Rise', knee:'Leg Push', trunk:'Trophy Position', wrist:'Wrist Pronation' },
+      volley:      { shoulder:'Shoulder Block', elbow:'Punch Extension', hip:'Weight Transfer', knee:'Footwork Arrival', trunk:'Body Stability', wrist:'Wrist Firmness' },
+      'drop-shot': { shoulder:'Setup Position', elbow:'Arm Deceleration', hip:'Hip Stabilization', knee:'Approach', trunk:'Body Control', wrist:'Touch Control' },
+      lob:         { shoulder:'Shoulder Lead', elbow:'Arm Direction', hip:'Hip Drive', knee:'Leg Load', trunk:'Upward Redirect', wrist:'Lift Release' }
+    };
+
+    function buildConsistencyHtml(metricComparisons, temporalStats, shotType) {
+      const labels = SHOT_METRIC_LABELS[shotType] || SHOT_METRIC_LABELS.forehand;
+      const toShow = (metricComparisons || []).filter(m => ['shoulder','elbow','hip','knee','trunk','wrist'].includes(m.metric)).slice(0, 5);
+      if (!toShow.length) return '';
+      let timingCount = 0, positionalCount = 0;
+      const bars = toShow.map(m => {
+        const ts = temporalStats[m.metric];
+        const pct = Math.min(100, Math.round(m.score || 0));
+        const label = labels[m.metric] || formatMetricName(m.metric);
+        const isTimingErr = pct < 70 && ts && ts.consistencyPct < 52;
+        const isPositionalErr = pct < 70 && (!ts || ts.consistencyPct >= 52);
+        if (isTimingErr) timingCount++;
+        if (isPositionalErr) positionalCount++;
+        const type = pct >= 75 ? 'strength' : isTimingErr ? 'timing' : isPositionalErr ? 'positional' : 'developing';
+        const color = type === 'strength' ? '#00c853' : type === 'timing' ? '#ffd84d' : type === 'positional' ? '#ff6d00' : '#888';
+        const typeLabel = type === 'strength' ? 'Strength ✓' : type === 'timing' ? 'Timing variability' : type === 'positional' ? 'Positional error' : 'In development';
+        return `<div style="display:grid;grid-template-columns:140px 1fr 48px 160px;gap:8px;align-items:center;padding:9px 12px;background:rgba(255,255,255,.03);border-radius:10px;">
+          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</div>
+          <div style="height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;"><div style="height:100%;width:${pct}%;background:${color};border-radius:999px;"></div></div>
+          <div style="font-size:12px;font-weight:800;color:${color};text-align:right;">${pct}%</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.45);text-align:right;">${typeLabel}</div>
+        </div>`;
+      }).join('');
+      let intro = '';
+      if (timingCount > positionalCount) intro = `Your errors are primarily <strong>timing-based</strong> — body position is right but timing varies rep-to-rep. Responds well to rhythm drills: metronome, counting beats, or a verbal cue on every swing.`;
+      else if (positionalCount > 0) intro = `Your errors are primarily <strong>positional</strong> — the angle or direction is consistently off rather than varying. Responds to correction drills: slow-motion rehearsal of the target position, then gradual speed increase.`;
+      else intro = `Your mechanics are highly consistent — the patterns here are well-grooved. Focus on refining angle targets rather than rhythm.`;
+      return `<div style="margin-bottom:12px;font-size:13px;color:var(--silver);line-height:1.7;">${intro}</div>${bars}`;
+    }
+
+    function buildChainHtml(chainAnalysis, shotType) {
+      if (!chainAnalysis) return '';
+      const CHAIN_LABELS = {
+        forehand:    { knee:'Legs Load', hip:'Hips Drive', trunk:'Core Rotates', shoulder:'Shoulder Coils', elbow:'Arm Extends', wrist:'Wrist Releases' },
+        backhand:    { knee:'Legs Set', hip:'Hips Rotate', trunk:'Core Transfers', shoulder:'Shoulder Leads', elbow:'Arm Extends', wrist:'Wrist Firms' },
+        serve:       { knee:'Legs Push', hip:'Body Rises', trunk:'Trophy Sets', shoulder:'Shoulder Opens', elbow:'Elbow Snaps', wrist:'Wrist Pronates' },
+        volley:      { shoulder:'Shoulder Blocks', elbow:'Elbow Punches', wrist:'Wrist Locks' },
+        'drop-shot': { knee:'Legs Set', hip:'Hips Still', shoulder:'Shoulder Sets', elbow:'Arm Decels', wrist:'Wrist Touches' },
+        lob:         { knee:'Legs Load', hip:'Hips Drive', trunk:'Core Drives', shoulder:'Shoulder Leads', wrist:'Arm Lifts' }
+      };
+      const labels = CHAIN_LABELS[shotType] || CHAIN_LABELS.forehand;
+      const links = Object.keys(chainAnalysis.linkScores || {});
+      if (!links.length) return '';
+      const nodes = links.map((key, i) => {
+        const score = chainAnalysis.linkScores[key];
+        const color = score == null ? '#444' : score >= 70 ? '#00c853' : score >= 50 ? '#ffd84d' : '#ff6d00';
+        const isBreak = chainAnalysis.chainBreaks.some(b => b.link === key);
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;">
+          <div style="width:38px;height:38px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${color};">${score ?? '?'}</div>
+          <div style="font-size:9px;text-align:center;line-height:1.3;color:${isBreak?'#ff6d00':'rgba(255,255,255,.55)'};">${labels[key]||key}${isBreak?' ⚠':''}
+          </div>
+        </div>${i < links.length-1 ? '<div style="width:18px;height:2px;background:rgba(255,255,255,.12);margin-top:17px;flex-shrink:0;"></div>' : ''}`;
+      }).join('');
+      const cScore = chainAnalysis.avgScore;
+      const cColor = cScore >= 70 ? '#00c853' : cScore >= 55 ? '#ffd84d' : '#ff6d00';
+      const breakLabel = chainAnalysis.primaryBreak ? (labels[chainAnalysis.primaryBreak.link] || chainAnalysis.primaryBreak.link) : '';
+      const msg = chainAnalysis.isWellSequenced
+        ? 'Chain fires in sequence — energy flows efficiently from ground to racket.'
+        : chainAnalysis.chainBreaks.length
+        ? `Break detected at <strong>${breakLabel}</strong> — segments before over-work, segments after under-fire.`
+        : 'Some timing gaps in the sequence — work on connecting segments more smoothly.';
+      return `<div style="padding:14px 12px;background:rgba(10,22,40,.58);border:1px solid rgba(255,255,255,.1);border-radius:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);">Kinetic Chain</div>
+          <div style="font-size:20px;font-weight:900;color:${cColor};">Score: ${cScore}</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:12px;">${nodes}</div>
+        <div style="font-size:12px;color:var(--silver);line-height:1.6;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;">${msg}</div>
+      </div>`;
+    }
+
+    // ============================================================================
     // Session Building
     // ============================================================================
     function buildSession() {
@@ -3830,6 +4205,11 @@
         sessionMode: playerProfile.sessionMode || 'stroke-tune-up'
       }) : [];
 
+      // Advanced biomechanical analysis
+      const temporalStats = computeTemporalStats(focusFrames);
+      const chainAnalysis = analyzeKineticChain(focusFrames, shotType);
+      const rootCause = detectRootCause(metricComparisons, temporalStats, scoreResult.performanceKpis, chainAnalysis, shotType);
+
       return {
         profile: playerProfile,
         summary: {
@@ -3855,7 +4235,10 @@
           scoringMeta: scoreResult.scoringMeta,
           sessionMode: playerProfile.sessionMode,
           sessionGoal: playerProfile.sessionGoal,
-          setupScore: playerProfile.setupScore
+          setupScore: playerProfile.setupScore,
+          temporalStats,
+          chainAnalysis,
+          rootCause
         },
         timestamp: new Date().toISOString()
       };
@@ -3867,6 +4250,12 @@
       const topMetrics = [...(s.metricComparisons || [])].sort((a, b) => a.score - b.score).slice(0, 3);
       const strengths = [...(s.metricComparisons || [])].sort((a, b) => b.score - a.score).slice(0, 2);
       const kpis = s.performanceKpis || {};
+      const rootCause = s.rootCause || null;
+      const temporalStats = s.temporalStats || {};
+      const chainAnalysis = s.chainAnalysis || null;
+      const swingStory = buildSwingStory(s, rootCause);
+      const consistencyHtml = buildConsistencyHtml(s.metricComparisons, temporalStats, s.shotType);
+      const chainHtml = buildChainHtml(chainAnalysis, s.shotType);
 
       function gradeLabel(score) {
         if (score >= 90) return { label: 'Elite', color: '#39ff14' };
@@ -3910,6 +4299,12 @@
           <div style="font-size:13px; color:var(--gray); margin-top:10px;">${session.profile.level} · Age ${session.profile.age} · ${s.shotType} · ${new Date(session.timestamp).toLocaleDateString()}</div>
         </div>
 
+        <!-- Swing Story -->
+        <div class="report-section" style="border-left:4px solid var(--electric-cyan);">
+          <div class="report-section-title" style="color:var(--electric-cyan);display:flex;align-items:center;gap:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Your Swing Story</div>
+          <div style="font-size:14px;line-height:1.9;color:var(--silver);padding:4px 0;">${swingStory}</div>
+        </div>
+
         <!-- 2. You Nailed This -->
         <div class="report-section" style="border-left:4px solid #00c853;">
           <div class="report-section-title" style="color:#00c853;display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> You Nailed This!</div>
@@ -3945,6 +4340,30 @@
           })() : `<div class="info-box">No major issues detected — great session! Keep building on this consistency.</div>`}
         </div>
 
+        <!-- Root Cause -->
+        ${rootCause ? `<div class="report-section" style="border-left:4px solid #ff6d00;">
+          <div class="report-section-title" style="color:#ff6d00;display:flex;align-items:center;gap:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> The Root Cause</div>
+          <div class="metric-card" style="border-color:rgba(255,109,0,0.3);background:rgba(255,109,0,0.03);">
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#ff6d00;margin-bottom:6px;">${rootCause.label}</div>
+            <div style="font-size:19px;font-weight:800;margin-bottom:12px;line-height:1.3;">${rootCause.headline}</div>
+            <div style="font-size:14px;color:var(--silver);line-height:1.8;margin-bottom:16px;">${rootCause.description}</div>
+            <div style="display:grid;gap:14px;background:rgba(255,109,0,.06);border:1px solid rgba(255,109,0,.22);border-radius:12px;padding:16px;">
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#ff6d00;margin-bottom:5px;">The Cascade</div>
+                <div style="font-size:13px;color:var(--silver);line-height:1.7;font-style:italic;">${rootCause.cascade}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#ffd84d;margin-bottom:5px;">Feel This</div>
+                <div style="font-size:13px;color:var(--silver);line-height:1.7;">${rootCause.feelCue}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#39ff14;margin-bottom:5px;">Fix This First</div>
+                <div style="font-size:13px;color:var(--silver);line-height:1.7;">${rootCause.fixFirst}</div>
+              </div>
+            </div>
+          </div>
+        </div>` : ''}
+
         <!-- 4. Body Check -->
         <div class="report-section">
           <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg> Body Check</div>
@@ -3967,6 +4386,17 @@
               'Try to swing at the same moment every shot')}
           </div>
         </div>
+
+        <!-- Kinetic Chain & Consistency -->
+        ${chainHtml ? `<div class="report-section">
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Kinetic Chain Sequence</div>
+          ${chainHtml}
+        </div>` : ''}
+
+        ${consistencyHtml ? `<div class="report-section">
+          <div class="report-section-title" style="display:flex;align-items:center;gap:8px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Consistency Analysis</div>
+          <div class="metric-card">${consistencyHtml}</div>
+        </div>` : ''}
 
         <!-- 5. Your Drill This Week -->
         <div class="report-section" style="border-left:4px solid var(--volt);">
@@ -4042,6 +4472,9 @@
       `;
       document.getElementById('reportContent').innerHTML = html;
 
+      // Async: fetch personalized AI coaching narrative
+      fetchAiCoachInsight(session).catch(() => {});
+
       // Store report data for match tracker AI insight
       window._lastSmartSwingReport = {
         overallScore: s.score,
@@ -4049,6 +4482,77 @@
         grade: s.grade,
         topIssues: (s.metricComparisons || []).filter(m => m.score < 60).map(m => m.metric),
       };
+    }
+
+    async function fetchAiCoachInsight(session) {
+      const s = session.summary;
+      const container = document.getElementById('gptAnalysisContainer');
+      if (!container) return;
+
+      // Show loading state immediately
+      container.style.display = '';
+      container.innerHTML = `<div class="report-section" style="border-left:4px solid #7c3aed;">
+        <div class="report-section-title" style="color:#a78bfa;display:flex;align-items:center;gap:8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+          AI Coach Insight
+        </div>
+        <div style="font-size:13px;color:var(--gray);padding:8px 0;">Generating personalized coaching analysis...</div>
+      </div>`;
+
+      const topIssues = (s.metricComparisons || [])
+        .filter(m => m.score < 75)
+        .slice(0, 3)
+        .map(m => ({ metric: m.metric, score: Math.round(m.score), delta: m.delta, status: m.status }));
+      const topStrengths = [...(s.metricComparisons || [])]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 2)
+        .map(m => ({ metric: m.metric, score: Math.round(m.score) }));
+      const kpis = s.performanceKpis || {};
+
+      try {
+        const resp = await fetch('/api/marketing/ai-coach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shotType: s.shotType,
+            overallScore: s.score,
+            grade: s.grade,
+            topIssues,
+            strengths: topStrengths,
+            rootCause: s.rootCause ? { label: s.rootCause.label, headline: s.rootCause.headline } : null,
+            kpis: { footwork: Math.round(kpis.footworkScore || 0), balance: Math.round(kpis.positioningScore || 0), timing: Math.round(kpis.timingConsistency || 0), contactHeight: Math.round(kpis.contactHeightScore || 0) },
+            playerProfile: { level: session.profile.level, age: session.profile.age, gender: session.profile.gender },
+            sessionGoal: s.sessionGoal || ''
+          })
+        });
+
+        if (!resp.ok) { container.style.display = 'none'; return; }
+        const data = await resp.json();
+        const coaching = (data.coaching || '').trim();
+        if (!coaching) { container.style.display = 'none'; return; }
+
+        // Parse the 4-paragraph format Claude returns
+        const sections = [
+          { key: '**Swing Story**', color: 'var(--electric-cyan)' },
+          { key: '**The Analogy**', color: '#ffd84d' },
+          { key: '**Feel This**', color: '#a78bfa' },
+          { key: '**Your Potential**', color: '#39ff14' }
+        ];
+        let body = coaching;
+        sections.forEach(sec => { body = body.replace(sec.key, `<span style="font-weight:800;color:${sec.color};">${sec.key.replace(/\*\*/g,'')}</span>`); });
+        const paragraphs = body.split(/\n\n+/).filter(Boolean).map(p => `<p style="margin:0 0 14px 0;font-size:14px;color:var(--silver);line-height:1.85;">${p.replace(/\n/g,' ')}</p>`).join('');
+
+        container.innerHTML = `<div class="report-section" style="border-left:4px solid #7c3aed;">
+          <div class="report-section-title" style="color:#a78bfa;display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            AI Coach Insight
+          </div>
+          <div style="padding:4px 0;">${paragraphs}</div>
+          <div style="font-size:11px;color:var(--gray);margin-top:4px;">Generated by Claude · Personalized for your ${s.shotType} session</div>
+        </div>`;
+      } catch (_) {
+        container.style.display = 'none';
+      }
     }
 
     function buildExpandableInsight(title, score, summary, details, tone = 'cyan') {

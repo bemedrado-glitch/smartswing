@@ -1121,6 +1121,125 @@ async function handleYoutubeStream(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// AI-COACH — Personalized biomechanical coaching narrative via Claude
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const AI_COACH_SYSTEM_PROMPT = `You are a world-class tennis and pickleball coach with deep biomechanics expertise. When given a player's swing analysis data, write a concise, personalized coaching insight using EXACTLY this format with these four headers on their own lines:
+
+**Swing Story**
+2-3 sentences describing what actually happened in this swing in plain English, as if speaking directly to the player. Reference the specific shot type and the most significant finding.
+
+**The Analogy**
+One clear sports metaphor, physical sensation, or everyday comparison that makes the main issue immediately intuitive and memorable. Keep it to 2 sentences maximum.
+
+**Feel This**
+A specific physical sensation or mental image the player can use in their very next practice session to target the root cause. Be concrete — reference body parts, sensations, or cues. 2-3 sentences.
+
+**Your Potential**
+One sentence about what becomes achievable in this specific shot if they address this consistently over the next 2-4 weeks.
+
+Rules:
+- Be specific to the shot type — forehands, backhands, serves, volleys, drop shots, and lobs have fundamentally different mechanics
+- Calibrate language to the player's level (beginner = simple analogies, pro = technical precision)
+- Be honest but encouraging — name the issue clearly without discouraging
+- Never use generic filler phrases like "great job" or "keep working hard"
+- Total response should be 150-220 words`;
+
+function buildAiCoachPrompt({ shotType, overallScore, grade, topIssues, strengths, rootCause, kpis, playerProfile, sessionGoal }) {
+  const levelLabel = playerProfile.level || 'intermediate';
+  const age = playerProfile.age ? `age ${playerProfile.age}` : '';
+  const gender = playerProfile.gender && playerProfile.gender !== 'unspecified' ? playerProfile.gender : '';
+  const playerDesc = [levelLabel, age, gender].filter(Boolean).join(', ');
+
+  const issueLines = (topIssues || []).map(i =>
+    `- ${i.metric}: score ${i.score}/100, ${i.delta > 0 ? '+' : ''}${i.delta || 0}° from target (${i.status || 'needs-work'})`
+  ).join('\n');
+
+  const strengthLines = (strengths || []).map(s =>
+    `- ${s.metric}: ${s.score}/100`
+  ).join('\n');
+
+  const kpiLines = Object.entries(kpis || {}).map(([k, v]) => `- ${k}: ${v}%`).join('\n');
+
+  const rootLine = rootCause ? `Root cause identified: "${rootCause.label}" — ${rootCause.headline}` : '';
+  const goalLine = sessionGoal ? `Session goal: "${sessionGoal}"` : '';
+
+  return `Player: ${playerDesc}
+Shot analyzed: ${shotType}
+${goalLine}
+Overall score: ${overallScore}/100 (Grade ${grade || 'N/A'})
+
+Top issues:
+${issueLines || '- No significant issues detected'}
+
+Strengths:
+${strengthLines || '- None clearly above threshold yet'}
+
+${rootLine}
+
+Performance KPIs:
+${kpiLines}
+
+Write the personalized coaching insight for this ${shotType} session.`;
+}
+
+async function handleAiCoach(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: 'AI coaching service not configured' });
+
+  const body = req.body || {};
+  const { shotType, overallScore, grade, topIssues, strengths, rootCause, kpis, playerProfile, sessionGoal } = body;
+
+  if (!shotType || overallScore == null) {
+    return res.status(400).json({ error: 'shotType and overallScore are required' });
+  }
+
+  const userPrompt = buildAiCoachPrompt({ shotType, overallScore, grade, topIssues, strengths, rootCause, kpis, playerProfile, sessionGoal });
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 350,
+        system: AI_COACH_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }]
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      return res.status(502).json({ error: 'AI service error', message: err.error?.message || String(resp.status) });
+    }
+
+    const data = await resp.json();
+    const coaching = (data.content?.[0]?.text || '').trim();
+    if (!coaching) return res.status(502).json({ error: 'Empty response from AI service' });
+
+    return res.status(200).json({ coaching });
+  } catch (err) {
+    clearTimeout(timer);
+    return res.status(502).json({ error: 'AI coaching unavailable', message: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -1131,7 +1250,8 @@ const ROUTES = {
   'export-leads':    handleExportLeads,
   'auto-enroll':     handleAutoEnroll,
   'publish-webhook': handlePublishWebhook,
-  'youtube-stream':  handleYoutubeStream
+  'youtube-stream':  handleYoutubeStream,
+  'ai-coach':        handleAiCoach
 };
 
 module.exports = async function handler(req, res) {
