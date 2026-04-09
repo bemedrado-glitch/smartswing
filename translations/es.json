@@ -12,7 +12,7 @@
     "features": "Características"
   },
   "footer": {
-    "tagline": "Análisis de tenis y pádel con IA para jugadores, entrenadores y clubes.",
+    "tagline": "Análisis de tenis con IA para jugadores, entrenadores y clubes.",
     "tagline1": "Creado para jugadores, entrenadores y programas de alto rendimiento.",
     "tagline2": "Inteligencia tenística para análisis, mejora y seguimiento.",
     "copyright": "© 2026 SmartSwing AI",
@@ -310,6 +310,178 @@
     "faq4Q": "¿Dónde se desbloquean los ejercicios y tácticas?",
     "faq4A": "Pro y Tournament Pro desbloquean la biblioteca completa de ejercicios y tácticas.",
     "footerTagline": "Inteligencia de tenis priorizada para reducir la práctica desperdiciada y mejorar la retención de clases."
+  },
+  "forPlayers": {
+    "hero": {
+      "eyebrow": "Para Jugadores",
+      "heading": "Tu Golpe.",
+      "headingAccent": "Descifrado.",
+      "body": "Sube un video de 60 segundos y obtén tus 3 principales problemas mecánicos clasificados por impacto — más ejercicios específicos para corregirlos antes de tu próximo partido.",
+      "cta1": "Analiza Tu Golpe Gratis",
+      "cta2": "Ver Cómo Funciona"
+    },
+    "stats": {
+      "s1v": "60s", "s1l": "Tiempo de Análisis",
+      "s2v": "14+", "s2l": "Métricas Rastreadas",
+      "s3v": "3", "s3l": "Correcciones Prioritarias",
+      "s4v": "94%", "s4l": "Tasa de Precisión"
+    },
+    "features": {
+      "eyebrow": "Por Qué los Jugadores Eligen SmartSwing",
+      "heading": "Todo lo que necesitas. Nada más.",
+      "tagline": "Tres herramientas que cierran la brecha entre saber que algo está mal y corregirlo.",
+      "f1t": "Diagnóstico Preciso",
+      "f1d": "Deja de adivinar. Nuestra IA identifica la falla mecánica exacta que más puntos te cuesta y te muestra por qué se agrava bajo presión.",
+      "f2t": "Planes de Ejercicios Personalizados",
+      "f2d": "Cada ejercicio está diseñado para tu debilidad específica — no una plantilla genérica. Practica con propósito, mejora con pruebas.",
+      "f3t": "Insights para el Partido",
+      "f3d": "Orientación táctica que traduce tus correcciones mecánicas en situaciones reales de partido. Sabe qué hacer cuando el marcador aprieta."
+    },
+    "proof": {
+      "eyebrow": "Historias de Jugadores",
+      "heading": "Escucha a jugadores como tú.",
+      "t1q": "\"Solía salir de la cancha sabiendo que algo estaba mal pero sin saber qué. SmartSwing me lo dijo en 60 segundos.\"",
+      "t1n": "Marcus T.", "t1r": "Jugador de Liga Amateur",
+      "t2q": "\"Mi entrenador se sorprendió de que corregí mi juego de pies antes de nuestra próxima clase. Solo seguí el ejercicio que me dio.\"",
+      "t2n": "Sofia R.", "t2r": "Jugadora Junior, 14 años",
+      "t3q": "\"Dejé de perder terceros sets por malas decisiones. Ahora sé qué mecánicas fallan bajo presión y qué hacer al respecto.\"",
+      "t3n": "David L.", "t3r": "Jugador de Torneo 3.5 NTRP"
+    },
+    "cta": {
+      "heading": "Tu próximo partido comienza con una subida.",
+      "body": "Empieza con un análisis gratuito. Desbloquea informes guardados, la biblioteca completa de ejercicios y seguimiento de progreso cuando el valor sea evidente.",
+      "primary": "Abrir Analizador",
+      "secondary": "Comparar Planes"
+    }
+  },
+  "forCoaches": {
+    "hero": {
+      "eyebrow": "Para Entrenadores",
+      "heading": "Tus Atletas.",
+      "headingAccent": "Acelerados.",
+      "body": "Informes biomecánicos generados por IA en 60 segundos, asignación de ejercicios en 2 clics y un panel que muestra quién necesita atención — antes de que te lo digan.",
+      "cta1": "Abrir Panel del Entrenador",
+      "cta2": "Ver Precios"
+    },
+    "stats": {
+      "s1v": "2min", "s1l": "Revisión del Informe",
+      "s2v": "60s", "s2l": "Análisis de IA",
+      "s3v": "100%", "s3l": "Visibilidad del Roster",
+      "s4v": "3x", "s4l": "Triaje Más Rápido"
+    },
+    "features": {
+      "eyebrow": "Flujos del Entrenador",
+      "heading": "Menos administración. Más entrenamiento.",
+      "tagline": "Tres herramientas que cierran el ciclo desde el análisis hasta la asignación y la responsabilidad.",
+      "f1t": "Panel Completo del Roster",
+      "f1d": "Ve el último análisis de cada atleta, ejercicios asignados y trayectoria de progreso en una vista unificada. Señala métricas en declive antes de que se conviertan en hábitos.",
+      "f2t": "Asignación de Ejercicios en 2 Clics",
+      "f2d": "Asigna ejercicios directamente desde el informe de IA. Los jugadores son notificados al instante. El seguimiento es automático.",
+      "f3t": "Inteligencia de Progreso",
+      "f3d": "Rastrea tendencias biomecánicas a lo largo de las sesiones. Ve qué correcciones se consolidaron, cuáles retrocedieron y qué priorizar en el siguiente bloque."
+    },
+    "proof": {
+      "eyebrow": "Historias de Entrenadores",
+      "heading": "Lo que dicen los entrenadores.",
+      "t1q": "\"Solía pasar 20 minutos antes de cada sesión reuniendo notas. Ahora abro el panel y todo está ahí.\"",
+      "t1n": "Entrenador James P.", "t1r": "Certificado USPTA",
+      "t2q": "\"Los padres dejaron de hacer preguntas vagas. Los informes muestran exactamente en qué estamos trabajando y por qué — reemplazó 10 correos.\"",
+      "t2n": "Maria K.", "t2r": "Directora de Academia",
+      "t3q": "\"Mis juniors realmente hacen los ejercicios ahora porque pueden ver sus propios datos. Responsabilidad sin perseguirlos.\"",
+      "t3n": "Entrenador Rafael D.", "t3r": "Entrenador de Alto Rendimiento"
+    },
+    "cta": {
+      "heading": "Mira lo que pasa cuando cada atleta tiene un análisis semanal.",
+      "body": "Diseña el flujo de informe, asignación y roster con nosotros antes de un despliegue más amplio. Empieza con un atleta — expande cuando los resultados sean claros.",
+      "primary": "Contactar SmartSwing",
+      "secondary": "Ver Precios"
+    }
+  },
+  "forClubs": {
+    "hero": {
+      "eyebrow": "Para Clubes y Academias",
+      "heading": "Tu Programa.",
+      "headingAccent": "Elevado.",
+      "body": "Da a cada entrenador informes con IA, a cada atleta un camino claro de desarrollo y a cada padre visibilidad sobre lo que realmente está mejorando.",
+      "cta1": "Discutir Implementación",
+      "cta2": "Ver Precios"
+    },
+    "stats": {
+      "s1v": "10+", "s1l": "Atletas por Entrenador",
+      "s2v": "Zero", "s2l": "Software Personalizado",
+      "s3v": "1 Semana", "s3l": "Hasta los Primeros Resultados",
+      "s4v": "100%", "s4l": "Visibilidad para Padres"
+    },
+    "features": {
+      "eyebrow": "Beneficios del Programa",
+      "heading": "IA de nivel empresarial. Implementación simple para clubes.",
+      "tagline": "Tres capacidades que transforman cómo opera tu programa.",
+      "f1t": "Plataforma Multi-Entrenador",
+      "f1d": "Cada entrenador de tu equipo obtiene su propio panel, roster de atletas y flujo de asignación de ejercicios. Datos unificados, flujos independientes.",
+      "f2t": "Analíticas Operacionales",
+      "f2d": "Rastrea tendencias del programa: tasas de participación, velocidad de mejora de atletas, actividad del entrenador y compromiso familiar — todo en una vista.",
+      "f3t": "Comunicación Familiar",
+      "f3d": "Informes de progreso automatizados mantienen a cada padre informado sin saturar tu bandeja de entrada. Transparente, profesional y consistente."
+    },
+    "proof": {
+      "eyebrow": "Historias de Clubes",
+      "heading": "Programas con resultados.",
+      "t1q": "\"Implementamos SmartSwing en nuestro programa junior en una semana. Los entrenadores aman el panel, los padres aman los informes y los atletas realmente hacen los ejercicios.\"",
+      "t1n": "Chris A.", "t1r": "Propietario de Academia, 12 Canchas",
+      "t2q": "\"La visibilidad operacional por sí sola justificó la inversión. Puedo ver qué entrenadores están revisando filmaciones y qué atletas se están quedando atrás.\"",
+      "t2n": "Laura M.", "t2r": "Directora de Programa",
+      "t3q": "\"Los padres dejaron de preguntar '¿en qué están trabajando?' porque los informes responden esa pregunta antes de que la hagan.\"",
+      "t3n": "Tom R.", "t3r": "Director de Coaching"
+    },
+    "cta": {
+      "heading": "¿Listo para mejorar la ventaja competitiva de tu programa?",
+      "body": "Definiremos el punto de entrada correcto para tu equipo, mix de atletas y cronograma de implementación. Empieza con un equipo — expande cuando los resultados sean claros.",
+      "primary": "Discutir Implementación",
+      "secondary": "Flujos del Entrenador"
+    }
+  },
+  "forParents": {
+    "hero": {
+      "eyebrow": "Para Padres",
+      "heading": "El Progreso de Tu Junior.",
+      "headingAccent": "Visible.",
+      "body": "Ve exactamente en qué está trabajando tu hijo, si las clases están marcando una diferencia y qué practicar antes de la próxima sesión — en lenguaje simple, sin jerga de entrenador.",
+      "cta1": "Iniciar Análisis Gratuito",
+      "cta2": "Ver Planes"
+    },
+    "stats": {
+      "s1v": "Claros", "s1l": "Informes en Lenguaje Simple",
+      "s2v": "Semanal", "s2l": "Actualizaciones de Progreso",
+      "s3v": "100%", "s3l": "Alineado con el Entrenador",
+      "s4v": "Zero", "s4l": "Adivinación"
+    },
+    "features": {
+      "eyebrow": "Beneficios para Padres",
+      "heading": "Finalmente ve lo que realmente está mejorando.",
+      "tagline": "Tres maneras en que SmartSwing hace que ser padre tenista sea menos estresante y más productivo.",
+      "f1t": "Informes Claros como el Cristal",
+      "f1d": "Cada análisis está escrito en lenguaje simple con una lista de prioridades numerada. Sabe exactamente en qué se está trabajando y por qué — sin necesidad de un título en biomecánica.",
+      "f2t": "Progreso Medible",
+      "f2d": "Una puntuación que muestra si las clases del mes pasado realmente funcionaron. Rastrea la mejora con datos, no con suposiciones.",
+      "f3t": "Mejores Conversaciones",
+      "f3d": "Las charlas post-partido se vuelven productivas en vez de dolorosas. Comparte el informe con el entrenador de tu hijo y alineen el plan juntos."
+    },
+    "proof": {
+      "eyebrow": "Historias de Padres",
+      "heading": "Lo que dicen los padres.",
+      "t1q": "\"Solía temer el viaje en auto a casa — nunca sabía qué decir sobre el partido. Ahora abrimos el informe y hablamos sobre qué trabajar.\"",
+      "t1n": "Jennifer M.", "t1r": "Madre de jugador de 12 años",
+      "t2q": "\"El entrenador de mi hijo se impresionó cuando llegamos sabiendo exactamente qué ejercicios practicar entre clases. SmartSwing nos hizo mejores defensores.\"",
+      "t2n": "Robert K.", "t2r": "Padre de Jugador Junior",
+      "t3q": "\"Solo el seguimiento de progreso ya lo vale. Finalmente puedo ver si la inversión en clases está valiendo — con números reales, no sentimientos.\"",
+      "t3n": "Sarah L.", "t3r": "Madre Tenista, 2 Hijos"
+    },
+    "cta": {
+      "heading": "Dale a tu junior la ventaja que la mayoría de los padres desconocen.",
+      "body": "Haz un análisis gratuito, revisen las prioridades juntos y decide si el flujo facilita el apoyo familiar.",
+      "primary": "Iniciar Análisis Gratuito",
+      "secondary": "Haz una Pregunta"
+    }
   },
   "howItWorksPage": {
     "eyebrow": "Captura. Analiza. Corrige. Monitorea.",

@@ -12,7 +12,7 @@
     "features": "Features"
   },
   "footer": {
-    "tagline": "AI-powered tennis and pickleball analysis for players, coaches, and clubs.",
+    "tagline": "AI-powered tennis analysis for players, coaches, and clubs.",
     "tagline1": "Built for players, coaches, and performance programs.",
     "tagline2": "Web-first tennis intelligence for analysis, improvement, and accountability.",
     "copyright": "© 2026 SmartSwing AI",
@@ -348,6 +348,178 @@
     "faq4Q": "Where do drills and tactics unlock?",
     "faq4A": "Pro and Tournament Pro unlock the full drill and tactics library inside reports and the library page.",
     "footerTagline": "Web-first tennis intelligence priced to reduce wasted practice and improve lesson carryover."
+  },
+  "forPlayers": {
+    "hero": {
+      "eyebrow": "For Players",
+      "heading": "Your Swing.",
+      "headingAccent": "Decoded.",
+      "body": "Upload one 60-second video and get your top 3 mechanical issues ranked by impact — plus targeted drills to fix them before your next match.",
+      "cta1": "Analyze Your Swing Free",
+      "cta2": "See How It Works"
+    },
+    "stats": {
+      "s1v": "60s", "s1l": "Analysis Time",
+      "s2v": "14+", "s2l": "Metrics Tracked",
+      "s3v": "3", "s3l": "Priority Fixes",
+      "s4v": "94%", "s4l": "Accuracy Rate"
+    },
+    "features": {
+      "eyebrow": "Why Players Choose SmartSwing",
+      "heading": "Everything you need. Nothing you don't.",
+      "tagline": "Three tools that close the gap between knowing something is off and fixing it.",
+      "f1t": "Pinpoint Diagnosis",
+      "f1d": "Stop guessing. Our AI identifies the exact mechanical flaw costing you the most points and shows you why it breaks down under pressure.",
+      "f2t": "Personalised Drill Plans",
+      "f2d": "Every drill is mapped to your specific weakness — not a generic training template. Practice with purpose, improve with proof.",
+      "f3t": "Match-Ready Insights",
+      "f3d": "Tactical guidance that translates your mechanical fixes into real match situations. Know what to do when the score gets tight."
+    },
+    "proof": {
+      "eyebrow": "Player Stories",
+      "heading": "Hear from players like you.",
+      "t1q": "\"I used to walk off the court knowing something was wrong but not what. SmartSwing told me in 60 seconds.\"",
+      "t1n": "Marcus T.", "t1r": "Adult League Player",
+      "t2q": "\"My coach was surprised I fixed my footwork before my next lesson. I just followed the drill it gave me.\"",
+      "t2n": "Sofia R.", "t2r": "Junior Player, Age 14",
+      "t3q": "\"I stopped losing third sets to bad decisions. Now I know which mechanics break under pressure and what to do about it.\"",
+      "t3n": "David L.", "t3r": "3.5 NTRP Tournament Player"
+    },
+    "cta": {
+      "heading": "Your next match starts with one upload.",
+      "body": "Start with one free analysis. Unlock saved reports, the full drills library, and progress tracking when the value is obvious.",
+      "primary": "Open Analyzer",
+      "secondary": "Compare Plans"
+    }
+  },
+  "forCoaches": {
+    "hero": {
+      "eyebrow": "For Coaches",
+      "heading": "Your Athletes.",
+      "headingAccent": "Accelerated.",
+      "body": "AI-generated biomechanics reports in 60 seconds, drill assignment in 2 clicks, and a roster dashboard that shows who needs attention — before they tell you.",
+      "cta1": "Open Coach Dashboard",
+      "cta2": "View Pricing"
+    },
+    "stats": {
+      "s1v": "2min", "s1l": "Report Review",
+      "s2v": "60s", "s2l": "AI Analysis",
+      "s3v": "100%", "s3l": "Roster Visibility",
+      "s4v": "3x", "s4l": "Faster Triage"
+    },
+    "features": {
+      "eyebrow": "Coach Workflows",
+      "heading": "Less admin. More coaching.",
+      "tagline": "Three tools that close the loop from analysis to assignment to accountability.",
+      "f1t": "Full Roster Dashboard",
+      "f1d": "See every athlete's latest analysis, assigned drills, and progress trajectory in one unified view. Flag declining metrics before they become habits.",
+      "f2t": "2-Click Drill Assignment",
+      "f2d": "Assign targeted drills directly from the AI report. Players get notified instantly. Follow-through tracking is automatic.",
+      "f3t": "Progress Intelligence",
+      "f3d": "Track biomechanics trends across sessions. See which fixes stuck, which regressed, and what to prioritise in the next block."
+    },
+    "proof": {
+      "eyebrow": "Coach Stories",
+      "heading": "What coaches are saying.",
+      "t1q": "\"I used to spend 20 minutes before each session piecing together notes. Now I open the dashboard and everything is there.\"",
+      "t1n": "Coach James P.", "t1r": "USPTA Certified",
+      "t2q": "\"Parents stopped asking vague questions. The reports show exactly what we're working on and why — it replaced 10 emails.\"",
+      "t2n": "Maria K.", "t2r": "Academy Director",
+      "t3q": "\"My juniors actually do the drills now because they can see their own data. Accountability without me chasing them.\"",
+      "t3n": "Coach Rafael D.", "t3r": "High Performance Coach"
+    },
+    "cta": {
+      "heading": "See what happens when every athlete has a weekly analysis.",
+      "body": "Map the report, assignment, and roster flow with us before a wider rollout. Start with one athlete — expand when the results are clear.",
+      "primary": "Contact SmartSwing",
+      "secondary": "View Pricing"
+    }
+  },
+  "forClubs": {
+    "hero": {
+      "eyebrow": "For Clubs & Academies",
+      "heading": "Your Program.",
+      "headingAccent": "Elevated.",
+      "body": "Give every coach AI-powered reports, every athlete a clear development path, and every parent visibility into what's actually improving.",
+      "cta1": "Discuss Rollout",
+      "cta2": "Review Pricing"
+    },
+    "stats": {
+      "s1v": "10+", "s1l": "Athletes per Coach",
+      "s2v": "Zero", "s2l": "Custom Software",
+      "s3v": "1 Week", "s3l": "To First Results",
+      "s4v": "100%", "s4l": "Parent Visibility"
+    },
+    "features": {
+      "eyebrow": "Program Benefits",
+      "heading": "Enterprise-grade AI. Club-simple rollout.",
+      "tagline": "Three capabilities that transform how your program operates.",
+      "f1t": "Multi-Coach Platform",
+      "f1d": "Every coach on your staff gets their own dashboard, athlete roster, and drill assignment workflow. Unified data, independent workflows.",
+      "f2t": "Operational Analytics",
+      "f2d": "Track program-wide trends: participation rates, athlete improvement velocity, coach activity, and family engagement — all in one view.",
+      "f3t": "Family Communication",
+      "f3d": "Automated progress reports keep every parent informed without flooding your inbox. Transparent, professional, and consistent."
+    },
+    "proof": {
+      "eyebrow": "Club Stories",
+      "heading": "Programs seeing results.",
+      "t1q": "\"We rolled out SmartSwing to our junior program in one week. Coaches love the dashboard, parents love the reports, and athletes actually do the drills.\"",
+      "t1n": "Chris A.", "t1r": "Academy Owner, 12 Courts",
+      "t2q": "\"The operational visibility alone justified the investment. I can see which coaches are reviewing footage and which athletes are falling behind.\"",
+      "t2n": "Laura M.", "t2r": "Program Director",
+      "t3q": "\"Parents stopped asking 'what are you working on?' because the reports answer that question before they even ask.\"",
+      "t3n": "Tom R.", "t3r": "Head of Coaching"
+    },
+    "cta": {
+      "heading": "Ready to upgrade your program's competitive edge?",
+      "body": "We'll scope the right entry point for your staff, athlete mix, and rollout timeline. Start with one team — expand when the results are clear.",
+      "primary": "Discuss Rollout",
+      "secondary": "Coach Workflows"
+    }
+  },
+  "forParents": {
+    "hero": {
+      "eyebrow": "For Parents",
+      "heading": "Your Junior's Progress.",
+      "headingAccent": "Visible.",
+      "body": "See exactly what your child is working on, whether lessons are making a difference, and what to practise before the next session — in plain English, not coach jargon.",
+      "cta1": "Start Free Analysis",
+      "cta2": "See Plans"
+    },
+    "stats": {
+      "s1v": "Clear", "s1l": "Reports in Plain English",
+      "s2v": "Weekly", "s2l": "Progress Updates",
+      "s3v": "100%", "s3l": "Coach Aligned",
+      "s4v": "Zero", "s4l": "Guesswork"
+    },
+    "features": {
+      "eyebrow": "Parent Benefits",
+      "heading": "Finally see what's actually improving.",
+      "tagline": "Three ways SmartSwing makes tennis parenting less stressful and more productive.",
+      "f1t": "Crystal-Clear Reports",
+      "f1d": "Every analysis is written in plain language with a numbered priority list. Know exactly what's being worked on and why — no biomechanics degree required.",
+      "f2t": "Measurable Progress",
+      "f2d": "A score that shows whether last month's lessons actually worked. Track improvement over time with data, not guesswork.",
+      "f3t": "Better Conversations",
+      "f3d": "Post-match talks become productive instead of painful. Share the report with your child's coach and align on the plan together."
+    },
+    "proof": {
+      "eyebrow": "Parent Stories",
+      "heading": "What parents are saying.",
+      "t1q": "\"I used to dread the car ride home — I never knew what to say about the match. Now we pull up the report and talk about what to work on next.\"",
+      "t1n": "Jennifer M.", "t1r": "Parent of 12-year-old",
+      "t2q": "\"My son's coach was impressed when we showed up knowing exactly what drills to focus on between lessons. SmartSwing made us better advocates.\"",
+      "t2n": "Robert K.", "t2r": "Parent of Junior Player",
+      "t3q": "\"The progress tracking alone is worth it. I can finally see whether the investment in lessons is paying off — in actual numbers, not feelings.\"",
+      "t3n": "Sarah L.", "t3r": "Tennis Parent, 2 Kids"
+    },
+    "cta": {
+      "heading": "Give your junior the advantage most parents don't know exists.",
+      "body": "Run one free analysis, review the priorities together, and decide whether the workflow makes family support easier.",
+      "primary": "Start Free Analysis",
+      "secondary": "Ask a Question"
+    }
   },
   "howItWorksPage": {
     "eyebrow": "Capture. Analyze. Correct. Track.",

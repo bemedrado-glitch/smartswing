@@ -14,6 +14,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow-x: hidden; }
 
 /* ── ACCESSIBILITY: Skip nav ── */
 .skip-nav { position:absolute; top:-100%; left:16px; z-index:9999; padding:10px 20px; background:#39ff14; color:#0a0a0a; font-weight:700; border-radius:0 0 8px 8px; font-size:14px; text-decoration:none; transition:top 0.2s; }
@@ -745,8 +746,26 @@ textarea {
   .feature-cards { grid-template-columns: 1fr; }
   .hero-v2 { padding: 100px 0 40px; }
   .hero-v2 h1 { max-width: 100%; }
-  .stat-chips { gap: 10px; }
+  .stat-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat-chip { padding: 12px 16px; min-width: 0; }
   .stat-chip strong { font-size: 22px; }
   .cta-v2 { padding: 32px 24px; }
+
+  /* ── TESTIMONIAL CAROUSEL (mobile) ── */
+  .testimonials {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+    padding-bottom: 16px;
+    scrollbar-width: none;
+  }
+  .testimonials::-webkit-scrollbar { display: none; }
+  .testimonial-card {
+    min-width: 85vw;
+    max-width: 85vw;
+    scroll-snap-align: center;
+    flex-shrink: 0;
+  }
 }
