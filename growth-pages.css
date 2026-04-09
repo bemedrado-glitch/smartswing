@@ -460,3 +460,293 @@ textarea {
   h1 { font-size: 28px; }
   .page { width: calc(100% - 16px); }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PROFESSIONAL COMPONENTS — v2 (matches index.html design system)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── REVEAL ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ── STAT CHIPS (hero metrics) ── */
+.stat-chips {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 28px 0 0;
+}
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 24px;
+  background: rgba(26,26,26,0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  min-width: 110px;
+  flex: 1;
+}
+.stat-chip strong {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--volt);
+  line-height: 1.1;
+}
+.stat-chip span {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── ICON FEATURE CARDS ── */
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.feature-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px 24px;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  cursor: default;
+}
+.feature-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(57,255,20,0.2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.feature-card .fc-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(57,255,20,0.1);
+  border: 1px solid rgba(57,255,20,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--volt);
+}
+.feature-card .fc-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.feature-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.feature-card p {
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* ── TESTIMONIAL CARDS (v2) ── */
+.testimonials {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.testimonial-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+.testimonial-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,216,77,0.2);
+}
+.tc-stars {
+  color: var(--gold);
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+.tc-quote {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  font-style: italic;
+  flex: 1;
+}
+.tc-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(57,255,20,0.2), rgba(0,212,170,0.2));
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--volt);
+}
+.tc-meta {
+  display: flex;
+  flex-direction: column;
+}
+.tc-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tc-role {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── HERO V2 (audience pages) ── */
+.hero-v2 {
+  padding: 120px 0 60px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-v2-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+.hero-v2-orb-1 {
+  top: -120px; left: -80px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(57,255,20,0.08) 0%, transparent 65%);
+}
+.hero-v2-orb-2 {
+  top: -60px; right: -60px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 65%);
+}
+.hero-v2-content {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+}
+.hero-v2 h1 {
+  font-size: clamp(36px, 5.5vw, 64px);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin: 20px 0 20px;
+  max-width: 16ch;
+}
+.hero-v2 h1 em {
+  color: var(--volt);
+  font-style: normal;
+}
+.hero-v2-sub {
+  font-size: clamp(15px, 1.6vw, 18px);
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+.hero-v2-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(57,255,20,0.15), transparent);
+  margin: 48px 0;
+  border: none;
+}
+
+/* ── SECTION HEADING ── */
+.section-heading {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.section-heading .eyebrow {
+  margin-bottom: 16px;
+}
+.section-heading h2 {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.section-heading p {
+  font-size: 16px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ── CTA BAND V2 ── */
+.cta-v2 {
+  background: linear-gradient(135deg, rgba(57,255,20,0.06) 0%, rgba(0,212,170,0.04) 100%);
+  border: 1px solid rgba(57,255,20,0.12);
+  border-radius: 28px;
+  padding: 48px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 18px;
+}
+.cta-v2 h2 {
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.cta-v2 p {
+  max-width: 440px;
+}
+
+/* ── RESPONSIVE FOR NEW COMPONENTS ── */
+@media (max-width: 1024px) {
+  .feature-cards { grid-template-columns: 1fr 1fr; }
+  .testimonials { grid-template-columns: 1fr; }
+  .cta-v2 { flex-direction: column; text-align: center; }
+  .cta-v2 p { margin: 0 auto; }
+  .cta-v2 .cta-actions { justify-content: center; }
+}
+@media (max-width: 640px) {
+  .feature-cards { grid-template-columns: 1fr; }
+  .hero-v2 { padding: 100px 0 40px; }
+  .hero-v2 h1 { max-width: 100%; }
+  .stat-chips { gap: 10px; }
+  .stat-chip { padding: 12px 16px; min-width: 0; }
+  .stat-chip strong { font-size: 22px; }
+  .cta-v2 { padding: 32px 24px; }
+}
