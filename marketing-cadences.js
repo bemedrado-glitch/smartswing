@@ -906,55 +906,7 @@ P.S. Prefer to self-onboard? https://smartswingai.com/for-clubs.html`
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // CADENCE 7: Pickleball Players — New Lead
-  // Methodology: SPIN + Mirroring + Virality
-  // ─────────────────────────────────────────────────────────────────────────
-  {
-    id: 'cadence-pickleball-new',
-    name: 'New Lead — Pickleball Players',
-    methodology: 'SPIN + Mirroring + Virality',
-    target_persona: 'pickleball',
-    description: 'Engage the fast-growing pickleball segment. Uses community language mirroring and viral sharing mechanics.',
-    is_active: true,
-    emails: [
-      {
-        sequence_num: 1, delay_days: 0, email_type: 'intro',
-        subject: 'The pickleball shot that separates 3.5 from 4.0 (it\'s not the third shot drop)',
-        body_html: '<p>Hi {{first_name}},</p><p>Everyone talks about the third shot drop. But the data from 4,000+ pickleball analyses tells a different story.</p><p><strong>The #1 differentiator between 3.5 and 4.0 players is reset mechanics — specifically, paddle face angle at contact during speed-up defense.</strong></p><p>Most players are 8-12° off optimal. That\'s the difference between a clean reset and a pop-up your opponent punishes.</p><p>Want to see where your reset stands? Upload any rally clip and get your full analysis.</p>',
-        body_text: 'Everyone focuses on the third shot drop. Data from 4,000+ analyses says the real differentiator is reset mechanics — paddle face angle during speed-up defense. Most players are 8-12° off optimal.'
-      },
-      {
-        sequence_num: 2, delay_days: 2, email_type: 'social_proof',
-        subject: 'This rec player went from 3.5 to 4.5 in 4 months (here\'s the data)',
-        body_html: '<p>{{first_name}},</p><p>Tom uploaded his first SmartSwing analysis in January as a self-rated 3.5. Four months later, he medaled at a 4.5 tournament.</p><p>His secret? He fixed <strong>three specific mechanical issues</strong> that SmartSwing identified in his first session. His coach had never mentioned any of them.</p><p>Pickleball is the fastest-growing sport in America — and the players using data are improving fastest.</p><p><a href="https://smartswingai.com/pickleball.html">See how SmartSwing works for pickleball →</a></p>',
-        body_text: 'Tom went from 3.5 to 4.5 in 4 months by fixing 3 mechanical issues SmartSwing found in his first session. His coach never mentioned them. Data-driven players improve fastest.'
-      },
-      {
-        sequence_num: 3, delay_days: 5, email_type: 'value',
-        subject: '5 things SmartSwing measures that your drill partner can\'t',
-        body_html: '<p>{{first_name}},</p><ol><li><strong>Paddle lag angle</strong> — timing of wrist snap through contact</li><li><strong>Split-step timing</strong> — are you loading 50ms early or late?</li><li><strong>Recovery position</strong> — where you end up after each shot</li><li><strong>Contact height consistency</strong> — the hidden variable in dink rallies</li><li><strong>Swing path efficiency</strong> — are you taking 20% longer paths than needed?</li></ol><p>Each one is measurable, improvable, and invisible to the naked eye.</p>',
-        body_text: '5 things SmartSwing measures: paddle lag angle, split-step timing, recovery position, contact height consistency, swing path efficiency. Each is measurable and invisible to the naked eye.'
-      },
-      {
-        sequence_num: 4, delay_days: 7, email_type: 'viral',
-        subject: 'Challenge your doubles partner — who has better mechanics?',
-        body_html: '<p>{{first_name}},</p><p>Here\'s a fun one: challenge your doubles partner to a SmartSwing-off.</p><p>Both upload a rally clip. Compare your biomechanical scores side by side. Loser buys lunch.</p><p>Share this link with your partner: <a href="https://smartswingai.com/pickleball.html">smartswingai.com/pickleball</a></p><p>We\'ve seen this turn into full-group competitions at clubs. Nothing motivates improvement like friendly competition + data.</p>',
-        body_text: 'Challenge your doubles partner: both upload a clip, compare scores, loser buys lunch. Share: https://smartswingai.com/pickleball.html — clubs are turning this into competitions.'
-      },
-      {
-        sequence_num: 5, delay_days: 10, email_type: 'cta',
-        subject: 'Your free pickleball analysis is ready — just add a video',
-        body_html: '<p>{{first_name}},</p><p>Upload any pickleball rally clip (even from your phone propped against a fence) and get:</p><ul><li>Full biomechanical breakdown of your strokes</li><li>Comparison to 4.0+ player benchmarks</li><li>Top 3 improvement priorities with drills</li></ul><p><strong>Free. No credit card. 5 minutes.</strong></p><p><a href="https://smartswingai.com/analyze.html">Get your free analysis →</a></p>',
-        body_text: 'Upload any pickleball rally clip and get: biomechanical breakdown, 4.0+ benchmarks comparison, top 3 improvement priorities. Free. No credit card. 5 minutes.'
-      }
-    ],
-    sms: [
-      { sequence_num: 1, delay_days: 3, message: '{{first_name}}, the #1 thing separating 3.5 from 4.0 pickleball players? Reset mechanics. See yours free: https://smartswingai.com/pickleball.html — reply STOP to opt out' }
-    ]
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // CADENCE 8: Coach Partnership — Advanced Outreach
+  // CADENCE 7: Coach Partnership — Advanced Outreach
   // Methodology: Mirroring + Neuroscience of Attention + SPIN
   // ─────────────────────────────────────────────────────────────────────────
   {
@@ -1056,13 +1008,13 @@ P.S. Prefer to self-onboard? https://smartswingai.com/for-clubs.html`
     name: 'Influencer / Ambassador Outreach',
     methodology: 'Corporate Visions + Positive Selling + FOMO',
     target_persona: 'coach',
-    description: 'Recruit tennis/pickleball influencers and content creators as SmartSwing ambassadors. Revenue share + exclusive access.',
+    description: 'Recruit tennis influencers and content creators as SmartSwing ambassadors. Revenue share + exclusive access.',
     is_active: true,
     emails: [
       {
         sequence_num: 1, delay_days: 0, email_type: 'intro',
         subject: 'Partnership opportunity — AI tennis content your audience will love',
-        body_html: '<p>Hi {{first_name}},</p><p>I follow your content on {{platform}} — your {{content_topic}} posts consistently get great engagement.</p><p>I\'m reaching out because SmartSwing AI is building an ambassador program for tennis/pickleball creators, and your audience is exactly who benefits from this.</p><p><strong>The pitch:</strong> You get free lifetime Pro access + 30% revenue share on every subscriber you refer. We provide content ideas, data, and co-branded assets.</p><p>Interested in hearing more? Quick reply is all it takes.</p>',
+        body_html: '<p>Hi {{first_name}},</p><p>I follow your content on {{platform}} — your {{content_topic}} posts consistently get great engagement.</p><p>I\'m reaching out because SmartSwing AI is building an ambassador program for tennis creators, and your audience is exactly who benefits from this.</p><p><strong>The pitch:</strong> You get free lifetime Pro access + 30% revenue share on every subscriber you refer. We provide content ideas, data, and co-branded assets.</p><p>Interested in hearing more? Quick reply is all it takes.</p>',
         body_text: 'I follow your content — great engagement. SmartSwing is building an ambassador program: free lifetime Pro + 30% revenue share on referrals. We provide content ideas + assets. Interested?'
       },
       {

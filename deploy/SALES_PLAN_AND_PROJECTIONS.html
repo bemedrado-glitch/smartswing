@@ -113,6 +113,73 @@
 </style>
 </head>
 <body>
+
+<!-- SECURITY GATE — 6-digit code required -->
+<div id="securityGate" style="position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;max-width:380px;padding:40px;">
+    <div style="width:56px;height:56px;background:var(--volt);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:24px;color:#0a0a0a;font-weight:900;">$</div>
+    <h1 style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:6px;">Sales Plan &amp; Projections</h1>
+    <p style="font-size:13px;color:#888;margin-bottom:28px;">Enter the 6-digit security code to continue.</p>
+    <div id="gateCodeWrap" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="0">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="1">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="2">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="3">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="4">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="5">
+    </div>
+    <div id="gateError" style="font-size:12px;color:#ff4d4f;min-height:20px;"></div>
+    <style>
+      .gate-digit{width:44px;height:52px;border:2px solid #333;border-radius:10px;background:#181818;color:#fff;font-size:22px;font-weight:700;text-align:center;outline:none;transition:border-color .15s;}
+      .gate-digit:focus{border-color:var(--volt);}
+      .gate-digit.shake{animation:gshake .4s ease;}
+      @keyframes gshake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+    </style>
+  </div>
+</div>
+<script>
+(function securityGateInit(){
+  var DEFAULT_CODE = '182410';
+  var gate = document.getElementById('securityGate');
+  var digits = gate.querySelectorAll('.gate-digit');
+  var errEl = document.getElementById('gateError');
+  if (sessionStorage.getItem('salesplan_unlocked') === '1') { gate.remove(); return; }
+  digits[0].focus();
+  digits.forEach(function(inp, i){
+    inp.addEventListener('input', function(){
+      inp.value = inp.value.replace(/\D/g,'').slice(0,1);
+      if (inp.value && i < 5) digits[i+1].focus();
+      checkCode();
+    });
+    inp.addEventListener('keydown', function(e){
+      if (e.key === 'Backspace' && !inp.value && i > 0) { digits[i-1].focus(); digits[i-1].value = ''; }
+    });
+    inp.addEventListener('paste', function(e){
+      e.preventDefault();
+      var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      for(var j=0;j<6;j++){ digits[j].value = pasted[j]||''; }
+      if(pasted.length>=6) digits[5].focus();
+      checkCode();
+    });
+  });
+  function checkCode(){
+    var code = '';
+    digits.forEach(function(d){ code += d.value; });
+    if(code.length < 6) return;
+    if(code === DEFAULT_CODE){
+      sessionStorage.setItem('salesplan_unlocked','1');
+      gate.style.transition='opacity .3s';
+      gate.style.opacity='0';
+      setTimeout(function(){ gate.remove(); },300);
+    } else {
+      errEl.textContent = 'Invalid code. Try again.';
+      digits.forEach(function(d){ d.classList.add('shake'); d.value=''; });
+      setTimeout(function(){ digits.forEach(function(d){ d.classList.remove('shake'); }); digits[0].focus(); },400);
+    }
+  }
+})();
+</script>
+
 <div class="wrap">
 
 <!-- ══════════════════════════════════════════════════════════════ -->

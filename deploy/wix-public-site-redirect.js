@@ -20,7 +20,6 @@
     "/review": "/",
     "/review-all": "/",
     "/quiz-tennis-1": ANALYZER_PATH,
-    "/quiz-pickleball-1": ANALYZER_PATH,
     "/free-analysis": ANALYZER_PATH,
     "/free-assessment": ANALYZER_PATH,
     "/try-now": ANALYZER_PATH,
@@ -109,7 +108,6 @@
         if (
           ctaTextPattern.test(text) ||
           href.includes("quiz-tennis") ||
-          href.includes("quiz-pickleball") ||
           href.includes("free-analysis") ||
           href.includes("free-assessment")
         ) {

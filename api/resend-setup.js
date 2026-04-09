@@ -71,7 +71,7 @@ ${preheader ? `<div style="display:none;font-size:1px;max-height:0;overflow:hidd
       </td></tr>
       <tr><td style="background-color:${C.panel};border:1px solid ${C.border};border-radius:20px;padding:36px 32px;">${body}</td></tr>
       <tr><td style="padding:24px 0 0 0;text-align:center;font-size:12px;color:${C.muted};line-height:1.7;">
-        SmartSwing AI &bull; AI-Powered Tennis &amp; Pickleball Coaching<br>
+        SmartSwing AI &bull; AI-Powered Tennis Coaching<br>
         <a href="${APP_URL}/privacy-policy.html" style="color:${C.muted};">Privacy</a> &nbsp;&bull;&nbsp;
         <a href="${APP_URL}/user-agreement.html" style="color:${C.muted};">Terms</a> &nbsp;&bull;&nbsp;
         <a href="{{unsubscribe_url}}" style="color:${C.muted};">Unsubscribe</a>
@@ -86,7 +86,7 @@ const BROADCASTS = [
   {
     name: 'SmartSwing — Product Launch Announcement',
     subject: 'SmartSwing AI is live — your free analysis is waiting',
-    preheader: 'AI biomechanics coaching for tennis and pickleball. Free to start. Results in 60 seconds.',
+    preheader: 'AI biomechanics coaching for tennis. Free to start. Results in 60 seconds.',
     body: `
       <p style="font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">We're live</p>
       <h1 style="font-size:28px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">SmartSwing AI is officially live.</h1>
