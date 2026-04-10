@@ -999,7 +999,7 @@
     if (intent.planId !== 'free') {
       params.set('interval', normalizeBillingInterval(intent.billingInterval || 'monthly'));
     }
-    const cartPath = String(intent.cartPath || 'cart.html').replace(/^\.\//, '');
+    const cartPath = String(intent.cartPath || 'checkout.html').replace(/^\.\//, '');
     return `${getAppBaseUrl()}${cartPath}?${params.toString()}`;
   }
 
