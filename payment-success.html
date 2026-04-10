@@ -45,7 +45,10 @@
   <div class="page">
     <header class="top">
       <a class="brand" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
-      <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span id="psUserInfo" style="font-size:13px;color:rgba(255,255,255,.5);font-weight:600;"></span>
+        <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
+      </div>
     </header>
 
     <section class="panel">
@@ -78,6 +81,13 @@
     const currentUser = store.getCurrentUser();
     const currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
     const requestedPlan = requestedPlanId ? store.getPlanDefinition(requestedPlanId) : null;
+    // Show user info
+    (function(){
+      var el = document.getElementById('psUserInfo');
+      if (el && currentUser) {
+        el.textContent = (currentUser.fullName || currentUser.email || '') + (currentPlan ? ' \u00B7 ' + currentPlan.name : '');
+      }
+    })();
     const details = [];
     const primaryAction = document.getElementById('primaryAction');
     const checkoutAction = document.getElementById('checkoutAction');

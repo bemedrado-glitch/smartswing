@@ -507,7 +507,7 @@
 
     // ── Coach identity ──
     document.getElementById('coachName').textContent = access.user.fullName || 'Coach';
-    document.getElementById('coachMeta').textContent = `${summary.users?.length || 0} athletes`;
+    document.getElementById('coachMeta').textContent = `${access.plan.name} · ${summary.users?.length || 0} athletes`;
     const av = document.getElementById('coachAvatar');
     if (access.user.avatarDataUrl) {
       av.style.cssText = `background:url(${access.user.avatarDataUrl}) center/cover no-repeat; color:transparent;`;

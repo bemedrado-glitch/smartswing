@@ -152,6 +152,29 @@
       color: var(--muted);
       font-weight: 700;
     }
+    .plan-strip {
+      margin: 0 0 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(57, 255, 20, 0.22);
+      background: rgba(57, 255, 20, 0.07);
+      font-size: 13px;
+      line-height: 1.6;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .plan-strip .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--green), #82ff63);
+      font-weight: 800; font-size: 14px; color: #0a0a0a;
+      flex-shrink: 0;
+      background-size: cover; background-position: center;
+    }
+    .plan-strip strong { color: var(--green); }
+    .plan-strip a { color: var(--green); font-weight: 700; }
     @media (max-width: 980px) {
       .grid, .filters, .footer { grid-template-columns: 1fr; }
       h1 { font-size: 32px; }
@@ -176,9 +199,10 @@
       </nav>
     </header>
 
+    <div class="plan-strip" id="planStrip"></div>
+
     <section class="hero">
       <h1>Drills and Tactics Library</h1>
-      <p class="muted" id="planSummary"></p>
       <p class="muted">Browse the drill and tactic catalog publicly, then upgrade when you want protected external video links, saved reports, and the full player workflow.</p>
       <div class="filters">
         <select id="levelFilter">
@@ -288,10 +312,21 @@
     const hasLibrary = store.canAccessLibrary();
 
     function renderPlanSummary() {
+      const strip = document.getElementById('planStrip');
+      if (!strip) return;
       const usage = user ? store.canGenerateReport(user.id) : { used: 0, limit: 1 };
       const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
-      document.getElementById('planSummary').textContent =
-        `Active plan: ${plan.name}. Monthly reports used: ${usageText}. ${hasLibrary ? 'External library links are unlocked.' : 'You can browse titles now. Upgrade to Performance or Tournament Pro to unlock protected drill and tactical video links.'}`;
+      const remainingLabel = Number.isFinite(usage.remaining) ? usage.remaining : 'Unlimited';
+      const initial = (user?.fullName || 'Guest').charAt(0).toUpperCase();
+      const avatarStyle = user?.avatarDataUrl ? `background:url(${user.avatarDataUrl}) center/cover no-repeat;color:transparent;` : '';
+      const name = user?.fullName || 'Guest';
+      strip.innerHTML = `
+        <div class="avatar" style="${avatarStyle}">${avatarStyle ? '' : initial}</div>
+        <div>
+          <strong>${name}</strong> · ${plan.name} · Reports: ${usageText} · Remaining: ${remainingLabel}
+          ${hasLibrary ? ' · <span style="color:#39ff14;">Library unlocked</span>' : ' · <a href="./pricing.html">Upgrade to unlock video links</a>'}
+        </div>
+      `;
     }
 
     function renderLibrary() {
