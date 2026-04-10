@@ -308,7 +308,10 @@
     <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home">
       <img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="160" height="36">
     </a>
-    <div class="plan-badge" id="planBadge">Welcome plan</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="plan-badge" id="planBadge">Welcome plan</div>
+      <div id="userBadge" style="font-size:13px;color:rgba(255,255,255,.55);font-weight:600;"></div>
+    </div>
   </header>
 
   <div class="progress-wrap" id="progressWrap">
@@ -465,6 +468,7 @@
     const selectedPlanId = params.get('plan') || safeUser.onboardingPlanId || safeUser.planId || 'free';
     const plan = store.getPlanDefinition(selectedPlanId);
     document.getElementById('planBadge').textContent = `${plan.name} onboarding`;
+    document.getElementById('userBadge').textContent = safeUser.fullName || safeUser.email || '';
 
     // ── Stepper logic ───────────────────────────────────────────────────
     const questions = Array.from(document.querySelectorAll('.question'));
