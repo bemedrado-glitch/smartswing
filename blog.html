@@ -1924,9 +1924,15 @@ async function fetchTennisData() {
     var data = await res.json();
     _cachedTennisData = data;
 
-    if (data.error || (!data.recent || data.recent.length === 0)) {
+    // Update live badge to reflect data source
+    var liveBadge = document.getElementById('liveBadge');
+    if (liveBadge && data.live === false) {
+      liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#ffd84d;"></span>RECENT';
+    }
+
+    if (!data.recent || data.recent.length === 0) {
       renderResults([]);
-      if (ts) ts.textContent = 'Live data temporarily unavailable';
+      if (ts) ts.textContent = 'No results available';
       return;
     }
 
@@ -2286,20 +2292,32 @@ function openBracketModal(tid) {
     '<span>' + t.prize + '</span>' +
     '<span>' + statusHtml + '</span>';
 
-  // Show tournament info + official draw link instead of fake bracket
-  document.getElementById('bmBody').innerHTML =
-    '<div style="text-align:center;padding:40px 20px;">' +
-      (t.champion
-        ? '<div style="margin-bottom:24px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:8px;">Champion</div><div style="font-size:28px;font-weight:800;color:#39ff14;">' + escHtml(t.champion) + '</div></div>'
-        : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('–')[0] || t.dates) + '</div>') +
-      '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
-        'style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.4);border-radius:12px;color:#39ff14;font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;" ' +
-        'onmouseenter="this.style.background=\'rgba(57,255,20,.2)\'" onmouseleave="this.style.background=\'rgba(57,255,20,.12)\'">' +
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
-        'View Official Draw &amp; Results' +
-      '</a>' +
-      '<div style="margin-top:20px;font-size:12px;color:rgba(255,255,255,.35);">Opens the official tournament website for live, verified bracket data</div>' +
-    '</div>';
+  // Render inline bracket if draw data exists, otherwise show placeholder
+  var bmBody = document.getElementById('bmBody');
+  if (t.qf && t.qf.length > 0) {
+    bmBody.innerHTML = renderBracketHTML(t, surfaceColor) +
+      '<div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);">' +
+        '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
+          'style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.25);border-radius:10px;color:#39ff14;font-size:13px;font-weight:600;text-decoration:none;transition:all .2s;" ' +
+          'onmouseenter="this.style.background=\'rgba(57,255,20,.15)\'" onmouseleave="this.style.background=\'rgba(57,255,20,.08)\'">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+          'Official Draw' +
+        '</a>' +
+      '</div>';
+  } else {
+    bmBody.innerHTML =
+      '<div style="text-align:center;padding:40px 20px;">' +
+        (t.champion
+          ? '<div style="margin-bottom:24px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:8px;">Champion</div><div style="font-size:28px;font-weight:800;color:#39ff14;">' + escHtml(t.champion) + '</div></div>'
+          : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('–')[0] || t.dates) + '</div>') +
+        '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
+          'style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.4);border-radius:12px;color:#39ff14;font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;" ' +
+          'onmouseenter="this.style.background=\'rgba(57,255,20,.2)\'" onmouseleave="this.style.background=\'rgba(57,255,20,.12)\'">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+          'View Official Draw &amp; Results' +
+        '</a>' +
+      '</div>';
+  }
 
   var modal = document.getElementById('bracketModal');
   modal.classList.add('open');
@@ -2481,11 +2499,46 @@ document.querySelectorAll('.result-card').forEach(function(card) {
     } catch (e) { return iso; }
   }
 
+  // Try to match a live event name to an existing TOURNAMENT_DATA tid
+  function matchTid(name) {
+    var n = (name || '').toLowerCase();
+    var matches = {
+      'monte': 'monte-carlo-2026',
+      'barcelona': 'barcelona-2026',
+      'madrid': 'madrid-2026',
+      'rome': 'rome-2026',
+      'roland': 'roland-garros-2026',
+      'french': 'roland-garros-2026',
+      'wimbledon': 'wimbledon-2026',
+      'us open': 'us-open-2026',
+      'australian': 'australian-open-2027',
+      'stuttgart': 'stuttgart-2026'
+    };
+    for (var key in matches) {
+      if (n.indexOf(key) !== -1) return matches[key];
+    }
+    return null;
+  }
+
   function renderCard(ev) {
     var surface = inferSurface(ev.name);
     var bd = badge(ev.name);
     var dates = fmtDate(ev.date);
     var loc = ev.city || ev.country || ev.venue || '';
+    var tid = matchTid(ev.name);
+    // Use div with click handler for bracket modal if we have bracket data, otherwise link
+    if (tid && typeof TOURNAMENT_DATA !== 'undefined' && TOURNAMENT_DATA[tid]) {
+      return '<div class="tournament-card surface-' + surface + '" data-tid="' + escH(tid) + '" role="listitem" tabindex="0" aria-label="' + escH(ev.name) + ' — view bracket" style="cursor:pointer;">' +
+        '<div class="surface-bar" aria-hidden="true"></div>' +
+        '<div class="tc-content">' +
+        '<span class="tc-badge ' + bd.cls + '">' + bd.label + '</span>' +
+        '<div class="tc-name">' + escH(ev.name || 'Tournament') + '</div>' +
+        '<div class="tc-dates">' + escH(dates) + '</div>' +
+        '<div class="tc-location">' + escH(loc) + '</div>' +
+        '<div class="tc-prize" style="opacity:.7;font-size:11px;">Live · ATP</div>' +
+        '<span class="surface-label">' + surface.charAt(0).toUpperCase() + surface.slice(1) + '</span>' +
+        '</div></div>';
+    }
     var officialUrl = 'https://www.google.com/search?q=' + encodeURIComponent((ev.name || 'ATP tour') + ' draw bracket');
     return '<a class="tournament-card surface-' + surface + '" href="' + officialUrl + '" target="_blank" rel="noopener" role="listitem" aria-label="' + escH(ev.name) + ' — view official draw">' +
       '<div class="surface-bar" aria-hidden="true"></div>' +
@@ -2499,6 +2552,20 @@ document.querySelectorAll('.result-card').forEach(function(card) {
       '</div></a>';
   }
 
+  function wireCardHandlers(container) {
+    container.querySelectorAll('.tournament-card[data-tid]').forEach(function(card) {
+      card.addEventListener('click', function() {
+        openBracketModal(this.getAttribute('data-tid'));
+      });
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openBracketModal(this.getAttribute('data-tid'));
+        }
+      });
+    });
+  }
+
   fetch('/api/tennis-feed').then(function(r) {
     return r.ok ? r.json() : null;
   }).then(function(data) {
@@ -2506,9 +2573,10 @@ document.querySelectorAll('.result-card').forEach(function(card) {
     var cards = data.upcoming.slice(0, 12).map(renderCard).join('');
     if (cards) {
       strip.innerHTML = cards;
+      wireCardHandlers(strip);
       var head = document.getElementById('calendar-heading');
       if (head && head.nextElementSibling) {
-        head.nextElementSibling.textContent = 'Live · ATP';
+        head.nextElementSibling.textContent = data.live ? 'Live · ATP' : 'Upcoming · ATP';
       }
     }
   }).catch(function() { /* keep fallback cards */ });
