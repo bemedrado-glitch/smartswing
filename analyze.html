@@ -1124,21 +1124,78 @@
       <div class="step-content" data-step="3">
         <h2 class="step-title">Add Your Tennis Video</h2>
 
+        <!-- ── Recording Guide ─────────────────────────────────────── -->
+        <div style="margin-bottom:20px;padding:20px;border-radius:18px;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.18);position:relative;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#39ff14;">How to record the ideal video</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+            <!-- Phone position -->
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:3px;">Phone position</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;">Landscape mode, waist height, on a tripod or stable surface</div>
+              </div>
+            </div>
+            <!-- Distance -->
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H3"/><path d="M21 18H3"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M8 6v12"/><path d="M16 6v12"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:3px;">Distance</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;">8–12 feet away — your full body must be visible head to toe</div>
+              </div>
+            </div>
+            <!-- Camera angle -->
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:3px;">Camera angle</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;">Side view (90° to the baseline) — not behind or in front</div>
+              </div>
+            </div>
+            <!-- Duration -->
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:3px;">Duration</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;">10–60 seconds of one stroke type with good lighting</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Mode toggle -->
         <div class="capture-tabs">
-          <button type="button" class="capture-tab active" id="tabUpload">📁 Upload File</button>
-          <button type="button" class="capture-tab" id="tabCamera">📷 Record Now <span id="camRecommendedBadge" style="display:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.18);color:#39ff14;padding:2px 7px;border-radius:999px;margin-left:6px;">Recommended</span></button>
+          <button type="button" class="capture-tab active" id="tabUpload">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload File
+          </button>
+          <button type="button" class="capture-tab" id="tabCamera">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Record Now <span id="camRecommendedBadge" style="display:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.18);color:#39ff14;padding:2px 7px;border-radius:999px;margin-left:6px;">Recommended</span>
+          </button>
         </div>
 
         <!-- Upload mode -->
         <div id="uploadMode">
           <div id="mobileUploadHint" style="display:none;margin-bottom:12px;padding:11px 14px;background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.22);border-radius:12px;font-size:13px;color:rgba(255,255,255,.75);">
-            📱 <strong style="color:#39ff14;">On mobile?</strong> Tap <strong>Record Now</strong> above to film your swing directly — no app needed.
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <strong style="color:#39ff14;">On mobile?</strong> Tap <strong>Record Now</strong> above to film your swing directly — no app needed.
           </div>
           <div class="upload-zone" id="uploadZone">
-            <div style="font-size: 32px; margin-bottom: 16px; font-weight: 800;">VIDEO</div>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
             <div style="font-weight: 700; font-size: 18px; margin-bottom: 8px;">Click to select video</div>
-            <div style="color: var(--gray); font-size: 14px;">Side view | Full body visible | 10-60 seconds</div>
+            <div style="color: var(--gray); font-size: 14px;">Side view &middot; Full body visible &middot; 10–60 seconds</div>
             <div id="fileName" style="margin-top: 16px; color: var(--neon-green); font-weight: 700;"></div>
             <input type="file" id="videoInput" accept="video/*" style="display: none;">
           </div>
@@ -1845,8 +1902,9 @@
     function normalizeLevel(value) {
       const input = String(value || '').toLowerCase();
       if (input.includes('beginner')) return 'beginner';
+      if (input.includes('competitive') || input.includes('tournament')) return 'competitive';
       if (input.includes('advanced')) return 'advanced';
-      if (input.includes('pro')) return 'pro';
+      if (input.includes('pro') || input.includes('5.0')) return 'pro';
       return 'intermediate';
     }
 
@@ -2343,16 +2401,25 @@
     // Compute Angles
     function computeAngles(keypoints) {
       const angles = {};
-      
-      // Determine dominant side
-      const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) + 
-                        (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
-                        (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
-      const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
-                       (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
-                       (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
-      
-      const isRight = rightScore >= leftScore;
+
+      // Determine dominant side — prefer the player's profile setting so
+      // the correct arm chain is always analysed, regardless of camera angle.
+      // Fall back to keypoint confidence when no preference is set.
+      const profileHand = String(currentUser?.dominantHand || currentUser?.preferredHand || '').toLowerCase();
+      let isRight;
+      if (profileHand === 'left') {
+        isRight = false;
+      } else if (profileHand === 'right') {
+        isRight = true;
+      } else {
+        const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) +
+                          (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
+                          (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
+        const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
+                         (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
+                         (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+        isRight = rightScore >= leftScore;
+      }
       const shoulder = keypoints[isRight ? KEYPOINT.RIGHT_SHOULDER : KEYPOINT.LEFT_SHOULDER];
       const elbow = keypoints[isRight ? KEYPOINT.RIGHT_ELBOW : KEYPOINT.LEFT_ELBOW];
       const wrist = keypoints[isRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
@@ -2444,13 +2511,20 @@
       const rightAnkle = keypoints[KEYPOINT.RIGHT_ANKLE];
       const nose = keypoints[KEYPOINT.NOSE];
 
-      const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) +
-        (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
-        (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
-      const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
-        (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
-        (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
-      const isRight = rightScore >= leftScore;
+      // Use profile dominant hand preference for consistent side selection
+      const _ph = String(currentUser?.dominantHand || currentUser?.preferredHand || '').toLowerCase();
+      let isRight;
+      if (_ph === 'left') { isRight = false; }
+      else if (_ph === 'right') { isRight = true; }
+      else {
+        const rightScore = (keypoints[KEYPOINT.RIGHT_SHOULDER]?.score || 0) +
+          (keypoints[KEYPOINT.RIGHT_ELBOW]?.score || 0) +
+          (keypoints[KEYPOINT.RIGHT_WRIST]?.score || 0);
+        const leftScore = (keypoints[KEYPOINT.LEFT_SHOULDER]?.score || 0) +
+          (keypoints[KEYPOINT.LEFT_ELBOW]?.score || 0) +
+          (keypoints[KEYPOINT.LEFT_WRIST]?.score || 0);
+        isRight = rightScore >= leftScore;
+      }
       const shoulder = keypoints[isRight ? KEYPOINT.RIGHT_SHOULDER : KEYPOINT.LEFT_SHOULDER];
       const wrist = keypoints[isRight ? KEYPOINT.RIGHT_WRIST : KEYPOINT.LEFT_WRIST];
 
@@ -2937,6 +3011,7 @@
       beginner: { tolerance: 1.45, boost: 4, percentileShift: 9 },
       intermediate: { tolerance: 1.28, boost: 3, percentileShift: 5 },
       advanced: { tolerance: 1.12, boost: 2, percentileShift: 2 },
+      competitive: { tolerance: 1.08, boost: 1, percentileShift: 1 },
       pro: { tolerance: 1.05, boost: 1, percentileShift: 0 }
     };
 
@@ -2944,7 +3019,18 @@
       beginner: 0.55,
       intermediate: 0.75,
       advanced: 0.9,
+      competitive: 0.96,
       pro: 1
+    };
+
+    // Identity-based adjustments — a junior competitor has different
+    // biomechanics (growing body, developing muscle) than an adult improver
+    // or a club player returning after a break.
+    const IDENTITY_ADJUSTMENTS = {
+      'junior competitor':  { power: 0.72, flexibility: 1.12, tolerance: 1.4 },
+      'adult improver':     { power: 0.88, flexibility: 0.95, tolerance: 1.2 },
+      'club player':        { power: 0.92, flexibility: 0.98, tolerance: 1.1 },
+      'returning player':   { power: 0.82, flexibility: 0.88, tolerance: 1.35 }
     };
 
     const AGE_ADJUSTMENTS = {
@@ -3435,10 +3521,13 @@
 
     function getProfileContext(profile) {
       return {
-        level: normalizeLevel(profile?.level || currentUser?.ustaLevel || 'intermediate'),
+        level: normalizeLevel(profile?.level || currentUser?.playingLevel || currentUser?.ustaLevel || 'intermediate'),
         ageMid: parseAgeMidpoint(profile?.age || currentUser?.ageRange || ''),
         gender: String(profile?.gender || currentUser?.gender || 'unspecified').toLowerCase(),
-        preferredHand: String(currentUser?.preferredHand || 'right').toLowerCase()
+        preferredHand: String(currentUser?.dominantHand || currentUser?.preferredHand || 'right').toLowerCase(),
+        identity: String(currentUser?.playerIdentity || '').toLowerCase(),
+        ratingSystem: String(currentUser?.ratingSystem || '').toLowerCase(),
+        playingStyle: String(currentUser?.playingStyle || '').toLowerCase()
       };
     }
 
@@ -3464,12 +3553,15 @@
     function getProfileAdjustments(profileContext) {
       const ageBucket = getAgeBucket(profileContext?.ageMid);
       const genderBucket = getGenderBucket(profileContext?.gender);
+      const identityAdj = IDENTITY_ADJUSTMENTS[profileContext?.identity] || null;
       return {
         ageBucket,
         genderBucket,
+        identity: profileContext?.identity || '',
         levelExpectation: LEVEL_EXPECTATIONS[profileContext?.level] || LEVEL_EXPECTATIONS.intermediate,
         ageAdjustment: AGE_ADJUSTMENTS[ageBucket] || AGE_ADJUSTMENTS['25_34'],
-        genderAdjustment: GENDER_ADJUSTMENTS[genderBucket] || GENDER_ADJUSTMENTS.unspecified
+        genderAdjustment: GENDER_ADJUSTMENTS[genderBucket] || GENDER_ADJUSTMENTS.unspecified,
+        identityAdjustment: identityAdj
       };
     }
 
@@ -3485,14 +3577,25 @@
         multiplier *= 1.04;
       }
 
+      // Blend identity-based tolerance when available (e.g., junior
+      // competitors get wider tolerance windows than club players)
+      if (adjustments.identityAdjustment) {
+        multiplier *= (adjustments.identityAdjustment.tolerance * 0.3 + 0.7);
+      }
+
       return clamp(multiplier, 1, 3.25);
     }
 
     function getMetricExpectationScale(metricName, profileContext) {
       const adjustments = getProfileAdjustments(profileContext);
       const expectation = adjustments.levelExpectation;
-      const powerScale = adjustments.ageAdjustment.power * adjustments.genderAdjustment.power;
-      const flexibilityScale = adjustments.ageAdjustment.flexibility * adjustments.genderAdjustment.flexibility;
+      const idAdj = adjustments.identityAdjustment;
+      // Blend identity adjustments when available (30% weight) with
+      // demographic adjustments (70% weight) for a more personalized scale
+      const idPower = idAdj ? idAdj.power : 1;
+      const idFlex = idAdj ? idAdj.flexibility : 1;
+      const powerScale = adjustments.ageAdjustment.power * adjustments.genderAdjustment.power * (idPower * 0.3 + 0.7);
+      const flexibilityScale = adjustments.ageAdjustment.flexibility * adjustments.genderAdjustment.flexibility * (idFlex * 0.3 + 0.7);
 
       if (metricName === 'contactHeight' || metricName === 'reach') {
         return clamp(0.82 + (expectation * 0.22), 0.86, 1.04);
