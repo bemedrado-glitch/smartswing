@@ -47,19 +47,19 @@
       <a class="brand" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
       <div style="display:flex;align-items:center;gap:12px;">
         <span id="psUserInfo" style="font-size:13px;color:rgba(255,255,255,.5);font-weight:600;"></span>
-        <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
+        <a class="btn" id="pricingLink" href="./pricing.html" data-i18n="payment.backToPricing">Back to pricing</a>
       </div>
     </header>
 
     <section class="panel">
-      <div class="eyebrow">Payment status</div>
-      <h1 id="title">Checking your checkout status</h1>
-      <p class="muted" id="summary">Reviewing the latest handoff from secure billing and verifying it before any paid entitlements unlock.</p>
+      <div class="eyebrow" data-i18n="payment.status">Payment status</div>
+      <h1 id="title" data-i18n="payment.checkingStatus">Checking your checkout status</h1>
+      <p class="muted" id="summary" data-i18n="payment.reviewing">Reviewing the latest handoff from secure billing and verifying it before any paid entitlements unlock.</p>
       <div class="stack" id="details"></div>
       <div class="actions">
-        <a class="btn-primary" id="primaryAction" href="./dashboard.html">Open dashboard</a>
-        <a class="btn" id="checkoutAction" href="./checkout.html">Return to checkout</a>
-        <a class="btn" href="./contact.html">Contact support</a>
+        <a class="btn-primary" id="primaryAction" href="./dashboard.html" data-i18n="payment.openDashboard">Open dashboard</a>
+        <a class="btn" id="checkoutAction" href="./checkout.html" data-i18n="payment.returnToCheckout">Return to checkout</a>
+        <a class="btn" href="./contact.html" data-i18n="payment.contactSupport">Contact support</a>
       </div>
     </section>
   </div>
@@ -290,5 +290,6 @@
   </div>
 </footer>
 
+<script src="./i18n.js" defer></script>
 </body>
 </html>

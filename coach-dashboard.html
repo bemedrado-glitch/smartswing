@@ -296,11 +296,11 @@
         <img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="130" height="52">
       </a>
       <nav class="topbar-nav">
-        <a class="nav-btn active" href="./coach-dashboard.html">Coach Hub</a>
-        <a class="nav-btn" href="./dashboard.html">Player View</a>
-        <a class="nav-btn" href="./analyze.html">Analyzer</a>
-        <a class="nav-btn" href="./library.html">Drill Library</a>
-        <a class="nav-btn" href="./settings.html">Settings</a>
+        <a class="nav-btn active" href="./coach-dashboard.html" data-i18n="appNav.coachHub">Coach Hub</a>
+        <a class="nav-btn" href="./dashboard.html" data-i18n="appNav.playerView">Player View</a>
+        <a class="nav-btn" href="./analyze.html" data-i18n="appNav.analyzer">Analyzer</a>
+        <a class="nav-btn" href="./library.html" data-i18n="appNav.drillsLibrary">Drill Library</a>
+        <a class="nav-btn" href="./settings.html" data-i18n="appNav.settings">Settings</a>
       </nav>
       <div class="topbar-right">
         <div class="coach-pill">
@@ -322,14 +322,14 @@
     <!-- KPI ROW -->
     <div class="kpi-row" id="kpiRow">
       <div class="kpi-card athletes">
-        <div class="kpi-label">Total Athletes</div>
+        <div class="kpi-label" data-i18n="coachDashboard.totalAthletes">Total Athletes</div>
         <div class="kpi-value" id="kpiAthletes">—</div>
-        <div class="kpi-sub">on your roster</div>
+        <div class="kpi-sub" data-i18n="coachDashboard.onYourRoster">on your roster</div>
       </div>
       <div class="kpi-card urgent">
-        <div class="kpi-label">Needs Attention</div>
+        <div class="kpi-label" data-i18n="coachDashboard.needsAttention">Needs Attention</div>
         <div class="kpi-value" id="kpiUrgent">—</div>
-        <div class="kpi-sub">athletes flagged</div>
+        <div class="kpi-sub" data-i18n="coachDashboard.athletesFlagged">athletes flagged</div>
       </div>
       <div class="kpi-card sessions">
         <div class="kpi-label">Upcoming Sessions</div>
@@ -358,7 +358,7 @@
       <div class="two-col">
         <div class="panel">
           <div class="panel-title">
-            Priority Queue
+            <span data-i18n="coachDashboard.priorityQueue">Priority Queue</span>
             <span class="panel-title-count" id="priorityCount">0</span>
           </div>
           <div id="priorityQueue"></div>
@@ -780,5 +780,6 @@
   </div>
 </footer>
 
+<script src="./i18n.js" defer></script>
 </body>
 </html>

@@ -445,7 +445,7 @@
     <div class="top-bar-inner">
       <a href="./pricing.html" class="back-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-        Back to pricing
+        <span data-i18n="checkout.backToPricing">Back to pricing</span>
       </a>
       <a href="./index.html" style="display:flex;align-items:center;">
         <img src="./assets/logos/logo.png" alt="SmartSwing AI" height="32" style="height:32px;width:auto;">
@@ -454,7 +454,7 @@
         <span id="checkoutUserInfo" style="font-size:12px;color:var(--muted);font-weight:600;"></span>
         <span class="secure-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Secure checkout
+          <span data-i18n="checkout.secureCheckout">Secure checkout</span>
         </span>
       </div>
     </div>
@@ -465,13 +465,13 @@
 
     <!-- Header -->
     <div class="checkout-header reveal">
-      <h1 id="pageTitle">Confirm your plan</h1>
-      <p id="pageSub">Review your selection and continue to secure payment.</p>
+      <h1 id="pageTitle" data-i18n="checkout.title">Confirm your plan</h1>
+      <p id="pageSub" data-i18n="checkout.subtitle">Review your selection and continue to secure payment.</p>
     </div>
 
     <!-- Plan summary card -->
     <div class="card reveal reveal-d1">
-      <div class="card-label">Your plan</div>
+      <div class="card-label" data-i18n="checkout.yourPlan">Your plan</div>
       <div class="plan-row">
         <div class="plan-name" id="planName">Pro <span class="badge" id="planBadge">Most popular</span></div>
         <div class="plan-price">
@@ -494,7 +494,7 @@
 
     <!-- Account -->
     <div class="card reveal reveal-d3">
-      <div class="card-label">Account</div>
+      <div class="card-label" data-i18n="checkout.yourAccount">Account</div>
       <div class="account-row" id="accountRow">
         <div class="account-info">
           <div class="account-avatar" id="accountAvatar">?</div>
@@ -532,7 +532,7 @@
       </span>
       <span class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        Powered by Stripe
+        <span data-i18n="checkout.poweredByStripe">Powered by Stripe</span>
       </span>
     </div>
 

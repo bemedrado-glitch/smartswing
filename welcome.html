@@ -317,7 +317,7 @@
   <div class="progress-wrap" id="progressWrap">
     <div class="progress-meta">
       <span>Step <strong id="stepCurrent">1</strong> of <span id="stepTotal">5</span></span>
-      <span id="stepLabel">Get to know you</span>
+      <span id="stepLabel" data-i18n="welcome.getToKnow">Get to know you</span>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -342,7 +342,7 @@
 
       <!-- Q2 — Dominant hand -->
       <div class="question" data-q="2" data-name="dominantHand" data-type="single">
-        <div class="q-eyebrow">Your setup</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourSetup">Your setup</div>
         <h1 class="q-title">Which hand do you play with?</h1>
         <p class="q-help">This helps us mirror the analysis correctly for your dominant side.</p>
         <div class="choices two-col">
@@ -353,7 +353,7 @@
 
       <!-- Q3 — Playing level -->
       <div class="question" data-q="3" data-name="playingLevel" data-type="single">
-        <div class="q-eyebrow">Your level</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourLevel">Your level</div>
         <h1 class="q-title">How would you describe your playing level?</h1>
         <p class="q-help">Pick the closest match — we'll tailor benchmarks and recommendations to your level.</p>
         <div class="choices">
@@ -366,7 +366,7 @@
 
       <!-- Q4 — Rating (optional context) -->
       <div class="question" data-q="4" data-name="ratingSystem" data-type="single">
-        <div class="q-eyebrow">Your rating</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourRating">Your rating</div>
         <h1 class="q-title">Do you have an official rating?</h1>
         <p class="q-help">Optional — this helps us compare your mechanics against players at your calibrated level.</p>
         <div class="choices">
@@ -379,7 +379,7 @@
 
       <!-- Q5 — Playing style -->
       <div class="question" data-q="5" data-name="playingStyle" data-type="single">
-        <div class="q-eyebrow">Your style</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourStyle">Your style</div>
         <h1 class="q-title">How do you like to play points?</h1>
         <p class="q-help">Pick the description that feels closest to your natural game today.</p>
         <div class="choices two-col">
@@ -392,7 +392,7 @@
 
       <!-- Q6 — Practice frequency -->
       <div class="question" data-q="6" data-name="practiceFrequency" data-type="single">
-        <div class="q-eyebrow">Your routine</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourRoutine">Your routine</div>
         <h1 class="q-title">How often are you on court each week?</h1>
         <p class="q-help">This helps us pace your weekly action plan so it never feels like too much or too little.</p>
         <div class="choices two-col">
@@ -405,7 +405,7 @@
 
       <!-- Q7 — Favorite shot -->
       <div class="question" data-q="7" data-name="favoriteShot" data-type="single">
-        <div class="q-eyebrow">Your weapon</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourWeapon">Your weapon</div>
         <h1 class="q-title">What's your favorite shot?</h1>
         <p class="q-help">We'll start your first analysis here so the dashboard feels relevant from day one.</p>
         <div class="choices two-col">
@@ -418,7 +418,7 @@
 
       <!-- Q8 — Improvement goals (multi) -->
       <div class="question" data-q="8" data-name="improvementGoals" data-type="multi" data-min="1">
-        <div class="q-eyebrow">Your goals</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourGoals">Your goals</div>
         <h1 class="q-title">What do you want to improve first?</h1>
         <p class="q-help">Pick anything that resonates — at least one to continue. You can change these later.</p>
         <div class="choices two-col">
@@ -665,5 +665,6 @@
   </div>
 </footer>
 
+<script src="./i18n.js" defer></script>
 </body>
 </html>
