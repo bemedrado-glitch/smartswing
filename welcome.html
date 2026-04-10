@@ -290,6 +290,21 @@
     .success-help { color: var(--muted); margin-bottom: 28px; max-width: 50ch; margin-left: auto; margin-right: auto; }
     .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+    /* ── Skip link ─────────────────────────────────────────────────────── */
+    .skip-link {
+      display: block;
+      margin-top: 16px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.35);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 8px 0;
+      transition: color 180ms;
+    }
+    .skip-link:hover { color: rgba(255,255,255,0.6); }
+
     /* ── Mobile ────────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .choices.two-col { grid-template-columns: 1fr; }
@@ -408,6 +423,7 @@
           <label class="choice"><input type="radio" name="playerIdentity" value="club player"><span class="dot"></span><span class="label">Club player focused on consistency and confidence</span></label>
           <label class="choice"><input type="radio" name="playerIdentity" value="returning player"><span class="dot"></span><span class="label">Returning player rebuilding technique and timing</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q2 — Dominant hand -->
@@ -419,6 +435,7 @@
           <label class="choice"><input type="radio" name="dominantHand" value="right"><span class="dot"></span><span class="label">Right-handed</span></label>
           <label class="choice"><input type="radio" name="dominantHand" value="left"><span class="dot"></span><span class="label">Left-handed</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q3 — Playing level -->
@@ -432,6 +449,7 @@
           <label class="choice"><input type="radio" name="playingLevel" value="advanced"><span class="dot"></span><span class="label">Advanced — strong all-court game, competitive matches (NTRP 4.0–4.5)</span></label>
           <label class="choice"><input type="radio" name="playingLevel" value="competitive"><span class="dot"></span><span class="label">Competitive / Tournament — USTA, UTR-rated, or federation-ranked (NTRP 5.0+)</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q4 — Rating (optional context) -->
@@ -445,6 +463,7 @@
           <label class="choice"><input type="radio" name="ratingSystem" value="itf"><span class="dot"></span><span class="label">ITF / national federation ranked</span></label>
           <label class="choice"><input type="radio" name="ratingSystem" value="none"><span class="dot"></span><span class="label">No official rating — just playing for fun or fitness</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q4b — Rating level (conditional, shown when a rating system is selected) -->
@@ -489,6 +508,7 @@
           <label class="choice"><input type="radio" name="playingStyle" value="counterpuncher"><span class="dot"></span><span class="label">Counterpuncher</span></label>
           <label class="choice"><input type="radio" name="playingStyle" value="serve and volley"><span class="dot"></span><span class="label">Serve and volley</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q6 — Practice frequency -->
@@ -502,6 +522,7 @@
           <label class="choice"><input type="radio" name="practiceFrequency" value="5-6 sessions"><span class="dot"></span><span class="label">5–6 sessions</span></label>
           <label class="choice"><input type="radio" name="practiceFrequency" value="daily"><span class="dot"></span><span class="label">Daily</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q7 — Favorite shot -->
@@ -515,6 +536,7 @@
           <label class="choice"><input type="radio" name="favoriteShot" value="serve"><span class="dot"></span><span class="label">Serve</span></label>
           <label class="choice"><input type="radio" name="favoriteShot" value="volley"><span class="dot"></span><span class="label">Volley</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
       <!-- Q8 — Improvement goals (multi) -->
@@ -530,6 +552,7 @@
           <label class="choice"><input type="checkbox" name="improvementGoals" value="match strategy"><span class="check"></span><span class="label">Match strategy</span></label>
           <label class="choice"><input type="checkbox" name="improvementGoals" value="injury-safe mechanics"><span class="check"></span><span class="label">Injury-safe mechanics</span></label>
         </div>
+        <button type="button" class="skip-link" onclick="skipQuestion()">Skip this question</button>
       </div>
 
     </form>
@@ -640,6 +663,14 @@
         return inputs.length >= min;
       }
       return inputs.length > 0;
+    }
+
+    function skipQuestion() {
+      if (current < total - 1) {
+        showQuestion(current + 1);
+      } else {
+        submitQuiz();
+      }
     }
 
     function updateState() {
@@ -770,15 +801,33 @@
       }
     }
 
-    // If user already completed onboarding, skip straight to dashboard
+    // If user already completed onboarding, show welcome-back with retake option
     if (safeUser.onboardingCompletedAt) {
       planScreen.style.display = 'none';
       document.getElementById('welcomeForm').style.display = 'none';
       document.getElementById('progressWrap').style.display = 'none';
       document.getElementById('footerNav').style.display = 'none';
-      document.getElementById('successScreen').classList.add('active');
+      var retakeScreen = document.getElementById('successScreen');
+      retakeScreen.classList.add('active');
       document.querySelector('.success-title').textContent = 'Welcome back!';
-      document.querySelector('.success-help').textContent = 'You\'ve already finished onboarding. Pick up right where you left off.';
+      document.querySelector('.success-help').textContent = "You've already finished onboarding. Pick up right where you left off, or retake the quiz to update your profile.";
+      // Add retake button to success-actions
+      var retakeBtn = document.createElement('button');
+      retakeBtn.className = 'btn';
+      retakeBtn.textContent = 'Retake Quiz';
+      retakeBtn.style.cursor = 'pointer';
+      retakeBtn.addEventListener('click', function() {
+        retakeScreen.classList.remove('active');
+        // Reset all form inputs
+        document.getElementById('welcomeForm').reset();
+        document.getElementById('welcomeForm').style.display = '';
+        document.getElementById('progressWrap').style.display = '';
+        document.getElementById('footerNav').style.display = '';
+        current = 0;
+        questions.forEach(function(q, i) { q.classList.toggle('active', i === 0); });
+        updateState();
+      });
+      document.querySelector('.success-actions').appendChild(retakeBtn);
     }
 
     updateState();
