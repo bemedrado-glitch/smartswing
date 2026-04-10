@@ -252,19 +252,19 @@
         <div class="list">
           <div class="item">
             <h3 data-i18n="cp.reach.emailTitle">Primary email</h3>
-            <p class="muted"><strong><a href="mailto:support@smartswing.ai">support@smartswing.ai</a></strong><br>Best for technical questions and account setup.</p>
+            <p class="muted"><strong><a href="mailto:support@smartswing.ai">support@smartswing.ai</a></strong><br><span data-i18n="cp.emailDesc">Best for technical questions and account setup.</span></p>
           </div>
           <div class="item">
             <h3 data-i18n="cp.reach.coachTitle">Coach onboarding</h3>
-            <p class="muted"><strong><a href="mailto:coaches@smartswing.ai">coaches@smartswing.ai</a></strong><br>Best for academy rollout, roster workflows, and dashboard setup.</p>
+            <p class="muted"><strong><a href="mailto:coaches@smartswing.ai">coaches@smartswing.ai</a></strong><br><span data-i18n="cp.coachDesc">Best for academy rollout, roster workflows, and dashboard setup.</span></p>
           </div>
           <div class="item">
             <h3 data-i18n="cp.reach.salesTitle">Sales and partnerships</h3>
-            <p class="muted"><strong><a href="mailto:growth@smartswing.ai">growth@smartswing.ai</a></strong><br>Best for enterprise, clubs, and strategic integrations.</p>
+            <p class="muted"><strong><a href="mailto:growth@smartswing.ai">growth@smartswing.ai</a></strong><br><span data-i18n="cp.salesDesc">Best for enterprise, clubs, and strategic integrations.</span></p>
           </div>
           <div class="item">
             <h3 data-i18n="cp.reach.tipsTitle">How to get the most from support</h3>
-            <p class="muted">1. Run a free analysis in the Analyzer<br>2. Save your session to the dashboard<br>3. Send us your question with your goal and timeline</p>
+            <p class="muted" data-i18n="cp.supportTips">1. Run a free analysis in the Analyzer<br>2. Save your session to the dashboard<br>3. Send us your question with your goal and timeline</p>
           </div>
         </div>
       </div>
@@ -272,30 +272,30 @@
       <div class="panel">
         <h2 data-i18n="cp.form.heading">Send message</h2>
         <form id="contactForm">
-          <label for="name">Full name
-            <input id="name" type="text" required placeholder="Example: Alex Morgan">
+          <label for="name" data-i18n="cp.labelName">Full name
+            <input id="name" type="text" required placeholder="Example: Alex Morgan" data-i18n-placeholder="cp.placeholderName">
           </label>
-          <label for="email">Email
-            <input id="email" type="email" required placeholder="you@example.com">
+          <label for="email" data-i18n="cp.labelEmail">Email
+            <input id="email" type="email" required placeholder="you@example.com" data-i18n-placeholder="cp.placeholderEmail">
           </label>
-          <label for="topic">Topic
+          <label for="topic" data-i18n="cp.labelTopic">Topic
             <select id="topic" required>
-              <option value="">Select topic</option>
-              <option value="onboarding">Onboarding</option>
-              <option value="technical-support">Technical support</option>
-              <option value="privacy-rights">Privacy or LGPD request</option>
-              <option value="accessibility-barrier">Accessibility barrier</option>
-              <option value="coach-dashboard">Coach dashboard rollout</option>
-              <option value="sales">Sales and pricing</option>
-              <option value="partnership">Partnership</option>
+              <option value="" data-i18n="cp.optionSelect">Select topic</option>
+              <option value="onboarding" data-i18n="cp.optionOnboarding">Onboarding</option>
+              <option value="technical-support" data-i18n="cp.optionTechnical">Technical support</option>
+              <option value="privacy-rights" data-i18n="cp.optionPrivacy">Privacy or LGPD request</option>
+              <option value="accessibility-barrier" data-i18n="cp.optionAccessibility">Accessibility barrier</option>
+              <option value="coach-dashboard" data-i18n="cp.optionCoachDashboard">Coach dashboard rollout</option>
+              <option value="sales" data-i18n="cp.optionSales">Sales and pricing</option>
+              <option value="partnership" data-i18n="cp.optionPartnership">Partnership</option>
             </select>
           </label>
-          <label for="message">Message
-            <textarea id="message" required placeholder="Describe your objective, blockers, and expected outcome."></textarea>
+          <label for="message" data-i18n="cp.labelMessage">Message
+            <textarea id="message" required placeholder="Describe your objective, blockers, and expected outcome." data-i18n-placeholder="cp.placeholderMessage"></textarea>
           </label>
           <button class="btn btn-primary" type="submit" data-i18n="cp.form.submit">Submit message</button>
         </form>
-        <div id="contactNotice" class="notice">Your message is sent securely to our support team.</div>
+        <div id="contactNotice" class="notice" data-i18n="cp.notice">Your message is sent securely to our support team.</div>
       </div>
     </section>
 
@@ -304,34 +304,34 @@
         <div class="footer-grid">
           <div>
             <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35"></div>
-            <p class="footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
+            <p class="footer-tagline" data-i18n="footer.tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
           </div>
           <div class="footer-col">
-            <strong>Product</strong>
+            <strong data-i18n="footer.colProduct">Product</strong>
             <div class="footer-links">
-              <a href="./features.html">Features</a>
-              <a href="./pricing.html">Pricing</a>
-              <a href="./how-it-works.html">How It Works</a>
-              <a href="./analyze.html">Analyze a Swing</a>
+              <a href="./features.html" data-i18n="footer.features">Features</a>
+              <a href="./pricing.html" data-i18n="footer.pricing">Pricing</a>
+              <a href="./how-it-works.html" data-i18n="footer.howItWorks">How It Works</a>
+              <a href="./analyze.html" data-i18n="footer.analyze">Analyze a Swing</a>
             </div>
           </div>
           <div class="footer-col">
-            <strong>For You</strong>
+            <strong data-i18n="footer.colForYou">For You</strong>
             <div class="footer-links">
-              <a href="./for-players.html">Players</a>
-              <a href="./for-coaches.html">Coaches</a>
-              <a href="./for-clubs.html">Clubs</a>
-              <a href="./for-parents.html">Parents</a>
+              <a href="./for-players.html" data-i18n="footer.players">Players</a>
+              <a href="./for-coaches.html" data-i18n="footer.coaches">Coaches</a>
+              <a href="./for-clubs.html" data-i18n="footer.clubs">Clubs</a>
+              <a href="./for-parents.html" data-i18n="footer.parents">Parents</a>
             </div>
           </div>
           <div class="footer-col">
-            <strong>Trust &amp; Legal</strong>
+            <strong data-i18n="footer.colTrust">Trust &amp; Legal</strong>
             <div class="footer-links">
-              <a href="./refund-policy.html">Refund Policy</a>
-              <a href="./user-agreement.html">User Agreement</a>
-              <a href="./privacy-policy.html">Privacy Policy</a>
-              <a href="./cookie-policy.html">Cookie Policy</a>
-              <a href="./accessibility.html">Accessibility</a>
+              <a href="./refund-policy.html" data-i18n="footer.refundPolicy">Refund Policy</a>
+              <a href="./user-agreement.html" data-i18n="footer.userAgreement">User Agreement</a>
+              <a href="./privacy-policy.html" data-i18n="footer.privacyPolicy">Privacy Policy</a>
+              <a href="./cookie-policy.html" data-i18n="footer.cookiePolicy">Cookie Policy</a>
+              <a href="./accessibility.html" data-i18n="footer.accessibility">Accessibility</a>
               <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
               <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
               <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
@@ -339,11 +339,11 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
+          <p data-i18n="footer.copyright">&copy; 2025 SmartSwing AI. All rights reserved.</p>
           <div class="footer-bottom-links">
-            <a href="./privacy-policy.html">Privacy</a>
-            <a href="./user-agreement.html">Terms</a>
-            <a href="./cookie-policy.html">Cookies</a>
+            <a href="./privacy-policy.html" data-i18n="footer.privacy">Privacy</a>
+            <a href="./user-agreement.html" data-i18n="footer.terms">Terms</a>
+            <a href="./cookie-policy.html" data-i18n="footer.cookies">Cookies</a>
             <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
             <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
             <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>

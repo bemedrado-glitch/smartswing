@@ -15,7 +15,7 @@
     "tagline": "Análisis de tenis con IA para jugadores, entrenadores y clubes.",
     "tagline1": "Creado para jugadores, entrenadores y programas de alto rendimiento.",
     "tagline2": "Inteligencia tenística para análisis, mejora y seguimiento.",
-    "copyright": "© 2026 SmartSwing AI",
+    "copyright": "© 2025 SmartSwing AI. Todos los derechos reservados.",
     "col": {
       "pathways": "Accesos",
       "resources": "Recursos",
@@ -50,7 +50,29 @@
       "privacy": "Privacidad",
       "terms": "Términos",
       "cookies": "Cookies"
-    }
+    },
+    "colProduct": "Producto",
+    "colForYou": "Para Ti",
+    "colTrust": "Confianza y Legal",
+    "features": "Funciones",
+    "pricing": "Precios",
+    "howItWorks": "Cómo Funciona",
+    "analyze": "Analizar un Golpe",
+    "players": "Jugadores",
+    "coaches": "Entrenadores",
+    "clubs": "Clubes",
+    "parents": "Padres",
+    "refundPolicy": "Política de Reembolso",
+    "userAgreement": "Acuerdo de Usuario",
+    "privacyPolicy": "Política de Privacidad",
+    "cookiePolicy": "Política de Cookies",
+    "accessibility": "Accesibilidad",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "cookies": "Cookies"
   },
   "cookie": {
     "title": "Aviso de cookies",
@@ -239,7 +261,8 @@
       "summary": "La plataforma puede expandirse sin hacer que la experiencia de tenis se sienta genérica.",
       "whatDetail": "SmartSwing mantiene el tenis como experiencia principal.",
       "whyDetail": "los nuevos deportes pueden heredar el sistema sin diluir el producto principal."
-    }
+    },
+    "learnMore": "Saber más →"
   },
   "showcase": {
     "coaches": {
@@ -875,7 +898,23 @@
     "form": {
       "heading": "Enviar mensaje",
       "submit": "Enviar mensaje"
-    }
+    },
+    "emailDesc": "Ideal para preguntas técnicas y configuración de cuenta.",
+    "coachDesc": "Ideal para implementación en academias, flujos de plantilla y configuración de panel.",
+    "salesDesc": "Ideal para empresas, clubes e integraciones estratégicas.",
+    "labelName": "Nombre completo",
+    "labelEmail": "Correo electrónico",
+    "labelTopic": "Tema",
+    "labelMessage": "Mensaje",
+    "optionSelect": "Seleccionar tema",
+    "optionOnboarding": "Integración",
+    "optionTechnical": "Soporte técnico",
+    "optionPrivacy": "Solicitud de privacidad o LGPD",
+    "optionAccessibility": "Barrera de accesibilidad",
+    "optionCoachDashboard": "Implementación del panel de entrenador",
+    "optionSales": "Ventas y precios",
+    "optionPartnership": "Asociación",
+    "notice": "Su mensaje se envía de forma segura a nuestro equipo de soporte."
   },
   "appNav": {
     "dashboard": "Panel",
@@ -1056,5 +1095,8 @@
     "cancelledBody": "Tu acceso SmartSwing permanece exactamente como estaba. Si cancelaste el Stripe Checkout, no se creó ninguna suscripción y puedes regresar cuando estés listo.",
     "comparePlans": "Comparar planes de nuevo",
     "backToPricing": "Volver a precios"
+  },
+  "a11y": {
+    "skipNav": "Saltar al contenido principal"
   }
 }

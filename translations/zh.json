@@ -12,10 +12,10 @@
     "features": "功能"
   },
   "footer": {
-    "tagline": "专为球员、教练和高性能训练项目打造。",
+    "tagline": "为球员、教练和俱乐部提供的AI网球分析。",
     "tagline1": "专为球员、教练和高性能训练项目打造。",
     "tagline2": "网络优先的网球智能平台，助力分析、提升与责任追踪。",
-    "copyright": "© 2026 SmartSwing AI",
+    "copyright": "© 2025 SmartSwing AI。保留所有权利。",
     "col": {
       "pathways": "入口",
       "resources": "资源",
@@ -50,7 +50,29 @@
       "privacy": "隐私",
       "terms": "条款",
       "cookies": "Cookies"
-    }
+    },
+    "colProduct": "产品",
+    "colForYou": "为你",
+    "colTrust": "信任与法律",
+    "features": "功能",
+    "pricing": "价格",
+    "howItWorks": "如何运作",
+    "analyze": "分析挥拍",
+    "players": "球员",
+    "coaches": "教练",
+    "clubs": "俱乐部",
+    "parents": "家长",
+    "refundPolicy": "退款政策",
+    "userAgreement": "用户协议",
+    "privacyPolicy": "隐私政策",
+    "cookiePolicy": "Cookie政策",
+    "accessibility": "无障碍访问",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "privacy": "隐私",
+    "terms": "条款",
+    "cookies": "Cookies"
   },
   "cookie": {
     "title": "Cookie通知",
@@ -239,7 +261,8 @@
       "summary": "平台可以扩展而不使网球体验变得通用或稀释。",
       "whatDetail": "SmartSwing保持网球为主要体验。",
       "whyDetail": "新运动可以继承系统而不稀释核心产品。"
-    }
+    },
+    "learnMore": "了解更多 →"
   },
   "showcase": {
     "coaches": {
@@ -875,7 +898,23 @@
     "form": {
       "heading": "发送消息",
       "submit": "发送消息"
-    }
+    },
+    "emailDesc": "最适合技术问题和账户设置。",
+    "coachDesc": "最适合学院部署、名单工作流和仪表板设置。",
+    "salesDesc": "最适合企业、俱乐部和战略集成。",
+    "labelName": "全名",
+    "labelEmail": "电子邮件",
+    "labelTopic": "主题",
+    "labelMessage": "消息",
+    "optionSelect": "选择主题",
+    "optionOnboarding": "入门",
+    "optionTechnical": "技术支持",
+    "optionPrivacy": "隐私或LGPD请求",
+    "optionAccessibility": "无障碍访问障碍",
+    "optionCoachDashboard": "教练仪表板部署",
+    "optionSales": "销售和定价",
+    "optionPartnership": "合作伙伴",
+    "notice": "您的消息已安全发送给我们的支持团队。"
   },
   "appNav": {
     "dashboard": "仪表板",
@@ -1056,5 +1095,8 @@
     "cancelledBody": "您的SmartSwing访问保持原样。如果您取消了Stripe结账，则未创建订阅，您可以随时返回。",
     "comparePlans": "再次比较计划",
     "backToPricing": "返回定价"
+  },
+  "a11y": {
+    "skipNav": "跳转到主要内容"
   }
 }

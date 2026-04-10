@@ -12,10 +12,10 @@
     "features": "Funktionen"
   },
   "footer": {
-    "tagline": "KI-gestützte Tennisanalyse für Spieler, Trainer und Clubs.",
+    "tagline": "KI-gestützte Tennisanalyse für Spieler, Trainer und Vereine.",
     "tagline1": "Für Spieler, Trainer und Leistungsprogramme.",
     "tagline2": "Web-first Tennisintelligenz für Analyse, Verbesserung und Verantwortlichkeit.",
-    "copyright": "© 2026 SmartSwing AI",
+    "copyright": "© 2025 SmartSwing AI. Alle Rechte vorbehalten.",
     "col": {
       "pathways": "Einstieg",
       "resources": "Ressourcen",
@@ -50,7 +50,29 @@
       "privacy": "Datenschutz",
       "terms": "AGB",
       "cookies": "Cookies"
-    }
+    },
+    "colProduct": "Produkt",
+    "colForYou": "Für Dich",
+    "colTrust": "Vertrauen & Recht",
+    "features": "Funktionen",
+    "pricing": "Preise",
+    "howItWorks": "So funktioniert es",
+    "analyze": "Schwung analysieren",
+    "players": "Spieler",
+    "coaches": "Trainer",
+    "clubs": "Vereine",
+    "parents": "Eltern",
+    "refundPolicy": "Rückerstattungsrichtlinie",
+    "userAgreement": "Nutzungsvereinbarung",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "cookiePolicy": "Cookie-Richtlinie",
+    "accessibility": "Barrierefreiheit",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "cookies": "Cookies"
   },
   "cookie": {
     "title": "Cookie-Hinweis",
@@ -239,7 +261,8 @@
       "summary": "Die Plattform kann sich erweitern, ohne das Tennis-Erlebnis generisch zu machen.",
       "whatDetail": "SmartSwing behält Tennis als Haupterlebnis bei.",
       "whyDetail": "Neue Sportarten können das System übernehmen, ohne das Kernprodukt zu verwässern."
-    }
+    },
+    "learnMore": "Mehr erfahren →"
   },
   "showcase": {
     "coaches": {
@@ -875,7 +898,23 @@
     "form": {
       "heading": "Nachricht senden",
       "submit": "Nachricht senden"
-    }
+    },
+    "emailDesc": "Am besten für technische Fragen und Kontoeinrichtung.",
+    "coachDesc": "Am besten für Akademie-Einführung, Kader-Workflows und Dashboard-Einrichtung.",
+    "salesDesc": "Am besten für Unternehmen, Vereine und strategische Integrationen.",
+    "labelName": "Vollständiger Name",
+    "labelEmail": "E-Mail",
+    "labelTopic": "Thema",
+    "labelMessage": "Nachricht",
+    "optionSelect": "Thema auswählen",
+    "optionOnboarding": "Onboarding",
+    "optionTechnical": "Technischer Support",
+    "optionPrivacy": "Datenschutz- oder LGPD-Anfrage",
+    "optionAccessibility": "Barrierefreiheitsproblem",
+    "optionCoachDashboard": "Trainer-Dashboard-Einführung",
+    "optionSales": "Vertrieb und Preise",
+    "optionPartnership": "Partnerschaft",
+    "notice": "Ihre Nachricht wird sicher an unser Support-Team gesendet."
   },
   "appNav": {
     "dashboard": "Dashboard",
@@ -1056,5 +1095,8 @@
     "cancelledBody": "Dein SmartSwing-Zugang bleibt genau wie er war. Wenn du den Stripe Checkout abgebrochen hast, wurde kein Abonnement erstellt und du kannst jederzeit zurückkehren.",
     "comparePlans": "Pläne erneut vergleichen",
     "backToPricing": "Zurück zu Preisen"
+  },
+  "a11y": {
+    "skipNav": "Zum Hauptinhalt springen"
   }
 }

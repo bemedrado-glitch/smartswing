@@ -12,10 +12,10 @@
     "features": "機能"
   },
   "footer": {
-    "tagline": "プレイヤー、コーチ、強化プログラムのために構築。",
+    "tagline": "選手、コーチ、クラブ向けのAIテニス分析。",
     "tagline1": "プレイヤー、コーチ、強化プログラムのために構築。",
     "tagline2": "分析、改善、アカウンタビリティのためのウェブファーストテニスインテリジェンス。",
-    "copyright": "© 2026 SmartSwing AI",
+    "copyright": "© 2025 SmartSwing AI。全著作権所有。",
     "col": {
       "pathways": "メニュー",
       "resources": "リソース",
@@ -50,7 +50,29 @@
       "privacy": "プライバシー",
       "terms": "利用規約",
       "cookies": "Cookie"
-    }
+    },
+    "colProduct": "製品",
+    "colForYou": "あなたへ",
+    "colTrust": "信頼と法的情報",
+    "features": "機能",
+    "pricing": "料金",
+    "howItWorks": "仕組み",
+    "analyze": "スイングを分析",
+    "players": "選手",
+    "coaches": "コーチ",
+    "clubs": "クラブ",
+    "parents": "保護者",
+    "refundPolicy": "返金ポリシー",
+    "userAgreement": "利用規約",
+    "privacyPolicy": "プライバシーポリシー",
+    "cookiePolicy": "Cookieポリシー",
+    "accessibility": "アクセシビリティ",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "privacy": "プライバシー",
+    "terms": "利用規約",
+    "cookies": "Cookies"
   },
   "cookie": {
     "title": "Cookieに関するお知らせ",
@@ -239,7 +261,8 @@
       "summary": "プラットフォームはテニス体験を汎用化することなく拡張できます。",
       "whatDetail": "SmartSwingはテニスを主要な体験として維持します。",
       "whyDetail": "新しいスポーツはコア製品を希薄化せずにシステムを継承できます。"
-    }
+    },
+    "learnMore": "詳しく見る →"
   },
   "showcase": {
     "coaches": {
@@ -875,7 +898,23 @@
     "form": {
       "heading": "メッセージを送信",
       "submit": "メッセージを送信"
-    }
+    },
+    "emailDesc": "技術的な質問やアカウント設定に最適です。",
+    "coachDesc": "アカデミー導入、ロスターワークフロー、ダッシュボード設定に最適です。",
+    "salesDesc": "企業、クラブ、戦略的統合に最適です。",
+    "labelName": "氏名",
+    "labelEmail": "メール",
+    "labelTopic": "トピック",
+    "labelMessage": "メッセージ",
+    "optionSelect": "トピックを選択",
+    "optionOnboarding": "オンボーディング",
+    "optionTechnical": "テクニカルサポート",
+    "optionPrivacy": "プライバシーまたはLGPDリクエスト",
+    "optionAccessibility": "アクセシビリティの障壁",
+    "optionCoachDashboard": "コーチダッシュボード導入",
+    "optionSales": "営業と価格",
+    "optionPartnership": "パートナーシップ",
+    "notice": "メッセージは安全にサポートチームに送信されます。"
   },
   "appNav": {
     "dashboard": "ダッシュボード",
@@ -1056,5 +1095,8 @@
     "cancelledBody": "SmartSwingへのアクセスはそのままです。Stripeチェックアウトをキャンセルした場合、サブスクリプションは作成されていません。いつでも戻ることができます。",
     "comparePlans": "プランを再比較",
     "backToPricing": "料金に戻る"
+  },
+  "a11y": {
+    "skipNav": "メインコンテンツにスキップ"
   }
 }

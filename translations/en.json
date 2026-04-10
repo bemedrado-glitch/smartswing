@@ -15,7 +15,7 @@
     "tagline": "AI-powered tennis analysis for players, coaches, and clubs.",
     "tagline1": "Built for players, coaches, and performance programs.",
     "tagline2": "Web-first tennis intelligence for analysis, improvement, and accountability.",
-    "copyright": "© 2026 SmartSwing AI",
+    "copyright": "© 2025 SmartSwing AI. All rights reserved.",
     "col": {
       "pathways": "Pathways",
       "resources": "Resources",
@@ -50,7 +50,29 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "cookies": "Cookies"
-    }
+    },
+    "colProduct": "Product",
+    "colForYou": "For You",
+    "colTrust": "Trust & Legal",
+    "features": "Features",
+    "pricing": "Pricing",
+    "howItWorks": "How It Works",
+    "analyze": "Analyze a Swing",
+    "players": "Players",
+    "coaches": "Coaches",
+    "clubs": "Clubs",
+    "parents": "Parents",
+    "refundPolicy": "Refund Policy",
+    "userAgreement": "User Agreement",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy",
+    "accessibility": "Accessibility",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "cookies": "Cookies"
   },
   "cookie": {
     "title": "Cookie notice",
@@ -239,7 +261,8 @@
       "summary": "The platform can expand without making the tennis experience feel generic or watered down.",
       "whatDetail": "SmartSwing keeps tennis as the lead experience while allowing the workflow to branch cleanly.",
       "whyDetail": "new sports can inherit the system without diluting the core product."
-    }
+    },
+    "learnMore": "Learn more →"
   },
   "showcase": {
     "coaches": {
@@ -312,9 +335,6 @@
     }
   },
   "testimonials": {
-    "eyebrow": "★★★★★  What players are saying",
-    "heading": "Real players. Real results. Zero guessing.",
-    "tagline": "Join 2,400+ players and coaches who already know exactly what to fix before their next match.",
     "t1": {
       "stat": "★★★★★  Marcus T. — Adult league, 3.5 NTRP",
       "title": "\"Finally know what's actually wrong\"",
@@ -773,23 +793,6 @@
     "ctaContact": "Talk to Us",
     "footerTagline": "Workflow overview from capture to analysis, drills, tactics, and follow-through."
   },
-  "testimonials": {
-    "t1": {
-      "stat": "★★★★★  Marcus T. — Adult league, 3.5 NTRP",
-      "title": "\"Finally know what's actually wrong\"",
-      "quote": "\"I'd been playing for 8 years and still walked off court confused after every loss. SmartSwing showed me my hip rotation was 40% off on the backhand side. Fixed it in two weeks.\""
-    },
-    "t2": {
-      "stat": "★★★★★  Coach Daniel R. — Academy Director",
-      "title": "\"Transformed how I run my roster\"",
-      "quote": "\"I coach 14 juniors. Before SmartSwing I couldn't review video between sessions. Now every athlete has a weekly AI report and I spend my sessions coaching — not diagnosing.\""
-    },
-    "t3": {
-      "stat": "★★★★★  David L. — Tournament competitor, 4.5 NTRP",
-      "title": "\"This is what a film room feels like\"",
-      "quote": "\"I stopped losing third sets to the same mechanical breakdown. SmartSwing identified that my serve mechanics collapse under pressure and gave me the exact drill to fix it.\""
-    }
-  },
   "fp": {
     "hero": {
       "eyebrow": "Feature Stack",
@@ -1075,6 +1078,25 @@
     "form": {
       "heading": "Send message",
       "submit": "Submit message"
-    }
+    },
+    "emailDesc": "Best for technical questions and account setup.",
+    "coachDesc": "Best for academy rollout, roster workflows, and dashboard setup.",
+    "salesDesc": "Best for enterprise, clubs, and strategic integrations.",
+    "labelName": "Full name",
+    "labelEmail": "Email",
+    "labelTopic": "Topic",
+    "labelMessage": "Message",
+    "optionSelect": "Select topic",
+    "optionOnboarding": "Onboarding",
+    "optionTechnical": "Technical support",
+    "optionPrivacy": "Privacy or LGPD request",
+    "optionAccessibility": "Accessibility barrier",
+    "optionCoachDashboard": "Coach dashboard rollout",
+    "optionSales": "Sales and pricing",
+    "optionPartnership": "Partnership",
+    "notice": "Your message is sent securely to our support team."
+  },
+  "a11y": {
+    "skipNav": "Skip to main content"
   }
 }

@@ -49,8 +49,33 @@ function normaliseEvent(ev) {
     status: ev.strStatus || null,
     round: ev.intRound || null,
     season: ev.strSeason || null,
+    sport: ev.strSport || null,
   };
 }
+
+const FALLBACK_RESULTS = [
+  {
+    id: 'fallback-1', name: 'ATP Masters 1000 — Monte-Carlo',
+    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-12',
+    homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
+    venue: 'Monte-Carlo Country Club', city: 'Roquebrune-Cap-Martin', country: 'France',
+    thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
+  },
+  {
+    id: 'fallback-2', name: 'WTA 500 — Stuttgart Open',
+    tournament: 'Porsche Tennis Grand Prix', date: '2026-04-14',
+    homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
+    venue: 'Porsche Arena', city: 'Stuttgart', country: 'Germany',
+    thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
+  },
+  {
+    id: 'fallback-3', name: 'ATP 500 — Barcelona Open',
+    tournament: 'Barcelona Open Banc Sabadell', date: '2026-04-20',
+    homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
+    venue: 'Real Club de Tenis Barcelona', city: 'Barcelona', country: 'Spain',
+    thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
+  }
+];
 
 module.exports = async (req, res) => {
   // CORS preflight
@@ -86,7 +111,15 @@ module.exports = async (req, res) => {
     ]
       .sort((a, b) => (a.dateEvent || '').localeCompare(b.dateEvent || ''))
       .slice(0, 25)
-      .map(normaliseEvent);
+      .map(normaliseEvent)
+      .filter(ev => {
+        // Guard against TheSportsDB returning wrong-sport events under tennis league IDs
+        if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
+        // Filter out events with obviously non-tennis names
+        const name = (ev.name || '').toLowerCase();
+        if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
+        return true;
+      });
 
     const recent = [
       ...(Array.isArray(atpPast?.events) ? atpPast.events : []),
@@ -94,16 +127,33 @@ module.exports = async (req, res) => {
     ]
       .sort((a, b) => (b.dateEvent || '').localeCompare(a.dateEvent || ''))
       .slice(0, 25)
-      .map(normaliseEvent);
+      .map(normaliseEvent)
+      .filter(ev => {
+        // Guard against TheSportsDB returning wrong-sport events under tennis league IDs
+        if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
+        // Filter out events with obviously non-tennis names
+        const name = (ev.name || '').toLowerCase();
+        if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
+        return true;
+      });
+
+    if (upcoming.length === 0 && recent.length === 0) {
+      return res.status(200).json({
+        upcoming: FALLBACK_RESULTS,
+        recent: [],
+        error: 'no events returned — showing scheduled events',
+        fetchedAt,
+      });
+    }
 
     return res.status(200).json({ upcoming, recent, fetchedAt });
   } catch (err) {
     // Always 200 for the blog — caller shows hardcoded fallback
     console.error('[tennis-feed] fetch error:', err.message || err);
     return res.status(200).json({
-      upcoming: [],
+      upcoming: FALLBACK_RESULTS,
       recent: [],
-      error: 'live data unavailable',
+      error: 'live data unavailable — showing scheduled events',
       fetchedAt,
     });
   }
