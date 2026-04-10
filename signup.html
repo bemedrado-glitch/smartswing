@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,7 +6,7 @@
   <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Your SmartSwing AI Account</title>
-  <meta name="description" content="Create a SmartSwing AI player or coach account with Google, Apple, or email. Add your profile photo and player details to personalize reports and dashboards.">
+  <meta name="description" content="Create a SmartSwing AI player or coach account with Google, Apple, or email. Start analyzing your tennis swings with AI in 60 seconds.">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -38,23 +38,120 @@
         linear-gradient(160deg, #020406 0%, #09131d 100%);
     }
 
-    .shell {
+    /* ── Layout ─────────────────────────────────────── */
+    .auth-wrapper {
       width: 100%;
-      max-width: 760px;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
     }
 
-    .logo {
-      display: inline-block;
-      margin-bottom: 24px;
-      font-size: 34px;
+    @media (max-width: 820px) {
+      .auth-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        gap: 32px;
+      }
+      .value-panel { display: none; }
+    }
+
+    /* ── Value panel (left side on desktop) ──────────── */
+    .value-panel {
+      padding: 12px 0;
+    }
+
+    .value-panel .brand-logo {
+      height: 64px;
+      width: auto;
+      display: block;
+      margin-bottom: 32px;
+    }
+
+    .value-headline {
+      font-size: 32px;
       font-weight: 900;
-      text-decoration: none;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .value-headline em {
       color: var(--neon-green);
+      font-style: normal;
+    }
+
+    .value-lead {
+      font-size: 15px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .value-points {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .value-points li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .vp-icon {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.15);
+      display: grid;
+      place-items: center;
+    }
+
+    .vp-icon svg {
+      width: 20px;
+      height: 20px;
+      color: var(--neon-green);
+    }
+
+    .vp-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .vp-text span {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.5;
+    }
+
+    /* ── Card (right side) ───────────────────────────── */
+    .shell {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .mobile-logo {
+      display: none;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 820px) {
+      .mobile-logo { display: block; }
+      .mobile-logo img { height: 56px; width: auto; }
     }
 
     .card {
       background: rgba(8, 17, 28, 0.9);
-      border: 1px solid rgba(57, 255, 20, 0.2);
+      border: 1px solid rgba(57, 255, 20, 0.18);
       border-radius: 28px;
       padding: 36px;
       box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
@@ -62,17 +159,73 @@
     }
 
     h1 {
-      font-size: 34px;
+      font-size: 28px;
       font-weight: 900;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
+      color: #fff;
     }
 
     .subtext {
-      color: #eef3f7;
-      line-height: 1.7;
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+      line-height: 1.6;
       margin-bottom: 24px;
     }
 
+    /* ── Segmented tabs ──────────────────────────────── */
+    .auth-tabs {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .auth-tabs a {
+      flex: 1;
+      text-align: center;
+      text-decoration: none;
+      padding: 11px 14px;
+      border-radius: 11px;
+      color: rgba(255,255,255,0.45);
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .auth-tabs a:hover:not(.active) {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .auth-tabs a.active {
+      background: rgba(57,255,20,0.12);
+      color: var(--neon-green);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    /* ── Plan hint ───────────────────────────────────── */
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(57,255,20,0.08);
+      border: 1px solid rgba(57,255,20,0.15);
+      color: var(--neon-green);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 20px;
+    }
+
+    .plan-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── Alerts ───────────────────────────────────────── */
     .alert {
       display: none;
       margin-bottom: 16px;
@@ -100,136 +253,7 @@
       border: 1px solid rgba(255, 216, 77, 0.28);
     }
 
-    .role-grid,
-    .two-col {
-      display: grid;
-      gap: 14px;
-    }
-
-    .mode-switch {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 22px;
-      flex-wrap: wrap;
-    }
-
-    .mode-switch a {
-      text-decoration: none;
-      padding: 11px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--silver);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .mode-switch a.active {
-      border-color: rgba(57, 255, 20, 0.35);
-      background: rgba(57, 255, 20, 0.14);
-      color: var(--neon-green);
-    }
-
-    .role-grid {
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      margin-bottom: 22px;
-    }
-
-    .two-col {
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-
-    .role-card {
-      width: 100%;
-      padding: 18px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.04);
-      cursor: pointer;
-      transition: 0.2s ease;
-      text-align: left;
-      font: inherit;
-      color: inherit;
-    }
-
-    .role-card.selected {
-      border-color: rgba(57, 255, 20, 0.7);
-      background: rgba(57, 255, 20, 0.1);
-    }
-
-    .role-title {
-      font-size: 17px;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .role-copy {
-      color: var(--gray);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .field {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 15px 16px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--silver);
-      font: inherit;
-    }
-
-    select option {
-      color: #111;
-    }
-
-    input:focus,
-    select:focus {
-      outline: none;
-      border-color: rgba(57, 255, 20, 0.65);
-      box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.12);
-    }
-
-    .btn {
-      width: 100%;
-      border: none;
-      border-radius: 14px;
-      padding: 16px;
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-      color: #04110a;
-      background: linear-gradient(135deg, var(--neon-green), #82ff63);
-    }
-
-    .btn:hover { transform: translateY(-1px); }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .links {
-      margin-top: 22px;
-      text-align: center;
-      color: var(--gray);
-      font-size: 14px;
-    }
-
+    /* ── OAuth ────────────────────────────────────────── */
     .oauth-stack {
       display: flex;
       flex-direction: column;
@@ -276,7 +300,6 @@
 
     .oauth-btn.apple-btn:hover:not(:disabled) { background: #1a1a1a; }
 
-
     .oauth-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
@@ -292,6 +315,7 @@
       animation: oauth-spin 0.8s linear infinite;
       display: inline-block;
     }
+
     @keyframes oauth-spin { to { transform: rotate(360deg); } }
 
     .oauth-divider {
@@ -311,225 +335,340 @@
       background: rgba(255,255,255,0.12);
     }
 
-    .avatar-preview {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
+    /* ── Role toggle ──────────────────────────────────── */
+    .role-toggle {
       display: grid;
-      place-items: center;
-      font-weight: 800;
-      color: var(--silver);
-      background-size: cover;
-      background-position: center;
-      margin-bottom: 10px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
-    .links a,
-    .back-link {
+    .role-card {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+    }
+
+    .role-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .role-card.selected {
+      border-color: rgba(57, 255, 20, 0.5);
+      background: rgba(57, 255, 20, 0.08);
+    }
+
+    .role-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .role-card.selected .role-title {
+      color: var(--neon-green);
+    }
+
+    .role-copy {
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* ── Form fields ──────────────────────────────────── */
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.6);
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--silver);
+      font: inherit;
+      font-size: 15px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(57, 255, 20, 0.5);
+      box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.1);
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.2);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 400px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Password strength indicator ──────────────────── */
+    .pw-strength {
+      height: 3px;
+      border-radius: 3px;
+      margin-top: 8px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+
+    .pw-strength-bar {
+      height: 100%;
+      border-radius: 3px;
+      width: 0;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    /* ── Submit ────────────────────────────────────────── */
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      color: #04110a;
+      background: linear-gradient(135deg, var(--neon-green), #82ff63);
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(57,255,20,0.2);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Footer links ─────────────────────────────────── */
+    .card-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      line-height: 1.7;
+    }
+
+    .card-footer a {
       color: var(--neon-green);
       text-decoration: none;
-      font-weight: 700;
+      font-weight: 600;
+    }
+
+    .card-footer a:hover {
+      text-decoration: underline;
     }
 
     .back-link {
       display: inline-block;
       margin-top: 18px;
-      font-size: 14px;
+      color: rgba(255,255,255,0.35);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
     }
 
+    .back-link:hover {
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* ── Referral banner ──────────────────────────────── */
     .referral-banner {
       display: none;
       margin-bottom: 20px;
       padding: 14px 18px;
       border-radius: 14px;
-      background: rgba(57, 255, 20, 0.1);
-      border: 1px solid rgba(57, 255, 20, 0.3);
-      color: #dfffd8;
-      font-size: 14px;
-      line-height: 1.5;
+      background: rgba(57, 255, 20, 0.08);
+      border: 1px solid rgba(57, 255, 20, 0.2);
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+      line-height: 1.6;
     }
-    .referral-banner strong { color: var(--neon-green); }
-    .referral-banner .ref-icon { font-size: 20px; margin-right: 8px; vertical-align: middle; }
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
-    </style>
 
+    .referral-banner strong { color: var(--neon-green); }
+
+    .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
+    .brand-logo { height: 80px; width: auto; }
+    .footer-logo { height: 64px; width: auto; }
+
+    select option { color: #111; }
+  </style>
 </head>
 <body>
-  <div class="shell">
-    <a class="logo" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
-    <div class="card">
-      <h1 data-i18n="auth.signUp.heading">Create Account</h1>
-      <p class="subtext" data-i18n="auth.signUp.subtext">Set up your player or coach profile, save analyses, compare sessions over time, and schedule targeted training.</p>
-      <p class="subtext" id="planHint" style="margin-top:-12px; margin-bottom: 18px;">Default plan: Free (1 monthly report).</p>
+  <div class="auth-wrapper">
+    <!-- ── Left: Value panel (desktop only) ──────────── -->
+    <div class="value-panel" aria-hidden="true">
+      <a href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="64"></a>
+      <h2 class="value-headline">Record. Analyze.<br><em>Improve.</em></h2>
+      <p class="value-lead">Join thousands of tennis players getting AI-powered swing analysis and personalized coaching feedback.</p>
 
-      <div class="mode-switch">
-        <a data-preserve-intent href="./login.html" data-i18n="auth.signUp.tabSignIn">Sign in</a>
-        <a class="active" href="./signup.html" data-i18n="auth.signUp.tabCreate">Create account</a>
+      <ul class="value-points">
+        <li>
+          <div class="vp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="vp-text">
+            <strong>60-second reports</strong>
+            <span>Upload a swing video and get a full biomechanics breakdown in under a minute.</span>
+          </div>
+        </li>
+        <li>
+          <div class="vp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+          </div>
+          <div class="vp-text">
+            <strong>Track your progress</strong>
+            <span>See how your scores improve across sessions with detailed trend analysis.</span>
+          </div>
+        </li>
+        <li>
+          <div class="vp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="vp-text">
+            <strong>Coach connection</strong>
+            <span>Share reports directly with your coach and get targeted training plans.</span>
+          </div>
+        </li>
+        <li>
+          <div class="vp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="vp-text">
+            <strong>Free to start</strong>
+            <span>No credit card needed. Get your first analysis completely free.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ── Right: Signup card ────────────────────────── -->
+    <div class="shell">
+      <div class="mobile-logo">
+        <a href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" width="160" height="56"></a>
       </div>
 
-      <div id="referralBanner" class="referral-banner" role="status" aria-live="polite">
-        <span class="ref-icon">🎾</span>
-        <strong>A friend invited you!</strong> Sign up now and get <strong>2 free analyses</strong> to analyse your swing. Your friend will also earn +2 bonus analyses when you complete your first.
-      </div>
-      <div id="alertBox" class="alert" role="status" aria-live="polite"></div>
+      <div class="card">
+        <h1 data-i18n="auth.signUp.heading">Create Account</h1>
+        <p class="subtext" data-i18n="auth.signUp.subtext">Start analyzing your swings with AI-powered coaching feedback.</p>
 
-      <div class="oauth-stack">
-        <button class="oauth-btn google-btn social-btn" data-oauth-provider="google" type="button" onclick="loginWithProvider('google')">
-          <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.14z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/></svg>
-          Continue with Google
-        </button>
-        <button class="oauth-btn apple-btn social-btn" data-oauth-provider="apple" type="button" onclick="loginWithProvider('apple')">
-          <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 66.6 0 122.2 44.1 164 44.1 40 0 103.3-46.5 179.2-46.5 28.9 0 130.6 2.6 198 99.2z"/><path d="M534.5 70.4C511.5 96.9 460.5 116 421.1 116c-5.1 0-10.2-.5-15.3-1.4 0-49.4 30.1-101.4 61.5-133.1 34.5-36.8 93.1-64.5 141.9-66.7 4.8 46.1-13.7 91.4-74.7 155.6z"/></svg>
-          Continue with Apple
-        </button>
-      </div>
-
-      <div class="oauth-divider">or sign up with email</div>
-
-      <div id="authStatus" class="alert" role="status" aria-live="polite"></div>
-
-      <div class="role-grid">
-        <button class="role-card selected" data-role="player" type="button" aria-pressed="true" onclick="selectRole('player')">
-          <div class="role-title">Player</div>
-          <div class="role-copy">Track technique scores, drills, and progress from session to session.</div>
-        </button>
-        <button class="role-card" data-role="coach" type="button" aria-pressed="false" onclick="selectRole('coach')">
-          <div class="role-title">Coach</div>
-          <div class="role-copy">Review athlete assessments and manage training sessions from one dashboard.</div>
-        </button>
-      </div>
-
-      <form autocomplete="on" onsubmit="handleSignup(event)">
-        <input id="userRole" name="userRole" type="hidden" value="player">
-        <input id="planId" name="planId" type="hidden" value="free">
-        <input id="startTrial" name="startTrial" type="hidden" value="0">
-        <input id="billingInterval" name="billingInterval" type="hidden" value="monthly">
-
-        <div class="field">
-          <label for="avatarInput">Profile picture</label>
-          <div class="avatar-preview" id="avatarPreview">P</div>
-          <input id="avatarInput" name="avatar" type="file" accept="image/*">
+        <div class="auth-tabs">
+          <a data-preserve-intent href="./login.html" data-i18n="auth.signUp.tabSignIn">Sign in</a>
+          <a class="active" href="./signup.html" data-i18n="auth.signUp.tabCreate">Create account</a>
         </div>
 
-        <div class="two-col">
+        <div id="planHint" class="plan-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Free plan — 1 report/month, no card required</span>
+        </div>
+
+        <div id="referralBanner" class="referral-banner" role="status" aria-live="polite">
+          <strong>A friend invited you!</strong> Sign up now and get <strong>2 free analyses</strong>. Your friend earns +2 bonus analyses when you complete your first.
+        </div>
+
+        <div id="alertBox" class="alert" role="status" aria-live="polite"></div>
+
+        <!-- OAuth -->
+        <div class="oauth-stack">
+          <button class="oauth-btn google-btn social-btn" data-oauth-provider="google" type="button" onclick="loginWithProvider('google')">
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.14z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/></svg>
+            Continue with Google
+          </button>
+          <button class="oauth-btn apple-btn social-btn" data-oauth-provider="apple" type="button" onclick="loginWithProvider('apple')">
+            <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 66.6 0 122.2 44.1 164 44.1 40 0 103.3-46.5 179.2-46.5 28.9 0 130.6 2.6 198 99.2z"/><path d="M534.5 70.4C511.5 96.9 460.5 116 421.1 116c-5.1 0-10.2-.5-15.3-1.4 0-49.4 30.1-101.4 61.5-133.1 34.5-36.8 93.1-64.5 141.9-66.7 4.8 46.1-13.7 91.4-74.7 155.6z"/></svg>
+            Continue with Apple
+          </button>
+        </div>
+
+        <div class="oauth-divider">or sign up with email</div>
+
+        <div id="authStatus" class="alert" role="status" aria-live="polite"></div>
+
+        <!-- Role selection -->
+        <div class="role-toggle">
+          <button class="role-card selected" data-role="player" type="button" aria-pressed="true" onclick="selectRole('player')">
+            <div class="role-title">Player</div>
+            <div class="role-copy">Analyze swings and track progress</div>
+          </button>
+          <button class="role-card" data-role="coach" type="button" aria-pressed="false" onclick="selectRole('coach')">
+            <div class="role-title">Coach</div>
+            <div class="role-copy">Manage athletes and sessions</div>
+          </button>
+        </div>
+
+        <!-- Signup form — essentials only -->
+        <form autocomplete="on" onsubmit="handleSignup(event)">
+          <input id="userRole" name="userRole" type="hidden" value="player">
+          <input id="planId" name="planId" type="hidden" value="free">
+          <input id="startTrial" name="startTrial" type="hidden" value="0">
+          <input id="billingInterval" name="billingInterval" type="hidden" value="monthly">
+
           <div class="field">
             <label for="fullName">Full name</label>
-          <input id="fullName" name="fullName" type="text" autocomplete="name" required>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" placeholder="Your full name" required>
           </div>
+
           <div class="field">
             <label for="email">Email</label>
-            <input id="email" name="email" type="email" inputmode="email" spellcheck="false" autocomplete="email username" required>
+            <input id="email" name="email" type="email" inputmode="email" spellcheck="false" autocomplete="email username" placeholder="you@example.com" required>
           </div>
+
+          <div class="two-col">
+            <div class="field">
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Min. 6 characters" minlength="6" required>
+              <div class="pw-strength"><div class="pw-strength-bar" id="pwStrengthBar"></div></div>
+            </div>
+            <div class="field">
+              <label for="confirmPassword">Confirm password</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password" minlength="6" required>
+            </div>
+          </div>
+
+          <div id="submitFeedback" class="alert" role="status" aria-live="polite"></div>
+          <button id="signupBtn" class="btn" type="submit" data-i18n="auth.signUp.submit">Create Account</button>
+        </form>
+
+        <div class="card-footer">
+          Already have an account? <a href="./login.html">Sign in</a>
+          <br>
+          By creating an account, you agree to the <a href="./user-agreement.html">User Agreement</a> and <a href="./privacy-policy.html">Privacy Policy</a>.
         </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="phone">Phone</label>
-            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555">
-          </div>
-          <div class="field">
-            <label for="addressLine1">Address line 1</label>
-            <input id="addressLine1" name="addressLine1" type="text" autocomplete="address-line1" placeholder="Street address">
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="addressLine2">Address line 2</label>
-            <input id="addressLine2" name="addressLine2" type="text" autocomplete="address-line2" placeholder="Apartment, suite, unit">
-          </div>
-          <div class="field">
-            <label for="city">City</label>
-            <input id="city" name="city" type="text" autocomplete="address-level2" placeholder="City">
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="stateRegion">State / region</label>
-            <input id="stateRegion" name="stateRegion" type="text" autocomplete="address-level1" placeholder="State or region">
-          </div>
-          <div class="field">
-            <label for="postalCode">Postal code</label>
-            <input id="postalCode" name="postalCode" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="ZIP / postal code">
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="country">Country</label>
-          <input id="country" name="country" type="text" autocomplete="country-name" placeholder="Country">
-        </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" required>
-          </div>
-          <div class="field">
-            <label for="confirmPassword">Confirm password</label>
-            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="6" required>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="ageRange">Age range</label>
-            <select id="ageRange" name="ageRange">
-              <option value="">Select</option>
-              <option>Under 12</option>
-              <option>12-17</option>
-              <option>18-25</option>
-              <option>26-40</option>
-              <option>41+</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="gender">Gender</label>
-            <select id="gender" name="gender">
-              <option value="">Select</option>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Non-binary</option>
-              <option>Prefer not to say</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="field">
-            <label for="ustaLevel">USTA / NTRP level</label>
-            <input id="ustaLevel" name="ustaLevel" type="text" placeholder="e.g. 4.0">
-          </div>
-          <div class="field">
-            <label for="utrRating">UTR rating</label>
-            <input id="utrRating" name="utrRating" type="text" placeholder="e.g. 6.5">
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="preferredHand">Preferred hand</label>
-          <select id="preferredHand" name="preferredHand">
-            <option value="right">Right-handed</option>
-            <option value="left">Left-handed</option>
-          </select>
-        </div>
-
-        <div id="submitFeedback" class="alert" role="status" aria-live="polite"></div>
-        <button id="signupBtn" class="btn" type="submit" data-i18n="auth.signUp.submit">Create Account</button>
-      </form>
-
-      <div class="links">
-        Already have an account? <a href="./login.html">Sign in</a>
       </div>
-      <div class="links" style="margin-top:10px">
-        By creating an account, you agree to the <a href="./user-agreement.html">User Agreement</a> and <a href="./privacy-policy.html">Privacy Policy</a>.
-      </div>
+
+      <a class="back-link" href="./index.html">Back to homepage</a>
     </div>
-    <a class="back-link" href="./index.html">Back to homepage</a>
   </div>
 
   <script src="./public-app-config.js"></script>
@@ -542,6 +681,7 @@
     const store = window.SmartSwingStore;
     const ALLOWED_PLANS = new Set(['free', 'starter', 'pro', 'elite']);
 
+    /* ── OAuth button init ─────────────────────────────── */
     async function initOAuthButtons() {
       const authConfig = window.SMARTSWING_AUTH_CONFIG || {};
       const results = await Promise.all(Array.from(document.querySelectorAll('[data-oauth-provider]')).map(async (button) => {
@@ -578,6 +718,7 @@
       return results;
     }
 
+    /* ── Alerts ─────────────────────────────────────────── */
     function showAlert(message, type = 'error') {
       ['alertBox', 'submitFeedback'].forEach((id) => {
         const element = document.getElementById(id);
@@ -615,6 +756,7 @@
       signupBtn.title = enabled ? '' : message;
     }
 
+    /* ── Role selection ─────────────────────────────────── */
     function selectRole(role) {
       document.getElementById('userRole').value = role;
       document.querySelectorAll('.role-card').forEach((card) => {
@@ -623,6 +765,7 @@
       });
     }
 
+    /* ── OAuth provider login ───────────────────────────── */
     async function loginWithProvider(provider) {
       const button = document.querySelector(`[data-oauth-provider="${provider}"]`);
       const originalHTML = button ? button.innerHTML : '';
@@ -646,6 +789,7 @@
       }
     }
 
+    /* ── Signup handler (essentials only) ────────────────── */
     async function handleSignup(event) {
       event.preventDefault();
       const signupBtn = document.getElementById('signupBtn');
@@ -675,20 +819,7 @@
           planId: document.getElementById('planId').value,
           billingInterval: document.getElementById('billingInterval').value,
           startTrial: document.getElementById('startTrial').value === '1',
-          ageRange: document.getElementById('ageRange').value,
-          gender: document.getElementById('gender').value,
-          ustaLevel: document.getElementById('ustaLevel').value,
-          utrRating: document.getElementById('utrRating').value,
-          preferredHand: document.getElementById('preferredHand').value,
-          userRole: document.getElementById('userRole').value,
-          phone: document.getElementById('phone').value,
-          addressLine1: document.getElementById('addressLine1').value,
-          addressLine2: document.getElementById('addressLine2').value,
-          city: document.getElementById('city').value,
-          stateRegion: document.getElementById('stateRegion').value,
-          postalCode: document.getElementById('postalCode').value,
-          country: document.getElementById('country').value,
-          avatarDataUrl: document.getElementById('avatarPreview').dataset.image || ''
+          userRole: document.getElementById('userRole').value
         });
 
         if (result?.requiresEmailConfirmation) {
@@ -699,7 +830,7 @@
           return;
         }
 
-        showAlert('Account created. Redirecting to your cart...', 'success');
+        showAlert('Account created. Setting up your profile...', 'success');
         setTimeout(() => {
           window.location.href = getPostSignupDestination(result);
         }, 700);
@@ -710,6 +841,7 @@
       }
     }
 
+    /* ── Checkout intent helpers ─────────────────────────── */
     function getDesiredCheckoutIntent() {
       const params = new URLSearchParams(window.location.search);
       const requestedPlan = String(params.get('plan') || '').toLowerCase();
@@ -749,6 +881,7 @@
       return store.getPostAuthDestinationForUser(user || store.getCurrentUser());
     }
 
+    /* ── Plan selection from URL ─────────────────────────── */
     (function initPlanSelection() {
       const params = new URLSearchParams(window.location.search);
       const requested = String(params.get('plan') || '').toLowerCase();
@@ -756,39 +889,65 @@
         ? String(params.get('interval')).toLowerCase().replace('annual', 'yearly')
         : 'monthly';
       const wantsTrial = params.get('trial') === '1';
-      const allowed = ALLOWED_PLANS;
-      if (allowed.has(requested)) {
+
+      if (ALLOWED_PLANS.has(requested)) {
         store.setCheckoutIntent({
           planId: requested,
           billingInterval,
           source: 'signup-page'
         });
       }
+
       document.getElementById('billingInterval').value = billingInterval;
-      if (!allowed.has(requested)) {
-        document.getElementById('planHint').textContent = 'Default plan: Free (1 monthly report). Browser autofill can help complete your name, phone, and address when available.';
+
+      if (!ALLOWED_PLANS.has(requested)) {
         syncIntentLinks();
         return;
       }
+
       document.getElementById('planId').value = requested;
       document.getElementById('startTrial').value = wantsTrial ? '1' : '0';
+
       const labels = {
-        free: 'Free (1 monthly report, no save/export)',
-        starter: 'Player ($9.99/mo, 10 monthly reports)',
-        pro: 'Performance ($19.99/mo, unlimited + drills/tactics library)',
-        elite: 'Tournament Pro ($49.99/mo, unlimited + coach feedback workflow)'
+        free: 'Free plan — 1 report/month, no card required',
+        starter: 'Player plan — $9.99/mo, 10 reports',
+        pro: 'Performance plan — $19.99/mo, unlimited',
+        elite: 'Tournament Pro — $49.99/mo, unlimited + coach workflow'
       };
-      const intervalLabel = billingInterval === 'yearly' && requested !== 'free'
-        ? ' | Billing: yearly (15% off, cancel anytime at period end).'
-        : requested !== 'free'
-          ? ' | Billing: monthly, cancel anytime.'
-          : '';
-      document.getElementById('planHint').textContent = wantsTrial && requested !== 'free'
-        ? `Selected plan: ${labels[requested]} | 14-day trial starts after account creation.${intervalLabel}`
-        : `Selected plan: ${labels[requested]}${intervalLabel}`;
+
+      const intervalSuffix = billingInterval === 'yearly' && requested !== 'free'
+        ? ' (yearly billing, 15% off)'
+        : '';
+
+      const trialSuffix = wantsTrial && requested !== 'free'
+        ? ' — 14-day trial'
+        : '';
+
+      const badgeSpan = document.querySelector('#planHint span');
+      if (badgeSpan) {
+        badgeSpan.textContent = (labels[requested] || labels.free) + trialSuffix + intervalSuffix;
+      }
+
       syncIntentLinks();
     })();
 
+    /* ── Password strength indicator ──────────────────── */
+    document.getElementById('password').addEventListener('input', function () {
+      const pw = this.value;
+      const bar = document.getElementById('pwStrengthBar');
+      let strength = 0;
+      if (pw.length >= 6) strength++;
+      if (pw.length >= 10) strength++;
+      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) strength++;
+      if (/\d/.test(pw)) strength++;
+      if (/[^A-Za-z0-9]/.test(pw)) strength++;
+      const pct = Math.min(strength / 5 * 100, 100);
+      const colors = ['#ff4d73', '#ff4d73', '#ffa726', '#ffd84d', '#82ff63', '#39ff14'];
+      bar.style.width = pct + '%';
+      bar.style.background = colors[strength] || colors[0];
+    });
+
+    /* ── Auth bootstrap ─────────────────────────────────── */
     async function bootstrapAuth() {
       const currentUser = store.getCurrentUser();
       if (currentUser) {
@@ -834,35 +993,20 @@
       }
     }
 
-    document.getElementById('avatarInput').addEventListener('change', (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const preview = document.getElementById('avatarPreview');
-        preview.style.backgroundImage = `url(${reader.result})`;
-        preview.textContent = '';
-        preview.dataset.image = reader.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
     bootstrapAuth();
 
-    // ── Referral capture ────────────────────────────────────────────────────────
+    /* ── Referral capture ───────────────────────────────── */
     (function captureReferral() {
       try {
         const params = new URLSearchParams(window.location.search);
         const refCode = (params.get('ref') || '').trim().toUpperCase();
         if (!refCode) return;
-        // Store the pending referral via app-data
         const storeReady = () => {
           const s = window.SmartSwingStore;
           if (!s || !s.setPendingReferral) { setTimeout(storeReady, 120); return; }
           s.setPendingReferral(refCode);
         };
         storeReady();
-        // Show banner
         const banner = document.getElementById('referralBanner');
         if (banner) banner.style.display = 'block';
       } catch (_) {}
@@ -938,5 +1082,6 @@
   </div>
 </footer>
 
+<script src="./i18n.js" defer></script>
 </body>
 </html>

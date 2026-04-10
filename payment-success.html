@@ -47,19 +47,19 @@
       <a class="brand" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
       <div style="display:flex;align-items:center;gap:12px;">
         <span id="psUserInfo" style="font-size:13px;color:rgba(255,255,255,.5);font-weight:600;"></span>
-        <a class="btn" id="pricingLink" href="./pricing.html">Back to pricing</a>
+        <a class="btn" id="pricingLink" href="./pricing.html" data-i18n="payment.backToPricing">Back to pricing</a>
       </div>
     </header>
 
     <section class="panel">
-      <div class="eyebrow">Payment status</div>
-      <h1 id="title">Checking your checkout status</h1>
-      <p class="muted" id="summary">Reviewing the latest handoff from secure billing and verifying it before any paid entitlements unlock.</p>
+      <div class="eyebrow" data-i18n="payment.status">Payment status</div>
+      <h1 id="title" data-i18n="payment.checkingStatus">Checking your checkout status</h1>
+      <p class="muted" id="summary" data-i18n="payment.reviewing">Reviewing the latest handoff from secure billing and verifying it before any paid entitlements unlock.</p>
       <div class="stack" id="details"></div>
       <div class="actions">
-        <a class="btn-primary" id="primaryAction" href="./dashboard.html">Open dashboard</a>
-        <a class="btn" id="checkoutAction" href="./checkout.html">Return to checkout</a>
-        <a class="btn" href="./contact.html">Contact support</a>
+        <a class="btn-primary" id="primaryAction" href="./dashboard.html" data-i18n="payment.openDashboard">Open dashboard</a>
+        <a class="btn" id="checkoutAction" href="./checkout.html" data-i18n="payment.returnToCheckout">Return to checkout</a>
+        <a class="btn" href="./contact.html" data-i18n="payment.contactSupport">Contact support</a>
       </div>
     </section>
   </div>
@@ -78,16 +78,17 @@
     const product = (params.get('product') || '').toLowerCase();
     const isSmartFlip = product === 'smartflip';
     const pending = store.getPendingExternalCheckout();
-    const currentUser = store.getCurrentUser();
-    const currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
+    let currentUser = store.getCurrentUser();
+    let currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
     const requestedPlan = requestedPlanId ? store.getPlanDefinition(requestedPlanId) : null;
-    // Show user info
-    (function(){
+
+    function showUserInfo() {
       var el = document.getElementById('psUserInfo');
       if (el && currentUser) {
         el.textContent = (currentUser.fullName || currentUser.email || '') + (currentPlan ? ' \u00B7 ' + currentPlan.name : '');
       }
-    })();
+    }
+    showUserInfo();
     const details = [];
     const primaryAction = document.getElementById('primaryAction');
     const checkoutAction = document.getElementById('checkoutAction');
@@ -129,6 +130,26 @@
     const summaryEl = document.getElementById('summary');
 
     async function main() {
+      // Restore Supabase session FIRST — critical for matching the billing user
+      if (!currentUser && store.restoreSupabaseSession) {
+        try {
+          const restored = await store.restoreSupabaseSession();
+          if (restored) {
+            currentUser = restored;
+            currentPlan = store.getCurrentPlan(currentUser.id);
+            showUserInfo();
+          }
+        } catch (e) {
+          console.warn('[SmartSwing] Session restore failed on payment-success:', e);
+        }
+      }
+      // Fallback: try getCurrentUser one more time (may have been set by onAuthStateChange)
+      if (!currentUser) {
+        currentUser = store.getCurrentUser();
+        currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
+        showUserInfo();
+      }
+
       if (status === 'setup-required') {
         titleEl.textContent = 'Stripe checkout still needs server configuration';
         summaryEl.textContent = 'The app is wired for Stripe, but one or more Stripe keys or price ids are still missing in the server environment.';
@@ -290,5 +311,6 @@
   </div>
 </footer>
 
+<script src="./i18n.js" defer></script>
 </body>
 </html>

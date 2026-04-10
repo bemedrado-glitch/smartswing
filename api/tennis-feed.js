@@ -49,25 +49,63 @@ function normaliseEvent(ev) {
     status: ev.strStatus || null,
     round: ev.intRound || null,
     season: ev.strSeason || null,
+    sport: ev.strSport || null,
   };
 }
+
+function isTennisEvent(ev) {
+  if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
+  const name = (ev.name || '').toLowerCase();
+  if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
+  return true;
+}
+
+function safeEventList(response) {
+  return Array.isArray(response?.events) ? response.events : [];
+}
+
+function setHeaders(res, headers) {
+  Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
+}
+
+const FALLBACK_RESULTS = [
+  {
+    id: 'fallback-1', name: 'ATP Masters 1000 — Monte-Carlo',
+    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-12',
+    homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
+    venue: 'Monte-Carlo Country Club', city: 'Roquebrune-Cap-Martin', country: 'France',
+    thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
+  },
+  {
+    id: 'fallback-2', name: 'WTA 500 — Stuttgart Open',
+    tournament: 'Porsche Tennis Grand Prix', date: '2026-04-14',
+    homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
+    venue: 'Porsche Arena', city: 'Stuttgart', country: 'Germany',
+    thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
+  },
+  {
+    id: 'fallback-3', name: 'ATP 500 — Barcelona Open',
+    tournament: 'Barcelona Open Banc Sabadell', date: '2026-04-20',
+    homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
+    venue: 'Real Club de Tenis Barcelona', city: 'Barcelona', country: 'Spain',
+    thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
+  }
+];
 
 module.exports = async (req, res) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
-    Object.entries({ ...CORS_HEADERS, 'Content-Length': '0' }).forEach(([k, v]) => res.setHeader(k, v));
+    setHeaders(res, { ...CORS_HEADERS, 'Content-Length': '0' });
     return res.status(204).end();
   }
 
   if (req.method !== 'GET') {
-    Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
+    setHeaders(res, CORS_HEADERS);
     res.setHeader('Allow', 'GET, OPTIONS');
     return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  Object.entries({ ...CORS_HEADERS, ...CACHE_HEADERS, 'Content-Type': 'application/json' }).forEach(([k, v]) =>
-    res.setHeader(k, v)
-  );
+  setHeaders(res, { ...CORS_HEADERS, ...CACHE_HEADERS, 'Content-Type': 'application/json' });
 
   const fetchedAt = new Date().toISOString();
 
@@ -80,30 +118,35 @@ module.exports = async (req, res) => {
       fetchWithTimeout(WTA_PAST).catch(() => ({ events: null })),
     ]);
 
-    const upcoming = [
-      ...(Array.isArray(atpUp?.events) ? atpUp.events : []),
-      ...(Array.isArray(wtaUp?.events) ? wtaUp.events : []),
-    ]
+    const upcoming = [...safeEventList(atpUp), ...safeEventList(wtaUp)]
       .sort((a, b) => (a.dateEvent || '').localeCompare(b.dateEvent || ''))
       .slice(0, 25)
-      .map(normaliseEvent);
+      .map(normaliseEvent)
+      .filter(isTennisEvent);
 
-    const recent = [
-      ...(Array.isArray(atpPast?.events) ? atpPast.events : []),
-      ...(Array.isArray(wtaPast?.events) ? wtaPast.events : []),
-    ]
+    const recent = [...safeEventList(atpPast), ...safeEventList(wtaPast)]
       .sort((a, b) => (b.dateEvent || '').localeCompare(a.dateEvent || ''))
       .slice(0, 25)
-      .map(normaliseEvent);
+      .map(normaliseEvent)
+      .filter(isTennisEvent);
+
+    if (upcoming.length === 0 && recent.length === 0) {
+      return res.status(200).json({
+        upcoming: FALLBACK_RESULTS,
+        recent: [],
+        error: 'no events returned — showing scheduled events',
+        fetchedAt,
+      });
+    }
 
     return res.status(200).json({ upcoming, recent, fetchedAt });
   } catch (err) {
     // Always 200 for the blog — caller shows hardcoded fallback
     console.error('[tennis-feed] fetch error:', err.message || err);
     return res.status(200).json({
-      upcoming: [],
+      upcoming: FALLBACK_RESULTS,
       recent: [],
-      error: 'live data unavailable',
+      error: 'live data unavailable — showing scheduled events',
       fetchedAt,
     });
   }

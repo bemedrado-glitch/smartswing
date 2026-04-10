@@ -301,6 +301,67 @@
       .footer-inner { flex-direction: row; }
       .btn-back .btn-back-label { display: none; }
     }
+
+    /* ── Plan landing screen ───────────────────────────────────────────── */
+    .plan-landing {
+      text-align: center;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .plan-landing-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 20px;
+      background: rgba(57,255,20,.12);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 20px;
+    }
+    .plan-landing-title {
+      font-size: 32px;
+      font-weight: 900;
+      margin: 0 0 12px;
+      color: #f5f5f7;
+    }
+    .plan-landing-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,.6);
+      margin-bottom: 24px;
+    }
+    .plan-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto 32px;
+      max-width: 380px;
+      text-align: left;
+    }
+    .plan-features-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      font-size: 15px;
+      color: rgba(255,255,255,.85);
+    }
+    .plan-features-list li::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 800;
+      margin-right: 10px;
+    }
+    .plan-landing-cta {
+      font-size: 18px !important;
+      padding: 18px 40px !important;
+      border-radius: 16px !important;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .plan-landing-note {
+      font-size: 13px;
+      color: rgba(255,255,255,.4);
+    }
   </style>
 </head>
 <body>
@@ -317,7 +378,7 @@
   <div class="progress-wrap" id="progressWrap">
     <div class="progress-meta">
       <span>Step <strong id="stepCurrent">1</strong> of <span id="stepTotal">5</span></span>
-      <span id="stepLabel">Get to know you</span>
+      <span id="stepLabel" data-i18n="welcome.getToKnow">Get to know you</span>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -325,6 +386,15 @@
   </div>
 
   <main class="stage" id="stage">
+    <div id="planActivationScreen" class="plan-landing">
+      <div class="plan-landing-badge" id="planLandingBadge"></div>
+      <h1 class="plan-landing-title">Your plan is active 🎾</h1>
+      <p class="plan-landing-sub">Here's what's included in your plan:</p>
+      <ul class="plan-features-list" id="planFeaturesList"></ul>
+      <button type="button" class="btn btn-primary plan-landing-cta" id="startQuizBtn">Start My Onboarding Quiz →</button>
+      <p class="plan-landing-note">This quick quiz (2 min) personalizes your scoring, drills, and coaching recommendations.</p>
+    </div>
+
     <form id="welcomeForm" autocomplete="off">
 
       <!-- Q1 — Identity -->
@@ -342,7 +412,7 @@
 
       <!-- Q2 — Dominant hand -->
       <div class="question" data-q="2" data-name="dominantHand" data-type="single">
-        <div class="q-eyebrow">Your setup</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourSetup">Your setup</div>
         <h1 class="q-title">Which hand do you play with?</h1>
         <p class="q-help">This helps us mirror the analysis correctly for your dominant side.</p>
         <div class="choices two-col">
@@ -353,7 +423,7 @@
 
       <!-- Q3 — Playing level -->
       <div class="question" data-q="3" data-name="playingLevel" data-type="single">
-        <div class="q-eyebrow">Your level</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourLevel">Your level</div>
         <h1 class="q-title">How would you describe your playing level?</h1>
         <p class="q-help">Pick the closest match — we'll tailor benchmarks and recommendations to your level.</p>
         <div class="choices">
@@ -366,7 +436,7 @@
 
       <!-- Q4 — Rating (optional context) -->
       <div class="question" data-q="4" data-name="ratingSystem" data-type="single">
-        <div class="q-eyebrow">Your rating</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourRating">Your rating</div>
         <h1 class="q-title">Do you have an official rating?</h1>
         <p class="q-help">Optional — this helps us compare your mechanics against players at your calibrated level.</p>
         <div class="choices">
@@ -377,9 +447,40 @@
         </div>
       </div>
 
+      <!-- Q4b — Rating level (conditional, shown when a rating system is selected) -->
+      <div class="question" data-q="4b" data-name="ratingValue" data-type="conditional" style="display:none;">
+        <div class="q-eyebrow">Your rating level</div>
+        <h1 class="q-title">What is your rating or level?</h1>
+        <p class="q-help">Select or enter your current rating — this calibrates your benchmarks precisely.</p>
+        <div id="ratingUsta" style="display:none;">
+          <label class="q-select-label" for="ustaSelect">USTA / NTRP Level</label>
+          <select id="ustaSelect" name="ratingValueUsta" class="q-select" style="width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#f5f5f7;font-size:16px;margin-top:8px;">
+            <option value="">Select your NTRP level</option>
+            <option value="1.5">1.5 — New to tennis</option>
+            <option value="2.0">2.0 — Learning basic strokes</option>
+            <option value="2.5">2.5 — Developing consistency</option>
+            <option value="3.0">3.0 — Consistent on moderate shots</option>
+            <option value="3.5">3.5 — Improved stroke dependability</option>
+            <option value="4.0">4.0 — Dependable strokes, directional control</option>
+            <option value="4.5">4.5 — Strong all-court game</option>
+            <option value="5.0">5.0 — Advanced tournament player</option>
+            <option value="5.5">5.5 — High-level tournament player</option>
+            <option value="6.0+">6.0+ — National/professional level</option>
+          </select>
+        </div>
+        <div id="ratingUtr" style="display:none;">
+          <label class="q-select-label" for="utrInput">UTR Rating</label>
+          <input id="utrInput" name="ratingValueUtr" type="number" min="1" max="16.5" step="0.01" placeholder="e.g. 8.5" class="q-input" style="width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#f5f5f7;font-size:16px;margin-top:8px;">
+        </div>
+        <div id="ratingItf" style="display:none;">
+          <label class="q-select-label" for="itfInput">ITF / National Ranking</label>
+          <input id="itfInput" name="ratingValueItf" type="number" min="1" max="9999" step="1" placeholder="e.g. 250" class="q-input" style="width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#f5f5f7;font-size:16px;margin-top:8px;">
+        </div>
+      </div>
+
       <!-- Q5 — Playing style -->
       <div class="question" data-q="5" data-name="playingStyle" data-type="single">
-        <div class="q-eyebrow">Your style</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourStyle">Your style</div>
         <h1 class="q-title">How do you like to play points?</h1>
         <p class="q-help">Pick the description that feels closest to your natural game today.</p>
         <div class="choices two-col">
@@ -392,7 +493,7 @@
 
       <!-- Q6 — Practice frequency -->
       <div class="question" data-q="6" data-name="practiceFrequency" data-type="single">
-        <div class="q-eyebrow">Your routine</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourRoutine">Your routine</div>
         <h1 class="q-title">How often are you on court each week?</h1>
         <p class="q-help">This helps us pace your weekly action plan so it never feels like too much or too little.</p>
         <div class="choices two-col">
@@ -405,7 +506,7 @@
 
       <!-- Q7 — Favorite shot -->
       <div class="question" data-q="7" data-name="favoriteShot" data-type="single">
-        <div class="q-eyebrow">Your weapon</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourWeapon">Your weapon</div>
         <h1 class="q-title">What's your favorite shot?</h1>
         <p class="q-help">We'll start your first analysis here so the dashboard feels relevant from day one.</p>
         <div class="choices two-col">
@@ -418,7 +519,7 @@
 
       <!-- Q8 — Improvement goals (multi) -->
       <div class="question" data-q="8" data-name="improvementGoals" data-type="multi" data-min="1">
-        <div class="q-eyebrow">Your goals</div>
+        <div class="q-eyebrow" data-i18n="welcome.yourGoals">Your goals</div>
         <h1 class="q-title">What do you want to improve first?</h1>
         <p class="q-help">Pick anything that resonates — at least one to continue. You can change these later.</p>
         <div class="choices two-col">
@@ -470,11 +571,48 @@
     document.getElementById('planBadge').textContent = `${plan.name} onboarding`;
     document.getElementById('userBadge').textContent = safeUser.fullName || safeUser.email || '';
 
+    // ── Plan landing screen ───────────────────────────────────────────
+    const planScreen = document.getElementById('planActivationScreen');
+    const planBadgeEl = document.getElementById('planLandingBadge');
+    const planListEl = document.getElementById('planFeaturesList');
+    const welcomeForm = document.getElementById('welcomeForm');
+    const progressWrap = document.getElementById('progressWrap');
+    const footerNavEl = document.getElementById('footerNav');
+
+    // Populate plan features
+    planBadgeEl.textContent = plan.name + ' plan';
+    const featureDescriptions = {
+      free: ['2 free swing analyses', 'Basic score and grade', 'Top 3 priority fixes'],
+      starter: ['10 reports per month', 'Full biomechanics breakdown', 'Tailored drill plans', 'Save & print reports', 'Score trend tracking'],
+      pro: ['Unlimited reports', 'Full biomechanics breakdown', 'Tailored drills & tactics', 'Save, print & share reports', 'Coach dashboard access', 'Match tracker', 'Priority support'],
+      elite: ['Everything in Performance', 'Tournament preparation mode', 'Advanced tactical analysis', 'Multi-player comparison', 'Dedicated coach support']
+    };
+    const features = featureDescriptions[selectedPlanId] || featureDescriptions.free;
+    planListEl.innerHTML = features.map(f => `<li>${f}</li>`).join('');
+
+    // Hide quiz initially, show landing
+    welcomeForm.style.display = 'none';
+    progressWrap.style.display = 'none';
+    footerNavEl.style.display = 'none';
+
+    document.getElementById('startQuizBtn').addEventListener('click', () => {
+      planScreen.style.display = 'none';
+      welcomeForm.style.display = '';
+      progressWrap.style.display = '';
+      footerNavEl.style.display = '';
+      updateState();
+    });
+
+    // If user already completed onboarding, skip the landing too
+    if (safeUser.onboardingCompletedAt) {
+      planScreen.style.display = 'none';
+    }
+
     // ── Stepper logic ───────────────────────────────────────────────────
     const questions = Array.from(document.querySelectorAll('.question'));
     const total = questions.length;
     document.getElementById('stepTotal').textContent = total;
-    const stepLabels = ['Get to know you', 'Your setup', 'Your level', 'Your rating', 'Your style', 'Your routine', 'Your weapon', 'Your goals'];
+    const stepLabels = ['Get to know you', 'Your setup', 'Your level', 'Your rating', 'Your rating level', 'Your style', 'Your routine', 'Your weapon', 'Your goals'];
 
     let current = 0;
     const backBtn = document.getElementById('backBtn');
@@ -486,6 +624,16 @@
     function isQuestionAnswered(q) {
       const name = q.dataset.name;
       const type = q.dataset.type;
+      if (type === 'conditional') {
+        // Check which rating sub-section is visible and whether it has a value
+        const usta = document.getElementById('ratingUsta');
+        const utr = document.getElementById('ratingUtr');
+        const itf = document.getElementById('ratingItf');
+        if (usta && usta.style.display !== 'none') return !!document.getElementById('ustaSelect').value;
+        if (utr && utr.style.display !== 'none') return !!document.getElementById('utrInput').value;
+        if (itf && itf.style.display !== 'none') return !!document.getElementById('itfInput').value;
+        return false;
+      }
       const inputs = q.querySelectorAll(`input[name="${name}"]:checked`);
       if (type === 'multi') {
         const min = parseInt(q.dataset.min || '1', 10);
@@ -499,13 +647,40 @@
       backBtn.disabled = current === 0;
       nextBtn.disabled = !isQuestionAnswered(q);
       nextBtn.textContent = current === total - 1 ? 'Finish ✓' : 'Continue →';
+      // Calculate visible step number (account for Q4b being conditional)
+      const q4bIdx = getQ4bIndex();
+      const ratingSystem = document.querySelector('input[name="ratingSystem"]:checked')?.value || '';
+      const q4bVisible = ratingSystem && ratingSystem !== 'none';
+      const visibleTotal = q4bVisible ? total : total - 1;
+      const visibleCurrent = (!q4bVisible && current > q4bIdx) ? current : current + 1;
       const pct = ((current + (isQuestionAnswered(q) ? 1 : 0.4)) / total) * 100;
       progressFill.style.width = `${Math.min(100, pct)}%`;
-      stepCurrent.textContent = current + 1;
+      stepCurrent.textContent = visibleCurrent;
+      document.getElementById('stepTotal').textContent = visibleTotal;
       stepLabel.textContent = stepLabels[current] || '';
     }
 
+    function getQ4bIndex() {
+      return questions.findIndex(q => q.dataset.q === '4b');
+    }
+
     function showQuestion(idx) {
+      const q4bIdx = getQ4bIndex();
+      // Handle Q4b conditional visibility
+      if (idx === q4bIdx) {
+        const ratingSystem = document.querySelector('input[name="ratingSystem"]:checked')?.value || '';
+        if (ratingSystem === 'none' || !ratingSystem) {
+          // Skip Q4b — determine direction (forward or back)
+          if (current < idx) { idx = idx + 1; } else { idx = idx - 1; }
+        } else {
+          // Show the appropriate rating sub-section
+          document.getElementById('ratingUsta').style.display = ratingSystem === 'usta-ntrp' ? '' : 'none';
+          document.getElementById('ratingUtr').style.display = ratingSystem === 'utr' ? '' : 'none';
+          document.getElementById('ratingItf').style.display = ratingSystem === 'itf' ? '' : 'none';
+          // Make Q4b visible (remove inline display:none)
+          questions[q4bIdx].style.display = '';
+        }
+      }
       questions.forEach((q, i) => q.classList.toggle('active', i === idx));
       current = idx;
       updateState();
@@ -526,6 +701,11 @@
         }
       });
     });
+
+    // Wire change listeners for Q4b conditional inputs (select + number fields)
+    document.getElementById('ustaSelect').addEventListener('change', () => updateState());
+    document.getElementById('utrInput').addEventListener('input', () => updateState());
+    document.getElementById('itfInput').addEventListener('input', () => updateState());
 
     backBtn.addEventListener('click', () => {
       if (current > 0) showQuestion(current - 1);
@@ -554,6 +734,11 @@
 
     async function submitQuiz() {
       const goals = Array.from(document.querySelectorAll('input[name="improvementGoals"]:checked')).map((i) => i.value);
+      const ratingSystem = document.querySelector('input[name="ratingSystem"]:checked')?.value || '';
+      let ratingValue = '';
+      if (ratingSystem === 'usta-ntrp') ratingValue = document.getElementById('ustaSelect')?.value || '';
+      else if (ratingSystem === 'utr') ratingValue = document.getElementById('utrInput')?.value || '';
+      else if (ratingSystem === 'itf') ratingValue = document.getElementById('itfInput')?.value || '';
       try {
         nextBtn.disabled = true;
         nextBtn.textContent = 'Saving...';
@@ -561,7 +746,8 @@
           playerIdentity: document.querySelector('input[name="playerIdentity"]:checked')?.value || '',
           dominantHand: document.querySelector('input[name="dominantHand"]:checked')?.value || '',
           playingLevel: document.querySelector('input[name="playingLevel"]:checked')?.value || '',
-          ratingSystem: document.querySelector('input[name="ratingSystem"]:checked')?.value || '',
+          ratingSystem: ratingSystem,
+          ratingValue: ratingValue,
           playingStyle: document.querySelector('input[name="playingStyle"]:checked')?.value || '',
           practiceFrequency: document.querySelector('input[name="practiceFrequency"]:checked')?.value || '',
           favoriteShot: document.querySelector('input[name="favoriteShot"]:checked')?.value || '',
@@ -570,6 +756,7 @@
           onboardingSource: 'welcome-quiz'
         });
         // Show success state
+        planScreen.style.display = 'none';
         document.getElementById('welcomeForm').style.display = 'none';
         document.getElementById('progressWrap').style.display = 'none';
         document.getElementById('footerNav').style.display = 'none';
@@ -585,6 +772,7 @@
 
     // If user already completed onboarding, skip straight to dashboard
     if (safeUser.onboardingCompletedAt) {
+      planScreen.style.display = 'none';
       document.getElementById('welcomeForm').style.display = 'none';
       document.getElementById('progressWrap').style.display = 'none';
       document.getElementById('footerNav').style.display = 'none';
@@ -665,5 +853,6 @@
   </div>
 </footer>
 
+<script src="./i18n.js" defer></script>
 </body>
 </html>

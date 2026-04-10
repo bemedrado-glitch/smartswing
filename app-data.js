@@ -411,16 +411,17 @@
       tactic.situation === 'general' ? 'match discipline' : ''
     ]);
 
+    const improvementBySituation = {
+      serve: { pointConstruction: '+10-18%', firstBallIntent: '+12-20%' },
+      baseline: { consistency: '+10-15%', decisionMaking: '+12-18%' },
+      defense: { neutralBalls: '+10-16%', recovery: '+8-14%' }
+    };
+
     return {
       ...tactic,
       tacticalFocus,
-      expectedImprovement: tactic.situation === 'serve'
-        ? { pointConstruction: '+10-18%', firstBallIntent: '+12-20%' }
-        : tactic.situation === 'baseline'
-          ? { consistency: '+10-15%', decisionMaking: '+12-18%' }
-          : tactic.situation === 'defense'
-            ? { neutralBalls: '+10-16%', recovery: '+8-14%' }
-            : { decisionMaking: '+8-15%', tacticalClarity: '+10-18%' }
+      expectedImprovement: improvementBySituation[tactic.situation]
+        || { decisionMaking: '+8-15%', tacticalClarity: '+10-18%' }
     };
   }
 
@@ -591,6 +592,14 @@
       positioning: safeNumber(assessment.performanceKpis?.positioningScore, safeNumber(metrics.positioning, 70))
     };
 
+    const CONTEXT_MESSAGES = {
+      'serve-patterns': 'You are ready for a serve-plus-one plan so the serve and next ball work as one pattern.',
+      'baseline-margin': 'Your report needs higher-margin baseline decisions, not just cleaner mechanics.',
+      'net-pressure': 'These tactics help you turn improved movement into finishing patterns at the net.',
+      'defense-reset': 'Use these tactical resets to survive pressure while the mechanics catch up.',
+      'point-construction': 'Your score is high enough to benefit from intentional point-building patterns.'
+    };
+
     const picks = [];
     const used = new Set();
     TACTIC_RECOMMENDATION_MAP.forEach((context) => {
@@ -601,20 +610,12 @@
         .sort((a, b) => b.score - a.score)[0];
       if (!candidate) return;
       used.add(candidate.tactic.id);
+
       picks.push({
         ...candidate.tactic,
         relevanceScore: candidate.score,
-        message: context.id === 'serve-patterns'
-          ? 'You are ready for a serve-plus-one plan so the serve and next ball work as one pattern.'
-          : context.id === 'baseline-margin'
-            ? 'Your report needs higher-margin baseline decisions, not just cleaner mechanics.'
-            : context.id === 'net-pressure'
-              ? 'These tactics help you turn improved movement into finishing patterns at the net.'
-              : context.id === 'defense-reset'
-                ? 'Use these tactical resets to survive pressure while the mechanics catch up.'
-                : context.id === 'point-construction'
-                  ? 'Your score is high enough to benefit from intentional point-building patterns.'
-                  : 'These match-play habits raise decision quality and reduce free points given away.'
+        message: CONTEXT_MESSAGES[context.id]
+          || 'These match-play habits raise decision quality and reduce free points given away.'
       });
     });
 
@@ -1036,6 +1037,29 @@
     return `${getAppBaseUrl()}dashboard.html`;
   }
 
+  // Prevent webhook race condition: never downgrade a paid local plan to 'free'
+  // when the user already has a Stripe subscription (webhook just hasn't fired yet).
+  function resolvePlanId(remoteTier, existingLocal) {
+    const remote = String(remoteTier || '').toLowerCase() || '';
+    const local = String(existingLocal?.planId || '').toLowerCase() || 'free';
+    // If Supabase has a paid tier, use it (webhook has fired)
+    if (remote && remote !== 'free') return remote;
+    // If local has a paid plan AND a Stripe ID, keep the local value (webhook pending)
+    if (local !== 'free' && (existingLocal?.stripeSubscriptionId || existingLocal?.stripeCustomerId)) {
+      console.info('[SmartSwing] Keeping local plan "%s" — Supabase still shows "%s" (webhook pending).', local, remote || 'free');
+      return local;
+    }
+    return remote || local || 'free';
+  }
+
+  function resolveSubscriptionStatus(remoteStatus, existingLocal) {
+    const remote = String(remoteStatus || '').toLowerCase() || '';
+    const local = String(existingLocal?.subscriptionStatus || '').toLowerCase() || 'free';
+    if (remote && remote !== 'free') return remote;
+    if (local === 'active' && (existingLocal?.stripeSubscriptionId || existingLocal?.stripeCustomerId)) return local;
+    return remote || local || 'free';
+  }
+
   function buildLocalUserFromSupabase(authUser, profile = null) {
     const email = String(profile?.email || authUser?.email || '').trim().toLowerCase();
     const existingLocal = getUsers().find((entry) => entry.id === authUser?.id || (email && entry.email === email));
@@ -1050,12 +1074,12 @@
       utrRating: profile?.utr_rating || existingLocal?.utrRating || '',
       preferredHand: profile?.preferred_hand || existingLocal?.preferredHand || 'right',
       avatarDataUrl: existingLocal?.avatarDataUrl || profile?.avatar_url || authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || '',
-      planId: profile?.subscription_tier || existingLocal?.planId || 'free',
+      planId: resolvePlanId(profile?.subscription_tier, existingLocal),
       trialPlanId: profile?.trial_plan_id || existingLocal?.trialPlanId || null,
       trialStartedAt: profile?.trial_started_at || existingLocal?.trialStartedAt || null,
       trialEndsAt: profile?.trial_ends_at || existingLocal?.trialEndsAt || null,
       trialHistory: Array.isArray(profile?.trial_history) ? profile.trial_history : getTrialHistory(existingLocal),
-      subscriptionStatus: profile?.subscription_status || existingLocal?.subscriptionStatus || 'free',
+      subscriptionStatus: resolveSubscriptionStatus(profile?.subscription_status, existingLocal),
       stripeCustomerId: profile?.stripe_customer_id || existingLocal?.stripeCustomerId || '',
       stripeSubscriptionId: profile?.stripe_subscription_id || existingLocal?.stripeSubscriptionId || '',
       billingPeriodEnd: profile?.billing_period_end || existingLocal?.billingPeriodEnd || null,
@@ -1069,10 +1093,13 @@
       stateRegion: profile?.state_region || existingLocal?.stateRegion || '',
       postalCode: profile?.postal_code || existingLocal?.postalCode || '',
       country: profile?.country || existingLocal?.country || '',
-      playerIdentity: existingLocal?.playerIdentity || '',
-      playingStyle: existingLocal?.playingStyle || '',
-      practiceFrequency: existingLocal?.practiceFrequency || '',
-      favoriteShot: existingLocal?.favoriteShot || '',
+      playerIdentity: profile?.player_identity || existingLocal?.playerIdentity || '',
+      playingLevel: profile?.playing_level || existingLocal?.playingLevel || '',
+      ratingSystem: profile?.rating_system || existingLocal?.ratingSystem || '',
+      ratingValue: profile?.rating_value || existingLocal?.ratingValue || '',
+      playingStyle: profile?.playing_style || existingLocal?.playingStyle || '',
+      practiceFrequency: profile?.practice_frequency || existingLocal?.practiceFrequency || '',
+      favoriteShot: profile?.favorite_shot || existingLocal?.favoriteShot || '',
       improvementGoals: Array.isArray(existingLocal?.improvementGoals) ? existingLocal.improvementGoals : [],
       onboardingRequiredAt: existingLocal?.onboardingRequiredAt || null,
       onboardingCompletedAt: existingLocal?.onboardingCompletedAt || null,
@@ -1985,6 +2012,7 @@
       dominantHand: fields.dominantHand ?? currentUser.dominantHand ?? '',
       playingLevel: fields.playingLevel ?? currentUser.playingLevel ?? '',
       ratingSystem: fields.ratingSystem ?? currentUser.ratingSystem ?? '',
+      ratingValue: fields.ratingValue ?? currentUser.ratingValue ?? '',
       playingStyle: fields.playingStyle ?? currentUser.playingStyle ?? '',
       practiceFrequency: fields.practiceFrequency ?? currentUser.practiceFrequency ?? '',
       favoriteShot: fields.favoriteShot ?? currentUser.favoriteShot ?? '',
@@ -2017,6 +2045,7 @@
       player_identity: user.playerIdentity || null,
       playing_level: user.playingLevel || null,
       rating_system: user.ratingSystem || null,
+      rating_value: user.ratingValue || null,
       playing_style: user.playingStyle || null,
       practice_frequency: user.practiceFrequency || null,
       favorite_shot: user.favoriteShot || null,
@@ -2070,12 +2099,12 @@
           utrRating: profile.utr_rating || users[idx].utrRating || '',
           preferredHand: profile.preferred_hand || users[idx].preferredHand || 'right',
           avatarDataUrl: users[idx].avatarDataUrl || profile.avatar_url || '',
-          planId: profile.subscription_tier || users[idx].planId || 'free',
+          planId: resolvePlanId(profile.subscription_tier, users[idx]),
           trialPlanId: profile.trial_plan_id || users[idx].trialPlanId || null,
           trialStartedAt: profile.trial_started_at || users[idx].trialStartedAt || null,
           trialEndsAt: profile.trial_ends_at || users[idx].trialEndsAt || null,
           trialHistory: Array.isArray(profile.trial_history) ? profile.trial_history : getTrialHistory(users[idx]),
-          subscriptionStatus: profile.subscription_status || users[idx].subscriptionStatus || 'free',
+          subscriptionStatus: resolveSubscriptionStatus(profile.subscription_status, users[idx]),
           stripeCustomerId: profile.stripe_customer_id || users[idx].stripeCustomerId || '',
           stripeSubscriptionId: profile.stripe_subscription_id || users[idx].stripeSubscriptionId || '',
           billingPeriodEnd: profile.billing_period_end || users[idx].billingPeriodEnd || null,
@@ -2089,6 +2118,15 @@
           stateRegion: profile.state_region || users[idx].stateRegion || '',
           postalCode: profile.postal_code || users[idx].postalCode || '',
           country: profile.country || users[idx].country || '',
+          playerIdentity: profile.player_identity || users[idx].playerIdentity || '',
+          playingLevel: profile.playing_level || users[idx].playingLevel || '',
+          ratingSystem: profile.rating_system || users[idx].ratingSystem || '',
+          ratingValue: profile.rating_value || users[idx].ratingValue || '',
+          playingStyle: profile.playing_style || users[idx].playingStyle || '',
+          practiceFrequency: profile.practice_frequency || users[idx].practiceFrequency || '',
+          favoriteShot: profile.favorite_shot || users[idx].favoriteShot || '',
+          improvementGoals: Array.isArray(profile.improvement_goals) ? profile.improvement_goals : (users[idx].improvementGoals || []),
+          onboardingCompletedAt: profile.onboarding_completed_at || users[idx].onboardingCompletedAt || null,
           createdAt: profile.created_at || users[idx].createdAt || nowIso()
         };
         persistUsers(users);

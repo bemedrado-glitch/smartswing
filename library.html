@@ -202,18 +202,18 @@
     <div class="plan-strip" id="planStrip"></div>
 
     <section class="hero">
-      <h1>Drills and Tactics Library</h1>
-      <p class="muted">Browse the drill and tactic catalog publicly, then upgrade when you want protected external video links, saved reports, and the full player workflow.</p>
+      <h1 data-i18n="library.title">Drills and Tactics Library</h1>
+      <p class="muted" data-i18n="library.subtitle">Browse the drill and tactic catalog publicly, then upgrade when you want protected external video links, saved reports, and the full player workflow.</p>
       <div class="filters">
         <select id="levelFilter">
-          <option value="">All levels</option>
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
-          <option value="pro">Pro</option>
+          <option value="" data-i18n="library.allLevels">All levels</option>
+          <option value="beginner" data-i18n="library.beginner">Beginner</option>
+          <option value="intermediate" data-i18n="library.intermediate">Intermediate</option>
+          <option value="advanced" data-i18n="library.advanced">Advanced</option>
+          <option value="pro" data-i18n="library.pro">Pro</option>
         </select>
         <select id="shotFilter">
-          <option value="">All shot types</option>
+          <option value="" data-i18n="library.allShotTypes">All shot types</option>
           <option value="forehand">Forehand</option>
           <option value="backhand">Backhand</option>
           <option value="serve">Serve</option>
@@ -224,7 +224,7 @@
           <option value="return">Return</option>
         </select>
         <select id="contextFilter">
-          <option value="">All tactic contexts</option>
+          <option value="" data-i18n="library.allContexts">All tactic contexts</option>
           <option value="serve">Serve</option>
           <option value="baseline">Baseline</option>
           <option value="net">Net</option>
@@ -237,11 +237,11 @@
 
     <section class="grid">
       <article class="panel">
-        <h2>Drill Videos</h2>
+        <h2 data-i18n="library.drillsHeading">Drill Videos</h2>
         <div id="drillList" class="list"></div>
       </article>
       <article class="panel">
-        <h2>Tactical Playbooks</h2>
+        <h2 data-i18n="library.tacticsHeading">Tactical Playbooks</h2>
         <div id="tacticList" class="list"></div>
       </article>
     </section>
@@ -385,5 +385,6 @@
     renderPlanSummary();
     renderLibrary();
   </script>
+  <script src="./i18n.js" defer></script>
 </body>
 </html>
