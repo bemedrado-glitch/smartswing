@@ -78,16 +78,17 @@
     const product = (params.get('product') || '').toLowerCase();
     const isSmartFlip = product === 'smartflip';
     const pending = store.getPendingExternalCheckout();
-    const currentUser = store.getCurrentUser();
-    const currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
+    let currentUser = store.getCurrentUser();
+    let currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
     const requestedPlan = requestedPlanId ? store.getPlanDefinition(requestedPlanId) : null;
-    // Show user info
-    (function(){
+
+    function showUserInfo() {
       var el = document.getElementById('psUserInfo');
       if (el && currentUser) {
         el.textContent = (currentUser.fullName || currentUser.email || '') + (currentPlan ? ' \u00B7 ' + currentPlan.name : '');
       }
-    })();
+    }
+    showUserInfo();
     const details = [];
     const primaryAction = document.getElementById('primaryAction');
     const checkoutAction = document.getElementById('checkoutAction');
@@ -129,6 +130,26 @@
     const summaryEl = document.getElementById('summary');
 
     async function main() {
+      // Restore Supabase session FIRST — critical for matching the billing user
+      if (!currentUser && store.restoreSupabaseSession) {
+        try {
+          const restored = await store.restoreSupabaseSession();
+          if (restored) {
+            currentUser = restored;
+            currentPlan = store.getCurrentPlan(currentUser.id);
+            showUserInfo();
+          }
+        } catch (e) {
+          console.warn('[SmartSwing] Session restore failed on payment-success:', e);
+        }
+      }
+      // Fallback: try getCurrentUser one more time (may have been set by onAuthStateChange)
+      if (!currentUser) {
+        currentUser = store.getCurrentUser();
+        currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
+        showUserInfo();
+      }
+
       if (status === 'setup-required') {
         titleEl.textContent = 'Stripe checkout still needs server configuration';
         summaryEl.textContent = 'The app is wired for Stripe, but one or more Stripe keys or price ids are still missing in the server environment.';

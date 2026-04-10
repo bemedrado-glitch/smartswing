@@ -154,6 +154,11 @@ async function patchSupabaseProfile(userId, patch) {
   const supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
   if (!supabaseUrl || !serviceRoleKey || !userId) {
+    console.warn('[stripe-common] patchSupabaseProfile SKIPPED — missing:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!serviceRoleKey,
+      hasUserId: !!userId
+    });
     return { skipped: true };
   }
 
@@ -184,6 +189,11 @@ async function upsertSupabaseSubscription(record) {
   const supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
   const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
   if (!supabaseUrl || !serviceRoleKey || !record?.user_id) {
+    console.warn('[stripe-common] upsertSupabaseSubscription SKIPPED — missing:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!serviceRoleKey,
+      hasUserId: !!record?.user_id
+    });
     return { skipped: true };
   }
 

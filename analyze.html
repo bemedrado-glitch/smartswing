@@ -6272,29 +6272,7 @@
       });
     }
 
-    // Auto-launch Match Tracker when ?mode=match (or match-mode) is in URL
-    const requestedMode = (params.get('mode') || '').toLowerCase();
-    if (requestedMode === 'match' || requestedMode === 'match-mode') {
-      requestAnimationFrame(() => {
-        try {
-          playerProfile.sessionMode = 'match-mode';
-          const sel = document.getElementById('sessionMode');
-          if (sel) sel.value = 'match-mode';
-          // Pre-fill required fields so we can leap straight to step 5
-          if (!playerProfile.gender) playerProfile.gender = 'male';
-          if (!playerProfile.age) playerProfile.age = '21-25';
-          if (!playerProfile.level) playerProfile.level = 'intermediate';
-          if (!playerProfile.shots.length) playerProfile.shots = ['forehand'];
-          setStep(5);
-          if (typeof window._matchTrackerShow === 'function') window._matchTrackerShow();
-          // Hide the analysis grid since we're in pure match-tracking mode
-          const grid = document.querySelector('.analysis-grid');
-          if (grid) grid.style.display = 'none';
-        } catch (err) {
-          console.error('Match-mode auto-launch failed:', err);
-        }
-      });
-    }
+    // Match Tracker auto-launch is deferred until after initMatchTracker() runs (see below)
 
     // ── Match Tracker ─────────────────────────────────────────────────────
     (function initMatchTracker() {
@@ -6966,6 +6944,31 @@
       // Init
       wireEvents();
       renderMatchTracker();
+    })();
+
+    // ── Auto-launch Match Tracker when ?mode=match is in URL ─────────────
+    // Must run AFTER initMatchTracker() so _matchTrackerShow is defined.
+    (function autoLaunchMatchTracker() {
+      const requestedMode = (params.get('mode') || '').toLowerCase();
+      if (requestedMode === 'match' || requestedMode === 'match-mode') {
+        try {
+          playerProfile.sessionMode = 'match-mode';
+          const sel = document.getElementById('sessionMode');
+          if (sel) sel.value = 'match-mode';
+          // Pre-fill required fields so we can leap straight to step 5
+          if (!playerProfile.gender) playerProfile.gender = 'male';
+          if (!playerProfile.age) playerProfile.age = '21-25';
+          if (!playerProfile.level) playerProfile.level = 'intermediate';
+          if (!playerProfile.shots.length) playerProfile.shots = ['forehand'];
+          setStep(5);
+          if (typeof window._matchTrackerShow === 'function') window._matchTrackerShow();
+          // Hide the analysis grid since we're in pure match-tracking mode
+          const grid = document.querySelector('.analysis-grid');
+          if (grid) grid.style.display = 'none';
+        } catch (err) {
+          console.error('Match-mode auto-launch failed:', err);
+        }
+      }
     })();
 
     // ── Score Card Modal (analyze.html Step 5) ───────────────────────────
