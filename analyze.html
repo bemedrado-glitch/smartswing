@@ -5866,6 +5866,8 @@
       analysisData.landmarks = [];
       analysisData.confidence = [];
       lastPersistedSignature = null;
+      cachedSession = null;
+      cachedSessionFrameCount = 0;
       lastStableKeypoints = [];
       lastMetricKeypoints = [];
       lastUiRefreshAt = 0;
@@ -6009,6 +6011,8 @@
       analysisData.landmarks = [];
       analysisData.confidence = [];
       lastPersistedSignature = null;
+      cachedSession = null;
+      cachedSessionFrameCount = 0;
 
       document.getElementById('framesCount').textContent = '0';
       document.getElementById('landmarksCount').textContent = '0';
@@ -6113,19 +6117,31 @@
       });
     }
 
+    // Cached session — ensures Save and Generate Report show the same score
+    let cachedSession = null;
+    let cachedSessionFrameCount = 0;
+
+    function getOrBuildSession() {
+      // Reuse cached session if frame count hasn't changed (no new analysis since last build)
+      if (cachedSession && cachedSessionFrameCount === analysisData.frames.length) {
+        return cachedSession;
+      }
+      cachedSession = buildSession();
+      cachedSessionFrameCount = analysisData.frames.length;
+      return cachedSession;
+    }
+
     document.getElementById('saveBtn').addEventListener('click', () => {
       // Re-check auth in case session restored after page load
       if (store && !currentUser) {
         currentUser = store.getCurrentUser();
       }
-      console.log('Save clicked, frames:', analysisData.frames.length);
-      console.log('Angles data:', analysisData.angles);
-      
-      const session = buildSession();
+
+      const session = getOrBuildSession();
       const persisted = persistSession(session);
-      
+
       alert('Analysis saved.\n\n' +
-            'Frames: ' + analysisData.frames.length + '\n' +
+            'Frames: ' + session.summary.framesAnalyzed + '\n' +
             'Score: ' + session.summary.score + '\n' +
             'Grade: ' + session.summary.grade +
             (currentUser ? '\nDashboard updated.' : '\nSign in to keep a history across sessions.'));
@@ -6134,14 +6150,6 @@
 
     // Generate Report Button
     document.getElementById('generateReportBtn').addEventListener('click', async () => {
-      console.log('🎯 Generate Report button clicked!');
-      console.log('   Frames:', analysisData.frames.length);
-      console.log('   Angle data keys:', Object.keys(analysisData.angles));
-      console.log('   Sample angles:', {
-        shoulder: analysisData.angles.shoulder?.length,
-        elbow: analysisData.angles.elbow?.length
-      });
-      
       if (analysisData.frames.length < 30) {
         alert('Analyze at least 30 frames before generating report');
         return;
@@ -6152,13 +6160,9 @@
         return;
       }
 
-      console.log('✅ Building session...');
-      const session = buildSession();
-      console.log('✅ Session built:', session);
-      
+      const session = getOrBuildSession();
       const persisted = persistSession(session);
-      console.log('✅ Generating report HTML...');
-      
+
       generateReport(session);
       if (persisted && store?.uploadSessionArtifacts) {
         const reportHtml = document.getElementById('reportContent')?.innerHTML || '';
@@ -6167,9 +6171,7 @@
           reportHtml
         }).catch(() => {});
       }
-      console.log('✅ Switching to step 5...');
       setStep(5);
-      console.log('✅ Report should be visible now!');
     });
 
     // Report Navigation Buttons
@@ -6222,6 +6224,8 @@
       analysisData.landmarks = [];
       analysisData.confidence = [];
       lastPersistedSignature = null;
+      cachedSession = null;
+      cachedSessionFrameCount = 0;
 
       document.getElementById('framesCount').textContent = '0';
       document.getElementById('landmarksCount').textContent = '0';

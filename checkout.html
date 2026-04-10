@@ -588,7 +588,7 @@
           document.getElementById('priceAmount').textContent = '$0';
           document.getElementById('pricePeriod').textContent = '/forever';
         } else {
-          document.getElementById('priceAmount').textContent = '$' + price.amount.toFixed(0);
+          document.getElementById('priceAmount').textContent = '$' + price.amount.toFixed(2);
           document.getElementById('pricePeriod').textContent = isYearly ? '/year' : '/month';
         }
 
