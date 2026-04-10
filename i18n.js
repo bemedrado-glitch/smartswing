@@ -100,7 +100,8 @@
       '.ss-lang-opt:hover{background:rgba(57,255,20,0.1);}',
       '.ss-lang-opt.ss-active{background:rgba(57,255,20,0.14);color:#39ff14;}',
       '.ss-lang-opt .ss-opt-flag{font-size:18px;}',
-      '.ss-lang-opt .ss-opt-code{font-size:12px;color:rgba(255,255,255,0.4);margin-left:auto;}'
+      '.ss-lang-opt .ss-opt-code{font-size:12px;color:rgba(255,255,255,0.4);margin-left:auto;}',
+      '@media(max-width:1024px){#ss-lang-switcher{z-index:998!important;}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -172,8 +173,8 @@
       mainNav.appendChild(switcher);
       return;
     }
-    // 4. Last-resort: fixed top-right
-    switcher.style.cssText = 'position:fixed;top:14px;right:16px;z-index:1000;';
+    // 4. Last-resort: fixed position, avoid top-right hamburger conflict
+    switcher.style.cssText = 'position:fixed;bottom:74px;right:16px;z-index:998;';
     document.body.appendChild(switcher);
   }
 
