@@ -2369,8 +2369,16 @@ async function loadAnalytics() {
   const headers = { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey };
 
   try {
-    // Parallel queries to Supabase
-    const [profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(now.getDate() - 30);
+    const sixtyDaysAgo = new Date(now); sixtyDaysAgo.setDate(now.getDate() - 60);
+    var isoThirty = thirtyDaysAgo.toISOString();
+    var isoSixty = sixtyDaysAgo.toISOString();
+
+    // Parallel queries — analytics_events + existing business tables
+    const [eventsThisMonth, eventsLastMonth, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
+      fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id,page_path,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id&created_at=gte.' + isoSixty + '&created_at=lt.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(cfg.url + '/rest/v1/profiles?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/customer_subscriptions?select=id,plan_id,status,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/analysis_reports?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
@@ -2378,14 +2386,58 @@ async function loadAnalytics() {
       fetch(cfg.url + '/rest/v1/contact_messages?select=id,created_at', { headers }).then(r => r.json()).catch(() => [])
     ]);
 
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(now.getDate() - 30);
-    const sixtyDaysAgo = new Date(now); sixtyDaysAgo.setDate(now.getDate() - 60);
+    // ── Real analytics from analytics_events ──
+    var evtsCurrent = Array.isArray(eventsThisMonth) ? eventsThisMonth : [];
+    var evtsPrev = Array.isArray(eventsLastMonth) ? eventsLastMonth : [];
 
-    // Users / signups
-    const totalUsers = Array.isArray(profilesRes) ? profilesRes.length : 0;
-    const usersThisMonth = Array.isArray(profilesRes) ? profilesRes.filter(p => new Date(p.created_at) >= thirtyDaysAgo).length : 0;
-    const usersLastMonth = Array.isArray(profilesRes) ? profilesRes.filter(p => { var d = new Date(p.created_at); return d >= sixtyDaysAgo && d < thirtyDaysAgo; }).length : 0;
+    var pageViewsCurrent = evtsCurrent.filter(e => e.event_type === 'page_view');
+    var pageViewsPrev = evtsPrev.filter(e => e.event_type === 'page_view');
+
+    // Unique visitors = unique session_ids
+    var uniqueSessionsCurrent = new Set(pageViewsCurrent.map(e => e.session_id)).size;
+    var uniqueSessionsPrev = new Set(pageViewsPrev.map(e => e.session_id)).size;
+    var totalPageviewsCurrent = pageViewsCurrent.length;
+    var totalPageviewsPrev = pageViewsPrev.length;
+
+    // Pages per session (for bounce rate approximation)
+    var sessionPageCounts = {};
+    pageViewsCurrent.forEach(function(e) {
+      sessionPageCounts[e.session_id] = (sessionPageCounts[e.session_id] || 0) + 1;
+    });
+    var sessionIds = Object.keys(sessionPageCounts);
+    var avgPagesPerSession = sessionIds.length > 0 ? (totalPageviewsCurrent / sessionIds.length).toFixed(1) : 0;
+    var singlePageSessions = sessionIds.filter(function(sid) { return sessionPageCounts[sid] === 1; }).length;
+    var bounceRate = sessionIds.length > 0 ? Math.round((singlePageSessions / sessionIds.length) * 100) : 0;
+
+    // Delta formatting helper
+    function deltaText(current, previous, suffix) {
+      if (!previous) return '';
+      var diff = current - previous;
+      var pct = previous > 0 ? Math.round((diff / previous) * 100) : 0;
+      var arrow = diff >= 0 ? '↑' : '↓';
+      return arrow + ' ' + Math.abs(pct) + '% vs prev 30d';
+    }
+
+    // Populate visitor/pageview KPIs with real data
+    var hasRealEvents = evtsCurrent.length > 0;
+    if (hasRealEvents) {
+      setKPI('anlVisitors', formatNum(uniqueSessionsCurrent), deltaText(uniqueSessionsCurrent, uniqueSessionsPrev));
+      setKPI('anlPageviews', formatNum(totalPageviewsCurrent), deltaText(totalPageviewsCurrent, totalPageviewsPrev));
+      setKPI('anlSessionDur', avgPagesPerSession + ' pages/session', 'Based on page views');
+      setKPI('anlBounce', bounceRate + '%', singlePageSessions + ' single-page sessions');
+    } else {
+      // Fallback to estimates when no analytics_events exist yet
+      var totalUsers = Array.isArray(profilesRes) ? profilesRes.length : 0;
+      var estVisitors = Math.max(totalUsers * 15, 100);
+      setKPI('anlVisitors', formatNum(estVisitors), '~estimate (tracking pending)');
+      setKPI('anlPageviews', formatNum(estVisitors * 3), '~estimate (tracking pending)');
+      setKPI('anlSessionDur', '—', 'Awaiting event data');
+      setKPI('anlBounce', '—', 'Awaiting event data');
+    }
+
+    // ── Business metrics (unchanged) ──
+    var totalUsers = Array.isArray(profilesRes) ? profilesRes.length : 0;
+    var usersThisMonth = Array.isArray(profilesRes) ? profilesRes.filter(p => new Date(p.created_at) >= thirtyDaysAgo).length : 0;
 
     // Subscriptions / MRR
     const activeSubs = Array.isArray(subsRes) ? subsRes.filter(s => s.status === 'active') : [];
@@ -2405,20 +2457,10 @@ async function loadAnalytics() {
     // Reports as proxy for engagement
     var reportsThisMonth = Array.isArray(reportsRes) ? reportsRes.filter(r => new Date(r.created_at) >= thirtyDaysAgo).length : 0;
 
-    // Leads
-    var totalLeads = Array.isArray(leadsRes) ? leadsRes.length : 0;
-    var leadsThisMonth = Array.isArray(leadsRes) ? leadsRes.filter(l => new Date(l.created_at) >= thirtyDaysAgo).length : 0;
+    // Signup rate — use real visitors if available
+    var visitorBase = hasRealEvents ? uniqueSessionsCurrent : Math.max(totalUsers * 15, 100);
+    var signupRate = visitorBase > 0 ? Math.round((usersThisMonth / visitorBase) * 100) : 0;
 
-    // Signup rate (signups / total visitors estimate — we estimate visitors as signups * 15 as proxy)
-    var estVisitors = Math.max(totalUsers * 15, 100);
-    var estPageviews = estVisitors * 3;
-    var signupRate = totalUsers > 0 ? Math.round((usersThisMonth / Math.max(estVisitors / 30 * 30, 1)) * 100) : 0;
-
-    // Populate KPIs
-    setKPI('anlVisitors', formatNum(estVisitors), estVisitors > 0 ? '~estimate from signups' : '');
-    setKPI('anlPageviews', formatNum(estPageviews), '~3 pages/session avg');
-    setKPI('anlSessionDur', '2m 34s', 'Avg across all pages');
-    setKPI('anlBounce', '42%', 'Industry avg: 55%');
     setKPI('anlOpenRate', '—', 'Connect Resend for live data');
     setKPI('anlClickRate', '—', 'Connect Resend for live data');
     setKPI('anlConversion', conversionRate + '%', paidUsers + ' paid of ' + totalUsers + ' users');
@@ -2442,8 +2484,8 @@ async function loadAnalytics() {
     document.getElementById('anlGaugeLabel').textContent = '/ 100 — ' + healthLabel;
     document.getElementById('anlGaugeFill').style.setProperty('--gauge-deg', Math.round(healthScore * 1.8) + 'deg');
 
-    // Channel performance
-    renderChannelPerformance(leadsRes, totalUsers);
+    // Channel performance — pass analytics_events for richer source data
+    renderChannelPerformance(leadsRes, totalUsers, evtsCurrent);
 
     // Top content from content items
     renderTopContent();
@@ -2497,12 +2539,25 @@ function formatNum(n) {
   return String(n);
 }
 
-function renderChannelPerformance(leads, totalUsers) {
+function renderChannelPerformance(leads, totalUsers, events) {
   var channels = {};
+  // Count leads by source
   if (Array.isArray(leads)) {
     leads.forEach(function(l) {
       var src = (l.source || 'direct').toLowerCase();
       channels[src] = (channels[src] || 0) + 1;
+    });
+  }
+  // Enrich with analytics_events UTM data if available
+  if (Array.isArray(events)) {
+    events.forEach(function(e) {
+      var meta = e.metadata || {};
+      var src = (meta.utm_source || '').toLowerCase();
+      if (src === 'google' || src === 'bing') { channels['organic'] = (channels['organic'] || 0) + 1; }
+      else if (src === 'tiktok' || src === 'instagram' || src === 'facebook' || src === 'twitter') { channels['social'] = (channels['social'] || 0) + 1; }
+      else if (meta.utm_medium === 'email') { channels['email'] = (channels['email'] || 0) + 1; }
+      else if (meta.utm_medium === 'cpc' || meta.utm_medium === 'paid') { channels['paid'] = (channels['paid'] || 0) + 1; }
+      else if (src) { channels['referral'] = (channels['referral'] || 0) + 1; }
     });
   }
   var channelMap = [

@@ -160,8 +160,7 @@
 .brand-logo { height: 80px; width: auto; }
 .footer-logo { height: 64px; width: auto; }
     </style>
-  <!-- Vercel Web Analytics -->
-  <script src="./analytics.js"></script>
+
 </head>
 <body>
   <div class="page">
@@ -223,42 +222,62 @@
       </article>
     </section>
 
-    <footer class="footer">
-      <div class="footer-col">
-        <strong>SmartSwing AI</strong>
-        <div>Drills and tactical playbooks mapped to the same analysis workflow used across the product.</div>
-        <div style="font-size:13px;color:var(--muted)">&copy; 2026 SmartSwing AI</div>
-      </div>
-      <div class="footer-col">
-        <strong>Pathways</strong>
-        <div class="footer-links">
-          <a href="./for-players.html">For Players</a>
-          <a href="./for-coaches.html">For Coaches</a>
-          <a href="./for-clubs.html">For Clubs</a>
-          <a href="./for-parents.html">For Parents</a>
+    <footer class="footer" role="contentinfo" aria-label="Site footer">
+      <div class="page">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35"></div>
+            <p class="footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
+          </div>
+          <div class="footer-col">
+            <strong>Product</strong>
+            <div class="footer-links">
+              <a href="./features.html">Features</a>
+              <a href="./pricing.html">Pricing</a>
+              <a href="./how-it-works.html">How It Works</a>
+              <a href="./analyze.html">Analyze a Swing</a>
+            </div>
+          </div>
+          <div class="footer-col">
+            <strong>For You</strong>
+            <div class="footer-links">
+              <a href="./for-players.html">Players</a>
+              <a href="./for-coaches.html">Coaches</a>
+              <a href="./for-clubs.html">Clubs</a>
+              <a href="./for-parents.html">Parents</a>
+            </div>
+          </div>
+          <div class="footer-col">
+            <strong>Trust &amp; Legal</strong>
+            <div class="footer-links">
+              <a href="./refund-policy.html">Refund Policy</a>
+              <a href="./user-agreement.html">User Agreement</a>
+              <a href="./privacy-policy.html">Privacy Policy</a>
+              <a href="./cookie-policy.html">Cookie Policy</a>
+              <a href="./accessibility.html">Accessibility</a>
+              <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+              <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="footer-col">
-        <strong>Resources</strong>
-        <div class="footer-links">
-          <a href="./blog.html">Blog</a>
-          <a href="./pricing.html">Pricing</a>
-          <a href="./contact.html">Contact</a>
-          <a href="./refund-policy.html">Refund Policy</a>
-        </div>
-      </div>
-      <div class="footer-col">
-        <strong>Community</strong>
-        <div class="footer-links">
-          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
-          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
-          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        <div class="footer-bottom">
+          <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="./privacy-policy.html">Privacy</a>
+            <a href="./user-agreement.html">Terms</a>
+            <a href="./cookie-policy.html">Cookies</a>
+            <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
+            <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
+            <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
+          </div>
         </div>
       </div>
     </footer>
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="./analytics.js" defer></script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>

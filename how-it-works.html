@@ -927,52 +927,61 @@
   </main>
 
   <!-- FOOTER -->
-  <footer role="contentinfo" aria-label="Site footer">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="152" height="64"></div>
-        <p class="footer-tagline" data-i18n="howItWorksPage.footerTagline">Workflow overview from capture to analysis, drills, tactics, and follow-through.</p>
+  <footer class="footer" role="contentinfo" aria-label="Site footer">
+    <div class="page">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35"></div>
+          <p class="footer-tagline" data-i18n="footer.tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
+        </div>
+        <div class="footer-col">
+          <strong data-i18n="footer.col.product">Product</strong>
+          <div class="footer-links">
+            <a href="./features.html" data-i18n="footer.links.features">Features</a>
+            <a href="./pricing.html" data-i18n="footer.links.pricing">Pricing</a>
+            <a href="./how-it-works.html" data-i18n="footer.links.howItWorks">How It Works</a>
+            <a href="./analyze.html" data-i18n="footer.links.analyzeSwing">Analyze a Swing</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <strong data-i18n="footer.col.audiences">For You</strong>
+          <div class="footer-links">
+            <a href="./for-players.html" data-i18n="footer.links.players">Players</a>
+            <a href="./for-coaches.html" data-i18n="footer.links.coaches">Coaches</a>
+            <a href="./for-clubs.html" data-i18n="footer.links.clubs">Clubs</a>
+            <a href="./for-parents.html" data-i18n="footer.links.parents">Parents</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <strong data-i18n="footer.col.legal">Trust &amp; Legal</strong>
+          <div class="footer-links">
+            <a href="./refund-policy.html" data-i18n="footer.links.refundPolicy">Refund Policy</a>
+            <a href="./user-agreement.html" data-i18n="footer.links.userAgreement">User Agreement</a>
+            <a href="./privacy-policy.html" data-i18n="footer.links.privacyPolicy">Privacy Policy</a>
+            <a href="./cookie-policy.html" data-i18n="footer.links.cookiePolicy">Cookie Policy</a>
+            <a href="./accessibility.html" data-i18n="footer.links.accessibility">Accessibility</a>
+            <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+            <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+            <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+          </div>
+        </div>
       </div>
-      <div class="footer-col">
-        <h4 data-i18n="footer.col.pathways">Pathways</h4>
-        <ul>
-          <li><a href="./for-players.html" data-i18n="footer.links.forPlayers">For Players</a></li>
-          <li><a href="./for-coaches.html" data-i18n="footer.links.forCoaches">For Coaches</a></li>
-          <li><a href="./for-clubs.html" data-i18n="footer.links.forClubs">For Clubs</a></li>
-          <li><a href="./for-parents.html" data-i18n="footer.links.forParents">For Parents</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4 data-i18n="footer.col.resources">Resources</h4>
-        <ul>
-          <li><a href="./blog.html" data-i18n="footer.links.blog">Blog</a></li>
-          <li><a href="./library.html" data-i18n="footer.links.drillsLibrary">Drill Library</a></li>
-          <li><a href="./contact.html" data-i18n="footer.links.contact">Contact</a></li>
-          <li><a href="./refund-policy.html" data-i18n="footer.links.refundPolicy">Refund Policy</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4 data-i18n="footer.col.community">Community</h4>
-        <ul>
-          <li><a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a></li>
-          <li><a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a></li>
-          <li><a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2026 SmartSwing AI. All rights reserved.</p>
-      <div class="footer-bottom-links">
-        <a href="./privacy-policy.html">Privacy</a>
-        <a href="./user-agreement.html">Terms</a>
-        <a href="./cookie-policy.html">Cookies</a>
+      <div class="footer-bottom">
+        <p data-i18n="footer.copyright">&copy; 2025 SmartSwing AI. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="./privacy-policy.html" data-i18n="footer.links.privacy">Privacy</a>
+          <a href="./user-agreement.html" data-i18n="footer.links.terms">Terms</a>
+          <a href="./cookie-policy.html" data-i18n="footer.links.cookies">Cookies</a>
           <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
           <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
           <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
         </div>
+      </div>
     </div>
   </footer>
 
+  <script src="./public-app-config.js"></script>
+  <script src="./analytics.js" defer></script>
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
   <script src="./mobile-nav.js"></script>
@@ -1000,5 +1009,6 @@
     });
   })();
   </script>
+  <script src="./site-experience.js"></script>
 </body>
 </html>
