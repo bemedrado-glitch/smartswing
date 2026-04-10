@@ -6183,20 +6183,6 @@
       return cachedSession;
     }
 
-    // Cached session — ensures Save and Generate Report show the same score
-    let cachedSession = null;
-    let cachedSessionFrameCount = 0;
-
-    function getOrBuildSession() {
-      // Reuse cached session if frame count hasn't changed (no new analysis since last build)
-      if (cachedSession && cachedSessionFrameCount === analysisData.frames.length) {
-        return cachedSession;
-      }
-      cachedSession = buildSession();
-      cachedSessionFrameCount = analysisData.frames.length;
-      return cachedSession;
-    }
-
     document.getElementById('saveBtn').addEventListener('click', () => {
       // Re-check auth in case session restored after page load
       if (store && !currentUser) {
