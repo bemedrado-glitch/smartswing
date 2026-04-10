@@ -104,8 +104,8 @@
     },
     {
       "source": "/cart.html",
-      "destination": "/pricing.html",
-      "permanent": false
+      "destination": "/checkout.html",
+      "permanent": true
     }
   ],
   "rewrites": [

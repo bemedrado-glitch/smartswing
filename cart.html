@@ -6,8 +6,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <script>
     // cart.html has been merged into checkout.html — redirect with query params
-    var search = window.location.search || '';
-    window.location.replace('./checkout.html' + search);
+    var dest = window.location.origin + '/checkout.html' + (window.location.search || '');
+    window.location.replace(dest);
   </script>
   <noscript>
     <meta http-equiv="refresh" content="0;url=./checkout.html">
