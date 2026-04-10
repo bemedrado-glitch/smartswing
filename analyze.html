@@ -882,6 +882,7 @@
     .mt-pill-btn.mt-pill-primary:hover { background: rgba(57,255,20,.25); }
     .mt-pill-btn.mt-pill-danger { background: rgba(255,62,108,.1); border-color: rgba(255,62,108,.3); color: #ff3e6c; }
     .mt-pill-btn.mt-pill-danger:hover { background: rgba(255,62,108,.2); }
+    .mt-format-btn.selected { background: rgba(57,255,20,0.2); border-color: rgba(57,255,20,0.5); color: #39ff14; }
     .mt-btn-group-label {
       font-size: 11px;
       font-weight: 700;
@@ -1376,6 +1377,16 @@
             </div>
           </div>
 
+          <!-- Match format -->
+          <div class="mt-panel" style="margin-bottom:16px;" id="mtFormatPanel">
+            <div class="mt-label" style="margin-bottom:10px;">Match Format</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="mt-pill-btn mt-format-btn" data-format="1" style="flex:1;min-width:80px;">1 Set</button>
+              <button class="mt-pill-btn mt-format-btn selected" data-format="3" style="flex:1;min-width:80px;">Best of 3</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="5" style="flex:1;min-width:80px;">Best of 5</button>
+            </div>
+          </div>
+
           <!-- Scoreboard -->
           <div class="mt-panel" style="margin-bottom:16px;">
             <div class="mt-scoreboard">
@@ -1418,10 +1429,11 @@
               <div class="mt-btn-group-label">Winners</div>
               <div class="mt-btn-row" id="mtWinnerBtns">
                 <button class="mt-point-btn mt-winner" data-type="ace">Ace</button>
-                <button class="mt-point-btn mt-winner" data-type="winner-fh">Winner FH</button>
-                <button class="mt-point-btn mt-winner" data-type="winner-bh">Winner BH</button>
+                <button class="mt-point-btn mt-winner" data-type="winner-fh">Forehand Winner</button>
+                <button class="mt-point-btn mt-winner" data-type="winner-bh">Backhand Winner</button>
                 <button class="mt-point-btn mt-winner" data-type="volley-winner">Volley Win</button>
                 <button class="mt-point-btn mt-winner" data-type="drop-shot-winner">Drop Shot Win</button>
+                <button class="mt-point-btn mt-winner" data-type="lob-winner">Lob Winner</button>
               </div>
             </div>
 
@@ -1527,6 +1539,7 @@
               <!-- Export / share -->
               <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;">
                 <button id="mtCopyReportBtn" class="mt-pill-btn">Copy Match Summary</button>
+                <button id="mtSaveMatchBtn" class="mt-pill-btn" style="background:rgba(57,255,20,0.15);border-color:rgba(57,255,20,0.4);color:#39ff14;">Save Match</button>
                 <button id="mtNewMatchBtn" class="mt-pill-btn mt-pill-primary">New Match</button>
               </div>
             </div>
@@ -6137,6 +6150,14 @@
 
       const payload = buildAssessmentPayload(session);
 
+      // Include match data if match tracker was used
+      if (window._getMatchTrackerData) {
+        const mtData = window._getMatchTrackerData();
+        if (mtData && mtData.log && mtData.log.length > 0) {
+          payload.matchData = mtData;
+        }
+      }
+
       // Re-check auth — session may have restored since page load
       if (store && !currentUser) {
         currentUser = store.getCurrentUser();
@@ -6351,6 +6372,8 @@
         tiebreakScore: { left: 0, right: 0 },
         tiebreakServer: 'left',
         matchOver: false,
+        matchFormat: 3, // 1, 3, or 5 — sets needed to win
+        setsToWin: 2,   // Math.ceil(matchFormat / 2)
         pointIndex: 0,  // total points played
         // Stats
         stats: {
@@ -6437,8 +6460,8 @@
       }
 
       function matchWinner() {
-        if (mt.match.left >= 2) return 'left';
-        if (mt.match.right >= 2) return 'right';
+        if (mt.match.left >= mt.setsToWin) return 'left';
+        if (mt.match.right >= mt.setsToWin) return 'right';
         return null;
       }
 
@@ -6473,7 +6496,7 @@
         // Stats
         const loser = opposite(winner);
         if (pointType === 'ace') { mt.stats.aces++; mt.stats.winners++; mt.stats.firstServeIn++; mt.stats.firstServeTotal++; }
-        else if (pointType === 'winner-fh' || pointType === 'winner-bh' || pointType === 'volley-winner' || pointType === 'drop-shot-winner') { mt.stats.winners++; }
+        else if (['winner-fh','winner-bh','volley-winner','drop-shot-winner','lob-winner','overhead-winner','passing-shot','return-winner','service-winner'].includes(pointType)) { mt.stats.winners++; }
         else if (pointType === 'ue-fh' || pointType === 'ue-bh') { mt.stats.ufErrors++; }
         else if (pointType === 'forced-error') { mt.stats.forcedErrors++; }
         else if (pointType === 'double-fault') { mt.stats.doubleFaults++; mt.stats.firstServeTotal++; mt.stats.secondServeTotal++; }
@@ -6587,6 +6610,9 @@
       }
 
       function resetMatch() {
+        // Preserve match format across resets
+        const savedFormat = mt.matchFormat;
+        const savedSetsToWin = mt.setsToWin;
         mt.leftName = document.getElementById('mtNameLeft')?.value || 'You';
         mt.rightName = document.getElementById('mtNameRight')?.value || 'Opponent';
         mt.server = 'left';
@@ -6612,6 +6638,8 @@
           breakPtsFaced: { left: 0, right: 0 }, breakPtsSaved: { left: 0, right: 0 }, breakPtsConv: { left: 0, right: 0 },
         };
         mt.finalScore = '';
+        mt.matchFormat = savedFormat;
+        mt.setsToWin = savedSetsToWin;
         document.getElementById('mtPostMatch').style.display = 'none';
         document.getElementById('mtPointLogger').style.display = '';
         clearShotTags();
@@ -6862,6 +6890,17 @@
           insight += `Combine this match data with a SmartSwing biomechanics analysis of your serve or groundstrokes to pinpoint which mechanical flaws are costing you the most points. `;
         }
 
+        // Pull in historical match stats for richer insight
+        if (store && store.getMatchStats) {
+          const hist = store.getMatchStats();
+          if (hist && hist.matchesPlayed > 1) {
+            insight += ` Over ${hist.matchesPlayed} tracked matches (${hist.winRate}% win rate), you average ${hist.avgWinnersPerMatch} winners and ${hist.avgUfePerMatch} UFEs per match.`;
+            if (hist.avgUfePerMatch > hist.avgWinnersPerMatch) {
+              insight += ` Reducing UFEs remains your biggest opportunity for improvement.`;
+            }
+          }
+        }
+
         if (mt.stats.doubleFaults > 0) {
           insight += `${mt.stats.doubleFaults} double fault${mt.stats.doubleFaults > 1 ? 's' : ''} — review your serve toss height and wrist snap timing in the analyzer for serve-specific coaching.`;
         }
@@ -6877,6 +6916,20 @@
           if (!btn) return;
           scorePoint(mt.logBy, btn.dataset.type, mt.shotTag);
           clearShotTags();
+        });
+
+        // Match format selection
+        document.querySelectorAll('.mt-format-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (mt.log.length > 0) {
+              if (!confirm('Changing format will reset the match. Continue?')) return;
+            }
+            mt.matchFormat = parseInt(btn.dataset.format, 10);
+            mt.setsToWin = mt.matchFormat === 1 ? 1 : Math.ceil(mt.matchFormat / 2);
+            document.querySelectorAll('.mt-format-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            resetMatch();
+          });
         });
 
         document.getElementById('mtErrorBtns')?.addEventListener('click', (e) => {
@@ -6947,6 +7000,29 @@
           resetMatch();
         });
 
+        // Save match to localStorage
+        document.getElementById('mtSaveMatchBtn')?.addEventListener('click', () => {
+          if (!store) { alert('Store not available'); return; }
+          try {
+            const mWinner = matchWinner() || (mt.log.filter(p => p.winner === 'left').length > mt.log.filter(p => p.winner === 'right').length ? 'left' : 'right');
+            const result = mWinner === 'left' ? 'win' : 'loss';
+            store.saveMatch({
+              opponent: mt.rightName,
+              result: result,
+              finalScore: mt.finalScore || buildFinalScore(),
+              sets: mt.sets,
+              matchFormat: mt.matchFormat === 1 ? '1-set' : mt.matchFormat === 5 ? 'best-of-5' : 'best-of-3',
+              stats: { ...mt.stats },
+              log: mt.log,
+              momentum: mt.momentum,
+            });
+            const btn = document.getElementById('mtSaveMatchBtn');
+            if (btn) { btn.textContent = 'Saved!'; btn.disabled = true; }
+          } catch (err) {
+            alert('Unable to save match: ' + (err.message || err));
+          }
+        });
+
         // Copy match summary
         document.getElementById('mtCopyReportBtn')?.addEventListener('click', () => {
           const leftName = mt.leftName;
@@ -6981,6 +7057,21 @@
       }
 
       // ── Public API — show/hide from sessionMode handler ───────────────
+      window._getMatchTrackerData = function() {
+        if (mt.log.length === 0) return null;
+        return {
+          opponent: mt.rightName,
+          result: matchWinner() === 'left' ? 'win' : (matchWinner() === 'right' ? 'loss' : 'in-progress'),
+          finalScore: mt.finalScore || buildFinalScore(),
+          sets: mt.sets,
+          matchFormat: mt.matchFormat,
+          stats: { ...mt.stats },
+          log: mt.log,
+          momentum: mt.momentum,
+          totalPoints: mt.pointIndex,
+        };
+      };
+
       window._matchTrackerShow = function() {
         const el = document.getElementById('matchTracker');
         if (el) el.style.display = '';
