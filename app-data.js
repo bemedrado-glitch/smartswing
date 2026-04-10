@@ -33,14 +33,14 @@
       name: 'Free',
       monthlyPrice: 0,
       yearlyPrice: 0,
-      monthlyReviews: 2,
+      monthlyReviews: 1,
       canSaveReport: true,
       canPrintReport: false,
       hasDrillLibrary: false,
       hasTacticLibrary: false,
       canConnectCoaches: false,
       canConnectPlayers: false,
-      perks: ['2 analysis reports per month', 'Dashboard history tracking']
+      perks: ['1 analysis report per month', 'Dashboard history tracking']
     },
     starter: {
       id: 'starter',
