@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" type="image/png" href="./assets/logos/icon.png">
   <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI | Secure Checkout</title>
+  <title>SmartSwing AI | Checkout</title>
   <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,701 +15,709 @@
   <style>
     :root {
       --bg: #0a0a0a;
-      --bg-soft: #111;
-      --bg-mid: #1a1a1a;
-      --panel: rgba(10,18,24,0.92);
-      --line: rgba(255,255,255,0.12);
-      --text: #f5f7fa;
-      --muted: #dbe4eb;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.07);
+      --glass: rgba(16,18,22,0.82);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.16);
+      --text: #f5f5f7;
+      --muted: rgba(255,255,255,0.55);
       --volt: #39ff14;
+      --volt-glow: rgba(57,255,20,0.15);
       --volt-dark: #2bcc0f;
       --gold: #ffd84d;
-      --deep: #0c1014;
-      --border: rgba(255,255,255,0.12);
+      --danger: #ff6b6b;
       --radius: 20px;
-      --page: min(1280px, calc(100% - 48px));
+      --radius-sm: 12px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: "DM Sans", sans-serif;
+      font-family: "DM Sans", -apple-system, sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.12), transparent 22%),
-        radial-gradient(circle at top right, rgba(255,216,77,0.12), transparent 18%),
-        linear-gradient(180deg, #04080c 0%, #0b1419 48%, #091116 100%);
-      background-attachment: fixed;
+      background: var(--bg);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
-    /* Skip nav */
-    .skip-nav { position:absolute;top:-100%;left:16px;z-index:9999;padding:10px 20px;background:#39ff14;color:#0a0a0a;font-weight:700;border-radius:0 0 8px 8px;font-size:14px;text-decoration:none;transition:top 0.2s; }
+
+    /* ── Skip nav ── */
+    .skip-nav { position:absolute;top:-100%;left:16px;z-index:9999;padding:10px 20px;background:var(--volt);color:#0a0a0a;font-weight:700;border-radius:0 0 8px 8px;font-size:14px;text-decoration:none;transition:top 0.2s; }
     .skip-nav:focus { top:0; }
-    :focus-visible { outline:2px solid #39ff14;outline-offset:3px; }
+    :focus-visible { outline:2px solid var(--volt);outline-offset:3px; }
     a:focus:not(:focus-visible),button:focus:not(:focus-visible) { outline:none; }
 
-    /* Nav */
-    .nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 900;
-      background: rgba(10,10,10,0.88);
+    /* ── Top bar ── */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(10,10,10,0.8);
+      border-bottom: 1px solid var(--border);
     }
-    .nav-inner {
+    .top-bar-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 84px;
-      gap: 24px;
-      width: var(--page);
-      margin: 0 auto;
     }
-    .brand { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; text-decoration: none; }
-    .brand .dot { color: var(--volt); }
-    .nav-links { display: flex; gap: 28px; }
-    .nav-links a { font-size: 14px; font-weight: 500; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-cta { display: flex; gap: 10px; align-items: center; }
-    .btn-primary { display:inline-flex;align-items:center;padding:12px 24px;background:var(--volt);color:#0a0a0a;font-weight:700;font-size:15px;border-radius:12px;border:none;cursor:pointer;text-decoration:none;transition:background 0.2s; }
-    .btn-primary:hover { background:var(--volt-dark); }
-    .btn-ghost { display:inline-flex;align-items:center;padding:12px 24px;background:transparent;color:rgba(255,255,255,0.8);font-weight:600;font-size:15px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);cursor:pointer;text-decoration:none;transition:border-color 0.2s; }
-    .btn-ghost:hover { border-color:rgba(255,255,255,0.4); }
-    @media (max-width: 900px) {
-      .nav-links { display: none; }
-      .nav-cta .btn-ghost, .nav-cta .btn-primary { display: none; }
-    }
-
-    /* Page */
-    .page-wrap { width: var(--page); margin: 0 auto; padding: 40px 0 80px; }
-
-    /* Two-column grids */
-    .hero { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 18px; margin-bottom: 18px; }
-    .checkout-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; }
-
-    /* Panel */
-    .panel, .summary-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.28);
-      transition: transform 180ms ease, border-color 180ms ease;
-    }
-    .panel { padding: 26px; }
-    .summary-card { padding: 18px; }
-    .panel:hover, .summary-card:hover, .payment-badge:hover { transform: translateY(-2px); }
-
-    .eyebrow {
+    .top-bar a { text-decoration: none; }
+    .back-link {
       display: inline-flex;
       align-items: center;
-      border-radius: 999px;
-      padding: 8px 12px;
-      background: rgba(255,216,77,0.12);
-      border: 1px solid rgba(255,216,77,0.28);
-      color: var(--gold);
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .back-link:hover { color: var(--text); }
+    .back-link svg { width: 16px; height: 16px; }
+    .secure-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
+      font-weight: 700;
+      color: var(--volt);
+      letter-spacing: 0.04em;
+    }
+    .secure-label svg { width: 14px; height: 14px; }
+
+    /* ── Main layout ── */
+    .checkout-main {
+      flex: 1;
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Reveal animation ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: revealIn 0.5s ease forwards;
+    }
+    .reveal-d1 { animation-delay: 0.05s; }
+    .reveal-d2 { animation-delay: 0.12s; }
+    .reveal-d3 { animation-delay: 0.2s; }
+    .reveal-d4 { animation-delay: 0.28s; }
+    @keyframes revealIn {
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ── Header ── */
+    .checkout-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .checkout-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+    .checkout-header p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--border-hover); }
+    .card-label {
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
     }
-    h1 {
-      margin: 18px 0 14px;
-      font-size: clamp(38px, 6vw, 64px);
-      line-height: 0.95;
-      letter-spacing: -0.06em;
-      max-width: 12ch;
-    }
-    h2 {
-      font-size: 28px;
-      letter-spacing: -0.04em;
-      color: var(--volt);
-      margin-bottom: 14px;
-    }
-    h3 { font-size: 18px; margin-bottom: 6px; }
-    p, li, label, .micro { color: var(--muted); line-height: 1.7; }
 
-    /* Billing toggle */
-    .toggle {
-      display: inline-flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 18px;
-      padding: 8px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.04);
+    /* ── Plan summary ── */
+    .plan-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
     }
-    .toggle button {
+    .plan-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .plan-name .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 8px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--volt-glow);
+      color: var(--volt);
+      border: 1px solid rgba(57,255,20,0.2);
+      vertical-align: middle;
+      letter-spacing: 0.02em;
+    }
+    .plan-price {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .plan-price .amount {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .plan-price .period {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .plan-perks {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .perk {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .perk svg { width: 12px; height: 12px; color: var(--volt); flex-shrink: 0; }
+    .yearly-savings {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(57,255,20,0.06);
+      border: 1px solid rgba(57,255,20,0.15);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--volt);
+      display: none;
+    }
+
+    /* ── Billing toggle ── */
+    .billing-toggle {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .billing-toggle button {
+      flex: 1;
+      padding: 10px 16px;
       border: none;
       border-radius: 999px;
-      padding: 10px 14px;
       background: transparent;
       color: var(--muted);
       font: inherit;
-      font-weight: 800;
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .toggle button.active {
-      background: linear-gradient(135deg, var(--volt), #96ff76);
-      color: var(--deep);
+    .billing-toggle button.active {
+      background: var(--volt);
+      color: #0a0a0a;
+      box-shadow: 0 2px 12px var(--volt-glow);
     }
-
-    /* Summary list */
-    .summary-list, .trust-list { margin-top: 16px; }
-    .summary-card strong { display: block; color: var(--text); margin-bottom: 6px; }
-
-    /* Info box (account) */
-    .info-box {
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 16px;
-      background: rgba(255,255,255,0.04);
+    .billing-toggle button:not(.active):hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
     }
 
-    /* Payment badges */
-    .payments { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-    .payment-badge {
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px;
-      padding: 0 14px;
-      background: rgba(255,255,255,0.05);
+    /* ── Account row ── */
+    .account-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .account-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .account-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--volt-glow), rgba(255,255,255,0.06));
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 44px;
-      min-width: 68px;
-      transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
-      cursor: default;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--volt);
+      flex-shrink: 0;
     }
-    .payment-badge:hover {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.25);
-      transform: translateY(-1px);
-    }
-    .payment-badge svg { display: block; }
-    /* Trust / Security badges */
-    .security-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255,255,255,0.07);
-    }
-    .trust-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.04);
+    .account-detail { font-size: 13px; }
+    .account-detail .name { font-weight: 700; color: var(--text); }
+    .account-detail .email { color: var(--muted); margin-top: 1px; }
+    .account-action {
       font-size: 12px;
       font-weight: 700;
-      color: rgba(255,255,255,0.75);
-      letter-spacing: 0.02em;
-      transition: border-color 180ms;
+      color: var(--volt);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(57,255,20,0.2);
+      background: rgba(57,255,20,0.06);
+      transition: all 0.2s;
+      cursor: pointer;
+      white-space: nowrap;
     }
-    .trust-badge:hover { border-color: rgba(255,255,255,0.22); }
-    .trust-badge svg { flex-shrink: 0; }
-    .trust-badge .tb-label { display: flex; flex-direction: column; line-height: 1.2; }
-    .trust-badge .tb-sub { font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.45); margin-top: 1px; }
-
-    /* Checkout form area */
-    .checkout-box { display: grid; gap: 14px; margin-top: 18px; }
-
-    /* Secure grid (trust cards at bottom right) */
-    .secure-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; margin-top: 16px; }
-
-    /* Notice */
-    .notice {
-      border-left: 3px solid var(--volt);
-      padding-left: 14px;
-      margin-top: 14px;
+    .account-action:hover {
+      background: rgba(57,255,20,0.12);
+      border-color: rgba(57,255,20,0.35);
     }
 
-    /* Error banner */
+    /* ── CTA button ── */
+    .cta-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 16px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--volt);
+      color: #050505;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 24px var(--volt-glow), 0 0 60px rgba(57,255,20,0.1);
+    }
+    .cta-btn:active { transform: translateY(0); }
+    .cta-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .cta-btn .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #050505;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .cta-sub {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Error banner ── */
     .error-banner {
       display: none;
-      margin-top: 14px;
-      padding: 14px 18px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,80,80,0.4);
-      background: rgba(255,80,80,0.08);
-      color: #ff8080;
-      font-size: 14px;
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,107,107,0.3);
+      background: rgba(255,107,107,0.06);
+      color: var(--danger);
+      font-size: 13px;
       font-weight: 600;
       line-height: 1.5;
     }
     .error-banner.visible { display: block; }
 
-    /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(0,0,0,0.3);
-      border-top-color: var(--deep);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
+    /* ── Trust strip ── */
+    .trust-strip {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+      padding-top: 24px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .trust-item svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    /* Footer */
-    .footer { border-top: 1px solid rgba(255,255,255,0.08); padding: 60px 0 32px; margin-top: 60px; }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-    .footer-brand { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
-    .footer-brand .dot { color: var(--volt); }
-    .footer-tagline { font-size: 13px; color: var(--muted); line-height: 1.6; }
-    .footer-col-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
-    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .footer-links a { font-size: 14px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--text); }
-    .footer-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px; }
-    .footer-bottom p { font-size: 13px; color: var(--muted); }
-    .footer-bottom-links { display: flex; gap: 20px; }
-    .footer-bottom-links a { font-size: 13px; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.2s; }
-    .footer-bottom-links a:hover { color: rgba(255,255,255,0.6); }
+    /* ── Accepted payments ── */
+    .payments-row {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .pay-icon {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      transition: border-color 0.2s;
+    }
+    .pay-icon:hover { border-color: var(--border-hover); }
 
-    @media (max-width: 960px) {
-      .hero, .checkout-grid, .secure-grid, .payments { grid-template-columns: 1fr; }
-      .page-wrap { width: min(100%, calc(100% - 24px)); }
-      .footer-grid { grid-template-columns: 1fr 1fr; }
+    /* ── Footer ── */
+    .checkout-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
     }
-    @media (max-width: 640px) {
-      .footer-grid { grid-template-columns: 1fr; }
-      .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+    .checkout-footer a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: color 0.2s;
     }
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
-    </style>
-  <script src="./analytics.js"></script>
+    .checkout-footer a:hover { color: var(--muted); }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .checkout-main { padding: 32px 16px 60px; }
+      .card { padding: 20px; }
+      .plan-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .plan-price { text-align: left; }
+      .trust-strip { gap: 16px; }
+    }
+  </style>
 </head>
 <body>
-  <a href="#main-content" class="skip-nav">Skip to main content</a>
+  <a href="#checkout-main" class="skip-nav">Skip to checkout</a>
 
-  <nav class="nav" id="mainNav" aria-label="Main navigation">
-    <div class="nav-inner page">
-      <a href="./index.html" class="brand" aria-label="SmartSwing AI - Home"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
-      <div class="nav-links">
-        <a href="./for-players.html">For Players</a>
-        <a href="./for-coaches.html">For Coaches</a>
-        <a href="./for-clubs.html">For Clubs</a>
-        <a href="./how-it-works.html">How It Works</a>
-        <a href="./pricing.html">Pricing</a>
-        <a href="./blog.html">Blog</a>
+  <!-- Top bar -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <a href="./pricing.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Back to pricing
+      </a>
+      <a href="./index.html" style="display:flex;align-items:center;">
+        <img src="./assets/logos/logo.png" alt="SmartSwing AI" height="32" style="height:32px;width:auto;">
+      </a>
+      <span class="secure-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Secure checkout
+      </span>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main id="checkout-main" class="checkout-main">
+
+    <!-- Header -->
+    <div class="checkout-header reveal">
+      <h1 id="pageTitle">Confirm your plan</h1>
+      <p id="pageSub">Review your selection and continue to secure payment.</p>
+    </div>
+
+    <!-- Plan summary card -->
+    <div class="card reveal reveal-d1">
+      <div class="card-label">Your plan</div>
+      <div class="plan-row">
+        <div class="plan-name" id="planName">Pro <span class="badge" id="planBadge">Most popular</span></div>
+        <div class="plan-price">
+          <span class="amount" id="priceAmount">$29</span>
+          <span class="period" id="pricePeriod">/month</span>
+        </div>
       </div>
-      <div class="nav-cta">
-        <a href="./pricing.html" class="btn-ghost" id="backToCart" style="padding:10px 20px;font-size:14px;">Back to pricing</a>
-        <a href="./login.html" class="btn-ghost" style="padding:10px 20px;font-size:14px;">Sign In</a>
-        <a href="./signup.html" class="btn-primary" style="padding:10px 20px;font-size:14px;">Get Started Free</a>
+      <div class="plan-perks" id="planPerks"></div>
+      <div class="yearly-savings" id="yearlySavings"></div>
+    </div>
+
+    <!-- Billing toggle -->
+    <div class="card reveal reveal-d2">
+      <div class="card-label">Billing cycle</div>
+      <div class="billing-toggle" id="billingToggle">
+        <button type="button" data-interval="monthly">Monthly</button>
+        <button type="button" data-interval="yearly">Yearly &mdash; save 15%</button>
       </div>
     </div>
-  </nav>
 
-  <main id="main-content" style="padding-top:88px">
-    <div class="page-wrap">
-
-      <section class="hero">
-        <article class="panel">
-          <div class="eyebrow">Secure checkout</div>
-          <h1>Confirm your plan with a checkout flow that feels trustworthy.</h1>
-          <p>SmartSwing keeps plan details, billing cadence, and account context visible here. The actual recurring payment is completed on Stripe-hosted subscription checkout so card handling, wallets, and subscription security stay in Stripe's controlled flow.</p>
-          <div class="toggle" id="billingToggle">
-            <button type="button" data-interval="monthly">Monthly</button>
-            <button type="button" data-interval="yearly">Yearly | save 15%</button>
-          </div>
-          <div class="notice">Accepted payment methods shown below reflect common Stripe-supported card and wallet options, but the final options may vary by country, device, browser, and your Stripe checkout configuration.</div>
-        </article>
-        <article class="panel">
-          <h2 id="summaryTitle">Order summary</h2>
-          <div class="summary-list" id="summaryList"></div>
-        </article>
-      </section>
-
-      <section class="checkout-grid">
-        <article class="panel">
-          <h2 id="checkoutHeading">Continue to secure Stripe checkout</h2>
-          <div class="info-box">
-            <strong id="accountLabel">Account</strong>
-            <div class="micro" id="accountCopy">Sign in to continue with your selected plan.</div>
-          </div>
-          <div class="payments">
-            <!-- Visa -->
-            <div class="payment-badge" title="Visa">
-              <svg width="46" height="16" viewBox="0 0 46 16" fill="none" aria-label="Visa">
-                <text x="0" y="14" font-family="Arial,sans-serif" font-weight="900" font-style="italic" font-size="17" fill="#fff" letter-spacing="-0.5">VISA</text>
-              </svg>
-            </div>
-            <!-- Mastercard -->
-            <div class="payment-badge" title="Mastercard">
-              <svg width="42" height="26" viewBox="0 0 42 26" fill="none" aria-label="Mastercard">
-                <circle cx="14" cy="13" r="13" fill="#EB001B"/>
-                <circle cx="28" cy="13" r="13" fill="#F79E1B"/>
-                <path d="M21 3.9a13 13 0 0 1 0 18.2A13 13 0 0 1 21 3.9z" fill="#FF5F00"/>
-              </svg>
-            </div>
-            <!-- American Express -->
-            <div class="payment-badge" title="American Express">
-              <svg width="50" height="18" viewBox="0 0 50 18" fill="none" aria-label="American Express">
-                <text x="0" y="14" font-family="Arial,sans-serif" font-weight="800" font-size="13" fill="#2E77BC" letter-spacing="1">AMEX</text>
-              </svg>
-            </div>
-            <!-- Discover -->
-            <div class="payment-badge" title="Discover">
-              <svg width="82" height="22" viewBox="0 0 82 22" fill="none" aria-label="Discover">
-                <text x="0" y="15" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#fff" letter-spacing="0.5">DISCOVER</text>
-                <circle cx="75" cy="11" r="10" fill="#F76F20"/>
-              </svg>
-            </div>
-            <!-- Apple Pay -->
-            <div class="payment-badge" title="Apple Pay">
-              <svg width="54" height="22" viewBox="0 0 54 22" fill="none" aria-label="Apple Pay">
-                <path d="M11.2 5.4c-.7.8-1.8 1.5-2.9 1.4-.1-1.1.4-2.3 1.1-3 .7-.9 1.9-1.5 2.9-1.5.1 1.2-.3 2.3-1.1 3.1zm1 1.6c-1.6-.1-3 .9-3.8.9-.8 0-2-.8-3.3-.8-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.5 3.2 2.5 1.3-.1 1.8-.8 3.3-.8 1.5 0 1.9.8 3.3.8 1.4 0 2.3-1.3 3.1-2.5.6-.9 1-1.9 1.3-2.9-3.2-1.2-3.7-5.7-.4-7.2-.9-1.1-2.2-1.7-3.8-1.7z" fill="white"/>
-                <text x="20" y="16" font-family="Arial,sans-serif" font-weight="600" font-size="14" fill="white">Pay</text>
-              </svg>
-            </div>
-            <!-- Google Pay -->
-            <div class="payment-badge" title="Google Pay">
-              <svg width="60" height="24" viewBox="0 0 60 24" fill="none" aria-label="Google Pay">
-                <text x="0" y="17" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#4285F4">G</text>
-                <text x="12" y="17" font-family="Arial,sans-serif" font-weight="500" font-size="15" fill="#fff">Pay</text>
-              </svg>
-            </div>
-            <!-- Stripe Link -->
-            <div class="payment-badge" title="Link by Stripe">
-              <svg width="44" height="20" viewBox="0 0 44 20" fill="none" aria-label="Link">
-                <rect x="0" y="1" width="18" height="18" rx="4" fill="#00D4FF" opacity="0.85"/>
-                <text x="3" y="15" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#0a0a0a">L</text>
-                <text x="22" y="15" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#00D4FF">link</text>
-              </svg>
-            </div>
-            <!-- Cash App Pay -->
-            <div class="payment-badge" title="Cash App Pay">
-              <svg width="78" height="22" viewBox="0 0 78 22" fill="none" aria-label="Cash App Pay">
-                <rect x="0" y="1" width="20" height="20" rx="5" fill="#00D64F"/>
-                <text x="4" y="16" font-family="Arial,sans-serif" font-weight="900" font-size="15" fill="#fff">$</text>
-                <text x="26" y="15" font-family="Arial,sans-serif" font-weight="700" font-size="12" fill="#fff">Cash App</text>
-              </svg>
-            </div>
-            <!-- PayPal -->
-            <div class="payment-badge" title="PayPal">
-              <svg width="62" height="22" viewBox="0 0 62 22" fill="none" aria-label="PayPal">
-                <text x="0" y="15" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#009CDE">Pay</text>
-                <text x="28" y="15" font-family="Arial,sans-serif" font-weight="800" font-size="15" fill="#003087">Pal</text>
-              </svg>
-            </div>
-          </div>
-          <form id="checkoutForm" class="checkout-box">
-            <div id="checkoutFlow"></div>
-          </form>
-        </article>
-
-        <article class="panel">
-          <h2>Your payment is protected</h2>
-          <div class="trust-list">
-            <div class="summary-card">
-              <strong>Bank-level encryption</strong>
-              Your payment details are handled entirely by Stripe. SmartSwing never sees or stores your card data.
-            </div>
-            <div class="summary-card">
-              <strong>Cancel anytime</strong>
-              No contracts, no lock-in. Manage or cancel your subscription from account settings at any time.
-            </div>
-            <div class="summary-card">
-              <strong>Instant access</strong>
-              Your plan activates the moment payment is confirmed. Full dashboard access in seconds.
-            </div>
-          </div>
-
-          <!-- Security trust badges -->
-          <div class="security-strip">
-            <!-- Stripe -->
-            <div class="trust-badge" title="Payments powered and secured by Stripe">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <rect width="18" height="18" rx="4" fill="#635BFF"/>
-                <path d="M7.5 6.8c0-.5.4-.7.9-.7.8 0 1.7.3 2.4.7V4.5A6.2 6.2 0 0 0 8.4 4C6.5 4 5.2 5 5.2 6.9c0 2.9 3.8 2.4 3.8 3.6 0 .6-.5.8-1 .8-.9 0-2-.4-2.8-.9V13c.9.4 1.9.6 2.8.6 2 0 3.3-.9 3.3-2.9-.1-3-3.8-2.6-3.8-3.9z" fill="white"/>
-              </svg>
-              <div class="tb-label">Stripe Secured<span class="tb-sub">Payment processor</span></div>
-            </div>
-            <!-- SSL / TLS -->
-            <div class="trust-badge" title="256-bit TLS encryption">
-              <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
-                <path d="M8 1L1 4v5c0 4 3 7.4 7 8 4-.6 7-4 7-8V4L8 1z" fill="none" stroke="#39ff14" stroke-width="1.5"/>
-                <rect x="5" y="8" width="6" height="5" rx="1" fill="#39ff14" opacity="0.9"/>
-                <circle cx="8" cy="8" r="1.5" fill="#0a0a0a"/>
-                <line x1="8" y1="9.5" x2="8" y2="11.5" stroke="#0a0a0a" stroke-width="1.2" stroke-linecap="round"/>
-              </svg>
-              <div class="tb-label">256-bit TLS<span class="tb-sub">Encrypted connection</span></div>
-            </div>
-            <!-- PCI DSS -->
-            <div class="trust-badge" title="PCI DSS Level 1 compliance via Stripe">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <rect x="1" y="1" width="16" height="16" rx="3" stroke="#60a5fa" stroke-width="1.5" fill="none"/>
-                <path d="M5 9l2.5 2.5L13 6" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <div class="tb-label">PCI DSS Level 1<span class="tb-sub">Compliance via Stripe</span></div>
-            </div>
-            <!-- No data stored -->
-            <div class="trust-badge" title="SmartSwing never stores card data">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="9" r="8" stroke="#a78bfa" stroke-width="1.5" fill="none"/>
-                <path d="M6 6l6 6M12 6l-6 6" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-              <div class="tb-label">Zero card storage<span class="tb-sub">We never see your card</span></div>
-            </div>
-            <!-- SOC 2 -->
-            <div class="trust-badge" title="SOC 2 Type II certified via Stripe infrastructure">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <polygon points="9,1 17,5 17,13 9,17 1,13 1,5" stroke="#2dd4bf" stroke-width="1.5" fill="none"/>
-                <text x="5" y="12" font-family="Arial" font-weight="900" font-size="7" fill="#2dd4bf">SOC</text>
-              </svg>
-              <div class="tb-label">SOC 2 Type II<span class="tb-sub">via Stripe infrastructure</span></div>
-            </div>
-            <!-- Money back / cancel -->
-            <div class="trust-badge" title="Cancel anytime, no questions asked">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M9 2a7 7 0 1 1 0 14A7 7 0 0 1 9 2z" stroke="#ffd84d" stroke-width="1.5" fill="none"/>
-                <path d="M6 9.5c.5 1.5 2 2.5 3.5 2.5S12 11 12 9c0-1.5-1.5-2.5-3-2.5" stroke="#ffd84d" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-                <path d="M6.5 7.5L6 9.5l2-.5" stroke="#ffd84d" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <div class="tb-label">Cancel anytime<span class="tb-sub">No questions asked</span></div>
-            </div>
-          </div>
-
-          <div class="secure-grid" style="margin-top:16px;">
-            <div class="summary-card">
-              <strong>Billing support</strong>
-              Manage or cancel from the self-service billing portal in Settings.
-            </div>
-            <div class="summary-card">
-              <strong>Questions?</strong>
-              <a href="./contact.html" style="color:var(--volt);">Contact support</a> before completing checkout.
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <footer class="footer" role="contentinfo" aria-label="Site footer">
-        <div>
-          <div class="footer-grid">
-            <div>
-              <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="152" height="64"></div>
-              <p class="footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
-            </div>
-            <div>
-              <p class="footer-col-title">Platform</p>
-              <ul class="footer-links">
-                <li><a href="./for-players.html">For Players</a></li>
-                <li><a href="./for-coaches.html">For Coaches</a></li>
-                <li><a href="./for-clubs.html">For Clubs</a></li>
-                <li><a href="./for-parents.html">For Parents</a></li>
-              </ul>
-            </div>
-            <div>
-              <p class="footer-col-title">Product</p>
-              <ul class="footer-links">
-                <li><a href="./pricing.html">Pricing</a></li>
-                <li><a href="./how-it-works.html">How It Works</a></li>
-                <li><a href="./features.html">Features</a></li>
-                <li><a href="./blog.html">Blog</a></li>
-                <li><a href="./about.html">About</a></li>
-              </ul>
-            </div>
-            <div>
-              <p class="footer-col-title">Legal</p>
-              <ul class="footer-links">
-                <li><a href="./privacy-policy.html">Privacy Policy</a></li>
-                <li><a href="./user-agreement.html">Terms of Use</a></li>
-                <li><a href="./cookie-policy.html">Cookie Policy</a></li>
-                <li><a href="./accessibility.html">Accessibility</a></li>
-                <li><a href="./refund-policy.html">Refund Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="footer-bottom">
-            <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
-            <div class="footer-bottom-links">
-              <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
-              <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
-              <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
-          <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
-          <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
-          <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
-        </div>
+    <!-- Account -->
+    <div class="card reveal reveal-d3">
+      <div class="card-label">Account</div>
+      <div class="account-row" id="accountRow">
+        <div class="account-info">
+          <div class="account-avatar" id="accountAvatar">?</div>
+          <div class="account-detail">
+            <div class="name" id="accountName">Sign in required</div>
+            <div class="email" id="accountEmail">Create or sign into your account to continue</div>
           </div>
         </div>
-      </footer>
-
+        <a class="account-action" id="accountAction" href="./signup.html">Sign up</a>
+      </div>
     </div>
+
+    <!-- CTA -->
+    <div class="reveal reveal-d4">
+      <div class="error-banner" id="checkoutError"></div>
+      <form id="checkoutForm">
+        <button class="cta-btn" id="submitBtn" type="submit">Continue to Stripe checkout</button>
+      </form>
+      <p class="cta-sub" id="ctaSub">You'll be redirected to Stripe to complete payment securely. Cancel anytime.</p>
+    </div>
+
+    <!-- Trust strip -->
+    <div class="trust-strip reveal reveal-d4">
+      <span class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        256-bit TLS
+      </span>
+      <span class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        PCI DSS compliant
+      </span>
+      <span class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Cancel anytime
+      </span>
+      <span class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Powered by Stripe
+      </span>
+    </div>
+
+    <!-- Accepted payments -->
+    <div class="payments-row reveal reveal-d4">
+      <span class="pay-icon">Visa</span>
+      <span class="pay-icon">Mastercard</span>
+      <span class="pay-icon">Amex</span>
+      <span class="pay-icon">Apple Pay</span>
+      <span class="pay-icon">Google Pay</span>
+      <span class="pay-icon">Link</span>
+    </div>
+
   </main>
 
+  <!-- Minimal footer -->
+  <footer class="checkout-footer">
+    <a href="./privacy-policy.html">Privacy</a> &middot;
+    <a href="./user-agreement.html">Terms</a> &middot;
+    <a href="./refund-policy.html">Refund Policy</a> &middot;
+    <a href="./contact.html">Support</a>
+    <br>&copy; 2026 SmartSwing AI
+  </footer>
+
   <script src="./public-app-config.js"></script>
+  <script src="./analytics.js" defer></script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script>
-    const store = window.SmartSwingStore;
-    const params = new URLSearchParams(window.location.search);
-    const planId = params.get('plan') || 'pro';
-    let billingInterval = store.normalizeBillingInterval(params.get('interval') || 'monthly');
-    const plan = store.PLAN_DEFINITIONS[planId] || store.PLAN_DEFINITIONS.pro;
-    const activeUser = store.getCurrentUser();
-    const trialEligibility = store.getTrialEligibility(activeUser?.id, planId);
+    (function() {
+      'use strict';
+      var store = window.SmartSwingStore;
+      var params = new URLSearchParams(window.location.search);
+      var planId = params.get('plan') || 'pro';
+      var billingInterval = store.normalizeBillingInterval(params.get('interval') || 'monthly');
+      var plan = store.PLAN_DEFINITIONS[planId] || store.PLAN_DEFINITIONS.pro;
+      var user = store.getCurrentUser();
 
-    const checkoutFlow = document.getElementById('checkoutFlow');
-    const checkoutHeading = document.getElementById('checkoutHeading');
-    document.getElementById('backToCart').href = `./pricing.html`;
+      var BADGES = { free: '', starter: '', pro: 'Most popular', elite: 'Best value' };
 
-    function renderAccountCard() {
-      const accountLabel = document.getElementById('accountLabel');
-      const accountCopy = document.getElementById('accountCopy');
-      if (!activeUser) {
-        accountLabel.textContent = 'Account required';
-        accountCopy.textContent = 'Create or sign into an account before the final Stripe step.';
-        return;
-      }
-      accountLabel.textContent = activeUser.fullName || activeUser.email;
-      accountCopy.textContent = `${activeUser.email} | ${activeUser.country || 'Location not yet added'} | ${plan.name} checkout`;
-    }
+      // ── Render helpers ──
+      function renderPlan() {
+        var price = store.getPlanPrice(planId, billingInterval);
+        var isFree = planId === 'free';
+        var isYearly = billingInterval === 'yearly';
 
-    function renderSummary() {
-      const price = store.getPlanPrice(planId, billingInterval);
-      document.getElementById('summaryTitle').textContent = planId === 'free'
-        ? `${plan.name} | $0/month`
-        : `${plan.name} | $${price.amount.toFixed(2)}/${billingInterval === 'yearly' ? 'year' : 'month'}`;
-      document.getElementById('summaryList').innerHTML = [
-        { title: 'Plan', body: plan.name },
-        { title: 'Billing cadence', body: plan.id === 'free' ? 'Free activation' : (billingInterval === 'yearly' ? `Yearly billing | save 15% | monthly equivalent $${price.monthlyEquivalent.toFixed(2)}` : 'Monthly billing | cancel anytime') },
-        { title: 'Analyses per month', body: Number.isFinite(plan.monthlyReviews) ? `${plan.monthlyReviews}` : 'Unlimited' },
-        { title: plan.id === 'free' ? 'Free analyses' : 'Trial', body: plan.id === 'free' ? '2 lifetime analyses included — no credit card needed' : 'No free trial — cancel anytime after subscribing' },
-        { title: 'Provider', body: plan.id === 'free' ? 'SmartSwing internal activation' : 'Stripe secure recurring checkout' },
-        { title: 'Included perks', body: plan.perks.join(' | ') }
-      ].map((item) => `<div class="summary-card"><strong>${item.title}</strong>${item.body}</div>`).join('');
-    }
+        // Name + badge
+        var badge = BADGES[planId];
+        document.getElementById('planName').innerHTML = plan.name + (badge ? ' <span class="badge">' + badge + '</span>' : '');
 
-    function renderCheckoutFlow() {
-      const checkoutRoute = store.getExternalCheckoutRoute(planId, {
-        billingInterval,
-        source: 'checkout-page',
-        returnTo: './payment-success.html',
-        cancelTo: './payment-cancelled.html'
-      });
-      if (planId === 'free') {
-        checkoutHeading.textContent = 'Activate free access';
-        checkoutFlow.innerHTML = `
-          <div class="summary-card">
-            <strong>Free access activates inside SmartSwing</strong>
-            You get 2 free analyses. After that, choose a paid plan to keep analysing your game.
-          </div>
-          <button class="btn-primary" id="submitBtn" type="submit">Activate free plan</button>
-          <div class="micro">No payment details are required for the free plan.</div>
-        `;
-        return;
-      }
-
-      checkoutHeading.textContent = `Continue to Stripe checkout | ${billingInterval === 'yearly' ? 'yearly — save 15%' : 'monthly billing'}`;
-      checkoutFlow.innerHTML = checkoutRoute.ready ? `
-        <div class="summary-card">
-          <strong>Recurring billing is hosted by Stripe</strong>
-          You will leave SmartSwing briefly to complete the secure subscription checkout, then return automatically for payment verification.
-        </div>
-        <div class="error-banner" id="checkoutError"></div>
-        <button class="btn-primary" id="submitBtn" type="submit">Continue to Stripe checkout &rarr;</button>
-        <div class="micro">Visa, Mastercard, Apple Pay, Google Pay, and more. Availability varies by country. Have a promo code? Enter it on the next step.</div>
-      ` : `
-        <div class="summary-card">
-          <strong>Stripe checkout is not fully configured yet</strong>
-          The checkout UI is ready, but one or more Stripe keys or price ids are still missing.
-        </div>
-        <div class="error-banner visible" id="checkoutError">${checkoutRoute.reason}</div>
-        <button class="btn" id="submitBtn" type="submit" disabled>Setup incomplete</button>
-        <div class="micro">Contact support if this persists.</div>
-      `;
-    }
-
-    function syncToggle() {
-      document.querySelectorAll('#billingToggle [data-interval]').forEach((button) => {
-        button.classList.toggle('active', button.dataset.interval === billingInterval);
-      });
-      document.getElementById('backToCart').href = `./pricing.html`;
-    }
-
-    document.querySelectorAll('#billingToggle [data-interval]').forEach((button) => {
-      button.addEventListener('click', () => {
-        billingInterval = store.normalizeBillingInterval(button.dataset.interval);
-        const nextUrl = new URL(window.location.href);
-        nextUrl.searchParams.set('interval', billingInterval);
-        window.history.replaceState({}, '', nextUrl);
-        renderSummary();
-        renderCheckoutFlow();
-        syncToggle();
-      });
-    });
-
-    renderAccountCard();
-    renderSummary();
-    renderCheckoutFlow();
-    syncToggle();
-
-    document.getElementById('checkoutForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const user = store.getCurrentUser();
-      const checkoutRoute = store.getExternalCheckoutRoute(planId, {
-        billingInterval,
-        source: 'checkout-page',
-        returnTo: './payment-success.html',
-        cancelTo: './payment-cancelled.html'
-      });
-      if (!user) {
-        store.setCheckoutIntent?.({
-          planId,
-          billingInterval,
-          source: 'checkout-page'
-        });
-        window.location.href = `./signup.html?plan=${encodeURIComponent(planId)}${planId !== 'free' ? `&interval=${encodeURIComponent(billingInterval)}` : ''}`;
-        return;
-      }
-
-      if (planId === 'free') {
-        try {
-          store.setCurrentPlan('free', user.id);
-        } catch (error) {
-          alert(error.message || 'Unable to activate the free plan.');
-          return;
+        // Price
+        if (isFree) {
+          document.getElementById('priceAmount').textContent = '$0';
+          document.getElementById('pricePeriod').textContent = '/forever';
+        } else {
+          document.getElementById('priceAmount').textContent = '$' + price.amount.toFixed(0);
+          document.getElementById('pricePeriod').textContent = isYearly ? '/year' : '/month';
         }
-        window.location.href = './welcome.html?plan=free';
-        return;
+
+        // Perks
+        var perksHtml = (plan.perks || []).map(function(p) {
+          return '<span class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' + p + '</span>';
+        }).join('');
+        document.getElementById('planPerks').innerHTML = perksHtml;
+
+        // Yearly savings
+        var savingsEl = document.getElementById('yearlySavings');
+        if (!isFree && isYearly) {
+          savingsEl.textContent = 'Saving 15% with yearly billing. Monthly equivalent: $' + price.monthlyEquivalent.toFixed(2);
+          savingsEl.style.display = 'block';
+        } else {
+          savingsEl.style.display = 'none';
+        }
+
+        // Page title
+        document.getElementById('pageTitle').textContent = isFree ? 'Activate free access' : 'Confirm your plan';
+        document.getElementById('pageSub').textContent = isFree
+          ? 'Get 2 free analyses with no credit card required.'
+          : 'Review your selection and continue to secure payment.';
+
+        // CTA button
+        var btn = document.getElementById('submitBtn');
+        btn.textContent = isFree ? 'Activate free plan' : 'Continue to Stripe checkout';
+        document.getElementById('ctaSub').textContent = isFree
+          ? 'No payment details required for the free plan.'
+          : "You'll be redirected to Stripe to complete payment securely. Cancel anytime.";
       }
 
-      if (!checkoutRoute.ready) {
-        window.location.href = './payment-success.html?provider=stripe&status=setup-required&plan=' + encodeURIComponent(planId);
-        return;
+      function renderAccount() {
+        if (user) {
+          var initials = (user.fullName || user.email || '?').charAt(0).toUpperCase();
+          document.getElementById('accountAvatar').textContent = initials;
+          document.getElementById('accountName').textContent = user.fullName || 'Your account';
+          document.getElementById('accountEmail').textContent = user.email;
+          document.getElementById('accountAction').textContent = 'Switch';
+          document.getElementById('accountAction').href = './login.html';
+        }
       }
 
-      const submitBtn = document.getElementById('submitBtn');
-      const errorBanner = document.getElementById('checkoutError');
-      if (errorBanner) { errorBanner.classList.remove('visible'); errorBanner.textContent = ''; }
-      submitBtn.setAttribute('disabled', 'disabled');
-      submitBtn.innerHTML = '<span class="spinner"></span>Opening Stripe…';
+      function syncToggle() {
+        document.querySelectorAll('#billingToggle [data-interval]').forEach(function(btn) {
+          btn.classList.toggle('active', btn.dataset.interval === billingInterval);
+        });
+      }
 
-      try {
-        const session = await store.createStripeCheckout(planId, {
-          billingInterval,
+      // ── Billing toggle ──
+      document.querySelectorAll('#billingToggle [data-interval]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          billingInterval = store.normalizeBillingInterval(btn.dataset.interval);
+          var url = new URL(window.location.href);
+          url.searchParams.set('interval', billingInterval);
+          window.history.replaceState({}, '', url);
+          renderPlan();
+          syncToggle();
+        });
+      });
+
+      // ── Checkout submit ──
+      document.getElementById('checkoutForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        var currentUser = store.getCurrentUser();
+        var checkoutRoute = store.getExternalCheckoutRoute(planId, {
+          billingInterval: billingInterval,
           source: 'checkout-page',
           returnTo: './payment-success.html',
           cancelTo: './payment-cancelled.html'
         });
-        window.location.href = session.url;
-      } catch (error) {
-        submitBtn.removeAttribute('disabled');
-        submitBtn.innerHTML = 'Continue to Stripe checkout &rarr;';
-        const msg = error.message || 'Unable to start secure checkout right now. Please try again.';
-        if (errorBanner) { errorBanner.textContent = msg; errorBanner.classList.add('visible'); }
-        else { console.error('Checkout error:', msg); }
-      }
-    });
+
+        // Not logged in — save intent and redirect to signup
+        if (!currentUser) {
+          store.setCheckoutIntent && store.setCheckoutIntent({
+            planId: planId,
+            billingInterval: billingInterval,
+            source: 'checkout-page'
+          });
+          window.location.href = './signup.html?plan=' + encodeURIComponent(planId) + (planId !== 'free' ? '&interval=' + encodeURIComponent(billingInterval) : '');
+          return;
+        }
+
+        // Free plan — activate locally
+        if (planId === 'free') {
+          try {
+            store.setCurrentPlan('free', currentUser.id);
+          } catch (err) {
+            alert(err.message || 'Unable to activate the free plan.');
+            return;
+          }
+          window.location.href = './welcome.html?plan=free';
+          return;
+        }
+
+        // Stripe not ready
+        if (!checkoutRoute.ready) {
+          window.location.href = './payment-success.html?provider=stripe&status=setup-required&plan=' + encodeURIComponent(planId);
+          return;
+        }
+
+        // Start Stripe session
+        var submitBtn = document.getElementById('submitBtn');
+        var errorBanner = document.getElementById('checkoutError');
+        errorBanner.classList.remove('visible');
+        errorBanner.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Opening Stripe\u2026';
+
+        try {
+          var session = await store.createStripeCheckout(planId, {
+            billingInterval: billingInterval,
+            source: 'checkout-page',
+            returnTo: './payment-success.html',
+            cancelTo: './payment-cancelled.html'
+          });
+          window.location.href = session.url;
+        } catch (err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Continue to Stripe checkout';
+          var msg = err.message || 'Unable to start secure checkout. Please try again.';
+          errorBanner.textContent = msg;
+          errorBanner.classList.add('visible');
+        }
+      });
+
+      // ── Init ──
+      store.clearCheckoutIntent && store.clearCheckoutIntent();
+      renderPlan();
+      renderAccount();
+      syncToggle();
+    })();
   </script>
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>

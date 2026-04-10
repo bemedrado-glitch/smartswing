@@ -216,8 +216,7 @@
 .brand-logo { height: 80px; width: auto; }
 .footer-logo { height: 64px; width: auto; }
     </style>
-  <!-- Vercel Web Analytics -->
-  <script src="./analytics.js"></script>
+
 </head>
 <body>
   <a href="#contact-main" class="skip-nav">Skip to main content</a>
@@ -227,51 +226,51 @@
       <div class="nav">
         <a class="btn" href="./blog.html" data-i18n="nav.blog">Blog</a>
         <a class="btn" href="./pricing.html" data-i18n="nav.pricing">Pricing</a>
-        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
+        <a class="btn btn-primary" href="./analyze.html" data-i18n="nav.startFree">Start Free Analysis</a>
       </div>
     </div>
 
     <section class="hero">
       <div class="panel">
-        <div class="badge">Direct contact</div>
-        <h1>We're here. Talk to a real person.</h1>
-        <p class="muted">
+        <div class="badge" data-i18n="cp.hero.badge">Direct contact</div>
+        <h1 data-i18n="cp.hero.heading">We're here. Talk to a real person.</h1>
+        <p class=”muted” data-i18n=”cp.hero.body”>
           Whether you're a player getting started, a coach scaling your roster, or a club exploring a program rollout â€” we'll respond within one business day.
         </p>
       </div>
       <div class="visual">
         <div class="visual-card">
-          <h3>Fastest path to an answer</h3>
-          <p class="muted">Try one free analysis first, then reach out with your results. We can give you specific feedback in context.</p>
+          <h3 data-i18n="cp.hero.fastTitle">Fastest path to an answer</h3>
+          <p class="muted" data-i18n="cp.hero.fastBody">Try one free analysis first, then reach out with your results. We can give you specific feedback in context.</p>
         </div>
       </div>
     </section>
 
     <section class="content">
       <div class="panel">
-        <h2>Reach SmartSwing AI</h2>
+        <h2 data-i18n="cp.reach.heading">Reach SmartSwing AI</h2>
         <div class="list">
           <div class="item">
-            <h3>Primary email</h3>
+            <h3 data-i18n="cp.reach.emailTitle">Primary email</h3>
             <p class="muted"><strong><a href="mailto:support@smartswing.ai">support@smartswing.ai</a></strong><br>Best for technical questions and account setup.</p>
           </div>
           <div class="item">
-            <h3>Coach onboarding</h3>
+            <h3 data-i18n="cp.reach.coachTitle">Coach onboarding</h3>
             <p class="muted"><strong><a href="mailto:coaches@smartswing.ai">coaches@smartswing.ai</a></strong><br>Best for academy rollout, roster workflows, and dashboard setup.</p>
           </div>
           <div class="item">
-            <h3>Sales and partnerships</h3>
+            <h3 data-i18n="cp.reach.salesTitle">Sales and partnerships</h3>
             <p class="muted"><strong><a href="mailto:growth@smartswing.ai">growth@smartswing.ai</a></strong><br>Best for enterprise, clubs, and strategic integrations.</p>
           </div>
           <div class="item">
-            <h3>How to get the most from support</h3>
+            <h3 data-i18n="cp.reach.tipsTitle">How to get the most from support</h3>
             <p class="muted">1. Run a free analysis in the Analyzer<br>2. Save your session to the dashboard<br>3. Send us your question with your goal and timeline</p>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>Send message</h2>
+        <h2 data-i18n="cp.form.heading">Send message</h2>
         <form id="contactForm">
           <label for="name">Full name
             <input id="name" type="text" required placeholder="Example: Alex Morgan">
@@ -294,27 +293,68 @@
           <label for="message">Message
             <textarea id="message" required placeholder="Describe your objective, blockers, and expected outcome."></textarea>
           </label>
-          <button class="btn btn-primary" type="submit">Submit message</button>
+          <button class="btn btn-primary" type="submit" data-i18n="cp.form.submit">Submit message</button>
         </form>
         <div id="contactNotice" class="notice">Your message is sent securely to our support team.</div>
       </div>
     </section>
 
-    <footer class="footer">
-      <a href="./for-players.html">For Players</a>
-      <a href="./for-coaches.html">For Coaches</a>
-      <a href="./for-clubs.html">For Clubs</a>
-      <a href="./blog.html">Blog</a>
-      <a href="./refund-policy.html">Refund Policy</a>
-      <a href="./privacy-policy.html">Privacy Policy</a>
-      <a href="./accessibility.html">Accessibility</a>
-      <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
-      <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
-      <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+    <footer class="footer" role="contentinfo" aria-label="Site footer">
+      <div class="page">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35"></div>
+            <p class="footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
+          </div>
+          <div class="footer-col">
+            <strong>Product</strong>
+            <div class="footer-links">
+              <a href="./features.html">Features</a>
+              <a href="./pricing.html">Pricing</a>
+              <a href="./how-it-works.html">How It Works</a>
+              <a href="./analyze.html">Analyze a Swing</a>
+            </div>
+          </div>
+          <div class="footer-col">
+            <strong>For You</strong>
+            <div class="footer-links">
+              <a href="./for-players.html">Players</a>
+              <a href="./for-coaches.html">Coaches</a>
+              <a href="./for-clubs.html">Clubs</a>
+              <a href="./for-parents.html">Parents</a>
+            </div>
+          </div>
+          <div class="footer-col">
+            <strong>Trust &amp; Legal</strong>
+            <div class="footer-links">
+              <a href="./refund-policy.html">Refund Policy</a>
+              <a href="./user-agreement.html">User Agreement</a>
+              <a href="./privacy-policy.html">Privacy Policy</a>
+              <a href="./cookie-policy.html">Cookie Policy</a>
+              <a href="./accessibility.html">Accessibility</a>
+              <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+              <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="./privacy-policy.html">Privacy</a>
+            <a href="./user-agreement.html">Terms</a>
+            <a href="./cookie-policy.html">Cookies</a>
+            <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
+            <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
+            <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
+          </div>
+        </div>
+      </div>
     </footer>
   </div>
 
   <script src="./public-app-config.js"></script>
+  <script src="./analytics.js" defer></script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
@@ -378,5 +418,6 @@
       notice.textContent = `Your message has been sent. We'll respond within one business day.`;
     });
   </script>
+  <script src="./site-experience.js"></script>
 </body>
 </html>

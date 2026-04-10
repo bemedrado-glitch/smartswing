@@ -14,7 +14,6 @@ const APP_ASSETS = [
   './signup.html',
   './auth-callback.html',
   './settings.html',
-  './cart.html',
   './checkout.html',
   './payment-success.html',
   './payment-cancelled.html',

@@ -112,7 +112,8 @@
 .footer-logo { height: 64px; width: auto; }
     </style>
   <link rel="stylesheet" href="./growth-pages.css">
-  <script src="./analytics.js"></script>
+  <script src="./public-app-config.js"></script>
+  <script src="./analytics.js" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-nav">Skip to main content</a>
@@ -137,49 +138,49 @@
     <section class="hero-v2 reveal">
       <div class="orb orb-1"></div>
       <div class="orb orb-2"></div>
-      <span class="eyebrow">For Clubs &amp; Academies</span>
+      <span class="eyebrow" data-i18n="forClubs.hero.eyebrow">For Clubs &amp; Academies</span>
       <h1>Your Program. <em>Elevated.</em></h1>
-      <p class="sub">Give every coach AI-powered reports, every athlete a clear development path, and every parent visibility into what's actually improving.</p>
+      <p class="sub" data-i18n="forClubs.hero.body">Give every coach AI-powered reports, every athlete a clear development path, and every parent visibility into what's actually improving.</p>
       <div class="hero-actions">
-        <a href="./contact.html" class="btn-primary">Discuss Rollout</a>
-        <a href="./pricing.html" class="btn-ghost">Review Pricing</a>
+        <a href="./contact.html" class="btn-primary" data-i18n="forClubs.hero.cta1">Discuss Rollout</a>
+        <a href="./pricing.html" class="btn-ghost" data-i18n="forClubs.hero.cta2">Review Pricing</a>
       </div>
       <div class="stat-chips">
-        <div class="stat-chip"><strong>10+</strong><span>Athletes per Coach</span></div>
-        <div class="stat-chip"><strong>Zero</strong><span>Custom Software</span></div>
-        <div class="stat-chip"><strong>1 Week</strong><span>To First Results</span></div>
-        <div class="stat-chip"><strong>100%</strong><span>Parent Visibility</span></div>
+        <div class="stat-chip"><strong data-i18n="forClubs.stats.s1v">10+</strong><span data-i18n="forClubs.stats.s1l">Athletes per Coach</span></div>
+        <div class="stat-chip"><strong data-i18n="forClubs.stats.s2v">Zero</strong><span data-i18n="forClubs.stats.s2l">Custom Software</span></div>
+        <div class="stat-chip"><strong data-i18n="forClubs.stats.s3v">1 Week</strong><span data-i18n="forClubs.stats.s3l">To First Results</span></div>
+        <div class="stat-chip"><strong data-i18n="forClubs.stats.s4v">100%</strong><span data-i18n="forClubs.stats.s4l">Parent Visibility</span></div>
       </div>
     </section>
 
     <!-- Feature Cards -->
     <section class="reveal">
       <div class="section-heading">
-        <span class="eyebrow">Program Benefits</span>
-        <h2>Enterprise-grade AI. Club-simple rollout.</h2>
-        <p>Three capabilities that transform how your program operates.</p>
+        <span class="eyebrow" data-i18n="forClubs.features.eyebrow">Program Benefits</span>
+        <h2 data-i18n="forClubs.features.heading">Enterprise-grade AI. Club-simple rollout.</h2>
+        <p data-i18n="forClubs.features.tagline">Three capabilities that transform how your program operates.</p>
       </div>
       <div class="feature-cards">
         <div class="feature-card">
           <div class="fc-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18ZM6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg>
           </div>
-          <h3>Multi-Coach Platform</h3>
-          <p>Every coach on your staff gets their own dashboard, athlete roster, and drill assignment workflow. Unified data, independent workflows.</p>
+          <h3 data-i18n="forClubs.features.f1t">Multi-Coach Platform</h3>
+          <p data-i18n="forClubs.features.f1d">Every coach on your staff gets their own dashboard, athlete roster, and drill assignment workflow. Unified data, independent workflows.</p>
         </div>
         <div class="feature-card">
           <div class="fc-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
           </div>
-          <h3>Operational Analytics</h3>
-          <p>Track program-wide trends: participation rates, athlete improvement velocity, coach activity, and family engagement — all in one view.</p>
+          <h3 data-i18n="forClubs.features.f2t">Operational Analytics</h3>
+          <p data-i18n="forClubs.features.f2d">Track program-wide trends: participation rates, athlete improvement velocity, coach activity, and family engagement — all in one view.</p>
         </div>
         <div class="feature-card">
           <div class="fc-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
           </div>
-          <h3>Family Communication</h3>
-          <p>Automated progress reports keep every parent informed without flooding your inbox. Transparent, professional, and consistent.</p>
+          <h3 data-i18n="forClubs.features.f3t">Family Communication</h3>
+          <p data-i18n="forClubs.features.f3d">Automated progress reports keep every parent informed without flooding your inbox. Transparent, professional, and consistent.</p>
         </div>
       </div>
     </section>
@@ -190,34 +191,34 @@
     <section class="testimonials reveal">
       <div class="testimonial-card">
         <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <blockquote>"We rolled out SmartSwing to our junior program in one week. Coaches love the dashboard, parents love the reports, and athletes actually do the drills."</blockquote>
+        <blockquote data-i18n="forClubs.proof.t1q">"We rolled out SmartSwing to our junior program in one week. Coaches love the dashboard, parents love the reports, and athletes actually do the drills."</blockquote>
         <div class="testimonial-author">
           <div class="avatar">CA</div>
           <div>
-            <strong>Chris A.</strong>
-            <span>Academy Owner, 12 Courts</span>
+            <strong data-i18n="forClubs.proof.t1n">Chris A.</strong>
+            <span data-i18n="forClubs.proof.t1r">Academy Owner, 12 Courts</span>
           </div>
         </div>
       </div>
       <div class="testimonial-card">
         <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <blockquote>"The operational visibility alone justified the investment. I can see which coaches are reviewing footage and which athletes are falling behind."</blockquote>
+        <blockquote data-i18n="forClubs.proof.t2q">"The operational visibility alone justified the investment. I can see which coaches are reviewing footage and which athletes are falling behind."</blockquote>
         <div class="testimonial-author">
           <div class="avatar">LM</div>
           <div>
-            <strong>Laura M.</strong>
-            <span>Program Director</span>
+            <strong data-i18n="forClubs.proof.t2n">Laura M.</strong>
+            <span data-i18n="forClubs.proof.t2r">Program Director</span>
           </div>
         </div>
       </div>
       <div class="testimonial-card">
         <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <blockquote>"Parents stopped asking 'what are you working on?' because the reports answer that question before they even ask."</blockquote>
+        <blockquote data-i18n="forClubs.proof.t3q">"Parents stopped asking 'what are you working on?' because the reports answer that question before they even ask."</blockquote>
         <div class="testimonial-author">
           <div class="avatar">TR</div>
           <div>
-            <strong>Tom R.</strong>
-            <span>Head of Coaching</span>
+            <strong data-i18n="forClubs.proof.t3n">Tom R.</strong>
+            <span data-i18n="forClubs.proof.t3r">Head of Coaching</span>
           </div>
         </div>
       </div>
@@ -225,11 +226,11 @@
 
     <!-- CTA -->
     <section class="cta-v2 reveal">
-      <h2>Ready to upgrade your program's competitive edge?</h2>
-      <p>We'll scope the right entry point for your staff, athlete mix, and rollout timeline. Start with one team — expand when the results are clear.</p>
+      <h2 data-i18n="forClubs.cta.heading">Ready to upgrade your program's competitive edge?</h2>
+      <p data-i18n="forClubs.cta.body">We'll scope the right entry point for your staff, athlete mix, and rollout timeline. Start with one team — expand when the results are clear.</p>
       <div class="cta-actions">
-        <a href="./contact.html" class="btn-primary">Discuss Rollout</a>
-        <a href="./for-coaches.html" class="btn-secondary">Coach Workflows</a>
+        <a href="./contact.html" class="btn-primary" data-i18n="forClubs.cta.primary">Discuss Rollout</a>
+        <a href="./for-coaches.html" class="btn-secondary" data-i18n="forClubs.cta.secondary">Coach Workflows</a>
       </div>
     </section>
 
@@ -298,5 +299,6 @@
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
   <script src="./mobile-nav.js"></script>
+  <script src="./site-experience.js"></script>
 </body>
 </html>

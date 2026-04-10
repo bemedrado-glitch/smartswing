@@ -938,7 +938,6 @@ a { color: inherit; text-decoration: none; }
     ]
   }
   </script>
-  <script src="./analytics.js"></script>
 </head>
 <body>
 <a href="#main-content" class="skip-nav">Skip to main content</a>
@@ -988,29 +987,8 @@ a { color: inherit; text-decoration: none; }
         <span class="live-dot" aria-hidden="true"></span>
         LIVE
       </div>
-      <div class="ticker-track" aria-hidden="true">
-        <!-- First copy -->
-        <span class="ticker-item"><strong>Alcaraz</strong> wins Monte-Carlo Masters 2026 · 6-3 6-4 vs Rune</span>
-        <span class="ticker-item"><strong>Swiatek</strong> claims Stuttgart WTA 500 title · 7-5 6-2 vs Sabalenka</span>
-        <span class="ticker-item"><strong>Sinner</strong> defends Barcelona Open crown · 6-4 7-5 vs Ruud</span>
-        <span class="ticker-item"><strong>Gauff</strong> Miami Open champion · 7-6 6-3 vs Rybakina</span>
-        <span class="ticker-item"><strong>Djokovic</strong> reaches Madrid SF · def. Fritz 6-3 6-4</span>
-        <span class="ticker-item"><strong>Medvedev</strong> Barcelona QF · def. De Minaur 7-5 6-4</span>
-        <span class="ticker-item"><strong>Sabalenka</strong> Madrid draw set · top seed in 2026 clay season</span>
-        <span class="ticker-item"><strong>Roland Garros</strong> 2026 · Main draw May 26 · Prize fund €53.5M</span>
-        <span class="ticker-item"><strong>Wimbledon 2026</strong> · Grass season begins June 16 at Queen's</span>
-        <span class="ticker-item"><strong>SmartSwing AI</strong> — Analyze your clay court swing today</span>
-        <!-- Duplicate for seamless loop -->
-        <span class="ticker-item"><strong>Alcaraz</strong> wins Monte-Carlo Masters 2026 · 6-3 6-4 vs Rune</span>
-        <span class="ticker-item"><strong>Swiatek</strong> claims Stuttgart WTA 500 title · 7-5 6-2 vs Sabalenka</span>
-        <span class="ticker-item"><strong>Sinner</strong> defends Barcelona Open crown · 6-4 7-5 vs Ruud</span>
-        <span class="ticker-item"><strong>Gauff</strong> Miami Open champion · 7-6 6-3 vs Rybakina</span>
-        <span class="ticker-item"><strong>Djokovic</strong> reaches Madrid SF · def. Fritz 6-3 6-4</span>
-        <span class="ticker-item"><strong>Medvedev</strong> Barcelona QF · def. De Minaur 7-5 6-4</span>
-        <span class="ticker-item"><strong>Sabalenka</strong> Madrid draw set · top seed in 2026 clay season</span>
-        <span class="ticker-item"><strong>Roland Garros</strong> 2026 · Main draw May 26 · Prize fund €53.5M</span>
-        <span class="ticker-item"><strong>Wimbledon 2026</strong> · Grass season begins June 16 at Queen's</span>
-        <span class="ticker-item"><strong>SmartSwing AI</strong> — Analyze your clay court swing today</span>
+      <div class="ticker-track" id="tickerTrack" aria-hidden="true">
+        <span class="ticker-item"><strong>SmartSwing AI</strong> — Loading live tennis results...</span>
       </div>
     </div>
   </div>
@@ -1825,35 +1803,48 @@ a { color: inherit; text-decoration: none; }
         </div>
         <p class="footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
       </div>
-      <div>
-        <p class="footer-col-title">Platform</p>
-        <ul class="footer-links">
-          <li><a href="./for-players.html">For Players</a></li>
-          <li><a href="./for-coaches.html">For Coaches</a></li>
-          <li><a href="./for-clubs.html">For Clubs</a></li>
-          <li><a href="./for-parents.html">For Parents</a></li>
-        </ul>
+      <div class="footer-col">
+        <strong>Product</strong>
+        <div class="footer-links">
+          <a href="./features.html">Features</a>
+          <a href="./pricing.html">Pricing</a>
+          <a href="./how-it-works.html">How It Works</a>
+          <a href="./analyze.html">Analyze a Swing</a>
+        </div>
       </div>
-      <div>
-        <p class="footer-col-title">Legal</p>
-        <ul class="footer-links">
-          <li><a href="./privacy-policy.html">Privacy Policy</a></li>
-          <li><a href="./user-agreement.html">Terms of Use</a></li>
-          <li><a href="./cookie-policy.html">Cookie Policy</a></li>
-          <li><a href="./accessibility.html">Accessibility</a></li>
-          <li><a href="./refund-policy.html">Refund Policy</a></li>
-        </ul>
+      <div class="footer-col">
+        <strong>For You</strong>
+        <div class="footer-links">
+          <a href="./for-players.html">Players</a>
+          <a href="./for-coaches.html">Coaches</a>
+          <a href="./for-clubs.html">Clubs</a>
+          <a href="./for-parents.html">Parents</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <strong>Trust &amp; Legal</strong>
+        <div class="footer-links">
+          <a href="./refund-policy.html">Refund Policy</a>
+          <a href="./user-agreement.html">User Agreement</a>
+          <a href="./privacy-policy.html">Privacy Policy</a>
+          <a href="./cookie-policy.html">Cookie Policy</a>
+          <a href="./accessibility.html">Accessibility</a>
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        </div>
       </div>
     </div>
     <div class="footer-bottom">
       <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
       <div class="footer-bottom-links">
-        <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
-          <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
-          <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
-          <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
-        </div>
+        <a href="./privacy-policy.html">Privacy</a>
+        <a href="./user-agreement.html">Terms</a>
+        <a href="./cookie-policy.html">Cookies</a>
+        <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
+        <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
+        <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
+      </div>
     </div>
   </div>
 </footer>
@@ -1887,68 +1878,82 @@ a { color: inherit; text-decoration: none; }
 })();
 
 // ── 2. LIVE TENNIS DATA ──────────────────────────────────────
-const FALLBACK_RESULTS = [
-  { round: 'Monte-Carlo Masters · Final', match: 'Carlos Alcaraz def. Holger Rune', score: '6-3, 6-4' },
-  { round: 'Stuttgart WTA 500 · Final', match: 'Iga Swiatek def. Aryna Sabalenka', score: '7-5, 6-2' },
-  { round: 'Barcelona Open · Semifinal', match: 'Jannik Sinner def. Casper Ruud', score: '6-4, 7-5' },
-  { round: 'Miami Open · Final', match: 'Coco Gauff def. Elena Rybakina', score: '7-6, 6-3' },
-  { round: 'Indian Wells · Quarterfinal', match: 'Novak Djokovic def. Taylor Fritz', score: '6-3, 6-4' },
-  { round: 'Madrid Open · R32', match: 'Alexander Zverev def. Felix Auger-Aliassime', score: '6-4, 6-2' },
-];
 
 function renderResults(results) {
-  const container = document.getElementById('live-results');
+  var container = document.getElementById('live-results');
   if (!results || results.length === 0) {
-    results = FALLBACK_RESULTS;
+    container.innerHTML = '<div class="result-card" style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.5);padding:32px;">No recent results available. Check back soon for live ATP & WTA match data.</div>';
+    return;
   }
-  container.innerHTML = results.map(r => `
-    <div class="result-card">
-      <div class="result-round">${escHtml(r.round || r.strLeague || '')}</div>
-      <div class="result-match">${escHtml(r.match || (r.homeTeam && r.awayTeam ? r.homeTeam + ' vs ' + r.awayTeam : ''))}</div>
-      <div class="result-score">${escHtml(r.score || (r.homeScore != null ? r.homeScore + ' – ' + r.awayScore : ''))}</div>
-      <div class="result-event">${escHtml(r.venue || r.city || '')}</div>
-    </div>
-  `).join('');
+  container.innerHTML = results.map(function(r) {
+    return '<div class="result-card">' +
+      '<div class="result-round">' + escHtml(r.round) + '</div>' +
+      '<div class="result-match">' + escHtml(r.match) + '</div>' +
+      '<div class="result-score">' + escHtml(r.score) + '</div>' +
+      '<div class="result-event">' + escHtml(r.venue) + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 function escHtml(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function populateTicker(results) {
+  var track = document.getElementById('tickerTrack');
+  if (!track || !results || results.length === 0) return;
+  var items = results.slice(0, 10).map(function(r) {
+    return '<span class="ticker-item"><strong>' + escHtml(r.match.split(' vs ')[0] || r.match.split(' def. ')[0] || '') + '</strong> ' + escHtml(r.round) + (r.score ? ' · ' + escHtml(r.score) : '') + '</span>';
+  });
+  items.push('<span class="ticker-item"><strong>SmartSwing AI</strong> — Analyze your swing today</span>');
+  // Duplicate for seamless CSS animation loop
+  track.innerHTML = items.join('') + items.join('');
+}
+
+var _cachedTennisData = null;
+
 async function fetchTennisData() {
-  const ts = document.getElementById('liveTimestamp');
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  var ts = document.getElementById('liveTimestamp');
+  var controller = new AbortController();
+  var timer = setTimeout(function() { controller.abort(); }, 8000);
 
   try {
-    const res = await fetch('/api/tennis-feed', { signal: controller.signal });
+    var res = await fetch('/api/tennis-feed', { signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) throw new Error('non-200');
-    const data = await res.json();
+    var data = await res.json();
+    _cachedTennisData = data;
 
     if (data.error || (!data.recent || data.recent.length === 0)) {
-      renderResults(FALLBACK_RESULTS);
-      if (ts) ts.textContent = 'Showing cached results';
+      renderResults([]);
+      if (ts) ts.textContent = 'Live data temporarily unavailable';
       return;
     }
 
     // Map API shape to render shape
-    const mapped = data.recent.slice(0, 6).map(ev => ({
-      round: ev.round ? 'Round ' + ev.round : (ev.name || ''),
-      match: ev.homeTeam && ev.awayTeam ? ev.homeTeam + ' vs ' + ev.awayTeam : (ev.name || ''),
-      score: ev.homeScore != null ? ev.homeScore + ' – ' + ev.awayScore : '',
-      venue: ev.venue || ev.city || '',
-    }));
+    var mapped = data.recent.slice(0, 8).map(function(ev) {
+      var tournament = ev.tournament || '';
+      var roundLabel = ev.round ? 'Round ' + ev.round : '';
+      var label = tournament ? tournament + (roundLabel ? ' · ' + roundLabel : '') : roundLabel || ev.name || '';
+      return {
+        round: label,
+        match: ev.homeTeam && ev.awayTeam ? ev.homeTeam + ' vs ' + ev.awayTeam : (ev.name || ''),
+        score: ev.homeScore != null && ev.awayScore != null ? ev.homeScore + ' – ' + ev.awayScore : '',
+        venue: [ev.venue, ev.city, ev.country].filter(Boolean).join(', '),
+      };
+    });
 
-    renderResults(mapped.length ? mapped : FALLBACK_RESULTS);
+    renderResults(mapped.length ? mapped : []);
+    populateTicker(mapped);
+
     if (ts && data.fetchedAt) {
-      const d = new Date(data.fetchedAt);
+      var d = new Date(data.fetchedAt);
       ts.textContent = 'Updated ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
   } catch (err) {
     clearTimeout(timer);
-    renderResults(FALLBACK_RESULTS);
-    if (ts) ts.textContent = 'Showing recent results';
+    renderResults([]);
+    if (ts) ts.textContent = 'Live data temporarily unavailable';
   }
 }
 
@@ -1996,6 +2001,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}</style>
 
 <script src="./public-app-config.js"></script>
+<script src="./analytics.js" defer></script>
 <script src="/api/runtime-config.js"></script>
 <script src="./app-data.js"></script>
 <script>
@@ -2269,7 +2275,7 @@ function openBracketModal(tid) {
 
   // Meta
   var statusHtml = t.status === 'completed'
-    ? '<span style="color:#39ff14;font-weight:700;">✓ Completed</span>'
+    ? '<span style="color:#39ff14;font-weight:700;">Completed</span>'
     : t.status === 'live'
       ? '<span class="bm-status-live">Live</span>'
       : '<span style="color:rgba(255,255,255,0.4);">Upcoming</span>';
@@ -2280,8 +2286,20 @@ function openBracketModal(tid) {
     '<span>' + t.prize + '</span>' +
     '<span>' + statusHtml + '</span>';
 
-  // Build bracket body
-  document.getElementById('bmBody').innerHTML = renderBracketHTML(t, surfaceColor);
+  // Show tournament info + official draw link instead of fake bracket
+  document.getElementById('bmBody').innerHTML =
+    '<div style="text-align:center;padding:40px 20px;">' +
+      (t.champion
+        ? '<div style="margin-bottom:24px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:8px;">Champion</div><div style="font-size:28px;font-weight:800;color:#39ff14;">' + escHtml(t.champion) + '</div></div>'
+        : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('–')[0] || t.dates) + '</div>') +
+      '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
+        'style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.4);border-radius:12px;color:#39ff14;font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;" ' +
+        'onmouseenter="this.style.background=\'rgba(57,255,20,.2)\'" onmouseleave="this.style.background=\'rgba(57,255,20,.12)\'">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+        'View Official Draw &amp; Results' +
+      '</a>' +
+      '<div style="margin-top:20px;font-size:12px;color:rgba(255,255,255,.35);">Opens the official tournament website for live, verified bracket data</div>' +
+    '</div>';
 
   var modal = document.getElementById('bracketModal');
   modal.classList.add('open');
@@ -2499,5 +2517,6 @@ document.querySelectorAll('.result-card').forEach(function(card) {
 <script src="./pwa.js"></script>
 <script src="./i18n.js"></script>
 <script src="./mobile-nav.js"></script>
+<script src="./site-experience.js"></script>
 </body>
 </html>

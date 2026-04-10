@@ -254,20 +254,21 @@
   };
 
   const WEAKNESS_TO_DRILL_MAP = {
-    shoulder_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_01_complete_beginner', 'drill_04_forehand_complete', 'drill_10_modern_forehand', 'drill_19_forehand_masterclass_macci'], targets: ['shoulder rotation', 'unit turn', 'coil depth'], expectedGain: '6-12 deg cleaner unit turn in 2-3 sessions', practice: '12-15 min/day' },
-    elbow_extension_low: { strokeFilter: ['forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_04_forehand_complete', 'drill_07_backhand_easy', 'drill_09_volley_img', 'drill_19_forehand_masterclass_macci'], targets: ['contact extension', 'arm path', 'ball control'], expectedGain: '4-8 deg cleaner contact structure', practice: '10-12 min/day' },
-    hip_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_12_kinetic_chain', 'drill_14_mouratoglou_forehand', 'drill_24_agility_no_equipment'], targets: ['hip drive', 'kinetic chain', 'power transfer'], expectedGain: '5-10 deg more lower-body contribution', practice: '12-18 min/day' },
-    leg_drive_low: { strokeFilter: ['serve', 'forehand', 'volley', 'multi'], drillIds: ['drill_03_serve_masterclass', 'drill_06_serve_drills_img', 'drill_12_kinetic_chain', 'drill_21_split_step'], targets: ['leg drive', 'loading depth', 'explosiveness'], expectedGain: '5-9 points in power/readiness blend', practice: '10-15 min/day' },
-    trunk_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_10_modern_forehand', 'drill_12_kinetic_chain', 'drill_28_topspin_5_steps', 'drill_29_warmup_coordination'], targets: ['torso sequencing', 'rotation timing', 'core transfer'], expectedGain: '5-8 deg cleaner torso transfer', practice: '12-15 min/day' },
-    racquet_speed_low: { strokeFilter: ['forehand', 'serve', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_12_kinetic_chain', 'drill_19_forehand_masterclass_macci', 'drill_27_wrist_lag'], targets: ['racquet-head speed', 'lag and release', 'acceleration'], expectedGain: '4-9 mph equivalent speed gain', practice: '10-14 min/day' },
-    contact_height_inconsistent: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_02_beginner_rally', 'drill_13_watch_ball', 'drill_23_ball_machine_set', 'drill_25_fix_forehand_mistakes'], targets: ['contact window', 'spacing', 'timing'], expectedGain: '6-10 points in contact-height score', practice: '10-12 min/day' },
-    spacing_inconsistent: { strokeFilter: ['forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_16_return_reaction', 'drill_23_ball_machine_set', 'drill_30_basics_footwork'], targets: ['spacing', 'distance from body', 'recovery positioning'], expectedGain: '6-10 points in spacing score', practice: '10-15 min/day' },
-    balance_unstable: { strokeFilter: ['forehand', 'backhand', 'volley', 'serve', 'multi'], drillIds: ['drill_09_volley_img', 'drill_17_volley_elite_set', 'drill_21_split_step', 'drill_29_warmup_coordination'], targets: ['balance', 'base control', 'centered strike'], expectedGain: '5-9 points in footwork score', practice: '8-12 min/day' },
-    footwork_slow: { strokeFilter: ['multi', 'forehand', 'backhand', 'return'], drillIds: ['drill_16_return_reaction', 'drill_21_split_step', 'drill_22_footwork_5_drills', 'drill_24_agility_no_equipment', 'drill_30_basics_footwork'], targets: ['split step', 'first move', 'court recovery'], expectedGain: '8-14 points in footwork/readiness', practice: '10-15 min/day' },
-    consistency_low: { strokeFilter: ['multi', 'forehand', 'backhand'], drillIds: ['drill_02_beginner_rally', 'drill_13_watch_ball', 'drill_23_ball_machine_set', 'drill_28_topspin_5_steps'], targets: ['repeatability', 'margin', 'clean contact'], expectedGain: '6-12 points in timing consistency', practice: '12-18 min/day' },
-    timing_inconsistent: { strokeFilter: ['multi', 'forehand', 'backhand', 'serve'], drillIds: ['drill_02_beginner_rally', 'drill_13_watch_ball', 'drill_16_return_reaction', 'drill_29_warmup_coordination'], targets: ['strike timing', 'ball tracking', 'tempo'], expectedGain: '6-12 points in timing consistency', practice: '8-12 min/day' },
-    court_positioning_low: { strokeFilter: ['multi', 'forehand', 'backhand', 'return'], drillIds: ['drill_21_split_step', 'drill_22_footwork_5_drills', 'drill_24_agility_no_equipment', 'drill_30_basics_footwork'], targets: ['court position', 'recovery routes', 'base width'], expectedGain: '5-10 points in positioning score', practice: '10-12 min/day' },
-    kinetic_chain_disconnect: { strokeFilter: ['forehand', 'serve', 'backhand', 'multi'], drillIds: ['drill_10_modern_forehand', 'drill_12_kinetic_chain', 'drill_19_forehand_masterclass_macci', 'drill_29_warmup_coordination'], targets: ['upper-lower sync', 'chain transfer', 'posture control'], expectedGain: '5-8 points in biomechanics blend', practice: '10-14 min/day' }
+    shoulder_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_04_forehand_complete', 'drill_10_modern_forehand', 'drill_14_mouratoglou_forehand', 'drill_19_forehand_masterclass_macci', 'drill_07_backhand_easy'], targets: ['shoulder rotation', 'unit turn', 'coil depth'], expectedGain: '6-12 deg cleaner unit turn in 2-3 sessions', practice: '12-15 min/day' },
+    elbow_extension_low: { strokeFilter: ['forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_04_forehand_complete', 'drill_07_backhand_easy', 'drill_09_volley_img', 'drill_19_forehand_masterclass_macci', 'drill_25_fix_forehand_mistakes'], targets: ['contact extension', 'arm path', 'ball control'], expectedGain: '4-8 deg cleaner contact structure', practice: '10-12 min/day' },
+    hip_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_14_mouratoglou_forehand', 'drill_10_modern_forehand', 'drill_26_windshield_wiper', 'drill_12_kinetic_chain'], targets: ['hip drive', 'kinetic chain', 'power transfer'], expectedGain: '5-10 deg more lower-body contribution', practice: '12-18 min/day' },
+    leg_drive_low: { strokeFilter: ['serve', 'forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_04_forehand_complete', 'drill_07_backhand_easy', 'drill_22_footwork_5_drills', 'drill_03_serve_masterclass', 'drill_29_warmup_coordination'], targets: ['leg drive', 'loading depth', 'explosiveness'], expectedGain: '5-9 points in power/readiness blend', practice: '10-15 min/day' },
+    trunk_rotation_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_10_modern_forehand', 'drill_14_mouratoglou_forehand', 'drill_26_windshield_wiper', 'drill_28_topspin_5_steps', 'drill_12_kinetic_chain'], targets: ['torso sequencing', 'rotation timing', 'core transfer'], expectedGain: '5-8 deg cleaner torso transfer', practice: '12-15 min/day' },
+    racquet_speed_low: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_27_wrist_lag', 'drill_19_forehand_masterclass_macci', 'drill_08_forehand_img', 'drill_26_windshield_wiper', 'drill_12_kinetic_chain'], targets: ['racquet-head speed', 'lag and release', 'acceleration'], expectedGain: '4-9 mph equivalent speed gain', practice: '10-14 min/day' },
+    contact_height_inconsistent: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_25_fix_forehand_mistakes', 'drill_13_watch_ball', 'drill_23_ball_machine_set', 'drill_04_forehand_complete', 'drill_02_beginner_rally'], targets: ['contact window', 'spacing', 'timing'], expectedGain: '6-10 points in contact-height score', practice: '10-12 min/day' },
+    spacing_inconsistent: { strokeFilter: ['forehand', 'backhand', 'volley', 'multi'], drillIds: ['drill_08_forehand_img', 'drill_30_basics_footwork', 'drill_23_ball_machine_set', 'drill_16_return_reaction', 'drill_22_footwork_5_drills'], targets: ['spacing', 'distance from body', 'recovery positioning'], expectedGain: '6-10 points in spacing score', practice: '10-15 min/day' },
+    balance_unstable: { strokeFilter: ['forehand', 'backhand', 'volley', 'serve', 'multi'], drillIds: ['drill_29_warmup_coordination', 'drill_22_footwork_5_drills', 'drill_30_basics_footwork', 'drill_09_volley_img', 'drill_24_agility_no_equipment'], targets: ['balance', 'base control', 'centered strike'], expectedGain: '5-9 points in footwork score', practice: '8-12 min/day' },
+    footwork_slow: { strokeFilter: ['multi', 'forehand', 'backhand', 'return'], drillIds: ['drill_22_footwork_5_drills', 'drill_24_agility_no_equipment', 'drill_30_basics_footwork', 'drill_16_return_reaction', 'drill_29_warmup_coordination'], targets: ['split step', 'first move', 'court recovery'], expectedGain: '8-14 points in footwork/readiness', practice: '10-15 min/day' },
+    consistency_low: { strokeFilter: ['multi', 'forehand', 'backhand'], drillIds: ['drill_13_watch_ball', 'drill_02_beginner_rally', 'drill_28_topspin_5_steps', 'drill_23_ball_machine_set', 'drill_25_fix_forehand_mistakes'], targets: ['repeatability', 'margin', 'clean contact'], expectedGain: '6-12 points in timing consistency', practice: '12-18 min/day' },
+    timing_inconsistent: { strokeFilter: ['multi', 'forehand', 'backhand', 'serve'], drillIds: ['drill_13_watch_ball', 'drill_29_warmup_coordination', 'drill_02_beginner_rally', 'drill_16_return_reaction', 'drill_23_ball_machine_set'], targets: ['strike timing', 'ball tracking', 'tempo'], expectedGain: '6-12 points in timing consistency', practice: '8-12 min/day' },
+    court_positioning_low: { strokeFilter: ['multi', 'forehand', 'backhand', 'return'], drillIds: ['drill_22_footwork_5_drills', 'drill_30_basics_footwork', 'drill_24_agility_no_equipment', 'drill_16_return_reaction', 'drill_29_warmup_coordination'], targets: ['court position', 'recovery routes', 'base width'], expectedGain: '5-10 points in positioning score', practice: '10-12 min/day' },
+    kinetic_chain_disconnect: { strokeFilter: ['forehand', 'serve', 'backhand', 'multi'], drillIds: ['drill_10_modern_forehand', 'drill_14_mouratoglou_forehand', 'drill_19_forehand_masterclass_macci', 'drill_12_kinetic_chain', 'drill_29_warmup_coordination'], targets: ['upper-lower sync', 'chain transfer', 'posture control'], expectedGain: '5-8 points in biomechanics blend', practice: '10-14 min/day' },
+    base_width_unstable: { strokeFilter: ['forehand', 'backhand', 'serve', 'multi'], drillIds: ['drill_30_basics_footwork', 'drill_22_footwork_5_drills', 'drill_08_forehand_img', 'drill_04_forehand_complete', 'drill_29_warmup_coordination'], targets: ['stance width', 'base stability', 'ready position'], expectedGain: '5-8 points in base stability', practice: '10-12 min/day' }
   };
 
   const TACTIC_RECOMMENDATION_MAP = [
@@ -477,11 +478,44 @@
     const mapping = WEAKNESS_TO_DRILL_MAP[weakness.weaknessKey];
     if (!mapping) return 0;
     let score = 0;
-    if ((mapping.drillIds || []).includes(drill.id)) score += 55;
-    if ((drill.metricTags || []).includes(weakness.metric)) score += 20;
-    if (supportsShot(drill.strokeType, assessment.shotType)) score += 15;
-    if (isLevelAppropriate(drill.skillLevel, assessment.level || assessment.playerLevel)) score += 10;
-    if (String(drill.channel || '').includes('Intuitive') || String(drill.channel || '').includes('Top Tennis') || String(drill.channel || '').includes('Rick Macci')) score += 5;
+
+    // Mapped drill bonus — higher position in the drillIds list = higher priority
+    const drillIds = mapping.drillIds || [];
+    const drillIndex = drillIds.indexOf(drill.id);
+    if (drillIndex >= 0) {
+      // First drill in list gets 50, second gets 44, third gets 38, etc.
+      score += Math.max(20, 50 - drillIndex * 6);
+    }
+
+    // Metric tag match (drill directly trains the weak metric)
+    if ((drill.metricTags || []).includes(weakness.metric)) score += 22;
+
+    // Shot-type specificity bonus — reward drills that match the EXACT shot type
+    const stroke = String(drill.strokeType || '').toLowerCase();
+    const shot = normalizeShot(assessment.shotType);
+    if (stroke === shot) {
+      // Exact match: forehand drill for forehand analysis → strong bonus
+      score += 25;
+    } else if (stroke === 'multi' || stroke === 'all') {
+      // Generic/wildcard drill → small bonus (useful but less targeted)
+      score += 8;
+    } else if (supportsShot(drill.strokeType, assessment.shotType)) {
+      // Compatible but not exact (e.g. backhand drill for slice)
+      score += 15;
+    }
+
+    // Level match
+    const drillLevel = String(drill.skillLevel || '').toLowerCase();
+    if (drillLevel === 'all') {
+      score += 5; // Generic level — less targeted
+    } else if (isLevelAppropriate(drill.skillLevel, assessment.level || assessment.playerLevel)) {
+      score += 12;
+    }
+
+    // Quality channel bonus
+    if (String(drill.channel || '').includes('Rick Macci') || String(drill.channel || '').includes('Mouratoglou')) score += 6;
+    else if (String(drill.channel || '').includes('Intuitive') || String(drill.channel || '').includes('Top Tennis') || String(drill.channel || '').includes('IMG')) score += 3;
+
     return score;
   }
 
@@ -965,7 +999,7 @@
     if (intent.planId !== 'free') {
       params.set('interval', normalizeBillingInterval(intent.billingInterval || 'monthly'));
     }
-    const cartPath = String(intent.cartPath || 'cart.html').replace(/^\.\//, '');
+    const cartPath = String(intent.cartPath || 'checkout.html').replace(/^\.\//, '');
     return `${getAppBaseUrl()}${cartPath}?${params.toString()}`;
   }
 
@@ -1427,6 +1461,12 @@
       updatedAt: nowIso()
     };
     persistUsers(users);
+
+    // Invalidate stale server quota cache so the next canGenerateReport()
+    // call fetches fresh data reflecting the new plan.
+    serverQuotaCache = null;
+    serverQuotaFetchedAt = 0;
+
     return users[idx];
   }
 
@@ -1514,6 +1554,12 @@
       onboardingSource: users[idx].role === 'player' ? 'plan-activation' : (users[idx].onboardingSource || '')
     };
     persistUsers(users);
+
+    // Invalidate stale server quota cache so the next limit check
+    // reflects the new plan.
+    serverQuotaCache = null;
+    serverQuotaFetchedAt = 0;
+
     return plan;
   }
 
@@ -1679,6 +1725,16 @@
     // so clearing browser data cannot reset the count.
     if (isSupabaseConfigured()) {
       return (async () => {
+        // Force-refresh server quota before consuming. This ensures that
+        // plan upgrades (via webhook writing to customer_subscriptions)
+        // are picked up even if the stale cache says "free".
+        await fetchServerReportUsage({ force: true });
+        // Re-read plan after refresh — the server may now report 'unlimited'
+        const freshCheck = canGenerateReport(user.id);
+        if (freshCheck.source === 'server' && freshCheck.allowed && freshCheck.remaining === Infinity) {
+          // Paid plan confirmed by server — skip the consume gate entirely
+          return finalizeLocalConsume(user, plan, monthKey, payload);
+        }
         try {
           await consumeFreeReportViaServer(user, plan);
         } catch (err) {
@@ -1926,6 +1982,9 @@
     const updated = {
       ...currentUser,
       playerIdentity: fields.playerIdentity ?? currentUser.playerIdentity ?? '',
+      dominantHand: fields.dominantHand ?? currentUser.dominantHand ?? '',
+      playingLevel: fields.playingLevel ?? currentUser.playingLevel ?? '',
+      ratingSystem: fields.ratingSystem ?? currentUser.ratingSystem ?? '',
       playingStyle: fields.playingStyle ?? currentUser.playingStyle ?? '',
       practiceFrequency: fields.practiceFrequency ?? currentUser.practiceFrequency ?? '',
       favoriteShot: fields.favoriteShot ?? currentUser.favoriteShot ?? '',
@@ -1953,7 +2012,16 @@
       gender: user.gender || null,
       usta_level: user.ustaLevel || null,
       utr_rating: user.utrRating || null,
-      preferred_hand: user.preferredHand || 'right',
+      preferred_hand: user.dominantHand || user.preferredHand || 'right',
+      dominant_hand: user.dominantHand || null,
+      player_identity: user.playerIdentity || null,
+      playing_level: user.playingLevel || null,
+      rating_system: user.ratingSystem || null,
+      playing_style: user.playingStyle || null,
+      practice_frequency: user.practiceFrequency || null,
+      favorite_shot: user.favoriteShot || null,
+      improvement_goals: Array.isArray(user.improvementGoals) ? user.improvementGoals : null,
+      onboarding_completed_at: user.onboardingCompletedAt || null,
       avatar_url: user.avatarDataUrl || null,
       subscription_tier: user.planId || 'free',
       subscription_status: user.subscriptionStatus || 'free',
@@ -2603,6 +2671,10 @@
     if (metric === 'balance') return up ? 'Stay centered over your base through contact and recovery.' : 'Hold the center line and avoid drifting early.';
     if (metric === 'alignmentGap') return up ? 'Keep shoulders and hips working in the same posture window.' : 'Maintain cleaner upper-lower body connection.';
     if (metric === 'footworkLoad') return up ? 'Keep the feet active, then quiet the finish.' : 'Add a stronger split-step and first move into the ball.';
+    if (metric === 'timing') return 'Focus on hitting at the same rhythm on every rep — try counting 1-2-3 with each swing.';
+    if (metric === 'footwork') return 'Set your feet before you swing. Early preparation beats racquet speed every time.';
+    if (metric === 'positioning') return 'After every shot, recover toward center. Good positioning starts before the opponent hits.';
+    if (metric === 'readiness') return 'Start in a neutral athletic stance with weight forward. Be ready before the ball crosses the net.';
     return up ? 'Tighten movement sequence.' : 'Increase movement range into target window.';
   }
 

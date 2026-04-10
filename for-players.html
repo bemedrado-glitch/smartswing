@@ -154,7 +154,8 @@
 .footer-logo { height: 64px; width: auto; }
     </style>
   <link rel="stylesheet" href="./growth-pages.css">
-  <script src="./analytics.js"></script>
+  <script src="./public-app-config.js"></script>
+  <script src="./analytics.js" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-nav">Skip to main content</a>
@@ -180,29 +181,29 @@
       <div class="gradient-orb gradient-orb--green"></div>
       <div class="gradient-orb gradient-orb--teal"></div>
       <div class="page">
-        <span class="eyebrow">For Players</span>
+        <span class="eyebrow" data-i18n="forPlayers.hero.eyebrow">For Players</span>
         <h1>Your Swing. <em>Decoded.</em></h1>
-        <p class="hero-v2-sub">Upload one 60-second video and get your top 3 mechanical issues ranked by impact — plus targeted drills to fix them before your next match.</p>
+        <p class="hero-v2-sub" data-i18n="forPlayers.hero.body">Upload one 60-second video and get your top 3 mechanical issues ranked by impact — plus targeted drills to fix them before your next match.</p>
         <div class="hero-v2-actions">
-          <a href="./analyze.html" class="btn-primary">Analyze Your Swing Free</a>
-          <a href="./how-it-works.html" class="btn-ghost">See How It Works</a>
+          <a href="./analyze.html" class="btn-primary" data-i18n="forPlayers.hero.cta1">Analyze Your Swing Free</a>
+          <a href="./how-it-works.html" class="btn-ghost" data-i18n="forPlayers.hero.cta2">See How It Works</a>
         </div>
         <div class="stat-chips">
           <div class="stat-chip">
-            <span class="stat-chip-value">60s</span>
-            <span class="stat-chip-label">Analysis Time</span>
+            <span class="stat-chip-value" data-i18n="forPlayers.stats.s1v">60s</span>
+            <span class="stat-chip-label" data-i18n="forPlayers.stats.s1l">Analysis Time</span>
           </div>
           <div class="stat-chip">
-            <span class="stat-chip-value">14+</span>
-            <span class="stat-chip-label">Metrics Tracked</span>
+            <span class="stat-chip-value" data-i18n="forPlayers.stats.s2v">14+</span>
+            <span class="stat-chip-label" data-i18n="forPlayers.stats.s2l">Metrics Tracked</span>
           </div>
           <div class="stat-chip">
-            <span class="stat-chip-value">3</span>
-            <span class="stat-chip-label">Priority Fixes</span>
+            <span class="stat-chip-value" data-i18n="forPlayers.stats.s3v">3</span>
+            <span class="stat-chip-label" data-i18n="forPlayers.stats.s3l">Priority Fixes</span>
           </div>
           <div class="stat-chip">
-            <span class="stat-chip-value">94%</span>
-            <span class="stat-chip-label">Accuracy Rate</span>
+            <span class="stat-chip-value" data-i18n="forPlayers.stats.s4v">94%</span>
+            <span class="stat-chip-label" data-i18n="forPlayers.stats.s4l">Accuracy Rate</span>
           </div>
         </div>
       </div>
@@ -212,31 +213,31 @@
     <section class="reveal" style="padding:80px 0">
       <div class="page">
         <div class="section-heading">
-          <span class="eyebrow">Why Players Choose SmartSwing</span>
-          <h2>Everything you need. Nothing you don't.</h2>
-          <p>Three tools that close the gap between knowing something is off and fixing it.</p>
+          <span class="eyebrow" data-i18n="forPlayers.features.eyebrow">Why Players Choose SmartSwing</span>
+          <h2 data-i18n="forPlayers.features.heading">Everything you need. Nothing you don't.</h2>
+          <p data-i18n="forPlayers.features.tagline">Three tools that close the gap between knowing something is off and fixing it.</p>
         </div>
         <div class="feature-cards">
           <div class="feature-card">
             <div class="fc-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
             </div>
-            <h3>Pinpoint Diagnosis</h3>
-            <p>Stop guessing. Our AI identifies the exact mechanical flaw costing you the most points and shows you why it breaks down under pressure.</p>
+            <h3 data-i18n="forPlayers.features.f1t">Pinpoint Diagnosis</h3>
+            <p data-i18n="forPlayers.features.f1d">Stop guessing. Our AI identifies the exact mechanical flaw costing you the most points and shows you why it breaks down under pressure.</p>
           </div>
           <div class="feature-card">
             <div class="fc-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
             </div>
-            <h3>Personalised Drill Plans</h3>
-            <p>Every drill is mapped to your specific weakness — not a generic training template. Practice with purpose, improve with proof.</p>
+            <h3 data-i18n="forPlayers.features.f2t">Personalised Drill Plans</h3>
+            <p data-i18n="forPlayers.features.f2d">Every drill is mapped to your specific weakness — not a generic training template. Practice with purpose, improve with proof.</p>
           </div>
           <div class="feature-card">
             <div class="fc-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 22V14.5a2 2 0 0 1-2-2V4h8v8.5a2 2 0 0 1-2 2V22"/></svg>
             </div>
-            <h3>Match-Ready Insights</h3>
-            <p>Tactical guidance that translates your mechanical fixes into real match situations. Know what to do when the score gets tight.</p>
+            <h3 data-i18n="forPlayers.features.f3t">Match-Ready Insights</h3>
+            <p data-i18n="forPlayers.features.f3d">Tactical guidance that translates your mechanical fixes into real match situations. Know what to do when the score gets tight.</p>
           </div>
         </div>
       </div>
@@ -248,40 +249,40 @@
     <section class="reveal" style="padding:80px 0">
       <div class="page">
         <div class="section-heading">
-          <span class="eyebrow">Player Stories</span>
-          <h2>Hear from players like you.</h2>
+          <span class="eyebrow" data-i18n="forPlayers.proof.eyebrow">Player Stories</span>
+          <h2 data-i18n="forPlayers.proof.heading">Hear from players like you.</h2>
         </div>
         <div class="testimonials">
           <div class="testimonial-card">
             <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="tc-quote">"I used to walk off the court knowing something was wrong but not what. SmartSwing told me in 60 seconds."</p>
+            <p class="tc-quote" data-i18n="forPlayers.proof.t1q">"I used to walk off the court knowing something was wrong but not what. SmartSwing told me in 60 seconds."</p>
             <div class="tc-author">
               <div class="tc-avatar">MT</div>
               <div class="tc-meta">
-                <span class="tc-name">Marcus T.</span>
-                <span class="tc-role">Adult League Player</span>
+                <span class="tc-name" data-i18n="forPlayers.proof.t1n">Marcus T.</span>
+                <span class="tc-role" data-i18n="forPlayers.proof.t1r">Adult League Player</span>
               </div>
             </div>
           </div>
           <div class="testimonial-card">
             <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="tc-quote">"My coach was surprised I fixed my footwork before my next lesson. I just followed the drill it gave me."</p>
+            <p class="tc-quote" data-i18n="forPlayers.proof.t2q">"My coach was surprised I fixed my footwork before my next lesson. I just followed the drill it gave me."</p>
             <div class="tc-author">
               <div class="tc-avatar">SR</div>
               <div class="tc-meta">
-                <span class="tc-name">Sofia R.</span>
-                <span class="tc-role">Junior Player, Age 14</span>
+                <span class="tc-name" data-i18n="forPlayers.proof.t2n">Sofia R.</span>
+                <span class="tc-role" data-i18n="forPlayers.proof.t2r">Junior Player, Age 14</span>
               </div>
             </div>
           </div>
           <div class="testimonial-card">
             <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-            <p class="tc-quote">"I stopped losing third sets to bad decisions. Now I know which mechanics break under pressure and what to do about it."</p>
+            <p class="tc-quote" data-i18n="forPlayers.proof.t3q">"I stopped losing third sets to bad decisions. Now I know which mechanics break under pressure and what to do about it."</p>
             <div class="tc-author">
               <div class="tc-avatar">DL</div>
               <div class="tc-meta">
-                <span class="tc-name">David L.</span>
-                <span class="tc-role">3.5 NTRP Tournament Player</span>
+                <span class="tc-name" data-i18n="forPlayers.proof.t3n">David L.</span>
+                <span class="tc-role" data-i18n="forPlayers.proof.t3r">3.5 NTRP Tournament Player</span>
               </div>
             </div>
           </div>
@@ -292,11 +293,11 @@
     <!-- CTA -->
     <section class="cta-v2 reveal">
       <div class="page">
-        <h2>Your next match starts with one upload.</h2>
-        <p>Start with one free analysis. Unlock saved reports, the full drills library, and progress tracking when the value is obvious.</p>
+        <h2 data-i18n="forPlayers.cta.heading">Your next match starts with one upload.</h2>
+        <p data-i18n="forPlayers.cta.body">Start with one free analysis. Unlock saved reports, the full drills library, and progress tracking when the value is obvious.</p>
         <div class="hero-v2-actions">
-          <a href="./analyze.html" class="btn-primary">Open Analyzer</a>
-          <a href="./pricing.html" class="btn-secondary">Compare Plans</a>
+          <a href="./analyze.html" class="btn-primary" data-i18n="forPlayers.cta.primary">Open Analyzer</a>
+          <a href="./pricing.html" class="btn-secondary" data-i18n="forPlayers.cta.secondary">Compare Plans</a>
         </div>
       </div>
     </section>
@@ -366,5 +367,6 @@
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
   <script src="./mobile-nav.js"></script>
+  <script src="./site-experience.js"></script>
 </body>
 </html>

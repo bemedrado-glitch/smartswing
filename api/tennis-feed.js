@@ -1,5 +1,5 @@
 // api/tennis-feed.js
-// Vercel serverless function — fetches ATP/WTA tournament events from TheSportsDB
+// Vercel serverless function — fetches ATP + WTA tournament events from TheSportsDB
 // Cache: 1 hour at edge, 24 hour stale-while-revalidate
 // Never 500s for the blog — always returns 200 with fallback shape
 
@@ -13,9 +13,11 @@ const CACHE_HEADERS = {
   'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
 };
 
-// TheSportsDB free API — ATP league id 4424
-const UPCOMING_URL = 'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4424';
-const PAST_URL = 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4424';
+// TheSportsDB free API — ATP = 4424, WTA = 4429
+const ATP_UPCOMING = 'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4424';
+const ATP_PAST = 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4424';
+const WTA_UPCOMING = 'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4429';
+const WTA_PAST = 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4429';
 
 async function fetchWithTimeout(url, timeoutMs = 8000) {
   const controller = new AbortController();
@@ -27,6 +29,27 @@ async function fetchWithTimeout(url, timeoutMs = 8000) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function normaliseEvent(ev) {
+  return {
+    id: ev.idEvent || null,
+    name: ev.strEvent || null,
+    tournament: ev.strLeague || null,
+    date: ev.dateEvent || null,
+    time: ev.strTime || null,
+    homeTeam: ev.strHomeTeam || null,
+    awayTeam: ev.strAwayTeam || null,
+    homeScore: ev.intHomeScore ?? null,
+    awayScore: ev.intAwayScore ?? null,
+    venue: ev.strVenue || null,
+    city: ev.strCity || null,
+    country: ev.strCountry || null,
+    thumbnail: ev.strThumb || null,
+    status: ev.strStatus || null,
+    round: ev.intRound || null,
+    season: ev.strSeason || null,
+  };
 }
 
 module.exports = async (req, res) => {
@@ -49,35 +72,29 @@ module.exports = async (req, res) => {
   const fetchedAt = new Date().toISOString();
 
   try {
-    const [upcomingData, pastData] = await Promise.all([
-      fetchWithTimeout(UPCOMING_URL),
-      fetchWithTimeout(PAST_URL),
+    // Fetch ATP + WTA in parallel
+    const [atpUp, atpPast, wtaUp, wtaPast] = await Promise.all([
+      fetchWithTimeout(ATP_UPCOMING).catch(() => ({ events: null })),
+      fetchWithTimeout(ATP_PAST).catch(() => ({ events: null })),
+      fetchWithTimeout(WTA_UPCOMING).catch(() => ({ events: null })),
+      fetchWithTimeout(WTA_PAST).catch(() => ({ events: null })),
     ]);
 
-    const normaliseEvent = (ev) => ({
-      id: ev.idEvent || null,
-      name: ev.strEvent || null,
-      date: ev.dateEvent || null,
-      time: ev.strTime || null,
-      homeTeam: ev.strHomeTeam || null,
-      awayTeam: ev.strAwayTeam || null,
-      homeScore: ev.intHomeScore ?? null,
-      awayScore: ev.intAwayScore ?? null,
-      venue: ev.strVenue || null,
-      city: ev.strCity || null,
-      country: ev.strCountry || null,
-      thumbnail: ev.strThumb || null,
-      status: ev.strStatus || null,
-      round: ev.intRound || null,
-    });
+    const upcoming = [
+      ...(Array.isArray(atpUp?.events) ? atpUp.events : []),
+      ...(Array.isArray(wtaUp?.events) ? wtaUp.events : []),
+    ]
+      .sort((a, b) => (a.dateEvent || '').localeCompare(b.dateEvent || ''))
+      .slice(0, 25)
+      .map(normaliseEvent);
 
-    const upcoming = Array.isArray(upcomingData?.events)
-      ? upcomingData.events.slice(0, 20).map(normaliseEvent)
-      : [];
-
-    const recent = Array.isArray(pastData?.events)
-      ? pastData.events.slice(0, 20).map(normaliseEvent)
-      : [];
+    const recent = [
+      ...(Array.isArray(atpPast?.events) ? atpPast.events : []),
+      ...(Array.isArray(wtaPast?.events) ? wtaPast.events : []),
+    ]
+      .sort((a, b) => (b.dateEvent || '').localeCompare(a.dateEvent || ''))
+      .slice(0, 25)
+      .map(normaliseEvent);
 
     return res.status(200).json({ upcoming, recent, fetchedAt });
   } catch (err) {
