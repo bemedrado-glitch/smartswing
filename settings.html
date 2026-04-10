@@ -411,5 +411,75 @@
       document.addEventListener('keydown', e => { if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer(); });
     })();
   </script>
+
+<!-- ── SITE FOOTER ── -->
+<style>
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
+.ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}
+.ss-footer-tagline{font-size:14px;color:rgba(255,255,255,.55);line-height:1.65;max-width:280px}
+.ss-footer-col strong{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;display:block}
+.ss-footer-links{display:flex;flex-direction:column;gap:10px}
+.ss-footer-links a{font-size:14px;color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s}
+.ss-footer-links a:hover{color:#f5f5f7}
+.ss-footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:24px;border-top:1px solid rgba(255,255,255,.07)}
+.ss-footer-bottom p{font-size:13px;color:rgba(255,255,255,.3)}
+.ss-footer-bottom-links{display:flex;gap:20px}
+.ss-footer-bottom-links a{font-size:13px;color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
+.ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}
+@media(max-width:900px){.ss-footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.ss-footer-grid{grid-template-columns:1fr}.ss-footer-bottom{flex-direction:column;gap:12px;text-align:center}}
+</style>
+<footer class="ss-footer" role="contentinfo" aria-label="Site footer">
+  <div class="ss-footer-inner">
+    <div class="ss-footer-grid">
+      <div>
+        <div class="ss-footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" width="140" height="35"></div>
+        <p class="ss-footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
+      </div>
+      <div class="ss-footer-col">
+        <strong>Product</strong>
+        <div class="ss-footer-links">
+          <a href="./features.html">Features</a>
+          <a href="./pricing.html">Pricing</a>
+          <a href="./how-it-works.html">How It Works</a>
+          <a href="./analyze.html">Analyze a Swing</a>
+        </div>
+      </div>
+      <div class="ss-footer-col">
+        <strong>For You</strong>
+        <div class="ss-footer-links">
+          <a href="./for-players.html">Players</a>
+          <a href="./for-coaches.html">Coaches</a>
+          <a href="./for-clubs.html">Clubs</a>
+          <a href="./for-parents.html">Parents</a>
+        </div>
+      </div>
+      <div class="ss-footer-col">
+        <strong>Trust &amp; Legal</strong>
+        <div class="ss-footer-links">
+          <a href="./refund-policy.html">Refund Policy</a>
+          <a href="./user-agreement.html">User Agreement</a>
+          <a href="./privacy-policy.html">Privacy Policy</a>
+          <a href="./cookie-policy.html">Cookie Policy</a>
+          <a href="./accessibility.html">Accessibility</a>
+          <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
+        </div>
+      </div>
+    </div>
+    <div class="ss-footer-bottom">
+      <p>&copy; 2025 SmartSwing AI. All rights reserved.</p>
+      <div class="ss-footer-bottom-links">
+        <a href="./privacy-policy.html">Privacy</a>
+        <a href="./user-agreement.html">Terms</a>
+        <a href="./cookie-policy.html">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
