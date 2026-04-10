@@ -1628,10 +1628,25 @@
     if (store && !currentUser) {
       const _authCheck = setInterval(() => {
         const u = store.getCurrentUser();
-        if (u) { currentUser = u; clearInterval(_authCheck); }
+        if (u) {
+          currentUser = u;
+          clearInterval(_authCheck);
+          // Flush any assessments that were queued while waiting for auth
+          if (typeof flushPendingAssessments === 'function') flushPendingAssessments();
+        }
       }, 1000);
       // Stop checking after 30s
       setTimeout(() => clearInterval(_authCheck), 30000);
+      // Also try explicit Supabase session restore
+      if (store.restoreSupabaseSession) {
+        store.restoreSupabaseSession().then(function(restored) {
+          if (restored) {
+            currentUser = restored;
+            clearInterval(_authCheck);
+            if (typeof flushPendingAssessments === 'function') flushPendingAssessments();
+          }
+        }).catch(function() {});
+      }
     }
     let cachedPlanState = null;
 
@@ -6057,35 +6072,8 @@
       await initPoseEngine();
     });
 
-    function persistSession(session) {
-      const signature = JSON.stringify({
-        shotType: session.summary.shotType,
-        score: session.summary.score,
-        framesAnalyzed: session.summary.framesAnalyzed,
-        avgAngles: session.summary.avgAngles
-      });
-
-      if (signature === lastPersistedSignature) {
-        return null;
-      }
-
-      lastPersistedSignature = signature;
-      localStorage.setItem('smartswing_last_session', JSON.stringify(session));
-
-      // Re-check auth — session may have restored since page load
-      if (store && !currentUser) {
-        currentUser = store.getCurrentUser();
-      }
-
-      if (!store || !currentUser) {
-        console.warn('[SmartSwing] No store or user — report saved to localStorage only.');
-        return null;
-      }
-
-      // Always save to store (localStorage + cloud sync) regardless of plan.
-      // canSaveReport() gates cloud storage limits, but we still want local persistence
-      // so the dashboard can display history for all plan tiers.
-      return store.saveAssessment({
+    function buildAssessmentPayload(session) {
+      return {
         overallScore: session.summary.score,
         grade: session.summary.grade,
         percentile: session.summary.percentile,
@@ -6114,7 +6102,71 @@
         isCompetitor: !!playerProfile.isCompetitorVideo,
         competitorName: (playerProfile.competitorName || '').trim() || null,
         playerProfile: session.profile
+      };
+    }
+
+    // Queue of assessment payloads waiting for auth to resolve
+    let pendingAssessmentPayloads = [];
+
+    async function flushPendingAssessments() {
+      if (!store || !currentUser || !pendingAssessmentPayloads.length) return;
+      const queue = pendingAssessmentPayloads.splice(0);
+      for (const payload of queue) {
+        try {
+          store.saveAssessment(payload);
+        } catch (err) {
+          console.error('[SmartSwing] Failed to flush pending assessment:', err);
+        }
+      }
+    }
+
+    function persistSession(session) {
+      const signature = JSON.stringify({
+        shotType: session.summary.shotType,
+        score: session.summary.score,
+        framesAnalyzed: session.summary.framesAnalyzed,
+        avgAngles: session.summary.avgAngles
       });
+
+      if (signature === lastPersistedSignature) {
+        return null;
+      }
+
+      lastPersistedSignature = signature;
+      localStorage.setItem('smartswing_last_session', JSON.stringify(session));
+
+      const payload = buildAssessmentPayload(session);
+
+      // Re-check auth — session may have restored since page load
+      if (store && !currentUser) {
+        currentUser = store.getCurrentUser();
+      }
+
+      // If still no user, try async Supabase restore then queue the save
+      if (!store || !currentUser) {
+        console.warn('[SmartSwing] No user yet — queuing assessment for deferred save.');
+        pendingAssessmentPayloads.push(payload);
+        // Attempt async auth restore and flush
+        if (store && store.restoreSupabaseSession) {
+          store.restoreSupabaseSession().then(function(restored) {
+            if (restored) {
+              currentUser = restored;
+              flushPendingAssessments();
+            }
+          }).catch(function() {});
+        }
+        return null;
+      }
+
+      // Save to store (localStorage + cloud sync)
+      try {
+        return store.saveAssessment(payload);
+      } catch (err) {
+        console.error('[SmartSwing] saveAssessment failed:', err);
+        // Still queue for retry so data isn't lost
+        pendingAssessmentPayloads.push(payload);
+        return null;
+      }
     }
 
     // Cached session — ensures Save and Generate Report show the same score
