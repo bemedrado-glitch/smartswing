@@ -1269,7 +1269,7 @@
                 <option value="match-readiness">Match readiness</option>
                 <option value="coach-review">Coach review</option>
                 <option value="injury-safe-rebuild">Injury-safe rebuild</option>
-                <option value="match-mode">Match Mode — Live Score &amp; Shot Tracker</option>
+                <option value="match-mode" data-plan-gate="paid">Match Mode — Live Score &amp; Shot Tracker</option>
               </select>
             </div>
             <div>
@@ -5248,6 +5248,20 @@
     document.getElementById('sessionGoal').addEventListener('input', (event) => {
       playerProfile.sessionGoal = event.target.value;
     });
+
+    // Gate plan-specific session modes (match tracker = paid plans only)
+    (function gatePlanModes() {
+      const store = window.SmartSwingStore;
+      const plan = store ? store.getCurrentPlan() : { id: 'free' };
+      document.querySelectorAll('#sessionMode option[data-plan-gate]').forEach(opt => {
+        const gate = opt.dataset.planGate;
+        const isPaid = plan.id !== 'free';
+        if (gate === 'paid' && !isPaid) {
+          opt.disabled = true;
+          opt.textContent += ' (Upgrade required)';
+        }
+      });
+    })();
 
     refreshSetupScore();
     refreshPlanStrip();

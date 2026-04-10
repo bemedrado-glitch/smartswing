@@ -655,9 +655,9 @@
     const billingLabel = access.plan.id === 'free' ? 'free' : (access.plan.billingInterval === 'yearly' ? 'yearly' : 'monthly');
     document.getElementById('userMeta').textContent = `${access.plan.name}${access.isTrial ? ' trial' : ''} | ${billingLabel} | ${access.usage.used}/${Number.isFinite(access.usage.limit) ? access.usage.limit : 'Unlimited'} reports used`;
 
-    // Live Match Tracker CTA — visible on Player and Performance plans (also Coach/Club)
+    // Live Match Tracker CTA — visible on all paid plans (also Coach/Club)
     const liveMatchCta = document.getElementById('liveMatchCta');
-    if (liveMatchCta && access.plan.id && access.plan.id !== 'free') {
+    if (liveMatchCta && access.plan.id !== 'free') {
       liveMatchCta.style.display = 'block';
     }
 
