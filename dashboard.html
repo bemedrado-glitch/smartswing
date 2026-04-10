@@ -473,6 +473,15 @@
     </section>
 
     <section class="tab-panel" id="tab-analytics">
+      <!-- Completed Tasks -->
+      <article class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h2 style="margin:0;">Completed Tasks</h2>
+          <span class="pill" id="completedTaskCount">0</span>
+        </div>
+        <p class="muted" style="font-size:13px;margin-bottom:14px;">Tasks you completed from your weekly action plan. Coaches can see these in their dashboard.</p>
+        <div id="completedTaskList"></div>
+      </article>
       <div class="grid">
         <article class="panel"><h2>Biomechanics Priorities</h2><div class="list" id="priorityList"></div></article>
         <article class="panel"><h2>Top 3 AI Feedback</h2><div class="list" id="topFeedback"></div></article>
@@ -832,7 +841,9 @@
 
     // ── Weekly Action Plan (data-driven) ─────────────────────────────────
     const PLAN_KEY = 'ss_weekly_plan_' + (user.id || 'guest');
+    const COMPLETED_KEY = 'ss_completed_tasks_' + (user.id || 'guest');
     const planDone = JSON.parse(localStorage.getItem(PLAN_KEY) || '{}');
+    const completedTasks = JSON.parse(localStorage.getItem(COMPLETED_KEY) || '[]');
     // Clear stale completions older than 7 days
     const now = Date.now();
     Object.keys(planDone).forEach(k => { if (now - (planDone[k] || 0) > 7 * 86400000) delete planDone[k]; });
@@ -924,36 +935,84 @@
         'WEEKLY GOAL': {cls:'goal', time:'Throughout week'}
       };
 
-      planEl.innerHTML = items.map((item) => {
-        const isDone = !!planDone[item.id];
-        const pm = PRIORITY_MAP[item.priority] || {cls:'low', time:'15 min'};
-        const scoreHTML = item.score != null ? `<span style="font-size:11px;font-weight:800;color:${item.score >= 80?'#39ff14':item.score>=60?'#ffd84d':'#ff7070'};background:${item.score>=80?'rgba(57,255,20,.1)':item.score>=60?'rgba(255,216,77,.1)':'rgba(255,112,112,.1)'};padding:2px 8px;border-radius:999px;">${item.score}%</span>` : '';
-        return `<div class="action-item-v2${isDone ? ' done' : ''}" data-id="${item.id}" onclick="togglePlanItem('${item.id}')">
-          <div class="action-cb2">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px;">
-              <span class="ai2-priority ${pm.cls}">${item.priority}</span>${scoreHTML}
+      const pendingItems = items.filter(i => !planDone[i.id]);
+      if (pendingItems.length === 0 && doneCount > 0) {
+        planEl.innerHTML = '<div style="padding:18px;text-align:center;"><p class="muted" style="font-size:14px;font-weight:700;color:var(--green);">All tasks completed this week!</p><p class="muted" style="font-size:13px;margin-top:4px;">Check the Analytics tab to see your completed tasks.</p></div>';
+      } else {
+        planEl.innerHTML = pendingItems.map((item) => {
+          const pm = PRIORITY_MAP[item.priority] || {cls:'low', time:'15 min'};
+          const scoreHTML = item.score != null ? `<span style="font-size:11px;font-weight:800;color:${item.score >= 80?'#39ff14':item.score>=60?'#ffd84d':'#ff7070'};background:${item.score>=80?'rgba(57,255,20,.1)':item.score>=60?'rgba(255,216,77,.1)':'rgba(255,112,112,.1)'};padding:2px 8px;border-radius:999px;">${item.score}%</span>` : '';
+          return `<div class="action-item-v2" data-id="${item.id}" onclick="togglePlanItem('${item.id}')">
+            <div class="action-cb2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
-            <div class="ai2-title">${item.title}</div>
-            <div class="ai2-desc">${item.desc}</div>
-            <div class="ai2-meta">
-              ${item.tags.map(t => `<span class="ai2-tag">${t}</span>`).join('')}
-              <span class="ai2-time"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${pm.time}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px;">
+                <span class="ai2-priority ${pm.cls}">${item.priority}</span>${scoreHTML}
+              </div>
+              <div class="ai2-title">${item.title}</div>
+              <div class="ai2-desc">${item.desc}</div>
+              <div class="ai2-meta">
+                ${item.tags.map(t => `<span class="ai2-tag">${t}</span>`).join('')}
+                <span class="ai2-time"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${pm.time}</span>
+              </div>
             </div>
-          </div>
-        </div>`;
-      }).join('') || '<p class="muted" style="font-size:13px;padding:12px;">Run your first analysis to unlock your personalised action plan.</p>';
+          </div>`;
+        }).join('') || '<p class="muted" style="font-size:13px;padding:12px;">Run your first analysis to unlock your personalised action plan.</p>';
+      }
+      renderCompletedTasks();
     }
     renderPlan();
 
     window.togglePlanItem = function(id) {
-      if (planDone[id]) delete planDone[id];
-      else planDone[id] = Date.now();
+      const items = buildPlanItems();
+      const item = items.find(i => i.id === id);
+      if (planDone[id]) {
+        delete planDone[id];
+        const idx = completedTasks.findIndex(t => t.id === id);
+        if (idx >= 0) completedTasks.splice(idx, 1);
+      } else {
+        planDone[id] = Date.now();
+        if (item) {
+          completedTasks.unshift({
+            id: item.id, title: item.title, desc: item.desc,
+            priority: item.priority, tags: item.tags, score: item.score,
+            completedAt: new Date().toISOString(),
+            userId: user.id || 'guest', userName: user.fullName || 'Player'
+          });
+        }
+      }
       localStorage.setItem(PLAN_KEY, JSON.stringify(planDone));
+      localStorage.setItem(COMPLETED_KEY, JSON.stringify(completedTasks));
       renderPlan();
     };
+
+    function renderCompletedTasks() {
+      const listEl = document.getElementById('completedTaskList');
+      const countEl = document.getElementById('completedTaskCount');
+      if (!listEl) return;
+      countEl.textContent = completedTasks.length;
+      if (!completedTasks.length) {
+        listEl.innerHTML = '<p class="muted" style="font-size:13px;padding:12px;">No completed tasks yet. Complete tasks from your Weekly Action Plan to see them here.</p>';
+        return;
+      }
+      listEl.innerHTML = completedTasks.slice(0, 20).map(task => {
+        const date = task.completedAt ? new Date(task.completedAt).toLocaleDateString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.12);border-radius:14px;margin-bottom:8px;">
+          <div style="width:24px;height:24px;border-radius:7px;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;">${task.title}</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.5;">${task.desc}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center;">
+              ${(task.tags||[]).map(t => `<span class="ai2-tag">${t}</span>`).join('')}
+              <span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:auto;">${date}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
 
     // ── Performance Radar SVG ───────────────────────────────────────────────
     (function renderPerfRadar() {
