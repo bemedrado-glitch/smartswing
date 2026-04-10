@@ -411,16 +411,17 @@
       tactic.situation === 'general' ? 'match discipline' : ''
     ]);
 
+    const improvementBySituation = {
+      serve: { pointConstruction: '+10-18%', firstBallIntent: '+12-20%' },
+      baseline: { consistency: '+10-15%', decisionMaking: '+12-18%' },
+      defense: { neutralBalls: '+10-16%', recovery: '+8-14%' }
+    };
+
     return {
       ...tactic,
       tacticalFocus,
-      expectedImprovement: tactic.situation === 'serve'
-        ? { pointConstruction: '+10-18%', firstBallIntent: '+12-20%' }
-        : tactic.situation === 'baseline'
-          ? { consistency: '+10-15%', decisionMaking: '+12-18%' }
-          : tactic.situation === 'defense'
-            ? { neutralBalls: '+10-16%', recovery: '+8-14%' }
-            : { decisionMaking: '+8-15%', tacticalClarity: '+10-18%' }
+      expectedImprovement: improvementBySituation[tactic.situation]
+        || { decisionMaking: '+8-15%', tacticalClarity: '+10-18%' }
     };
   }
 
@@ -591,6 +592,14 @@
       positioning: safeNumber(assessment.performanceKpis?.positioningScore, safeNumber(metrics.positioning, 70))
     };
 
+    const CONTEXT_MESSAGES = {
+      'serve-patterns': 'You are ready for a serve-plus-one plan so the serve and next ball work as one pattern.',
+      'baseline-margin': 'Your report needs higher-margin baseline decisions, not just cleaner mechanics.',
+      'net-pressure': 'These tactics help you turn improved movement into finishing patterns at the net.',
+      'defense-reset': 'Use these tactical resets to survive pressure while the mechanics catch up.',
+      'point-construction': 'Your score is high enough to benefit from intentional point-building patterns.'
+    };
+
     const picks = [];
     const used = new Set();
     TACTIC_RECOMMENDATION_MAP.forEach((context) => {
@@ -601,20 +610,12 @@
         .sort((a, b) => b.score - a.score)[0];
       if (!candidate) return;
       used.add(candidate.tactic.id);
+
       picks.push({
         ...candidate.tactic,
         relevanceScore: candidate.score,
-        message: context.id === 'serve-patterns'
-          ? 'You are ready for a serve-plus-one plan so the serve and next ball work as one pattern.'
-          : context.id === 'baseline-margin'
-            ? 'Your report needs higher-margin baseline decisions, not just cleaner mechanics.'
-            : context.id === 'net-pressure'
-              ? 'These tactics help you turn improved movement into finishing patterns at the net.'
-              : context.id === 'defense-reset'
-                ? 'Use these tactical resets to survive pressure while the mechanics catch up.'
-                : context.id === 'point-construction'
-                  ? 'Your score is high enough to benefit from intentional point-building patterns.'
-                  : 'These match-play habits raise decision quality and reduce free points given away.'
+        message: CONTEXT_MESSAGES[context.id]
+          || 'These match-play habits raise decision quality and reduce free points given away.'
       });
     });
 

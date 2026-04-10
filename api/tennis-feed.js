@@ -53,6 +53,21 @@ function normaliseEvent(ev) {
   };
 }
 
+function isTennisEvent(ev) {
+  if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
+  const name = (ev.name || '').toLowerCase();
+  if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
+  return true;
+}
+
+function safeEventList(response) {
+  return Array.isArray(response?.events) ? response.events : [];
+}
+
+function setHeaders(res, headers) {
+  Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
+}
+
 const FALLBACK_RESULTS = [
   {
     id: 'fallback-1', name: 'ATP Masters 1000 — Monte-Carlo',
@@ -80,19 +95,17 @@ const FALLBACK_RESULTS = [
 module.exports = async (req, res) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
-    Object.entries({ ...CORS_HEADERS, 'Content-Length': '0' }).forEach(([k, v]) => res.setHeader(k, v));
+    setHeaders(res, { ...CORS_HEADERS, 'Content-Length': '0' });
     return res.status(204).end();
   }
 
   if (req.method !== 'GET') {
-    Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
+    setHeaders(res, CORS_HEADERS);
     res.setHeader('Allow', 'GET, OPTIONS');
     return res.status(405).json({ error: 'Method not allowed.' });
   }
 
-  Object.entries({ ...CORS_HEADERS, ...CACHE_HEADERS, 'Content-Type': 'application/json' }).forEach(([k, v]) =>
-    res.setHeader(k, v)
-  );
+  setHeaders(res, { ...CORS_HEADERS, ...CACHE_HEADERS, 'Content-Type': 'application/json' });
 
   const fetchedAt = new Date().toISOString();
 
@@ -105,37 +118,17 @@ module.exports = async (req, res) => {
       fetchWithTimeout(WTA_PAST).catch(() => ({ events: null })),
     ]);
 
-    const upcoming = [
-      ...(Array.isArray(atpUp?.events) ? atpUp.events : []),
-      ...(Array.isArray(wtaUp?.events) ? wtaUp.events : []),
-    ]
+    const upcoming = [...safeEventList(atpUp), ...safeEventList(wtaUp)]
       .sort((a, b) => (a.dateEvent || '').localeCompare(b.dateEvent || ''))
       .slice(0, 25)
       .map(normaliseEvent)
-      .filter(ev => {
-        // Guard against TheSportsDB returning wrong-sport events under tennis league IDs
-        if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
-        // Filter out events with obviously non-tennis names
-        const name = (ev.name || '').toLowerCase();
-        if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
-        return true;
-      });
+      .filter(isTennisEvent);
 
-    const recent = [
-      ...(Array.isArray(atpPast?.events) ? atpPast.events : []),
-      ...(Array.isArray(wtaPast?.events) ? wtaPast.events : []),
-    ]
+    const recent = [...safeEventList(atpPast), ...safeEventList(wtaPast)]
       .sort((a, b) => (b.dateEvent || '').localeCompare(a.dateEvent || ''))
       .slice(0, 25)
       .map(normaliseEvent)
-      .filter(ev => {
-        // Guard against TheSportsDB returning wrong-sport events under tennis league IDs
-        if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
-        // Filter out events with obviously non-tennis names
-        const name = (ev.name || '').toLowerCase();
-        if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
-        return true;
-      });
+      .filter(isTennisEvent);
 
     if (upcoming.length === 0 && recent.length === 0) {
       return res.status(200).json({
