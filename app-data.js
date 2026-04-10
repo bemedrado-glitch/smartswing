@@ -16,7 +16,8 @@
     paymentCheckoutState: 'smartswing_payment_checkout_state',
     referralBonus: 'smartswing_referral_bonus',      // { [userId]: bonusCount }
     referrals: 'smartswing_referrals',               // [{ id, referrerCode, referredUserId, completedAt }]
-    pendingReferral: 'smartswing_pending_referral'   // { code } — stored from ?ref= URL param before signup
+    pendingReferral: 'smartswing_pending_referral',  // { code } — stored from ?ref= URL param before signup
+    matches: 'smartswing_matches'
   };
 
   const DEFAULT_COACHES = [
@@ -3105,6 +3106,61 @@
     }
   }
 
+  function getMatches() {
+    return read(KEYS.matches) || [];
+  }
+
+  function persistMatches(arr) {
+    write(KEYS.matches, arr);
+  }
+
+  function saveMatch(matchPayload) {
+    const user = requireUser();
+    const match = {
+      id: uid('match'),
+      userId: user.id,
+      date: matchPayload.date || nowIso(),
+      opponent: matchPayload.opponent || 'Opponent',
+      result: matchPayload.result || 'unknown',
+      finalScore: matchPayload.finalScore || '',
+      sets: matchPayload.sets || [],
+      matchFormat: matchPayload.matchFormat || 'best-of-3',
+      stats: matchPayload.stats || {},
+      log: matchPayload.log || [],
+      momentum: matchPayload.momentum || [],
+      surface: matchPayload.surface || '',
+      aiInsight: matchPayload.aiInsight || '',
+      linkedAssessmentId: matchPayload.linkedAssessmentId || null,
+    };
+    persistMatches([match, ...getMatches()]);
+    return match;
+  }
+
+  function getUserMatches(userId) {
+    return getMatches().filter(m => m.userId === (userId || requireUser().id));
+  }
+
+  function getMatchStats(userId) {
+    const matches = getUserMatches(userId);
+    if (!matches.length) return null;
+    const totals = { wins: 0, losses: 0, aces: 0, doubleFaults: 0, winners: 0, ufErrors: 0, forcedErrors: 0, matchesPlayed: matches.length };
+    matches.forEach(m => {
+      if (m.result === 'win') totals.wins++;
+      else if (m.result === 'loss') totals.losses++;
+      if (m.stats) {
+        totals.aces += (m.stats.aces || 0);
+        totals.doubleFaults += (m.stats.doubleFaults || 0);
+        totals.winners += (m.stats.winners || 0);
+        totals.ufErrors += (m.stats.ufErrors || 0);
+        totals.forcedErrors += (m.stats.forcedErrors || 0);
+      }
+    });
+    totals.winRate = totals.matchesPlayed > 0 ? Math.round(100 * totals.wins / totals.matchesPlayed) : 0;
+    totals.avgUfePerMatch = totals.matchesPlayed > 0 ? Math.round(totals.ufErrors / totals.matchesPlayed) : 0;
+    totals.avgWinnersPerMatch = totals.matchesPlayed > 0 ? Math.round(totals.winners / totals.matchesPlayed) : 0;
+    return totals;
+  }
+
   function saveAssessment(payload) {
     const user = requireUser();
     const isCompetitor = !!payload.isCompetitor || !!payload.playerProfile?.isCompetitorVideo;
@@ -3147,6 +3203,7 @@
       sessionMode: payload.sessionMode || 'stroke-tune-up',
       sessionGoal: payload.sessionGoal || '',
       setupScore: safeNumber(payload.setupScore, 100),
+      matchData: payload.matchData || null,
       videoPath: payload.videoPath || '',
       notes: payload.notes || '',
       playerProfile: payload.playerProfile || {},
@@ -3639,6 +3696,9 @@
     matchDrillsToWeaknesses,
     matchTacticsToProfile,
     saveAssessment,
+    saveMatch,
+    getUserMatches,
+    getMatchStats,
     getUserAssessments,
     getOwnAssessments,
     getCompetitorAssessments,
