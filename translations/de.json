@@ -17,19 +17,39 @@
     "tagline2": "Web-first Tennisintelligenz für Analyse, Verbesserung und Verantwortlichkeit.",
     "copyright": "© 2026 SmartSwing AI",
     "col": {
-      "pathways": "Einstieg", "resources": "Ressourcen", "legal": "Rechtliches", "community": "Community",
-      "product": "Produkt", "audiences": "Für Dich"
+      "pathways": "Einstieg",
+      "resources": "Ressourcen",
+      "legal": "Rechtliches",
+      "community": "Community",
+      "product": "Produkt",
+      "audiences": "Für Dich"
     },
     "links": {
-      "forPlayers": "Für Spieler", "forCoaches": "Für Trainer", "forClubs": "Für Clubs",
-      "forParents": "Für Eltern", "blog": "Blog", "drillsLibrary": "Übungsbibliothek",
-      "pickleball": "Pickleball", "referral": "Empfehlungsprogramm", "contact": "Kontakt",
-      "refundPolicy": "Rückerstattungsrichtlinie", "userAgreement": "Nutzervereinbarung",
-      "privacyPolicy": "Datenschutzrichtlinie", "cookiePolicy": "Cookie-Richtlinie",
+      "forPlayers": "Für Spieler",
+      "forCoaches": "Für Trainer",
+      "forClubs": "Für Clubs",
+      "forParents": "Für Eltern",
+      "blog": "Blog",
+      "drillsLibrary": "Übungsbibliothek",
+      "pickleball": "Pickleball",
+      "referral": "Empfehlungsprogramm",
+      "contact": "Kontakt",
+      "refundPolicy": "Rückerstattungsrichtlinie",
+      "userAgreement": "Nutzervereinbarung",
+      "privacyPolicy": "Datenschutzrichtlinie",
+      "cookiePolicy": "Cookie-Richtlinie",
       "accessibility": "Barrierefreiheit",
-      "features": "Funktionen", "pricing": "Preise", "howItWorks": "So Funktioniert Es",
-      "analyzeSwing": "Schlag analysieren", "players": "Spieler", "coaches": "Trainer",
-      "clubs": "Clubs", "parents": "Eltern", "privacy": "Datenschutz", "terms": "AGB", "cookies": "Cookies"
+      "features": "Funktionen",
+      "pricing": "Preise",
+      "howItWorks": "So Funktioniert Es",
+      "analyzeSwing": "Schlag analysieren",
+      "players": "Spieler",
+      "coaches": "Trainer",
+      "clubs": "Clubs",
+      "parents": "Eltern",
+      "privacy": "Datenschutz",
+      "terms": "AGB",
+      "cookies": "Cookies"
     }
   },
   "cookie": {
@@ -47,15 +67,41 @@
     "badge1": "✓ Keine Kreditkarte erforderlich",
     "badge2": "✓ Ergebnisse in 60 Sekunden",
     "badge3": "✓ Kostenloser Plan für immer",
-    "metric1": { "value": "60s", "label": "Vom Upload bis zur vollständigen Biomechanikanalyse und zum personalisierten Aktionsplan." },
-    "metric2": { "value": "Top 3", "label": "Nur Korrekturen — keine Datenwand. Die genauen Korrekturen, die dich am meisten Punkte kosten." },
+    "metric1": {
+      "value": "60s",
+      "label": "Vom Upload bis zur vollständigen Biomechanikanalyse und zum personalisierten Aktionsplan."
+    },
+    "metric2": {
+      "value": "Top 3",
+      "label": "Nur Korrekturen — keine Datenwand. Die genauen Korrekturen, die dich am meisten Punkte kosten."
+    },
     "overlay": {
       "label": "KI-Platzauswertung",
-      "forehand": { "title": "Vorhand-Wertung", "value": "84",         "detail": "Stark für das Niveau. Kontakt und Hüft-Timing verbessern sich." },
-      "gain":     { "title": "Hauptgewinn",      "value": "+9%",       "detail": "Die Schulter-Hüft-Trennung verbesserte sich seit der letzten Einheit." },
-      "nextMove": { "title": "Nächster Schritt", "value": "3 Übungen", "detail": "Basierend auf den Metriken, die Tiefe und Tempo kosten." }
+      "forehand": {
+        "title": "Vorhand-Wertung",
+        "value": "84",
+        "detail": "Stark für das Niveau. Kontakt und Hüft-Timing verbessern sich."
+      },
+      "gain": {
+        "title": "Hauptgewinn",
+        "value": "+9%",
+        "detail": "Die Schulter-Hüft-Trennung verbesserte sich seit der letzten Einheit."
+      },
+      "nextMove": {
+        "title": "Nächster Schritt",
+        "value": "3 Übungen",
+        "detail": "Basierend auf den Metriken, die Tiefe und Tempo kosten."
+      }
     },
-    "cta": { "primary": "Schlag kostenlos analysieren →", "secondary": "So Funktioniert Es" }
+    "cta": {
+      "primary": "Schlag kostenlos analysieren →",
+      "secondary": "So Funktioniert Es"
+    },
+    "liveBadge": "KI-Analyse jetzt live",
+    "headingHtml": "Dein Schlag.<br><span class=\"volt\">Perfektioniert.</span>",
+    "sub": "Richte dein Handy auf jeden Schlag. Erhalte sofortiges biomechanisches Feedback, einen personalisierten Übungsplan und trainerfertige Einblicke — alles in unter 60 Sekunden.",
+    "note": "Keine Kreditkarte · Ergebnisse in 60 Sekunden",
+    "scoreBadge": "KI-Score in 60s"
   },
   "stats": {
     "analysisTime": "Analysezeit",
@@ -64,30 +110,63 @@
     "players": "Analysierte Spieler"
   },
   "trust": {
-    "rating":  { "value": "★★★★★  4,9 / 5 Bewertung", "label": "Bewertet von Spielern und Trainern auf 3 Kontinenten." },
-    "players": { "value": "2.400+ aktive Spieler",      "label": "Nachwuchsathleten, Amateur-Ligaspieler und Turnierkonkurrenten." },
-    "price":   { "value": "Weniger als 1 € / Tag",       "label": "Unbegrenzte Analysen im Performance-Plan. Weniger als eine Privatstunde pro Monat." },
+    "rating": {
+      "value": "★★★★★  4,9 / 5 Bewertung",
+      "label": "Bewertet von Spielern und Trainern auf 3 Kontinenten."
+    },
+    "players": {
+      "value": "2.400+ aktive Spieler",
+      "label": "Nachwuchsathleten, Amateur-Ligaspieler und Turnierkonkurrenten."
+    },
+    "price": {
+      "value": "Weniger als 1 € / Tag",
+      "label": "Unbegrenzte Analysen im Performance-Plan. Weniger als eine Privatstunde pro Monat."
+    },
     "label": "Vertraut von Spielern, Trainern und Clubs, die verbunden sind mit"
   },
   "hook": {
     "tag": "Das Problem",
-    "cta": "Kostenlos starten →"
+    "cta": "Kostenlos starten →",
+    "heading": "Gutes Coaching sollte nicht 150€/Stunde kosten.",
+    "body": "Die meisten Spieler erhalten nie das präzise, personalisierte Feedback, das sie brauchen, um sich wirklich zu verbessern. Professionelles Coaching ist teuer, allgemeine Ratschläge sind nutzlos, und Raten funktioniert nicht. SmartSwing AI ändert all das.",
+    "body2": "Ein Video. Sofortige Expertenanalyse. Ein klarer Aktionsplan. Keine Wartelisten, keine Anreise, keine verschwendeten Stunden."
   },
   "hiw": {
     "tag": "So Funktioniert Es",
     "title": "Drei Schritte zu einem besseren Spiel.",
     "sub": "Kein Spezialgerät, kein langer Aufbau. Nur dein Telefon und ein Schlag-Clip.",
-    "step1": { "title": "Schlag aufnehmen", "desc": "Filme ein kurzes Video deiner Vorhand, Rückhand oder deines Aufschlags aus jedem Winkel mit deinem Telefon." },
-    "step2": { "title": "KI analysiert sofort", "desc": "Unser Biomechanik-Motor bewertet Haltung, Rotation, Kontaktpunkt, Nachschwingen und 12 weitere Metriken." },
-    "step3": { "title": "Erhalte deinen Aktionsplan", "desc": "Erhalte ein personalisiertes Übungsprogramm, taktische Hinweise und Fortschrittsverfolgung — bereit zum Teilen mit deinem Trainer." }
+    "step1": {
+      "title": "Schlag aufnehmen",
+      "desc": "Filme ein kurzes Video deiner Vorhand, Rückhand oder deines Aufschlags aus jedem Winkel mit deinem Telefon."
+    },
+    "step2": {
+      "title": "KI analysiert sofort",
+      "desc": "Unser Biomechanik-Motor bewertet Haltung, Rotation, Kontaktpunkt, Nachschwingen und 12 weitere Metriken."
+    },
+    "step3": {
+      "title": "Erhalte deinen Aktionsplan",
+      "desc": "Erhalte ein personalisiertes Übungsprogramm, taktische Hinweise und Fortschrittsverfolgung — bereit zum Teilen mit deinem Trainer."
+    }
   },
   "howItWorks": {
     "eyebrow": "So funktioniert es",
     "heading": "Einmal hochladen. Immer klüger trainieren.",
     "tagline": "Die meisten Spieler beenden eine Einheit, ohne zu wissen, was schiefgelaufen ist. SmartSwing schließt diese Lücke in 60 Sekunden.",
-    "step1": { "num": "01", "title": "Einen Schlag filmen — jedes Gerät", "body": "Smartphone, Tablet oder Zaunhalterung. SmartSwing prüft deinen Kamerawinkel vor der Analyse." },
-    "step2": { "num": "02", "title": "KI liest deine Biomechanik",        "body": "33 Körperpunkte verfolgt. Dein Schlag mit niveauangepassten Benchmarks verglichen. Deine 3 Hauptprobleme, nach Auswirkung sortiert." },
-    "step3": { "num": "03", "title": "Mit einem Plan für dich trainieren", "body": "Spezifische Übungen für deine spezifischen Probleme. Taktische Anpassungen, die die mechanische Korrektur in echten Matchpoints verankern." }
+    "step1": {
+      "num": "01",
+      "title": "Einen Schlag filmen — jedes Gerät",
+      "body": "Smartphone, Tablet oder Zaunhalterung. SmartSwing prüft deinen Kamerawinkel vor der Analyse."
+    },
+    "step2": {
+      "num": "02",
+      "title": "KI liest deine Biomechanik",
+      "body": "33 Körperpunkte verfolgt. Dein Schlag mit niveauangepassten Benchmarks verglichen. Deine 3 Hauptprobleme, nach Auswirkung sortiert."
+    },
+    "step3": {
+      "num": "03",
+      "title": "Mit einem Plan für dich trainieren",
+      "body": "Spezifische Übungen für deine spezifischen Probleme. Taktische Anpassungen, die die mechanische Korrektur in echten Matchpoints verankern."
+    }
   },
   "metrics": {
     "analysis": "Durchschnittliche Analysezeit",
@@ -102,39 +181,64 @@
     "expand": "Details",
     "tag": "Funktionen",
     "title": "Alles was du brauchst, um besser zu werden — nichts Überflüssiges.",
-    "bio": { "title": "Tiefe Biomechanikanalyse", "desc": "15+ Datenpunkte einschließlich Standbreite, Hüftrotation, Schulterausrichtung, Schlägerweg und Kontaktzone." },
-    "drills": { "title": "Personalisierte Übungspläne", "desc": "Spezifische, sequenzierte Übungen für deine Schwächen — keine allgemeinen YouTube-Ratschläge." },
-    "tactical": { "title": "Taktikanalyse", "desc": "Schlagauswahl, Platzpositionierung und Matchstrategieeinblicke für besseres mentales Spiel." },
+    "bio": {
+      "title": "Tiefe Biomechanikanalyse",
+      "desc": "15+ Datenpunkte einschließlich Standbreite, Hüftrotation, Schulterausrichtung, Schlägerweg und Kontaktzone."
+    },
+    "drills": {
+      "title": "Personalisierte Übungspläne",
+      "desc": "Spezifische, sequenzierte Übungen für deine Schwächen — keine allgemeinen YouTube-Ratschläge."
+    },
+    "tactical": {
+      "title": "Taktikanalyse",
+      "desc": "Schlagauswahl, Platzpositionierung und Matchstrategieeinblicke für besseres mentales Spiel."
+    },
     "engine": {
       "eyebrow": "KI-Biomechanik-Engine",
       "title": "Der Filmraum, den jeder ernsthafte Spieler verdient.",
       "copy": "Jeder Bericht sagt dir, was sich verbessert hat, was abgeglitten ist und was genau als nächstes zu korrigieren ist.",
-      "m1": { "value": "1", "label": "klarer Bericht statt unverbundener Zahlen" },
-      "m2": { "value": "3", "label": "vorrangige Übungen und Taktiken" },
-      "m3": { "value": "24/7", "label": "Sitzungsgedächtnis in Berichten und Dashboards" }
+      "m1": {
+        "value": "1",
+        "label": "klarer Bericht statt unverbundener Zahlen"
+      },
+      "m2": {
+        "value": "3",
+        "label": "vorrangige Übungen und Taktiken"
+      },
+      "m3": {
+        "value": "24/7",
+        "label": "Sitzungsgedächtnis in Berichten und Dashboards"
+      }
     },
     "analysis": {
-      "eyebrow": "KI-Videoanalyse", "title": "Winkel in Trainingssprache übersetzt",
+      "eyebrow": "KI-Videoanalyse",
+      "title": "Winkel in Trainingssprache übersetzt",
       "summary": "Der Bericht wandelt Bewegungsrohdaten in eine kurze Erklärung um, auf die Spieler sofort reagieren können.",
-      "what": "Was es bedeutet:", "whatDetail": "die größten Winkeländerungen werden in einfacher Sprache erklärt, nicht in Biomechanik-Jargon.",
-      "why": "Warum es wichtig ist:", "whyDetail": "Spieler kommen schneller voran, wenn sie die Kosten des Bewegungsfehlers verstehen."
+      "what": "Was es bedeutet:",
+      "whatDetail": "die größten Winkeländerungen werden in einfacher Sprache erklärt, nicht in Biomechanik-Jargon.",
+      "why": "Warum es wichtig ist:",
+      "whyDetail": "Spieler kommen schneller voran, wenn sie die Kosten des Bewegungsfehlers verstehen."
     },
     "tracking": {
-      "eyebrow": "Fortschrittsverfolgung", "title": "Übersichtliche Dashboards",
+      "eyebrow": "Fortschrittsverfolgung",
+      "title": "Übersichtliche Dashboards",
       "summary": "Spieler- und Trainer-Tabs trennen Analysen, Nachrichten, Zeitplan und Training in übersichtlichere Ansichten.",
       "whatDetail": "Fortschrittsgrafiken und nächste Aktionen befinden sich in separaten Bereichen.",
       "whyDetail": "Der Spieler sieht einen wöchentlichen Fokus und der Trainer erhält schnellere Einteilung."
     },
     "coach": {
-      "eyebrow": "Trainer-Ebene", "title": "Übungen zuweisen und nachverfolgen",
+      "eyebrow": "Trainer-Ebene",
+      "title": "Übungen zuweisen und nachverfolgen",
       "summary": "Trainer-Notizen, Aufgaben und Terminplankontext bleiben mit demselben Athletendatensatz verknüpft.",
       "whatDetail": "Der Trainer kann von Bericht zu Nachricht zu Aufgabe wechseln, ohne alles neu zu schreiben.",
       "whyDetail": "Eine genaue Notiz kann zum nächsten Übungsblock und Sitzungsfokus des Athleten werden."
     },
     "dualSport": {
-      "eyebrow": "Zwei-Sport-Weg", "title": "Tennis zuerst, Pickleball bereit",
+      "eyebrow": "Zwei-Sport-Weg",
+      "title": "Tennis zuerst, Pickleball bereit",
       "summary": "Die Plattform kann sich erweitern, ohne das Tennis-Erlebnis generisch zu machen.",
-      "whatDetail": "SmartSwing behält Tennis als Haupterlebnis bei.", "whyDetail": "Neue Sportarten können das System übernehmen, ohne das Kernprodukt zu verwässern."
+      "whatDetail": "SmartSwing behält Tennis als Haupterlebnis bei.",
+      "whyDetail": "Neue Sportarten können das System übernehmen, ohne das Kernprodukt zu verwässern."
     }
   },
   "showcase": {
@@ -161,18 +265,68 @@
   },
   "proof": {
     "tag": "Was Spieler sagen",
-    "title": "Echte Ergebnisse von echten Spielern."
+    "title": "Echte Ergebnisse von echten Spielern.",
+    "subtitle": "Spieler aller Altersgruppen, Niveaus und Hintergründe — das sagen sie.",
+    "t1": {
+      "quote": "\"Meine Aufschlaggeschwindigkeit stieg in sechs Wochen um 30 km/h. Die biomechanische Aufschlüsselung war spezifischer als alles, was mein Privattrainer mir je gegeben hat.\"",
+      "title": "4.0 NTRP · Austin, TX · USTA-Mitglied"
+    },
+    "t2": {
+      "quote": "\"Es hat eine Fußarbeitsgewohnheit erkannt, die ich seit 12 Jahren hatte. Mein Trainer las den Bericht und konnte nicht glauben, wie präzise er war.\"",
+      "title": "Turnierspieler · London, UK · LTA-bewertet"
+    },
+    "t3": {
+      "quote": "\"Ich nutze SmartSwing bei jedem neuen Schüler als Ausgangsbasis der ersten Stunde. Die KI gibt mir einen 60-Sekunden-Bericht, aus dem ich einen 3-Monats-Plan erstellen kann.\"",
+      "title": "PTR-zertifizierter Profi · Miami, FL"
+    },
+    "t4": {
+      "quote": "\"Meine 13-jährige Tochter verlor nach einer schwierigen Saison das Vertrauen. SmartSwing gab ihr eine klare Bewertung und eine Übung zum Fokussieren.\"",
+      "title": "Tennis-Elternteil · São Paulo, Brasilien · CBT-Club"
+    },
+    "t5": {
+      "quote": "\"Als 55-Jähriger, der nach 10 Jahren zum Tennis zurückkehrt, war ich nervös wegen solcher Technologie. Aber der Bericht war verständlich, die Übung einfach, und mein Rückhand-Timing verbesserte sich in zwei Stunden.\"",
+      "title": "Clubspieler · München, Deutschland · DTB-angeschlossen"
+    },
+    "t6": {
+      "quote": "\"Ich betreue 22 Jugendspieler an unserer Akademie. SmartSwing gibt mir eine Dashboard-Übersicht über jeden Schüler. Ich kann erkennen, wer Aufmerksamkeit braucht, bevor sie den Platz betreten.\"",
+      "title": "Akademie-Direktor · Sydney, Australien · Tennis Australia"
+    }
   },
   "stories": {
-    "eyebrow": "Echte Ergebnisse", "heading": "Was nach dem ersten Upload passiert.",
-    "s1": { "stat": "NTRP in 6 Wochen verbessert",     "name": "Sofia R., 14 — Junior-Wettkämpferin", "quote": "\"Mein Trainer war schockiert, dass ich meine Fußarbeit vor unserer nächsten Stunde verbessert hatte. Ich habe nur die Übung von SmartSwing befolgt.\"" },
-    "s2": { "stat": "Aufschlag-Vertrauen: 62% → 81%", "name": "Marcus T. — Amateur-Ligaspieler",     "quote": "\"Ich verließ den Platz nach jedem Match und wusste, dass etwas falsch war, aber nicht was. SmartSwing sagte es mir in 60 Sekunden.\"" },
-    "s3": { "stat": "10 Athleten vor dem Frühstück",  "name": "Trainer Daniel R. — Akademieleiter",  "quote": "\"Jetzt weiß ich, wer Aufmerksamkeit braucht, bevor sie überhaupt den Platz betreten.\"" }
+    "eyebrow": "Echte Ergebnisse",
+    "heading": "Was nach dem ersten Upload passiert.",
+    "s1": {
+      "stat": "NTRP in 6 Wochen verbessert",
+      "name": "Sofia R., 14 — Junior-Wettkämpferin",
+      "quote": "\"Mein Trainer war schockiert, dass ich meine Fußarbeit vor unserer nächsten Stunde verbessert hatte. Ich habe nur die Übung von SmartSwing befolgt.\""
+    },
+    "s2": {
+      "stat": "Aufschlag-Vertrauen: 62% → 81%",
+      "name": "Marcus T. — Amateur-Ligaspieler",
+      "quote": "\"Ich verließ den Platz nach jedem Match und wusste, dass etwas falsch war, aber nicht was. SmartSwing sagte es mir in 60 Sekunden.\""
+    },
+    "s3": {
+      "stat": "10 Athleten vor dem Frühstück",
+      "name": "Trainer Daniel R. — Akademieleiter",
+      "quote": "\"Jetzt weiß ich, wer Aufmerksamkeit braucht, bevor sie überhaupt den Platz betreten.\""
+    }
   },
   "testimonials": {
-    "eyebrow": "★★★★★  Was Spieler sagen",
-    "heading": "Echte Spieler. Echte Ergebnisse. Kein Raten.",
-    "tagline": "Schließe dich 2.400+ Spielern und Trainern an, die bereits genau wissen, was sie vor ihrem nächsten Match verbessern müssen."
+    "t1": {
+      "stat": "★★★★★  Marcus T. — Erwachsenenliga, 3.5 NTRP",
+      "title": "\"Endlich weiß ich, was falsch ist\"",
+      "quote": "\"Ich habe 8 Jahre gespielt und bin nach jeder Niederlage verwirrt vom Platz gegangen. SmartSwing zeigte mir, dass meine Hüftrotation auf der Rückhandseite 40% daneben lag. In zwei Wochen behoben.\""
+    },
+    "t2": {
+      "stat": "★★★★★  Trainer Daniel R. — Akademiedirektor",
+      "title": "\"Hat mein Kader-Management revolutioniert\"",
+      "quote": "\"Ich trainiere 14 Jugendliche. Vor SmartSwing konnte ich zwischen den Einheiten keine Videos durchsehen. Jetzt hat jeder Athlet einen wöchentlichen KI-Bericht und ich verbringe meine Einheiten mit Training — nicht mit Diagnose.\""
+    },
+    "t3": {
+      "stat": "★★★★★  David L. — Turnierspieler, 4.5 NTRP",
+      "title": "\"So fühlt sich ein Videoraum an\"",
+      "quote": "\"Ich habe aufgehört, dritte Sätze durch denselben mechanischen Fehler zu verlieren. SmartSwing erkannte, dass meine Aufschlagmechanik unter Druck zusammenbricht und gab mir die exakte Übung zur Korrektur.\""
+    }
   },
   "reviews": {
     "eyebrow": "Google-Rezensionen",
@@ -186,29 +340,84 @@
     "tag": "Preise",
     "title": "Kostenlos starten. Upgrade, wenn du bereit bist.",
     "sub": "Alle Pläne beinhalten Echtzeit-KI-Analyse. Keine versteckten Gebühren, jederzeit kündbar.",
-    "mostPopular": "Beliebtester", "perMonth": "/ Monat",
+    "mostPopular": "Beliebtester",
+    "perMonth": "/ Monat",
     "urgency1": "💳  Privattraining: 80–150 €/Stunde · SmartSwing Performance: 0,60 €/Tag",
     "urgency2": "🔒  Frühzugangspreis — sicher deinen Tarif, bevor er sich ändert",
     "urgency3": "🏫  Akademie- oder Club-Abrechnung?",
     "urgency3Link": "Kontaktiere uns für ein individuelles Angebot",
-    "starter":     { "name": "Starter",       "price": "0 €",    "tagline": "Entferne jede Hürde und hol dir den ersten Erfolg.", "desc": "Perfekt für Spieler, die gerade mit KI-Feedback beginnen.",                                                          "f1": "1 Analyse pro Monat",               "f2": "Live-Berichtsvorschau",             "f3": "Kein Speichern, Drucken oder Exportieren", "cta": "Kostenlos starten →" },
-    "player":      { "name": "Spieler",        "price": "9,99 €", "desc": "Für ernsthafte Spieler, die regelmäßig trainieren und messbaren Fortschritt möchten.", "tagline": "Für Spieler, die monatliches Feedback und gespeicherte Berichte zur Fortschrittsverfolgung möchten.",                "f1": "10 Analysen pro Monat",             "f2": "Berichte speichern, drucken & teilen","f3": "Fortschritts-Dashboard & KPI-Tracking", "f4": "Taktik- und Übungspläne",     "cta": "Spieler wählen →" },
-    "perf":        { "name": "Performance",    "price": "19,99 €","desc": "Erweiterte Tools für Wettkampfspieler und Trainer.",                                                                     "f1": "Alles aus Spieler",                 "f2": "Trainer-PDF-Berichte",              "f3": "Seite-an-Seite-Vergleiche",        "f4": "Prioritäre KI-Verarbeitung",  "cta": "Alle Pläne ansehen" },
-    "performance": { "name": "Performance",    "price": "19,99 €","tagline": "Unbegrenzte Analysen. Komplette Übungsbibliothek. Trainer-Tools. Weniger als eine Privatstunde pro Monat.",          "f1": "Unbegrenzte Analysen & Berichte",   "f2": "Komplette Übungsbibliothek",        "f3": "Trainer/Spieler-Verbindungstools", "f4": "Wöchentliche KI-Berichte", "cta": "Performance wählen →" },
-    "tournament":  { "name": "Tournament Pro", "price": "49,99 €","tagline": "Für ernsthafte Wettkämpfer mit zertifizierter Trainer-Überprüfung, Turniervorbereitung und Prioritätszugang.",       "f1": "Unbegrenzte Auswertungen & Exporte","f2": "Zertifizierter Trainer-Workflow",   "f3": "Turniervorbereitung",             "f4": "Prioritätsterminierung",   "cta": "Tournament Pro wählen →" }
+    "starter": {
+      "name": "Starter",
+      "price": "0 €",
+      "tagline": "Entferne jede Hürde und hol dir den ersten Erfolg.",
+      "desc": "Perfekt für Spieler, die gerade mit KI-Feedback beginnen.",
+      "f1": "1 Analyse pro Monat",
+      "f2": "Live-Berichtsvorschau",
+      "f3": "Kein Speichern, Drucken oder Exportieren",
+      "cta": "Kostenlos starten →"
+    },
+    "player": {
+      "name": "Spieler",
+      "price": "9,99 €",
+      "desc": "Für ernsthafte Spieler, die regelmäßig trainieren und messbaren Fortschritt möchten.",
+      "tagline": "Für Spieler, die monatliches Feedback und gespeicherte Berichte zur Fortschrittsverfolgung möchten.",
+      "f1": "10 Analysen pro Monat",
+      "f2": "Berichte speichern, drucken & teilen",
+      "f3": "Fortschritts-Dashboard & KPI-Tracking",
+      "f4": "Taktik- und Übungspläne",
+      "cta": "Spieler wählen →"
+    },
+    "perf": {
+      "name": "Performance",
+      "price": "19,99 €",
+      "desc": "Erweiterte Tools für Wettkampfspieler und Trainer.",
+      "f1": "Alles aus Spieler",
+      "f2": "Trainer-PDF-Berichte",
+      "f3": "Seite-an-Seite-Vergleiche",
+      "f4": "Prioritäre KI-Verarbeitung",
+      "cta": "Alle Pläne ansehen"
+    },
+    "performance": {
+      "name": "Performance",
+      "price": "19,99 €",
+      "tagline": "Unbegrenzte Analysen. Komplette Übungsbibliothek. Trainer-Tools. Weniger als eine Privatstunde pro Monat.",
+      "f1": "Unbegrenzte Analysen & Berichte",
+      "f2": "Komplette Übungsbibliothek",
+      "f3": "Trainer/Spieler-Verbindungstools",
+      "f4": "Wöchentliche KI-Berichte",
+      "cta": "Performance wählen →"
+    },
+    "tournament": {
+      "name": "Tournament Pro",
+      "price": "49,99 €",
+      "tagline": "Für ernsthafte Wettkämpfer mit zertifizierter Trainer-Überprüfung, Turniervorbereitung und Prioritätszugang.",
+      "f1": "Unbegrenzte Auswertungen & Exporte",
+      "f2": "Zertifizierter Trainer-Workflow",
+      "f3": "Turniervorbereitung",
+      "f4": "Prioritätsterminierung",
+      "cta": "Tournament Pro wählen →"
+    }
   },
   "bigcta": {
     "primary": "Heute kostenlos starten →",
-    "secondary": "So Funktioniert Es"
+    "secondary": "So Funktioniert Es",
+    "headingHtml": "Bereit, dein Spiel<br>zu <em>transformieren</em>?",
+    "body": "Schließe dich Tausenden von Spielern an, die ihr Potenzial mit KI-gestütztem Coaching freigeschaltet haben. Starte kostenlos, keine Karte nötig."
   },
   "lead": {
     "eyebrow": "Kostenlose Ressource",
     "heading": "Hol dir die Trainingsplanungs-Checkliste — kostenlos.",
     "body": "Die genauen Filmwinkel, Analyseauslöser und Sitzungsstruktur. Von 2.400+ Spielern verwendet.",
-    "nameLabel": "Name", "namePlaceholder": "Dein Name",
-    "emailLabel": "E-Mail", "emailPlaceholder": "du@beispiel.com",
-    "roleLabel": "Hauptrolle", "rolePlaceholder": "Auswählen",
-    "rolePlayer": "Spieler", "roleCoach": "Trainer", "roleParent": "Elternteil", "roleClub": "Club oder Akademie",
+    "nameLabel": "Name",
+    "namePlaceholder": "Dein Name",
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "du@beispiel.com",
+    "roleLabel": "Hauptrolle",
+    "rolePlaceholder": "Auswählen",
+    "rolePlayer": "Spieler",
+    "roleCoach": "Trainer",
+    "roleParent": "Elternteil",
+    "roleClub": "Club oder Akademie",
     "submit": "Checkliste erhalten",
     "notice": "Wir senden deine Checkliste innerhalb von 24 Stunden. Kein Spam, nie."
   },
@@ -222,23 +431,35 @@
   },
   "auth": {
     "signIn": {
-      "heading": "Anmelden", "subtext": "Zugriff auf gespeicherte Swing-Berichte, KPI-Tracking, Trainersitzungen und deine neuesten Biomechanikempfehlungen.",
-      "tabSignIn": "Anmelden", "tabCreate": "Konto erstellen",
-      "withGoogle": "Mit Google fortfahren", "withApple": "Mit Apple fortfahren", "withMeta": "Mit Meta fortfahren",
+      "heading": "Anmelden",
+      "subtext": "Zugriff auf gespeicherte Swing-Berichte, KPI-Tracking, Trainersitzungen und deine neuesten Biomechanikempfehlungen.",
+      "tabSignIn": "Anmelden",
+      "tabCreate": "Konto erstellen",
+      "withGoogle": "Mit Google fortfahren",
+      "withApple": "Mit Apple fortfahren",
+      "withMeta": "Mit Meta fortfahren",
       "orEmail": "oder mit E-Mail anmelden",
-      "emailLabel": "E-Mail", "emailPlaceholder": "du@beispiel.com",
-      "passwordLabel": "Passwort", "passwordPlaceholder": "Passwort eingeben",
-      "submit": "Anmelden", "submitting": "Anmelden...",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "du@beispiel.com",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Passwort eingeben",
+      "submit": "Anmelden",
+      "submitting": "Anmelden...",
       "createAccount": "Konto erstellen",
-      "noAccount": "Noch kein Konto?", "createOne": "Erstelle eines",
+      "noAccount": "Noch kein Konto?",
+      "createOne": "Erstelle eines",
       "agreementText": "Mit dem Fortfahren stimmst du der",
-      "userAgreement": "Nutzervereinbarung", "and": "und der", "privacyPolicy": "Datenschutzrichtlinie",
+      "userAgreement": "Nutzervereinbarung",
+      "and": "und der",
+      "privacyPolicy": "Datenschutzrichtlinie",
       "backToHome": "Zurück zur Startseite"
     },
     "signUp": {
       "heading": "Konto erstellen",
       "subtext": "Richte dein Spieler- oder Trainerprofil ein, speichere Analysen und plane gezieltes Training.",
-      "tabSignIn": "Anmelden", "tabCreate": "Konto erstellen", "submit": "Konto erstellen"
+      "tabSignIn": "Anmelden",
+      "tabCreate": "Konto erstellen",
+      "submit": "Konto erstellen"
     }
   },
   "pricingPage": {
@@ -321,10 +542,14 @@
       "cta2": "So funktioniert es"
     },
     "stats": {
-      "s1v": "60s", "s1l": "Analysezeit",
-      "s2v": "14+", "s2l": "Verfolgte Metriken",
-      "s3v": "3", "s3l": "Prioritätskorrekturen",
-      "s4v": "94%", "s4l": "Genauigkeitsrate"
+      "s1v": "60s",
+      "s1l": "Analysezeit",
+      "s2v": "14+",
+      "s2l": "Verfolgte Metriken",
+      "s3v": "3",
+      "s3l": "Prioritätskorrekturen",
+      "s4v": "94%",
+      "s4l": "Genauigkeitsrate"
     },
     "features": {
       "eyebrow": "Warum Spieler SmartSwing wählen",
@@ -341,11 +566,14 @@
       "eyebrow": "Spielergeschichten",
       "heading": "Höre von Spielern wie dir.",
       "t1q": "\"Ich verließ den Platz und wusste, dass etwas falsch war, aber nicht was. SmartSwing sagte es mir in 60 Sekunden.\"",
-      "t1n": "Marcus T.", "t1r": "Amateur-Ligaspieler",
+      "t1n": "Marcus T.",
+      "t1r": "Amateur-Ligaspieler",
       "t2q": "\"Mein Trainer war überrascht, dass ich meine Fußarbeit vor der nächsten Stunde korrigiert hatte. Ich habe einfach die Übung befolgt.\"",
-      "t2n": "Sofia R.", "t2r": "Juniorspielerin, 14 Jahre",
+      "t2n": "Sofia R.",
+      "t2r": "Juniorspielerin, 14 Jahre",
       "t3q": "\"Ich höre auf, dritte Sätze durch schlechte Entscheidungen zu verlieren. Jetzt weiß ich, welche Mechaniken unter Druck versagen und was ich dagegen tun kann.\"",
-      "t3n": "David L.", "t3r": "Turnierspieler 3.5 NTRP"
+      "t3n": "David L.",
+      "t3r": "Turnierspieler 3.5 NTRP"
     },
     "cta": {
       "heading": "Dein nächstes Match beginnt mit einem Upload.",
@@ -364,10 +592,14 @@
       "cta2": "Preise ansehen"
     },
     "stats": {
-      "s1v": "2Min", "s1l": "Berichtsüberprüfung",
-      "s2v": "60s", "s2l": "KI-Analyse",
-      "s3v": "100%", "s3l": "Roster-Sichtbarkeit",
-      "s4v": "3x", "s4l": "Schnellere Einteilung"
+      "s1v": "2Min",
+      "s1l": "Berichtsüberprüfung",
+      "s2v": "60s",
+      "s2l": "KI-Analyse",
+      "s3v": "100%",
+      "s3l": "Roster-Sichtbarkeit",
+      "s4v": "3x",
+      "s4l": "Schnellere Einteilung"
     },
     "features": {
       "eyebrow": "Trainer-Workflows",
@@ -384,11 +616,14 @@
       "eyebrow": "Trainergeschichten",
       "heading": "Was Trainer sagen.",
       "t1q": "\"Ich habe früher 20 Minuten vor jeder Sitzung damit verbracht, Notizen zusammenzusetzen. Jetzt öffne ich das Dashboard und alles ist da.\"",
-      "t1n": "Trainer James P.", "t1r": "USPTA-zertifiziert",
+      "t1n": "Trainer James P.",
+      "t1r": "USPTA-zertifiziert",
       "t2q": "\"Eltern haben aufgehört, vage Fragen zu stellen. Die Berichte zeigen genau, woran wir arbeiten und warum — das hat 10 E-Mails ersetzt.\"",
-      "t2n": "Maria K.", "t2r": "Akademieleiterin",
+      "t2n": "Maria K.",
+      "t2r": "Akademieleiterin",
       "t3q": "\"Meine Junioren machen die Übungen jetzt wirklich, weil sie ihre eigenen Daten sehen können. Verantwortlichkeit, ohne ihnen hinterherzulaufen.\"",
-      "t3n": "Trainer Rafael D.", "t3r": "Hochleistungstrainer"
+      "t3n": "Trainer Rafael D.",
+      "t3r": "Hochleistungstrainer"
     },
     "cta": {
       "heading": "Sieh, was passiert, wenn jeder Athlet eine wöchentliche Analyse hat.",
@@ -407,10 +642,14 @@
       "cta2": "Preise ansehen"
     },
     "stats": {
-      "s1v": "10+", "s1l": "Athleten pro Trainer",
-      "s2v": "Null", "s2l": "Individuelle Software",
-      "s3v": "1 Woche", "s3l": "Bis zu ersten Ergebnissen",
-      "s4v": "100%", "s4l": "Elternsichtbarkeit"
+      "s1v": "10+",
+      "s1l": "Athleten pro Trainer",
+      "s2v": "Null",
+      "s2l": "Individuelle Software",
+      "s3v": "1 Woche",
+      "s3l": "Bis zu ersten Ergebnissen",
+      "s4v": "100%",
+      "s4l": "Elternsichtbarkeit"
     },
     "features": {
       "eyebrow": "Programmvorteile",
@@ -427,11 +666,14 @@
       "eyebrow": "Club-Geschichten",
       "heading": "Programme mit Ergebnissen.",
       "t1q": "\"Wir haben SmartSwing in einer Woche in unser Juniorprogramm eingeführt. Trainer lieben das Dashboard, Eltern lieben die Berichte und Athleten machen tatsächlich die Übungen.\"",
-      "t1n": "Chris A.", "t1r": "Akademiebesitzer, 12 Plätze",
+      "t1n": "Chris A.",
+      "t1r": "Akademiebesitzer, 12 Plätze",
       "t2q": "\"Die operative Sichtbarkeit allein hat die Investition gerechtfertigt. Ich kann sehen, welche Trainer Footage überprüfen und welche Athleten zurückfallen.\"",
-      "t2n": "Laura M.", "t2r": "Programmleiterin",
+      "t2n": "Laura M.",
+      "t2r": "Programmleiterin",
       "t3q": "\"Eltern haben aufgehört zu fragen 'woran arbeitet ihr?', weil die Berichte diese Frage beantworten, bevor sie sie überhaupt stellen.\"",
-      "t3n": "Tom R.", "t3r": "Cheftrainer"
+      "t3n": "Tom R.",
+      "t3r": "Cheftrainer"
     },
     "cta": {
       "heading": "Bereit, den Wettbewerbsvorteil deines Programms zu verbessern?",
@@ -450,10 +692,14 @@
       "cta2": "Pläne ansehen"
     },
     "stats": {
-      "s1v": "Klar", "s1l": "Berichte in einfacher Sprache",
-      "s2v": "Wöchentlich", "s2l": "Fortschrittsupdates",
-      "s3v": "100%", "s3l": "Trainer-abgestimmt",
-      "s4v": "Null", "s4l": "Ratespiel"
+      "s1v": "Klar",
+      "s1l": "Berichte in einfacher Sprache",
+      "s2v": "Wöchentlich",
+      "s2l": "Fortschrittsupdates",
+      "s3v": "100%",
+      "s3l": "Trainer-abgestimmt",
+      "s4v": "Null",
+      "s4l": "Ratespiel"
     },
     "features": {
       "eyebrow": "Vorteile für Eltern",
@@ -470,11 +716,14 @@
       "eyebrow": "Elterngeschichten",
       "heading": "Was Eltern sagen.",
       "t1q": "\"Ich fürchtete mich vor der Heimfahrt — ich wusste nie, was ich über das Match sagen sollte. Jetzt öffnen wir den Bericht und besprechen, woran gearbeitet werden soll.\"",
-      "t1n": "Jennifer M.", "t1r": "Mutter eines 12-Jährigen",
+      "t1n": "Jennifer M.",
+      "t1r": "Mutter eines 12-Jährigen",
       "t2q": "\"Der Trainer meines Sohnes war beeindruckt, als wir genau wussten, welche Übungen zwischen den Stunden zu fokussieren sind. SmartSwing hat uns zu besseren Fürsprechern gemacht.\"",
-      "t2n": "Robert K.", "t2r": "Vater eines Juniorspielers",
+      "t2n": "Robert K.",
+      "t2r": "Vater eines Juniorspielers",
       "t3q": "\"Allein die Fortschrittsverfolgung ist es wert. Ich kann endlich sehen, ob die Investition in Stunden sich auszahlt — mit echten Zahlen, nicht mit Gefühlen.\"",
-      "t3n": "Sarah L.", "t3r": "Tenniselternteil, 2 Kinder"
+      "t3n": "Sarah L.",
+      "t3r": "Tenniselternteil, 2 Kinder"
     },
     "cta": {
       "heading": "Gib deinem Junior den Vorteil, den die meisten Eltern nicht kennen.",
@@ -490,28 +739,142 @@
     "outcomeLabel": "Ergebnis",
     "outcomeH3": "Die Geschwindigkeit der Korrektur ist das Produkt.",
     "outcomeBody": "Jede Oberfläche sollte dem Spieler helfen zu verstehen, was passiert ist, warum es wichtig ist und was als nächstes zu tun ist.",
-    "step1Num": "01", "step1Heading": "Nimm den richtigen Winkel und Kontext auf",
+    "step1Num": "01",
+    "step1Heading": "Nimm den richtigen Winkel und Kontext auf",
     "step1Body": "Filme von hinter der Grundlinie oder dem Zaun. SmartSwing führt dich durch die Winkelqualität bevor die Analyse beginnt.",
     "step1i1": "Vorkaptierungs-Anleitung verbessert die Eingabequalität bevor der Upload beginnt.",
     "step1i2": "Schlag- und Sitzungsabsicht definieren den Benchmark und den Feedback-Rahmen.",
     "step1i3": "Profildetails halten die Bewertung fair nach Niveau und Spielerkontext.",
-    "step2Num": "02", "step2Heading": "Erhalte deinen personalisierten Biomechanik-Bericht",
+    "step2Num": "02",
+    "step2Heading": "Erhalte deinen personalisierten Biomechanik-Bericht",
     "step2Body": "Die KI verfolgt 33 Körperpunkte und vergleicht deinen Schlag mit niveauangepassten Benchmarks.",
     "step2i1": "Biomechanik, Bewegung, Positionierung, Timing und Kontaktverhalten werden gemeinsam bewertet.",
     "step2i2": "Der Bericht betont die wichtigsten Prioritäten statt Details mit geringem Wert.",
     "step2i3": "Erweiterbare Karten erklären, was eine Metrik bedeutet und wie man sie interpretiert.",
-    "step3Num": "03", "step3Heading": "Trainiere mit einem Plan, der für DEIN Spiel entwickelt wurde",
+    "step3Num": "03",
+    "step3Heading": "Trainiere mit einem Plan, der für DEIN Spiel entwickelt wurde",
     "step3Body": "Jeder Bericht zeigt deine 3 wichtigsten Prioritäten mit passenden Drill-Videos.",
     "step3i1": "Die 3 wichtigsten Drill-Empfehlungen direkt an die Hauptschwächen geknüpft.",
     "step3i2": "Die 3 wichtigsten taktischen Empfehlungen basierend auf dem aktuellen Spielerprofil.",
     "step3i3": "Trainer-fertige Zusammenfassung hält das Lehrgespräch schnell und nützlich.",
-    "step4Num": "04", "step4Heading": "Verfolge jede Wiederholung. Sieh dich verbessern.",
+    "step4Num": "04",
+    "step4Heading": "Verfolge jede Wiederholung. Sieh dich verbessern.",
     "step4Body": "Dein Fortschritts-Dashboard zeigt genau, wie sich jede Metrik im Laufe der Zeit entwickelt.",
     "step4i1": "Spieler- und Trainer-Ansichten sind in übersichtliche Registerkarten aufgeteilt.",
     "step4i2": "Planlimits und Datenschutzregeln werden vor dem Speichern und Exportieren durchgesetzt.",
     "step4i3": "Spieler und Trainer bleiben in ihren eigenen Bereichen, damit Kommunikation leicht nachverfolgbar ist.",
-    "ctaEyebrow": "Jetzt starten", "ctaHeading": "Sieh dein Spiel, wie ein Biomechanik-Trainer es sieht.",
-    "ctaPrimary": "Analyzer öffnen", "ctaSecondary": "Pläne vergleichen", "ctaContact": "Kontakt aufnehmen",
+    "ctaEyebrow": "Jetzt starten",
+    "ctaHeading": "Sieh dein Spiel, wie ein Biomechanik-Trainer es sieht.",
+    "ctaPrimary": "Analyzer öffnen",
+    "ctaSecondary": "Pläne vergleichen",
+    "ctaContact": "Kontakt aufnehmen",
     "footerTagline": "Workflow-Überblick von der Aufnahme bis zur Analyse, Drills, Taktiken und Nachverfolgung."
+  },
+  "fp": {
+    "hero": {
+      "eyebrow": "Funktionen",
+      "headingHtml": "Das Betriebssystem<br>für <em style=\"color:#39ff14\">Tennis-Verbesserung.</em>",
+      "lead": "Videoanalyse, trainerfertige Berichte, Übungsempfehlungen, Spielerfortschritt und rollenbasierte Dashboards — verbunden in einem klaren, zweckmäßigen Ablauf.",
+      "ctaPrimary": "Analysator öffnen",
+      "ctaSecondary": "Pläne vergleichen",
+      "note": "Kein App-Download nötig. Funktioniert in jedem Browser, auf jedem Gerät."
+    },
+    "stats": {
+      "s1": "durchschnittliche Berichtzeit",
+      "s2": "priorisierte Korrekturen, keine Metrikwand",
+      "s3": "kein App-Download",
+      "s4": "getrennte Rollenansichten"
+    },
+    "core": {
+      "eyebrow": "Kernfähigkeiten",
+      "heading": "Jede Ebene verstärkt die nächste.",
+      "sub": "Der Wert ist nicht eine Funktion — es ist das, was passiert, wenn Analyse, Übungen, Coaching und Fortschritt eine gemeinsame Sprache teilen.",
+      "engineEyebrow": "Kernmotor",
+      "engineTitle": "KI-Videoanalyse, die die nächste Wiederholung antreibt, nicht nur den Bericht.",
+      "engineDesc": "Pose-Tracking, tennisspezifische Biomechanik, niveauangepasste Bewertung und priorisiertes Feedback arbeiten zusammen, damit Spieler mit einem echten Plan gehen.",
+      "reportsTitle": "Lesbare Biomechanik",
+      "dashTitle": "Übersichtliche Spieler- und Trainer-Tabs",
+      "trainingTitle": "Übungen und Taktiken an Schwächen gekoppelt",
+      "accessTitle": "Datenschutz und Plangrenzen"
+    },
+    "bio": {
+      "headingHtml": "Was Ihr Körper<br>wirklich tut.",
+      "cta": "Meinen Schlag kostenlos analysieren →"
+    },
+    "drills": {
+      "headingHtml": "Eine Übung.<br>Eine Priorität.<br>Eine Woche."
+    },
+    "tactics": {
+      "headingHtml": "Nicht nur wie Sie<br>schlagen — wo und wann.",
+      "cta": "Ihre Taktikanalyse sehen →"
+    },
+    "player": {
+      "eyebrow": "Spielererfahrung",
+      "heading": "Was Spieler fühlen, wenn es funktioniert.",
+      "cta1": "Kostenlos testen",
+      "cta2": "Spieler-Dashboard"
+    },
+    "coach": {
+      "eyebrow": "Trainererfahrung",
+      "heading": "Was Trainer in jeder Einheit gewinnen.",
+      "cta": "Trainer-Dashboard"
+    },
+    "proof": {
+      "eyebrow": "Beweis",
+      "heading": "Spieler kaufen Beweis. Trainer kaufen Klarheit."
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "heading": "Häufige Fragen."
+    },
+    "cta": {
+      "eyebrow": "Nächster Schritt",
+      "heading": "Öffnen Sie den Analysator und sehen Sie den kompletten Ablauf live.",
+      "body": "Ein Video. Sechzig Sekunden. Ein klarer Plan für die nächste Einheit — keine Metrikwand zum Entschlüsseln.",
+      "primary": "Kostenlose Analyse starten",
+      "secondary": "Pläne vergleichen",
+      "talk": "Sprechen Sie mit uns"
+    }
+  },
+  "ap": {
+    "hero": {
+      "eyebrow": "Über uns",
+      "heading": "Der schnellste Weg von \"was ging schief\" zu \"was als nächstes tun\".",
+      "body": "SmartSwing AI wurde entwickelt, weil die meisten Tennisspieler jede Einheit beenden, ohne zu wissen, was sie wirklich Punkte gekostet hat — oder wie sie es vor der nächsten korrigieren können.",
+      "solveHeading": "Was wir lösen wollten",
+      "solve1": "Die Lücke zwischen dem Filmen eines Schlags und dem Verstehen, was falsch ist — auf 60 Sekunden reduziert.",
+      "solve2": "Das Übersetzungsproblem zwischen Biomechanikdaten und echtem Coaching-Deutsch — gelöst.",
+      "solve3": "Das Problem des \"unsichtbaren Fortschritts\" — behoben mit Einheit-zu-Einheit-Tracking.",
+      "solve4": "Die Komplexität von Datenschutz und Abrechnung — gelöst, damit Athleten sich auf Tennis konzentrieren können."
+    },
+    "audience": {
+      "heading": "Gemacht für jeden Spieler, dem Verbesserung ernst ist",
+      "body": "SmartSwing AI ist für Jugendathleten, die Gewohnheiten aufbauen, erwachsene Spieler, die Klarheit zwischen den Stunden wollen, Trainer, die schnellere Triage brauchen, und Programme, die messbare Ergebnisse wollen.",
+      "disclaimer": "Das Produkt soll Coaching und Spielerentwicklung unterstützen. Es ersetzt keine ärztliche Beratung."
+    },
+    "how": {
+      "heading": "So funktioniert es",
+      "body": "Laden Sie ein Video hoch. Erhalten Sie einen Biomechanik-Bericht mit Ihren 3 wichtigsten Korrekturen, passenden Übungen und taktischer Anleitung."
+    }
+  },
+  "cp": {
+    "hero": {
+      "badge": "Direktkontakt",
+      "heading": "Wir sind da. Sprechen Sie mit einer echten Person.",
+      "body": "Ob Sie ein Spieler sind, der anfängt, ein Trainer, der seinen Kader erweitert, oder ein Club, der ein Programm erkundet — wir antworten innerhalb eines Werktages.",
+      "fastTitle": "Schnellster Weg zu einer Antwort",
+      "fastBody": "Machen Sie zuerst eine kostenlose Analyse, dann kontaktieren Sie uns mit Ihren Ergebnissen."
+    },
+    "reach": {
+      "heading": "SmartSwing AI kontaktieren",
+      "emailTitle": "Primäre E-Mail",
+      "coachTitle": "Trainer-Onboarding",
+      "salesTitle": "Vertrieb und Partnerschaften",
+      "tipsTitle": "So nutzen Sie den Support optimal"
+    },
+    "form": {
+      "heading": "Nachricht senden",
+      "submit": "Nachricht senden"
+    }
   }
 }
