@@ -1461,6 +1461,12 @@
       updatedAt: nowIso()
     };
     persistUsers(users);
+
+    // Invalidate stale server quota cache so the next canGenerateReport()
+    // call fetches fresh data reflecting the new plan.
+    serverQuotaCache = null;
+    serverQuotaFetchedAt = 0;
+
     return users[idx];
   }
 
@@ -1548,6 +1554,12 @@
       onboardingSource: users[idx].role === 'player' ? 'plan-activation' : (users[idx].onboardingSource || '')
     };
     persistUsers(users);
+
+    // Invalidate stale server quota cache so the next limit check
+    // reflects the new plan.
+    serverQuotaCache = null;
+    serverQuotaFetchedAt = 0;
+
     return plan;
   }
 
@@ -1713,6 +1725,16 @@
     // so clearing browser data cannot reset the count.
     if (isSupabaseConfigured()) {
       return (async () => {
+        // Force-refresh server quota before consuming. This ensures that
+        // plan upgrades (via webhook writing to customer_subscriptions)
+        // are picked up even if the stale cache says "free".
+        await fetchServerReportUsage({ force: true });
+        // Re-read plan after refresh — the server may now report 'unlimited'
+        const freshCheck = canGenerateReport(user.id);
+        if (freshCheck.source === 'server' && freshCheck.allowed && freshCheck.remaining === Infinity) {
+          // Paid plan confirmed by server — skip the consume gate entirely
+          return finalizeLocalConsume(user, plan, monthKey, payload);
+        }
         try {
           await consumeFreeReportViaServer(user, plan);
         } catch (err) {
@@ -1960,6 +1982,9 @@
     const updated = {
       ...currentUser,
       playerIdentity: fields.playerIdentity ?? currentUser.playerIdentity ?? '',
+      dominantHand: fields.dominantHand ?? currentUser.dominantHand ?? '',
+      playingLevel: fields.playingLevel ?? currentUser.playingLevel ?? '',
+      ratingSystem: fields.ratingSystem ?? currentUser.ratingSystem ?? '',
       playingStyle: fields.playingStyle ?? currentUser.playingStyle ?? '',
       practiceFrequency: fields.practiceFrequency ?? currentUser.practiceFrequency ?? '',
       favoriteShot: fields.favoriteShot ?? currentUser.favoriteShot ?? '',
@@ -1987,7 +2012,16 @@
       gender: user.gender || null,
       usta_level: user.ustaLevel || null,
       utr_rating: user.utrRating || null,
-      preferred_hand: user.preferredHand || 'right',
+      preferred_hand: user.dominantHand || user.preferredHand || 'right',
+      dominant_hand: user.dominantHand || null,
+      player_identity: user.playerIdentity || null,
+      playing_level: user.playingLevel || null,
+      rating_system: user.ratingSystem || null,
+      playing_style: user.playingStyle || null,
+      practice_frequency: user.practiceFrequency || null,
+      favorite_shot: user.favoriteShot || null,
+      improvement_goals: Array.isArray(user.improvementGoals) ? user.improvementGoals : null,
+      onboarding_completed_at: user.onboardingCompletedAt || null,
       avatar_url: user.avatarDataUrl || null,
       subscription_tier: user.planId || 'free',
       subscription_status: user.subscriptionStatus || 'free',

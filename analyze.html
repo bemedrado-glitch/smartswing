@@ -5125,6 +5125,15 @@
     refreshPlanStrip();
     applyActionPermissions();
 
+    // Force-refresh server quota on page load so a recent plan upgrade
+    // is picked up immediately (prevents stale "free" cache blocking paid users).
+    if (store?.fetchServerReportUsage && currentUser) {
+      store.fetchServerReportUsage({ force: true }).then(() => {
+        refreshPlanStrip();
+        applyActionPermissions();
+      }).catch(() => {});
+    }
+
     document.querySelectorAll('.selection-card').forEach(card => {
       card.addEventListener('click', () => {
         const field = card.dataset.field;
