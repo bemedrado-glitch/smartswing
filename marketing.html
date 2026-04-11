@@ -146,6 +146,13 @@
       </div>
 
       <div class="mkt-sidebar__section">
+        <div class="mkt-sidebar__section-label">Paid Media</div>
+        <button class="mkt-nav-item" data-tab="meta-ads" onclick="switchTab('meta-ads', this)">
+          <span class="mkt-nav-item__icon">📣</span> Meta Ads
+        </button>
+      </div>
+
+      <div class="mkt-sidebar__section">
         <div class="mkt-sidebar__section-label">Management</div>
         <button class="mkt-nav-item" data-tab="approvals" onclick="switchTab('approvals', this)">
           <span class="mkt-nav-item__icon">✅</span> CMO Approvals
@@ -805,6 +812,113 @@
       </div><!-- /tab-approvals -->
 
       <!-- ─────────────── TAB: SETTINGS ─────────────── -->
+      <!-- ─────────────── TAB: META ADS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-meta-ads">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Meta Ads</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Manage Facebook & Instagram ad campaigns via Meta Marketing API.</p>
+          </div>
+          <button class="mkt-btn mkt-btn--primary" onclick="document.getElementById('metaAdCreateForm').style.display='block'">+ Create Ad Campaign</button>
+        </div>
+
+        <!-- Ad Account Insights -->
+        <div class="mkt-panel" style="margin-bottom:20px;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">📊 Ad Account Insights</div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadAdInsights()">Refresh</button>
+          </div>
+          <div class="mkt-panel__body">
+            <div id="metaAdInsights" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;">
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Impressions</div>
+                <div style="font-size:22px;font-weight:800;color:var(--black);margin-top:4px;" id="metaInsImpressions">--</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Clicks</div>
+                <div style="font-size:22px;font-weight:800;color:var(--black);margin-top:4px;" id="metaInsClicks">--</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Spend</div>
+                <div style="font-size:22px;font-weight:800;color:var(--black);margin-top:4px;" id="metaInsSpend">--</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">CTR</div>
+                <div style="font-size:22px;font-weight:800;color:var(--black);margin-top:4px;" id="metaInsCTR">--</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">CPC</div>
+                <div style="font-size:22px;font-weight:800;color:var(--black);margin-top:4px;" id="metaInsCPC">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaign List -->
+        <div class="mkt-panel" style="margin-bottom:20px;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">📋 Campaigns</div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadMetaAds()">Refresh</button>
+          </div>
+          <div class="mkt-panel__body--no-pad">
+            <div id="metaAdCampaignList" style="width:100%;">
+              <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading campaigns...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Create Ad Campaign Form (hidden by default) -->
+        <div class="mkt-panel" id="metaAdCreateForm" style="display:none;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">🚀 Create Ad Campaign</div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="document.getElementById('metaAdCreateForm').style.display='none'">Cancel</button>
+          </div>
+          <div class="mkt-panel__body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div class="mkt-form-group">
+                <label class="mkt-label">Campaign Name</label>
+                <input type="text" class="mkt-input" id="metaCampName" placeholder="e.g. Spring Promo 2026">
+              </div>
+              <div class="mkt-form-group">
+                <label class="mkt-label">Objective</label>
+                <select class="mkt-input" id="metaCampObjective">
+                  <option value="OUTCOME_TRAFFIC">Traffic</option>
+                  <option value="OUTCOME_ENGAGEMENT">Engagement</option>
+                  <option value="OUTCOME_AWARENESS">Awareness</option>
+                  <option value="OUTCOME_LEADS">Leads</option>
+                </select>
+              </div>
+              <div class="mkt-form-group">
+                <label class="mkt-label">Daily Budget ($)</label>
+                <input type="number" class="mkt-input" id="metaCampBudget" placeholder="25.00" min="1" step="0.01">
+              </div>
+              <div class="mkt-form-group">
+                <label class="mkt-label">Link URL</label>
+                <input type="url" class="mkt-input" id="metaCampLink" placeholder="https://smartswing.ai/pricing">
+              </div>
+              <div class="mkt-form-group" style="grid-column:1/-1;">
+                <label class="mkt-label">Headline</label>
+                <input type="text" class="mkt-input" id="metaCampHeadline" placeholder="Improve Your Tennis Game with AI">
+              </div>
+              <div class="mkt-form-group" style="grid-column:1/-1;">
+                <label class="mkt-label">Description</label>
+                <input type="text" class="mkt-input" id="metaCampDescription" placeholder="Get instant swing analysis and personalized coaching.">
+              </div>
+              <div class="mkt-form-group" style="grid-column:1/-1;">
+                <label class="mkt-label">Ad Message / Primary Text</label>
+                <textarea class="mkt-input" id="metaCampMessage" rows="3" placeholder="Write your ad copy here..."></textarea>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:12px;">
+              <button class="mkt-btn mkt-btn--primary" onclick="createAdCampaign()">Create Campaign</button>
+              <button class="mkt-btn mkt-btn--ghost" onclick="document.getElementById('metaAdCreateForm').style.display='none'">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-meta-ads -->
+
       <div class="mkt-tab-panel" id="tab-settings">
 
         <div style="margin-bottom:24px;">
@@ -1497,12 +1611,13 @@ function switchTab(tabName, triggerEl) {
   // Activate sidebar item
   if (triggerEl) triggerEl.classList.add('is-active');
   // Update topbar title
-  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', cadences: 'Cadences', calendar: 'Content Calendar', campaigns: 'Campaigns', agents: 'AI Agents', analytics: 'Analytics', approvals: 'CMO Approvals', settings: 'Settings' };
+  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', cadences: 'Cadences', calendar: 'Content Calendar', campaigns: 'Campaigns', agents: 'AI Agents', analytics: 'Analytics', 'meta-ads': 'Meta Ads', approvals: 'CMO Approvals', settings: 'Settings' };
   document.getElementById('topbarTitle').textContent = titles[tabName] || tabName;
   MarketingStore.currentTab = tabName;
   closeSidebar();
 
   if (tabName === 'calendar') renderCalendar();
+  if (tabName === 'meta-ads') { loadMetaAds(); loadAdInsights(); }
   if (tabName === 'settings') {
     var ss = JSON.parse(localStorage.getItem('mkt_social_stats') || '{}');
     if (ss.ig) document.getElementById('settIgFollowers').value = ss.ig;
@@ -2092,6 +2207,113 @@ function briefCampaignWithAI(name, persona, type) {
   document.getElementById('cpType').value = type || 'email';
   openModal('addCampaignModal');
   setTimeout(() => generateCampaignBrief(), 300);
+}
+
+/* ── META ADS ── */
+async function loadMetaAds() {
+  const container = document.getElementById('metaAdCampaignList');
+  container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading campaigns...</div>';
+  try {
+    const res = await fetch('/api/marketing/meta-ads');
+    if (!res.ok) throw new Error('Failed to load campaigns');
+    const data = await res.json();
+    const campaigns = data.campaigns || data.data || data || [];
+    if (!Array.isArray(campaigns) || campaigns.length === 0) {
+      container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">No campaigns found. Create your first campaign above.</div>';
+      return;
+    }
+    container.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+      '<thead><tr style="border-bottom:1px solid var(--border);">' +
+      '<th style="padding:10px 16px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;">Name</th>' +
+      '<th style="padding:10px 16px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;">Objective</th>' +
+      '<th style="padding:10px 16px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;">Status</th>' +
+      '<th style="padding:10px 16px;text-align:right;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;">Actions</th>' +
+      '</tr></thead><tbody>' +
+      campaigns.map(c => {
+        const status = (c.status || c.effective_status || 'UNKNOWN').toUpperCase();
+        const isActive = status === 'ACTIVE';
+        const badgeColor = isActive ? '#00e87b' : '#ff9f43';
+        const badgeBg = isActive ? 'rgba(0,232,123,0.12)' : 'rgba(255,159,67,0.12)';
+        const toggleLabel = isActive ? 'Pause' : 'Activate';
+        return '<tr style="border-bottom:1px solid var(--border);">' +
+          '<td style="padding:10px 16px;font-size:13px;font-weight:600;color:var(--black);">' + (c.name || 'Untitled') + '</td>' +
+          '<td style="padding:10px 16px;font-size:12px;color:var(--muted);">' + (c.objective || '--') + '</td>' +
+          '<td style="padding:10px 16px;"><span style="display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;color:' + badgeColor + ';background:' + badgeBg + ';">' + status + '</span></td>' +
+          '<td style="padding:10px 16px;text-align:right;"><button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="toggleCampaignStatus(\'' + c.id + '\',\'' + status + '\')">' + toggleLabel + '</button></td>' +
+          '</tr>';
+      }).join('') +
+      '</tbody></table>';
+  } catch (e) {
+    console.error('loadMetaAds error:', e);
+    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Failed to load campaigns. Check API connection.</div>';
+  }
+}
+
+async function loadAdInsights() {
+  try {
+    const res = await fetch('/api/marketing/meta-ad-insights');
+    if (!res.ok) throw new Error('Failed to load insights');
+    const data = await res.json();
+    const ins = data.insights || data.data?.[0] || data || {};
+    document.getElementById('metaInsImpressions').textContent = Number(ins.impressions || 0).toLocaleString();
+    document.getElementById('metaInsClicks').textContent = Number(ins.clicks || 0).toLocaleString();
+    document.getElementById('metaInsSpend').textContent = '$' + Number(ins.spend || 0).toFixed(2);
+    document.getElementById('metaInsCTR').textContent = Number(ins.ctr || 0).toFixed(2) + '%';
+    document.getElementById('metaInsCPC').textContent = '$' + Number(ins.cpc || 0).toFixed(2);
+  } catch (e) {
+    console.error('loadAdInsights error:', e);
+  }
+}
+
+async function createAdCampaign() {
+  const name = document.getElementById('metaCampName').value.trim();
+  const objective = document.getElementById('metaCampObjective').value;
+  const budget = document.getElementById('metaCampBudget').value;
+  const link = document.getElementById('metaCampLink').value.trim();
+  const headline = document.getElementById('metaCampHeadline').value.trim();
+  const description = document.getElementById('metaCampDescription').value.trim();
+  const message = document.getElementById('metaCampMessage').value.trim();
+
+  if (!name) { showToast('Please enter a campaign name.', 'warn'); return; }
+  if (!budget || Number(budget) <= 0) { showToast('Please enter a valid daily budget.', 'warn'); return; }
+
+  try {
+    const res = await fetch('/api/marketing/meta-ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, objective, daily_budget: Number(budget), link_url: link, headline, description, message })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Failed to create campaign'); }
+    showToast('Campaign created successfully!', 'success');
+    document.getElementById('metaAdCreateForm').style.display = 'none';
+    document.getElementById('metaCampName').value = '';
+    document.getElementById('metaCampBudget').value = '';
+    document.getElementById('metaCampLink').value = '';
+    document.getElementById('metaCampHeadline').value = '';
+    document.getElementById('metaCampDescription').value = '';
+    document.getElementById('metaCampMessage').value = '';
+    loadMetaAds();
+  } catch (e) {
+    console.error('createAdCampaign error:', e);
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function toggleCampaignStatus(campaignId, currentStatus) {
+  const newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+  try {
+    const res = await fetch('/api/marketing/meta-ads', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaign_id: campaignId, status: newStatus })
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Failed to update campaign'); }
+    showToast('Campaign ' + newStatus.toLowerCase() + ' successfully.', 'success');
+    loadMetaAds();
+  } catch (e) {
+    console.error('toggleCampaignStatus error:', e);
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 /* ── CONTENT CALENDAR ── */
@@ -3109,6 +3331,25 @@ function connectSocial(platform) {
   showToast('To connect ' + labels[platform] + ', add your API credentials in the Platform API Credentials section below.', '');
   // Scroll to credentials section
   switchTab('settings', document.querySelector('[data-tab=settings]'));
+}
+
+function checkSocialConnections() {
+  fetch('/api/marketing/meta-stats').then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) {
+      var igEl = document.getElementById('igStatus');
+      var fbEl = document.getElementById('fbStatus');
+      var igBtn = igEl ? igEl.closest('.mkt-social-conn').querySelector('button') : null;
+      var fbBtn = fbEl ? fbEl.closest('.mkt-social-conn').querySelector('button') : null;
+      if (data.instagram && data.instagram.username) {
+        if (igEl) { igEl.textContent = '✅ Connected — @' + data.instagram.username + ' (' + (data.instagram.followers || 0) + ' followers)'; igEl.style.color = '#00e87b'; }
+        if (igBtn) { igBtn.textContent = 'Connected'; igBtn.disabled = true; igBtn.style.opacity = '0.6'; }
+      }
+      if (data.facebook && data.facebook.name) {
+        if (fbEl) { fbEl.textContent = '✅ Connected — ' + data.facebook.name + ' (' + (data.facebook.followers || 0) + ' followers)'; fbEl.style.color = '#00e87b'; }
+        if (fbBtn) { fbBtn.textContent = 'Connected'; fbBtn.disabled = true; fbBtn.style.opacity = '0.6'; }
+      }
+    }
+  }).catch(function() { /* silent */ });
 }
 
 function saveSmsConfig() {

@@ -1428,6 +1428,217 @@ async function handleMetaTokenExchange(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// META ADS MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function getAdAccountId() {
+  const id = process.env.META_AD_ACCOUNT_ID || '851747333065647';
+  return id.startsWith('act_') ? id : `act_${id}`;
+}
+
+async function handleMetaAds(req, res) {
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!accessToken) return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured.' });
+
+  const adAccountId = getAdAccountId();
+
+  if (req.method === 'GET') {
+    // List campaigns with insights
+    try {
+      const campaignsUrl = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?fields=id,name,status,objective,daily_budget,lifetime_budget,start_time,stop_time,created_time,updated_time&limit=50&access_token=${accessToken}`;
+      const campaignsRes = await fetch(campaignsUrl).then(r => r.json());
+
+      if (campaignsRes.error) {
+        return res.status(400).json({ error: 'Failed to fetch campaigns', details: campaignsRes.error.message });
+      }
+
+      // Fetch account-level insights (last 30 days)
+      const insightsUrl = `https://graph.facebook.com/v21.0/${adAccountId}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach,actions&date_preset=last_30d&access_token=${accessToken}`;
+      const insightsRes = await fetch(insightsUrl).then(r => r.json());
+
+      return res.status(200).json({
+        success: true,
+        ad_account_id: adAccountId,
+        campaigns: campaignsRes.data || [],
+        insights: insightsRes.data?.[0] || null,
+        paging: campaignsRes.paging || null
+      });
+    } catch (err) {
+      console.error('[meta-ads] Error:', err);
+      return res.status(500).json({ error: 'Failed to fetch ads: ' + (err.message || 'Unknown error') });
+    }
+  }
+
+  if (req.method === 'POST') {
+    // Create a new ad campaign
+    const { name, objective, daily_budget, status, targeting, creative } = req.body || {};
+
+    if (!name) return res.status(400).json({ error: 'Campaign name is required' });
+
+    try {
+      const results = {};
+
+      // Step 1: Create Campaign
+      const campaignPayload = {
+        name,
+        objective: objective || 'OUTCOME_TRAFFIC',
+        status: status || 'PAUSED',
+        special_ad_categories: '[]',
+        access_token: accessToken
+      };
+
+      const campaignRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/campaigns`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(campaignPayload)
+      }).then(r => r.json());
+
+      if (campaignRes.error) {
+        return res.status(400).json({ error: 'Campaign creation failed', details: campaignRes.error.message });
+      }
+      results.campaign = campaignRes;
+
+      // Step 2: Create Ad Set (if daily_budget provided)
+      if (daily_budget && campaignRes.id) {
+        const pageId = process.env.META_PAGE_ID || '724180587440946';
+        const adSetPayload = {
+          name: `${name} - Ad Set`,
+          campaign_id: campaignRes.id,
+          daily_budget: Math.round(daily_budget * 100), // convert dollars to cents
+          billing_event: 'IMPRESSIONS',
+          optimization_goal: objective === 'OUTCOME_ENGAGEMENT' ? 'POST_ENGAGEMENT' : 'LINK_CLICKS',
+          bid_strategy: 'LOWEST_COST_WITHOUT_CAP',
+          targeting: targeting || {
+            geo_locations: { countries: ['US'] },
+            age_min: 18,
+            age_max: 65,
+            interests: [
+              { id: '6003384912200', name: 'Tennis' },
+              { id: '6003626142574', name: 'Pickleball' }
+            ]
+          },
+          promoted_object: { page_id: pageId },
+          status: status || 'PAUSED',
+          access_token: accessToken
+        };
+
+        const adSetRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/adsets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(adSetPayload)
+        }).then(r => r.json());
+
+        results.ad_set = adSetRes;
+
+        // Step 3: Create Ad Creative + Ad (if creative provided)
+        if (creative && adSetRes.id && !adSetRes.error) {
+          const creativePayload = {
+            name: `${name} - Creative`,
+            object_story_spec: {
+              page_id: pageId,
+              link_data: {
+                link: creative.link || 'https://www.smartswingai.com',
+                message: creative.message || name,
+                name: creative.headline || 'SmartSwing AI',
+                description: creative.description || 'AI-powered swing analysis',
+                image_url: creative.image_url || null
+              }
+            },
+            access_token: accessToken
+          };
+
+          // Remove null image_url
+          if (!creativePayload.object_story_spec.link_data.image_url) {
+            delete creativePayload.object_story_spec.link_data.image_url;
+          }
+
+          const creativeRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/adcreatives`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(creativePayload)
+          }).then(r => r.json());
+
+          results.creative = creativeRes;
+
+          if (creativeRes.id) {
+            const adPayload = {
+              name: `${name} - Ad`,
+              adset_id: adSetRes.id,
+              creative: { creative_id: creativeRes.id },
+              status: status || 'PAUSED',
+              access_token: accessToken
+            };
+
+            const adRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/ads`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(adPayload)
+            }).then(r => r.json());
+
+            results.ad = adRes;
+          }
+        }
+      }
+
+      return res.status(200).json({ success: true, results });
+    } catch (err) {
+      console.error('[meta-ads] Create error:', err);
+      return res.status(500).json({ error: 'Ad creation failed: ' + (err.message || 'Unknown error') });
+    }
+  }
+
+  // PATCH - update campaign status
+  if (req.method === 'PATCH') {
+    const { campaign_id, status: newStatus } = req.body || {};
+    if (!campaign_id || !newStatus) return res.status(400).json({ error: 'campaign_id and status required' });
+
+    try {
+      const updateRes = await fetch(`https://graph.facebook.com/v21.0/${campaign_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, access_token: accessToken })
+      }).then(r => r.json());
+
+      return res.status(200).json({ success: true, result: updateRes });
+    } catch (err) {
+      return res.status(500).json({ error: 'Update failed: ' + (err.message || 'Unknown error') });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
+}
+
+async function handleMetaAdInsights(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!accessToken) return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured.' });
+
+  const adAccountId = getAdAccountId();
+  const preset = req.query.preset || 'last_30d';
+
+  try {
+    // Account-level insights with breakdowns
+    const [summaryRes, dailyRes] = await Promise.all([
+      fetch(`https://graph.facebook.com/v21.0/${adAccountId}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach,frequency,actions,cost_per_action_type&date_preset=${preset}&access_token=${accessToken}`).then(r => r.json()),
+      fetch(`https://graph.facebook.com/v21.0/${adAccountId}/insights?fields=impressions,clicks,spend,ctr,reach&date_preset=${preset}&time_increment=1&limit=90&access_token=${accessToken}`).then(r => r.json())
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      summary: summaryRes.data?.[0] || null,
+      daily: dailyRes.data || [],
+      error: summaryRes.error || dailyRes.error || null
+    });
+  } catch (err) {
+    console.error('[meta-ad-insights] Error:', err);
+    return res.status(500).json({ error: 'Insights fetch failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+
 const ROUTES = {
   'agent':           handleAgent,
   'orchestrate':     handleOrchestrate,
@@ -1444,7 +1655,9 @@ const ROUTES = {
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
-  'meta-token-exchange': handleMetaTokenExchange
+  'meta-token-exchange': handleMetaTokenExchange,
+  'meta-ads':           handleMetaAds,
+  'meta-ad-insights':   handleMetaAdInsights
 };
 
 module.exports = async function handler(req, res) {
