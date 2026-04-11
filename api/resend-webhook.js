@@ -116,7 +116,33 @@ module.exports = async (req, res) => {
         console.log(`[resend-webhook] Marked complained/unsubscribed: ${email}`);
       }
     }
-    // All other events (delivered, opened, clicked) are acknowledged but not stored
+
+    // Store delivery/open/click events for marketing dashboard analytics
+    const TRACKED_EVENTS = new Set(['email.delivered', 'email.opened', 'email.clicked']);
+    if (TRACKED_EVENTS.has(type)) {
+      try {
+        const eventRow = {
+          event_type: type.replace('email.', 'email_'),
+          email: email || null,
+          subject: event?.data?.subject || null,
+          metadata: {
+            resend_email_id: event?.data?.email_id || null,
+            tags: event?.data?.tags || [],
+            timestamp: event?.created_at || new Date().toISOString()
+          }
+        };
+        const insertUrl = `${supabaseBase()}/rest/v1/email_events`;
+        await fetch(insertUrl, {
+          method: 'POST',
+          headers: { ...supabaseHeaders(), Prefer: 'return=minimal' },
+          body: JSON.stringify(eventRow)
+        });
+        console.log(`[resend-webhook] Stored ${type} event for ${email}`);
+      } catch (storeErr) {
+        // Non-fatal — log but don't fail the webhook
+        console.warn('[resend-webhook] Failed to store email event:', storeErr?.message || storeErr);
+      }
+    }
   } catch (err) {
     console.error('[resend-webhook] Handler error:', err?.message || err);
     return json(res, 500, { error: 'Internal error processing webhook.' });
