@@ -21,6 +21,8 @@
  *   meta-stats      GET   — Fetch Facebook Page & Instagram follower/like stats via Graph API
  *   meta-publish    POST  — Publish content to Facebook Page and/or Instagram via Graph API
  *   meta-conversions POST — Server-side Conversions API events to supplement Meta Pixel
+ *   google-analytics GET  — GA4 Data API: visitors, sessions, pageviews, bounce, top pages, sources
+ *   google-search-console GET — Search Console: impressions, clicks, CTR, queries, pages
  */
 
 'use strict';
@@ -1638,6 +1640,333 @@ async function handleMetaAdInsights(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// GOOGLE ANALYTICS & SEARCH CONSOLE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Generate a Google OAuth2 access token from a service account JSON key.
+ * Works without any external library — pure Node.js crypto.
+ */
+async function getGoogleAccessToken(scopes) {
+  const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!keyJson) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY not configured.');
+
+  const key = JSON.parse(keyJson);
+  const now = Math.floor(Date.now() / 1000);
+
+  // Build JWT header + claim set
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const claim = {
+    iss: key.client_email,
+    scope: scopes.join(' '),
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now
+  };
+
+  function base64url(obj) {
+    return Buffer.from(JSON.stringify(obj)).toString('base64url');
+  }
+
+  const unsignedToken = base64url(header) + '.' + base64url(claim);
+
+  // Sign with the service account private key
+  const crypto = require('crypto');
+  const signer = crypto.createSign('RSA-SHA256');
+  signer.update(unsignedToken);
+  const signature = signer.sign(key.private_key, 'base64url');
+
+  const jwt = unsignedToken + '.' + signature;
+
+  // Exchange JWT for access token
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=' + jwt
+  });
+
+  if (!tokenRes.ok) {
+    const errText = await tokenRes.text().catch(() => '');
+    throw new Error('Google token exchange failed (' + tokenRes.status + '): ' + errText.slice(0, 300));
+  }
+
+  const tokenData = await tokenRes.json();
+  return tokenData.access_token;
+}
+
+/**
+ * GET /api/marketing/google-analytics
+ *
+ * Returns GA4 metrics for the last 30 days:
+ *   - totalUsers, newUsers, sessions, pageViews, bounceRate, avgSessionDuration
+ *   - Daily breakdown for charting
+ *   - Top pages by views
+ *   - Traffic sources (channels)
+ */
+async function handleGoogleAnalytics(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only.' });
+
+  const propertyId = process.env.GA4_PROPERTY_ID;
+  if (!propertyId) return res.status(500).json({ error: 'GA4_PROPERTY_ID not configured.' });
+
+  try {
+    const accessToken = await getGoogleAccessToken([
+      'https://www.googleapis.com/auth/analytics.readonly'
+    ]);
+
+    const apiBase = 'https://analyticsdata.googleapis.com/v1beta/properties/' + propertyId;
+
+    // Run 3 reports in parallel: overview, daily breakdown, top pages, traffic sources
+    const [overviewRes, dailyRes, pagesRes, sourcesRes] = await Promise.all([
+      // 1) Overview metrics (last 30 days)
+      fetch(apiBase + ':runReport', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [
+            { startDate: '30daysAgo', endDate: 'today' },
+            { startDate: '60daysAgo', endDate: '31daysAgo' }
+          ],
+          metrics: [
+            { name: 'totalUsers' },
+            { name: 'newUsers' },
+            { name: 'sessions' },
+            { name: 'screenPageViews' },
+            { name: 'bounceRate' },
+            { name: 'averageSessionDuration' },
+            { name: 'engagedSessions' }
+          ]
+        })
+      }).then(r => r.json()),
+
+      // 2) Daily breakdown for chart
+      fetch(apiBase + ':runReport', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          dimensions: [{ name: 'date' }],
+          metrics: [
+            { name: 'totalUsers' },
+            { name: 'sessions' },
+            { name: 'screenPageViews' }
+          ],
+          orderBys: [{ dimension: { dimensionName: 'date' } }]
+        })
+      }).then(r => r.json()),
+
+      // 3) Top pages
+      fetch(apiBase + ':runReport', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          dimensions: [{ name: 'pagePath' }],
+          metrics: [
+            { name: 'screenPageViews' },
+            { name: 'totalUsers' },
+            { name: 'bounceRate' }
+          ],
+          orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+          limit: 15
+        })
+      }).then(r => r.json()),
+
+      // 4) Traffic sources / channels
+      fetch(apiBase + ':runReport', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+          metrics: [
+            { name: 'sessions' },
+            { name: 'totalUsers' },
+            { name: 'engagedSessions' }
+          ],
+          orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+          limit: 10
+        })
+      }).then(r => r.json())
+    ]);
+
+    // Parse overview metrics
+    function parseMetrics(row) {
+      if (!row || !row.metricValues) return {};
+      return {
+        totalUsers: parseInt(row.metricValues[0]?.value || '0'),
+        newUsers: parseInt(row.metricValues[1]?.value || '0'),
+        sessions: parseInt(row.metricValues[2]?.value || '0'),
+        pageViews: parseInt(row.metricValues[3]?.value || '0'),
+        bounceRate: parseFloat(row.metricValues[4]?.value || '0'),
+        avgSessionDuration: parseFloat(row.metricValues[5]?.value || '0'),
+        engagedSessions: parseInt(row.metricValues[6]?.value || '0')
+      };
+    }
+
+    const current = parseMetrics(overviewRes.rows?.[0]);
+    const previous = overviewRes.rows?.[1] ? parseMetrics(overviewRes.rows[1]) : null;
+
+    // Parse daily data
+    const daily = (dailyRes.rows || []).map(row => ({
+      date: row.dimensionValues[0].value,
+      users: parseInt(row.metricValues[0]?.value || '0'),
+      sessions: parseInt(row.metricValues[1]?.value || '0'),
+      pageViews: parseInt(row.metricValues[2]?.value || '0')
+    }));
+
+    // Parse top pages
+    const topPages = (pagesRes.rows || []).map(row => ({
+      path: row.dimensionValues[0].value,
+      views: parseInt(row.metricValues[0]?.value || '0'),
+      users: parseInt(row.metricValues[1]?.value || '0'),
+      bounceRate: parseFloat(row.metricValues[2]?.value || '0')
+    }));
+
+    // Parse traffic sources
+    const sources = (sourcesRes.rows || []).map(row => ({
+      channel: row.dimensionValues[0].value,
+      sessions: parseInt(row.metricValues[0]?.value || '0'),
+      users: parseInt(row.metricValues[1]?.value || '0'),
+      engagedSessions: parseInt(row.metricValues[2]?.value || '0')
+    }));
+
+    return res.status(200).json({
+      success: true,
+      propertyId,
+      current,
+      previous,
+      daily,
+      topPages,
+      sources
+    });
+  } catch (err) {
+    console.error('[google-analytics] Error:', err);
+    return res.status(500).json({ error: 'GA4 fetch failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+/**
+ * GET /api/marketing/google-search-console
+ *
+ * Returns Search Console data for the last 30 days:
+ *   - Total impressions, clicks, CTR, average position
+ *   - Top queries
+ *   - Top pages
+ *   - Daily breakdown
+ */
+async function handleGoogleSearchConsole(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only.' });
+
+  const siteUrl = process.env.SEARCH_CONSOLE_SITE_URL || 'https://www.smartswingai.com';
+
+  try {
+    const accessToken = await getGoogleAccessToken([
+      'https://www.googleapis.com/auth/webmasters.readonly'
+    ]);
+
+    const apiBase = 'https://www.googleapis.com/webmasters/v3/sites/' + encodeURIComponent(siteUrl);
+
+    const now = new Date();
+    const endDate = new Date(now); endDate.setDate(now.getDate() - 2); // SC data has ~2 day lag
+    const startDate = new Date(endDate); startDate.setDate(endDate.getDate() - 30);
+    const start = startDate.toISOString().split('T')[0];
+    const end = endDate.toISOString().split('T')[0];
+
+    // Run 3 queries in parallel: overall, top queries, top pages
+    const [overallRes, queriesRes, pagesRes, dailyRes] = await Promise.all([
+      // 1) Overall totals
+      fetch(apiBase + '/searchAnalytics/query', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: start, endDate: end })
+      }).then(r => r.json()),
+
+      // 2) Top search queries
+      fetch(apiBase + '/searchAnalytics/query', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: start, endDate: end,
+          dimensions: ['query'],
+          rowLimit: 20
+        })
+      }).then(r => r.json()),
+
+      // 3) Top pages
+      fetch(apiBase + '/searchAnalytics/query', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: start, endDate: end,
+          dimensions: ['page'],
+          rowLimit: 15
+        })
+      }).then(r => r.json()),
+
+      // 4) Daily breakdown
+      fetch(apiBase + '/searchAnalytics/query', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: start, endDate: end,
+          dimensions: ['date']
+        })
+      }).then(r => r.json())
+    ]);
+
+    // Parse overall totals
+    const totals = overallRes.rows?.[0] || {};
+    const overview = {
+      clicks: totals.clicks || 0,
+      impressions: totals.impressions || 0,
+      ctr: totals.ctr || 0,
+      position: totals.position || 0
+    };
+
+    // Parse top queries
+    const topQueries = (queriesRes.rows || []).map(row => ({
+      query: row.keys[0],
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.ctr,
+      position: Math.round(row.position * 10) / 10
+    }));
+
+    // Parse top pages
+    const topPages = (pagesRes.rows || []).map(row => ({
+      page: row.keys[0],
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.ctr,
+      position: Math.round(row.position * 10) / 10
+    }));
+
+    // Parse daily
+    const daily = (dailyRes.rows || []).map(row => ({
+      date: row.keys[0],
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.ctr,
+      position: Math.round(row.position * 10) / 10
+    }));
+
+    return res.status(200).json({
+      success: true,
+      siteUrl,
+      dateRange: { start, end },
+      overview,
+      topQueries,
+      topPages,
+      daily
+    });
+  } catch (err) {
+    console.error('[google-search-console] Error:', err);
+    return res.status(500).json({ error: 'Search Console fetch failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -1657,7 +1986,9 @@ const ROUTES = {
   'meta-conversions': handleMetaConversions,
   'meta-token-exchange': handleMetaTokenExchange,
   'meta-ads':           handleMetaAds,
-  'meta-ad-insights':   handleMetaAdInsights
+  'meta-ad-insights':   handleMetaAdInsights,
+  'google-analytics':   handleGoogleAnalytics,
+  'google-search-console': handleGoogleSearchConsole
 };
 
 module.exports = async function handler(req, res) {

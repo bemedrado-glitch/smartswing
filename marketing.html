@@ -687,6 +687,56 @@
 
         </div>
 
+        <!-- Google Analytics Daily Traffic Chart -->
+        <div class="mkt-panel" id="ga4DailyPanel" style="margin-bottom:24px;display:none;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">📊 Website Traffic (Google Analytics — Last 30 Days)</div>
+          </div>
+          <div class="mkt-panel__body">
+            <div id="ga4DailyChart" style="display:flex;align-items:flex-end;gap:2px;height:140px;padding:8px 0;"></div>
+            <div id="ga4DailyLegend" style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;color:var(--muted);"></div>
+          </div>
+        </div>
+
+        <div class="mkt-grid-2" style="margin-bottom:24px;">
+
+          <!-- GA4 Top Pages -->
+          <div class="mkt-panel" id="ga4TopPagesPanel" style="display:none;">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">🔝 Top Pages (GA4)</div>
+            </div>
+            <div class="mkt-panel__body--no-pad">
+              <div class="mkt-table-wrap">
+                <table class="mkt-table">
+                  <thead>
+                    <tr><th>Page</th><th>Views</th><th>Users</th><th>Bounce</th></tr>
+                  </thead>
+                  <tbody id="ga4TopPagesTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Google Search Console -->
+          <div class="mkt-panel" id="gscPanel" style="display:none;">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">🔍 Search Console</div>
+            </div>
+            <div class="mkt-panel__body">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;" id="gscKpis"></div>
+              <div class="mkt-table-wrap">
+                <table class="mkt-table">
+                  <thead>
+                    <tr><th>Search Query</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr>
+                  </thead>
+                  <tbody id="gscQueriesTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
         <div class="mkt-grid-2">
 
           <!-- Top Content (dynamic) -->
@@ -2871,10 +2921,10 @@ async function loadAnalytics() {
     var isoThirty = thirtyDaysAgo.toISOString();
     var isoSixty = sixtyDaysAgo.toISOString();
 
-    // Parallel queries — analytics_events + email_events + existing business tables
-    const [eventsThisMonth, eventsLastMonth, emailEventsRes, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
-      fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id,page_path,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-      fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id&created_at=gte.' + isoSixty + '&created_at=lt.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+    // Parallel queries — GA4 API + Supabase business data + email events + Search Console
+    const [ga4Res, gscRes, emailEventsRes, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
+      fetch('/api/marketing/google-analytics').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/marketing/google-search-console').then(r => r.ok ? r.json() : null).catch(() => null),
       fetch(cfg.url + '/rest/v1/email_events?select=event_type,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(cfg.url + '/rest/v1/profiles?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/customer_subscriptions?select=id,plan_id,status,created_at', { headers }).then(r => r.json()).catch(() => []),
@@ -2883,31 +2933,8 @@ async function loadAnalytics() {
       fetch(cfg.url + '/rest/v1/contact_messages?select=id,created_at', { headers }).then(r => r.json()).catch(() => [])
     ]);
 
-    // ── Real analytics from analytics_events ──
-    var evtsCurrent = Array.isArray(eventsThisMonth) ? eventsThisMonth : [];
-    var evtsPrev = Array.isArray(eventsLastMonth) ? eventsLastMonth : [];
-
-    var pageViewsCurrent = evtsCurrent.filter(e => e.event_type === 'page_view');
-    var pageViewsPrev = evtsPrev.filter(e => e.event_type === 'page_view');
-
-    // Unique visitors = unique session_ids
-    var uniqueSessionsCurrent = new Set(pageViewsCurrent.map(e => e.session_id)).size;
-    var uniqueSessionsPrev = new Set(pageViewsPrev.map(e => e.session_id)).size;
-    var totalPageviewsCurrent = pageViewsCurrent.length;
-    var totalPageviewsPrev = pageViewsPrev.length;
-
-    // Pages per session (for bounce rate approximation)
-    var sessionPageCounts = {};
-    pageViewsCurrent.forEach(function(e) {
-      sessionPageCounts[e.session_id] = (sessionPageCounts[e.session_id] || 0) + 1;
-    });
-    var sessionIds = Object.keys(sessionPageCounts);
-    var avgPagesPerSession = sessionIds.length > 0 ? (totalPageviewsCurrent / sessionIds.length).toFixed(1) : 0;
-    var singlePageSessions = sessionIds.filter(function(sid) { return sessionPageCounts[sid] === 1; }).length;
-    var bounceRate = sessionIds.length > 0 ? Math.round((singlePageSessions / sessionIds.length) * 100) : 0;
-
     // Delta formatting helper
-    function deltaText(current, previous, suffix) {
+    function deltaText(current, previous) {
       if (!previous) return '';
       var diff = current - previous;
       var pct = previous > 0 ? Math.round((diff / previous) * 100) : 0;
@@ -2915,21 +2942,71 @@ async function loadAnalytics() {
       return arrow + ' ' + Math.abs(pct) + '% vs prev 30d';
     }
 
-    // Populate visitor/pageview KPIs with real data
-    var hasRealEvents = evtsCurrent.length > 0;
-    if (hasRealEvents) {
-      setKPI('anlVisitors', formatNum(uniqueSessionsCurrent), deltaText(uniqueSessionsCurrent, uniqueSessionsPrev));
-      setKPI('anlPageviews', formatNum(totalPageviewsCurrent), deltaText(totalPageviewsCurrent, totalPageviewsPrev));
-      setKPI('anlSessionDur', avgPagesPerSession + ' pages/session', 'Based on page views');
-      setKPI('anlBounce', bounceRate + '%', singlePageSessions + ' single-page sessions');
+    // ── GA4 real data (primary source) ──
+    var hasGA4 = ga4Res && ga4Res.success && ga4Res.current;
+    var evtsCurrent = []; // for backward compat with channel rendering
+
+    if (hasGA4) {
+      var cur = ga4Res.current;
+      var prev = ga4Res.previous;
+      setKPI('anlVisitors', formatNum(cur.totalUsers), deltaText(cur.totalUsers, prev ? prev.totalUsers : 0));
+      setKPI('anlPageviews', formatNum(cur.pageViews), deltaText(cur.pageViews, prev ? prev.pageViews : 0));
+      var avgDur = cur.avgSessionDuration || 0;
+      var durMin = Math.floor(avgDur / 60);
+      var durSec = Math.round(avgDur % 60);
+      setKPI('anlSessionDur', durMin + 'm ' + durSec + 's', formatNum(cur.sessions) + ' sessions');
+      var br = Math.round((cur.bounceRate || 0) * 100);
+      setKPI('anlBounce', br + '%', deltaText(br, prev ? Math.round((prev.bounceRate || 0) * 100) : 0));
+
+      // Render daily traffic chart if data available
+      if (ga4Res.daily && ga4Res.daily.length > 0) {
+        renderGA4DailyChart(ga4Res.daily);
+      }
+
+      // Render top pages from GA4
+      if (ga4Res.topPages && ga4Res.topPages.length > 0) {
+        renderGA4TopPages(ga4Res.topPages);
+      }
+
+      // Render traffic sources from GA4
+      if (ga4Res.sources && ga4Res.sources.length > 0) {
+        renderGA4Sources(ga4Res.sources);
+      }
     } else {
-      // Fallback to estimates when no analytics_events exist yet
-      var totalUsers = Array.isArray(profilesRes) ? profilesRes.length : 0;
-      var estVisitors = Math.max(totalUsers * 15, 100);
-      setKPI('anlVisitors', formatNum(estVisitors), '~estimate (tracking pending)');
-      setKPI('anlPageviews', formatNum(estVisitors * 3), '~estimate (tracking pending)');
-      setKPI('anlSessionDur', '—', 'Awaiting event data');
-      setKPI('anlBounce', '—', 'Awaiting event data');
+      // Fallback — try Supabase analytics_events
+      var [eventsThisMonth, eventsLastMonth] = await Promise.all([
+        fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id,page_path,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id&created_at=gte.' + isoSixty + '&created_at=lt.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => [])
+      ]);
+      evtsCurrent = Array.isArray(eventsThisMonth) ? eventsThisMonth : [];
+      var evtsPrev = Array.isArray(eventsLastMonth) ? eventsLastMonth : [];
+      var pageViewsCurrent = evtsCurrent.filter(e => e.event_type === 'page_view');
+      var pageViewsPrev = evtsPrev.filter(e => e.event_type === 'page_view');
+      var uniqueSessionsCurrent = new Set(pageViewsCurrent.map(e => e.session_id)).size;
+      var uniqueSessionsPrev = new Set(pageViewsPrev.map(e => e.session_id)).size;
+
+      if (evtsCurrent.length > 0) {
+        setKPI('anlVisitors', formatNum(uniqueSessionsCurrent), deltaText(uniqueSessionsCurrent, uniqueSessionsPrev));
+        setKPI('anlPageviews', formatNum(pageViewsCurrent.length), deltaText(pageViewsCurrent.length, pageViewsPrev.length));
+        var sessionPageCounts = {};
+        pageViewsCurrent.forEach(function(e) { sessionPageCounts[e.session_id] = (sessionPageCounts[e.session_id] || 0) + 1; });
+        var sids = Object.keys(sessionPageCounts);
+        var singlePage = sids.filter(function(s) { return sessionPageCounts[s] === 1; }).length;
+        setKPI('anlBounce', (sids.length > 0 ? Math.round((singlePage / sids.length) * 100) : 0) + '%', '');
+        setKPI('anlSessionDur', (sids.length > 0 ? (pageViewsCurrent.length / sids.length).toFixed(1) : 0) + ' pages/session', '');
+      } else {
+        var totalUsersEst = Array.isArray(profilesRes) ? profilesRes.length : 0;
+        setKPI('anlVisitors', formatNum(Math.max(totalUsersEst * 15, 100)), '~estimate');
+        setKPI('anlPageviews', formatNum(Math.max(totalUsersEst * 15, 100) * 3), '~estimate');
+        setKPI('anlSessionDur', '—', 'Awaiting GA4 data');
+        setKPI('anlBounce', '—', 'Awaiting GA4 data');
+      }
+    }
+
+    // ── Search Console data ──
+    var hasGSC = gscRes && gscRes.success;
+    if (hasGSC) {
+      renderSearchConsoleData(gscRes);
     }
 
     // ── Business metrics (unchanged) ──
@@ -2954,8 +3031,8 @@ async function loadAnalytics() {
     // Reports as proxy for engagement
     var reportsThisMonth = Array.isArray(reportsRes) ? reportsRes.filter(r => new Date(r.created_at) >= thirtyDaysAgo).length : 0;
 
-    // Signup rate — use real visitors if available
-    var visitorBase = hasRealEvents ? uniqueSessionsCurrent : Math.max(totalUsers * 15, 100);
+    // Signup rate — use GA4 visitors if available, else estimate
+    var visitorBase = hasGA4 ? ga4Res.current.totalUsers : Math.max(totalUsers * 15, 100);
     var signupRate = visitorBase > 0 ? Math.round((usersThisMonth / visitorBase) * 100) : 0;
 
     // Email open/click rates from Resend webhook events
@@ -3006,11 +3083,15 @@ async function loadAnalytics() {
     document.getElementById('anlGaugeLabel').textContent = '/ 100 — ' + healthLabel;
     document.getElementById('anlGaugeFill').style.setProperty('--gauge-deg', Math.round(healthScore * 1.8) + 'deg');
 
-    // Channel performance — pass analytics_events for richer source data
-    renderChannelPerformance(leadsRes, totalUsers, evtsCurrent);
+    // Channel performance — use GA4 sources if available, else legacy
+    if (!hasGA4) {
+      renderChannelPerformance(leadsRes, totalUsers, evtsCurrent);
+    }
 
-    // Top content from content items
-    renderTopContent();
+    // Top content from content items (only if GA4 didn't render top pages)
+    if (!hasGA4) {
+      renderTopContent();
+    }
 
     // Brand mentions — from Supabase contact_messages or fallback
     renderBrandMentions(contactMsgsRes);
@@ -3059,6 +3140,94 @@ function formatNum(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
   if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
   return String(n);
+}
+
+// ── GA4 + Search Console Renderers ──
+
+function renderGA4DailyChart(daily) {
+  var panel = document.getElementById('ga4DailyPanel');
+  var chart = document.getElementById('ga4DailyChart');
+  var legend = document.getElementById('ga4DailyLegend');
+  if (!panel || !chart) return;
+  panel.style.display = '';
+
+  var maxVal = Math.max.apply(null, daily.map(function(d) { return d.pageViews; }).concat([1]));
+  chart.innerHTML = daily.map(function(d) {
+    var h = Math.max(4, Math.round((d.pageViews / maxVal) * 120));
+    var dateStr = d.date.slice(4,6) + '/' + d.date.slice(6,8);
+    return '<div title="' + dateStr + ': ' + d.pageViews + ' views, ' + d.users + ' users" style="flex:1;min-width:4px;background:linear-gradient(to top,var(--volt),#a8ff78);border-radius:3px 3px 0 0;height:' + h + 'px;cursor:pointer;transition:opacity .15s;" onmouseenter="this.style.opacity=0.7" onmouseleave="this.style.opacity=1"></div>';
+  }).join('');
+
+  var totalViews = daily.reduce(function(s,d) { return s + d.pageViews; }, 0);
+  var totalUsers = daily.reduce(function(s,d) { return s + d.users; }, 0);
+  var totalSessions = daily.reduce(function(s,d) { return s + d.sessions; }, 0);
+  if (legend) {
+    legend.innerHTML = '<span>Total: ' + formatNum(totalViews) + ' views</span><span>' + formatNum(totalUsers) + ' users</span><span>' + formatNum(totalSessions) + ' sessions</span>';
+  }
+}
+
+function renderGA4TopPages(pages) {
+  var panel = document.getElementById('ga4TopPagesPanel');
+  var tbody = document.getElementById('ga4TopPagesTbody');
+  if (!panel || !tbody) return;
+  panel.style.display = '';
+
+  tbody.innerHTML = pages.slice(0, 10).map(function(p) {
+    var br = Math.round((p.bounceRate || 0) * 100);
+    return '<tr><td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + p.path + '">' + p.path + '</td><td>' + formatNum(p.views) + '</td><td>' + formatNum(p.users) + '</td><td>' + br + '%</td></tr>';
+  }).join('');
+}
+
+function renderGA4Sources(sources) {
+  var list = document.getElementById('anlChannelList');
+  if (!list) return;
+
+  var total = sources.reduce(function(s, ch) { return s + ch.sessions; }, 0);
+  var colors = { 'Organic Search': '#00e87b', 'Direct': '#a78bfa', 'Organic Social': '#f472b6', 'Referral': '#38bdf8', 'Paid Search': '#fbbf24', 'Email': '#fb923c', 'Paid Social': '#c084fc', 'Display': '#34d399' };
+
+  list.innerHTML = sources.map(function(ch) {
+    var pct = total > 0 ? Math.round((ch.sessions / total) * 100) : 0;
+    var color = colors[ch.channel] || '#6b7280';
+    var engRate = ch.sessions > 0 ? Math.round((ch.engagedSessions / ch.sessions) * 100) : 0;
+    return '<li class="mkt-channel-item" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">' +
+      '<div style="width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0;"></div>' +
+      '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--black);">' + ch.channel + '</div>' +
+      '<div style="font-size:11px;color:var(--muted);">' + formatNum(ch.users) + ' users &middot; ' + engRate + '% engaged</div></div>' +
+      '<div style="text-align:right;"><div style="font-size:14px;font-weight:700;color:var(--black);">' + pct + '%</div>' +
+      '<div style="font-size:11px;color:var(--muted);">' + formatNum(ch.sessions) + ' sessions</div></div></li>';
+  }).join('');
+}
+
+function renderSearchConsoleData(gsc) {
+  var panel = document.getElementById('gscPanel');
+  var kpis = document.getElementById('gscKpis');
+  var tbody = document.getElementById('gscQueriesTbody');
+  if (!panel) return;
+  panel.style.display = '';
+
+  // KPI cards
+  if (kpis) {
+    var o = gsc.overview;
+    kpis.innerHTML = [
+      { label: 'Impressions', value: formatNum(o.impressions), color: '#a78bfa' },
+      { label: 'Clicks', value: formatNum(o.clicks), color: '#00e87b' },
+      { label: 'Avg CTR', value: (o.ctr * 100).toFixed(1) + '%', color: '#38bdf8' },
+      { label: 'Avg Position', value: o.position.toFixed(1), color: '#fbbf24' }
+    ].map(function(k) {
+      return '<div style="text-align:center;padding:12px;background:var(--bg-soft);border-radius:10px;">' +
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">' + k.label + '</div>' +
+        '<div style="font-size:20px;font-weight:800;color:' + k.color + ';">' + k.value + '</div></div>';
+    }).join('');
+  }
+
+  // Top queries table
+  if (tbody && gsc.topQueries) {
+    tbody.innerHTML = gsc.topQueries.slice(0, 12).map(function(q) {
+      return '<tr><td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + q.query + '">' + q.query + '</td>' +
+        '<td>' + q.clicks + '</td><td>' + formatNum(q.impressions) + '</td>' +
+        '<td>' + (q.ctr * 100).toFixed(1) + '%</td><td>' + q.position + '</td></tr>';
+    }).join('');
+  }
 }
 
 function renderChannelPerformance(leads, totalUsers, events) {

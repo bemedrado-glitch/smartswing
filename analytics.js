@@ -108,6 +108,26 @@
     });
   }
 
+  /* ── Google Analytics 4 (GA4) ── */
+  var GA4_MEASUREMENT_ID = 'G-9H6LNGBYKT';
+
+  function loadGA4() {
+    if (window.__smartSwingGA4Loaded) return;
+    if (!hasAnalyticsConsent()) return;
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_MEASUREMENT_ID;
+    script.onload = function () {
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', GA4_MEASUREMENT_ID, { send_page_view: true });
+      window.__smartSwingGA4Loaded = true;
+    };
+    document.head.appendChild(script);
+  }
+
   /* ── Meta Pixel ── */
   var META_PIXEL_ID = '724180587440946';
 
@@ -132,6 +152,7 @@
   /* ── Init ── */
   function init() {
     loadVercelAnalytics();
+    loadGA4();
     loadMetaPixel();
     trackPageView();
     initClickTracking();
@@ -145,6 +166,7 @@
 
   window.addEventListener('smartswing:cookies-updated', function () {
     loadVercelAnalytics();
+    loadGA4();
     loadMetaPixel();
     // Re-track page view if consent was just granted
     if (hasAnalyticsConsent()) trackPageView();
