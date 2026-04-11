@@ -18,6 +18,9 @@
  *   publish-webhook GET/POST — Content publish webhook for Make.com
  *   send-sms        POST  — Send single SMS via AWS SNS
  *   send-bulk-sms   POST  — Send SMS to multiple recipients via AWS SNS
+ *   meta-stats      GET   — Fetch Facebook Page & Instagram follower/like stats via Graph API
+ *   meta-publish    POST  — Publish content to Facebook Page and/or Instagram via Graph API
+ *   meta-conversions POST — Server-side Conversions API events to supplement Meta Pixel
  */
 
 'use strict';
@@ -1222,6 +1225,150 @@ async function handleSendBulkSms(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// META (FACEBOOK + INSTAGRAM) GRAPH API HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleMetaStats(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!accessToken) {
+    return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured in Vercel env vars.' });
+  }
+
+  const pageId = process.env.META_PAGE_ID || '61578118551710';
+  const igAccountId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
+
+  try {
+    // Fetch FB page info (followers, likes) and IG account info in parallel
+    const [pageRes, igRes] = await Promise.all([
+      fetch(`https://graph.facebook.com/v21.0/${pageId}?fields=name,followers_count,fan_count,engagement&access_token=${accessToken}`).then(r => r.json()),
+      fetch(`https://graph.facebook.com/v21.0/${igAccountId}?fields=followers_count,media_count,username&access_token=${accessToken}`).then(r => r.json())
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      facebook: {
+        name: pageRes.name || null,
+        followers: pageRes.followers_count || 0,
+        likes: pageRes.fan_count || 0,
+        engagement: pageRes.engagement || null
+      },
+      instagram: {
+        username: igRes.username || null,
+        followers: igRes.followers_count || 0,
+        media_count: igRes.media_count || 0
+      }
+    });
+  } catch (err) {
+    console.error('[meta-stats] Error:', err);
+    return res.status(500).json({ error: 'Failed to fetch Meta stats: ' + (err.message || 'Unknown error') });
+  }
+}
+
+async function handleMetaPublish(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!accessToken) return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured.' });
+
+  const { platform, message, link, image_url } = req.body || {};
+
+  const pageId = process.env.META_PAGE_ID || '61578118551710';
+  const igAccountId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
+
+  try {
+    const results = {};
+
+    // Publish to Facebook Page
+    if (platform === 'facebook' || platform === 'both') {
+      const fbPayload = { message, access_token: accessToken };
+      if (link) fbPayload.link = link;
+
+      const fbRes = await fetch(`https://graph.facebook.com/v21.0/${pageId}/feed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fbPayload)
+      }).then(r => r.json());
+
+      results.facebook = fbRes;
+    }
+
+    // Publish to Instagram (requires image_url for IG)
+    if ((platform === 'instagram' || platform === 'both') && image_url) {
+      // Step 1: Create media container
+      const containerRes = await fetch(`https://graph.facebook.com/v21.0/${igAccountId}/media`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image_url,
+          caption: message,
+          access_token: accessToken
+        })
+      }).then(r => r.json());
+
+      if (containerRes.id) {
+        // Step 2: Publish the container
+        const publishRes = await fetch(`https://graph.facebook.com/v21.0/${igAccountId}/media_publish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            creation_id: containerRes.id,
+            access_token: accessToken
+          })
+        }).then(r => r.json());
+
+        results.instagram = publishRes;
+      } else {
+        results.instagram = { error: 'Failed to create media container', details: containerRes };
+      }
+    }
+
+    return res.status(200).json({ success: true, results });
+  } catch (err) {
+    console.error('[meta-publish] Error:', err);
+    return res.status(500).json({ error: 'Publish failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+async function handleMetaConversions(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  if (!accessToken) return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured.' });
+
+  const pixelId = process.env.META_PIXEL_ID || '724180587440946';
+  const { event_name, event_time, user_data, custom_data, event_source_url, action_source } = req.body || {};
+
+  if (!event_name) return res.status(400).json({ error: 'event_name is required' });
+
+  try {
+    const eventData = {
+      data: [{
+        event_name,
+        event_time: event_time || Math.floor(Date.now() / 1000),
+        user_data: user_data || {},
+        custom_data: custom_data || {},
+        event_source_url: event_source_url || 'https://www.smartswingai.com',
+        action_source: action_source || 'website'
+      }],
+      access_token: accessToken
+    };
+
+    const result = await fetch(`https://graph.facebook.com/v21.0/${pixelId}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventData)
+    }).then(r => r.json());
+
+    return res.status(200).json({ success: true, result });
+  } catch (err) {
+    console.error('[meta-conversions] Error:', err);
+    return res.status(500).json({ error: 'Conversions API error: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -1235,7 +1382,10 @@ const ROUTES = {
   'youtube-stream':  handleYoutubeStream,
   'ai-coach':        handleAiCoach,
   'send-sms':        handleSendSms,
-  'send-bulk-sms':   handleSendBulkSms
+  'send-bulk-sms':   handleSendBulkSms,
+  'meta-stats':      handleMetaStats,
+  'meta-publish':    handleMetaPublish,
+  'meta-conversions': handleMetaConversions
 };
 
 module.exports = async function handler(req, res) {
