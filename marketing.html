@@ -1487,6 +1487,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadNextActions();
   loadContacts();
   updateKPIs();
+  checkSocialConnections();
 });
 
 async function loadCampaigns() {
@@ -1624,6 +1625,7 @@ function switchTab(tabName, triggerEl) {
     if (ss.tt) document.getElementById('settTtFollowers').value = ss.tt;
     if (ss.yt) document.getElementById('settYtSubs').value = ss.yt;
     if (ss.fb) document.getElementById('settFbLikes').value = ss.fb;
+    checkSocialConnections();
   }
 }
 
@@ -3327,10 +3329,14 @@ function changeSecurityCode() {
 }
 
 function connectSocial(platform) {
-  var labels = { instagram: 'Instagram (Meta Graph API)', facebook: 'Facebook (Meta Graph API)', tiktok: 'TikTok for Business', youtube: 'YouTube (Google OAuth)' };
+  if (platform === 'instagram' || platform === 'facebook') {
+    // Meta platforms are connected via server-side tokens — just re-check status
+    showToast('Checking ' + platform + ' connection…', '');
+    checkSocialConnections();
+    return;
+  }
+  var labels = { tiktok: 'TikTok for Business', youtube: 'YouTube (Google OAuth)' };
   showToast('To connect ' + labels[platform] + ', add your API credentials in the Platform API Credentials section below.', '');
-  // Scroll to credentials section
-  switchTab('settings', document.querySelector('[data-tab=settings]'));
 }
 
 function checkSocialConnections() {
