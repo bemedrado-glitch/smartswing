@@ -3358,25 +3358,6 @@ function checkSocialConnections() {
   }).catch(function() { /* silent */ });
 }
 
-function checkSocialConnections() {
-  fetch('/api/marketing/meta-stats').then(function(r) { return r.json(); }).then(function(data) {
-    if (data.success) {
-      var igEl = document.getElementById('igStatus');
-      var fbEl = document.getElementById('fbStatus');
-      var igBtn = igEl ? igEl.closest('.mkt-social-conn').querySelector('button') : null;
-      var fbBtn = fbEl ? fbEl.closest('.mkt-social-conn').querySelector('button') : null;
-      if (data.instagram && data.instagram.username) {
-        if (igEl) { igEl.textContent = '✅ Connected — @' + data.instagram.username + ' (' + (data.instagram.followers || 0) + ' followers)'; igEl.style.color = '#00e87b'; }
-        if (igBtn) { igBtn.textContent = 'Connected'; igBtn.disabled = true; igBtn.style.opacity = '0.6'; }
-      }
-      if (data.facebook && data.facebook.name) {
-        if (fbEl) { fbEl.textContent = '✅ Connected — ' + data.facebook.name + ' (' + (data.facebook.followers || 0) + ' followers)'; fbEl.style.color = '#00e87b'; }
-        if (fbBtn) { fbBtn.textContent = 'Connected'; fbBtn.disabled = true; fbBtn.style.opacity = '0.6'; }
-      }
-    }
-  }).catch(function() { /* silent */ });
-}
-
 function saveSmsConfig() {
   var provider = document.getElementById('settSmsProvider').value;
   var key = document.getElementById('settSmsKey').value.trim();
