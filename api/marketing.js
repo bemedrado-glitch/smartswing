@@ -1370,6 +1370,64 @@ async function handleMetaConversions(req, res) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 
+async function handleMetaTokenExchange(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const currentToken = process.env.META_PAGE_ACCESS_TOKEN;
+  const appId = process.env.META_APP_ID;
+  const appSecret = process.env.META_APP_SECRET;
+
+  if (!currentToken || !appId || !appSecret) {
+    return res.status(500).json({
+      error: 'Missing env vars. Need: META_PAGE_ACCESS_TOKEN, META_APP_ID, META_APP_SECRET'
+    });
+  }
+
+  try {
+    // Step 1: Exchange short-lived token for long-lived user token
+    const exchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${currentToken}`;
+    const exchangeRes = await fetch(exchangeUrl).then(r => r.json());
+
+    if (exchangeRes.error) {
+      return res.status(400).json({
+        error: 'Token exchange failed',
+        details: exchangeRes.error.message || exchangeRes.error
+      });
+    }
+
+    const longLivedUserToken = exchangeRes.access_token;
+
+    // Step 2: Get permanent page token from long-lived user token
+    const pageId = process.env.META_PAGE_ID || '724180587440946';
+    const pagesUrl = `https://graph.facebook.com/v21.0/${pageId}?fields=access_token&access_token=${longLivedUserToken}`;
+    const pageRes = await fetch(pagesUrl).then(r => r.json());
+
+    if (pageRes.error) {
+      // If page-specific query fails, try listing all pages
+      const allPagesUrl = `https://graph.facebook.com/v21.0/me/accounts?access_token=${longLivedUserToken}`;
+      const allPagesRes = await fetch(allPagesUrl).then(r => r.json());
+
+      return res.status(200).json({
+        success: true,
+        long_lived_user_token: longLivedUserToken,
+        expires_in: exchangeRes.expires_in || 'never (page tokens are permanent)',
+        pages: allPagesRes.data || [],
+        instructions: 'Copy the access_token for your page and update META_PAGE_ACCESS_TOKEN in Vercel.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      permanent_page_token: pageRes.access_token,
+      page_id: pageRes.id,
+      instructions: 'Copy permanent_page_token and update META_PAGE_ACCESS_TOKEN in Vercel. This token never expires.'
+    });
+  } catch (err) {
+    console.error('[meta-token-exchange] Error:', err);
+    return res.status(500).json({ error: 'Token exchange failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
 const ROUTES = {
   'agent':           handleAgent,
   'orchestrate':     handleOrchestrate,
@@ -1385,7 +1443,8 @@ const ROUTES = {
   'send-bulk-sms':   handleSendBulkSms,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
-  'meta-conversions': handleMetaConversions
+  'meta-conversions': handleMetaConversions,
+  'meta-token-exchange': handleMetaTokenExchange
 };
 
 module.exports = async function handler(req, res) {
