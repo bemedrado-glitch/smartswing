@@ -895,7 +895,7 @@
                 <label class="mkt-label">Provider</label>
                 <select class="mkt-select" id="settSmsProvider">
                   <option value="">— Select provider —</option>
-                  <option value="sns">Amazon SNS (100 free/month)</option>
+                  <option value="sns">Amazon SNS (Configured — Account 229475224417)</option>
                   <option value="twilio">Twilio (best API, $0.0079/msg)</option>
                   <option value="vonage">Vonage ($0.0068/msg)</option>
                 </select>
@@ -908,9 +908,13 @@
                 <label class="mkt-label">API Secret / From Number</label>
                 <input type="password" class="mkt-input" id="settSmsSecret" placeholder="Enter secret or phone number">
               </div>
-              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="saveSmsConfig()">Save SMS Config</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="saveSmsConfig()">Save SMS Config</button>
+                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="sendTestSms()">Send Test SMS</button>
+              </div>
               <div style="margin-top:12px;padding:10px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5;">
-                <strong>Note:</strong> All US SMS requires A2P 10DLC registration. Amazon SNS offers 100 free SMS/month in the free tier.
+                <strong>Note:</strong> All US SMS requires A2P 10DLC registration. Amazon SNS offers 100 free SMS/month in the free tier.<br>
+                <strong>Endpoint:</strong> SMS sending uses the <code>/api/marketing/send-sms</code> serverless function.
               </div>
             </div>
           </div>
@@ -970,6 +974,40 @@
               <div style="margin-top:16px;display:flex;gap:8px;">
                 <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="savePlatformKeys()">Save All Keys</button>
                 <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="testPlatformConnections()">Test Connections</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Update Social Stats -->
+          <div class="mkt-panel" style="grid-column:1/-1;">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">📊 Update Social Stats</div>
+            </div>
+            <div class="mkt-panel__body">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Manually enter your current social media follower counts. These are displayed on the Analytics tab.</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="mkt-form-group">
+                  <label class="mkt-label">Instagram Followers</label>
+                  <input type="number" class="mkt-input" id="settIgFollowers" placeholder="e.g. 1250">
+                </div>
+                <div class="mkt-form-group">
+                  <label class="mkt-label">TikTok Followers</label>
+                  <input type="number" class="mkt-input" id="settTtFollowers" placeholder="e.g. 3400">
+                </div>
+                <div class="mkt-form-group">
+                  <label class="mkt-label">YouTube Subscribers</label>
+                  <input type="number" class="mkt-input" id="settYtSubs" placeholder="e.g. 890">
+                </div>
+                <div class="mkt-form-group">
+                  <label class="mkt-label">Facebook Page Likes</label>
+                  <input type="number" class="mkt-input" id="settFbLikes" placeholder="e.g. 620">
+                </div>
+              </div>
+              <div style="margin-top:16px;">
+                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="saveSocialStats()">Save Social Stats</button>
+              </div>
+              <div style="margin-top:12px;padding:10px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5;">
+                <strong>Tip:</strong> These values are stored locally and populate the Analytics KPIs. Connect platform APIs above for automatic syncing.
               </div>
             </div>
           </div>
@@ -1327,16 +1365,118 @@ function offsetDate(days) {
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', function () {
   initSupabase();
-  MarketingStore.campaigns = [...MarketingStore.defaultCampaigns];
-  MarketingStore.contentItems = [...MarketingStore.defaultContent];
+  loadCampaigns().then(function() { renderCampaigns(); });
+  loadContentItems().then(function() { renderCalendar(); renderMiniCalendar(); });
+  loadTaskHistory();
+  loadApprovals();
   renderCadences();
-  renderCampaigns();
-  renderCalendar();
-  renderMiniCalendar();
   loadNextActions();
   loadContacts();
   updateKPIs();
 });
+
+async function loadCampaigns() {
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    try {
+      var res = await fetch(cfg.url + '/rest/v1/marketing_campaigns?select=*&order=created_at.desc', {
+        method: 'GET',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data && data.length > 0) {
+          MarketingStore.campaigns = data;
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('loadCampaigns: fetch failed, using defaults', e);
+    }
+  }
+  MarketingStore.campaigns = [...MarketingStore.defaultCampaigns];
+}
+
+async function loadContentItems() {
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    try {
+      var res = await fetch(cfg.url + '/rest/v1/content_calendar?select=*&order=scheduled_date.asc', {
+        method: 'GET',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data && data.length > 0) {
+          MarketingStore.contentItems = data;
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('loadContentItems: fetch failed, using defaults', e);
+    }
+  }
+  MarketingStore.contentItems = [...MarketingStore.defaultContent];
+}
+
+async function loadTaskHistory() {
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    try {
+      var res = await fetch(cfg.url + '/rest/v1/agent_tasks?select=*&order=created_at.desc&limit=50', {
+        method: 'GET',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data && data.length > 0) {
+          MarketingStore.taskHistory = data;
+        }
+      }
+    } catch (e) {
+      console.warn('loadTaskHistory: fetch failed', e);
+    }
+  }
+  renderTaskHistory();
+  updateKPIs();
+}
+
+async function loadApprovals() {
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    try {
+      var res = await fetch(cfg.url + '/rest/v1/content_calendar?select=*&approval_status=neq.null&order=created_at.desc', {
+        method: 'GET',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data && data.length > 0) {
+          MarketingStore.approvalQueue = data;
+        }
+      }
+    } catch (e) {
+      console.warn('loadApprovals: fetch failed', e);
+    }
+  }
+  renderApprovals();
+}
 
 function initSupabase() {
   const cfg = window.SMARTSWING_SUPABASE_CONFIG;
@@ -1363,6 +1503,13 @@ function switchTab(tabName, triggerEl) {
   closeSidebar();
 
   if (tabName === 'calendar') renderCalendar();
+  if (tabName === 'settings') {
+    var ss = JSON.parse(localStorage.getItem('mkt_social_stats') || '{}');
+    if (ss.ig) document.getElementById('settIgFollowers').value = ss.ig;
+    if (ss.tt) document.getElementById('settTtFollowers').value = ss.tt;
+    if (ss.yt) document.getElementById('settYtSubs').value = ss.yt;
+    if (ss.fb) document.getElementById('settFbLikes').value = ss.fb;
+  }
 }
 
 function syncMobileTabs(el) {
@@ -1623,6 +1770,28 @@ async function saveContact() {
     }
   }
 
+  // Also insert into lead_captures table
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    fetch(cfg.url + '/rest/v1/lead_captures', {
+      method: 'POST',
+      headers: {
+        'apikey': cfg.anonKey,
+        'Authorization': 'Bearer ' + cfg.anonKey,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        email: contact.email,
+        name: contact.name,
+        phone: contact.phone || null,
+        source: 'marketing_dashboard',
+        persona: contact.persona || null,
+        notes: contact.notes || null
+      })
+    }).catch(function(e) { console.warn('lead_captures insert failed', e); });
+  }
+
   MarketingStore.contacts.unshift(contact);
   renderContacts(MarketingStore.contacts);
   updateKPIs();
@@ -1825,7 +1994,7 @@ function renderCampaigns() {
   }).join('');
 }
 
-function saveCampaign() {
+async function saveCampaign() {
   const name = document.getElementById('cpName').value.trim();
   if (!name) { showToast('Campaign name is required', 'error'); return; }
   const campaign = {
@@ -1841,6 +2010,30 @@ function saveCampaign() {
     brief: document.getElementById('cpBrief').value.trim(),
     progress: 0
   };
+
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    try {
+      var payload = { ...campaign, id: undefined };
+      var res = await fetch(cfg.url + '/rest/v1/marketing_campaigns', {
+        method: 'POST',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data && data.length > 0) campaign.id = data[0].id;
+      }
+    } catch (e) {
+      console.warn('saveCampaign: Supabase insert failed', e);
+    }
+  }
+
   MarketingStore.campaigns.unshift(campaign);
   renderCampaigns();
   closeModal('addCampaignModal');
@@ -1853,6 +2046,21 @@ function deleteCampaign(id) {
   MarketingStore.campaigns = MarketingStore.campaigns.filter(c => c.id !== id);
   renderCampaigns();
   showToast('Campaign removed');
+
+  // Delete from Supabase if it's a UUID (not local_)
+  if (!id.startsWith('local_') && !id.startsWith('c')) {
+    var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+    if (cfg.url && cfg.anonKey) {
+      fetch(cfg.url + '/rest/v1/marketing_campaigns?id=eq.' + id, {
+        method: 'DELETE',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json'
+        }
+      }).catch(function(e) { console.warn('deleteCampaign: Supabase delete failed', e); });
+    }
+  }
 }
 
 async function generateCampaignBrief() {
@@ -1974,7 +2182,7 @@ function calToday() {
   renderCalendar();
 }
 
-function saveContent() {
+async function saveContent() {
   const title = document.getElementById('ctTitle').value.trim();
   if (!title) { showToast('Title is required', 'error'); return; }
   const item = {
@@ -1986,6 +2194,30 @@ function saveContent() {
     scheduled_date: document.getElementById('ctDate').value || offsetDate(1),
     copy_text: document.getElementById('ctCopy').value.trim()
   };
+
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey) {
+    try {
+      var payload = { ...item, id: undefined };
+      var res = await fetch(cfg.url + '/rest/v1/content_calendar', {
+        method: 'POST',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        var data = await res.json();
+        if (data && data.length > 0) item.id = data[0].id;
+      }
+    } catch (e) {
+      console.warn('saveContent: Supabase insert failed', e);
+    }
+  }
+
   MarketingStore.contentItems.push(item);
   renderCalendar();
   renderMiniCalendar();
@@ -2694,6 +2926,24 @@ function approveItem(id) {
   var item = MarketingStore.approvalQueue.find(function(a) { return a.id === id; });
   if (!item) return;
   item.approval_status = 'approved';
+
+  // Persist approval status to Supabase
+  if (!id.startsWith('local_')) {
+    var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+    if (cfg.url && cfg.anonKey) {
+      fetch(cfg.url + '/rest/v1/content_calendar?id=eq.' + id, {
+        method: 'PATCH',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ approval_status: 'approved' })
+      }).catch(function(e) { console.warn('approveItem: PATCH failed', e); });
+    }
+  }
+
   // Move to content calendar if applicable
   if (item.title) {
     MarketingStore.contentItems.push({
@@ -2715,6 +2965,24 @@ function rejectItem(id) {
   var item = MarketingStore.approvalQueue.find(function(a) { return a.id === id; });
   if (!item) return;
   item.approval_status = 'rejected';
+
+  // Persist rejection to Supabase
+  if (!id.startsWith('local_')) {
+    var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+    if (cfg.url && cfg.anonKey) {
+      fetch(cfg.url + '/rest/v1/content_calendar?id=eq.' + id, {
+        method: 'PATCH',
+        headers: {
+          'apikey': cfg.anonKey,
+          'Authorization': 'Bearer ' + cfg.anonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ approval_status: 'rejected' })
+      }).catch(function(e) { console.warn('rejectItem: PATCH failed', e); });
+    }
+  }
+
   renderApprovals();
   showToast('Content rejected');
 }
@@ -2843,6 +3111,40 @@ function testPlatformConnections() {
   var platforms = Object.keys(configured);
   if (!platforms.length) { showToast('No platforms configured. Add credentials first.', 'error'); return; }
   showToast('Testing ' + platforms.length + ' connection(s)… Check console for details.', '');
+}
+
+function saveSocialStats() {
+  var stats = {
+    ig: document.getElementById('settIgFollowers').value.trim() || '',
+    tt: document.getElementById('settTtFollowers').value.trim() || '',
+    yt: document.getElementById('settYtSubs').value.trim() || '',
+    fb: document.getElementById('settFbLikes').value.trim() || ''
+  };
+  localStorage.setItem('mkt_social_stats', JSON.stringify(stats));
+  showToast('Social stats saved! View them on the Analytics tab.', 'success');
+}
+
+async function sendTestSms() {
+  showToast('Sending test SMS…', '');
+  try {
+    var res = await fetch('/api/marketing/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: '+1555000TEST',
+        message: 'SmartSwing AI Marketing - Test SMS from dashboard. If you receive this, SMS is configured correctly!',
+        test: true
+      })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Test SMS sent successfully!', 'success');
+    } else {
+      showToast('SMS failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('SMS endpoint not reachable. Deploy /api/marketing/send-sms first.', 'error');
+  }
 }
 
 // Load saved connection statuses on init

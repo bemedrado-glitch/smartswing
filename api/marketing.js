@@ -16,6 +16,8 @@
  *   export-leads    GET   — CSV/JSON lead export
  *   auto-enroll     POST  — Auto-enroll new signups in cadence
  *   publish-webhook GET/POST — Content publish webhook for Make.com
+ *   send-sms        POST  — Send single SMS via AWS SNS
+ *   send-bulk-sms   POST  — Send SMS to multiple recipients via AWS SNS
  */
 
 'use strict';
@@ -1126,6 +1128,100 @@ async function handleAiCoach(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SMS SENDING VIA AWS SNS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSendSms(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { phone, message, subject } = req.body || {};
+  if (!phone || !message) return res.status(400).json({ error: 'phone and message are required' });
+
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const region = process.env.AWS_REGION || 'us-east-1';
+
+  if (!accessKeyId || !secretAccessKey) {
+    return res.status(500).json({ error: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in Vercel env vars.' });
+  }
+
+  try {
+    const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+    const client = new SNSClient({ region, credentials: { accessKeyId, secretAccessKey } });
+    const result = await client.send(new PublishCommand({
+      PhoneNumber: phone,
+      Message: message,
+      Subject: subject || undefined,
+      MessageAttributes: {
+        'AWS.SNS.SMS.SenderID': { DataType: 'String', StringValue: 'SmartSwing' },
+        'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Promotional' }
+      }
+    }));
+    return res.status(200).json({ success: true, messageId: result.MessageId });
+  } catch (err) {
+    console.error('[send-sms] Error:', err);
+    return res.status(500).json({ error: 'SMS send failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+async function handleSendBulkSms(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { recipients } = req.body || {};
+  if (!Array.isArray(recipients) || recipients.length === 0) {
+    return res.status(400).json({ error: 'recipients array is required and must not be empty' });
+  }
+  if (recipients.length > 50) {
+    return res.status(400).json({ error: 'Maximum 50 recipients per request' });
+  }
+
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const region = process.env.AWS_REGION || 'us-east-1';
+
+  if (!accessKeyId || !secretAccessKey) {
+    return res.status(500).json({ error: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in Vercel env vars.' });
+  }
+
+  try {
+    const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+    const client = new SNSClient({ region, credentials: { accessKeyId, secretAccessKey } });
+
+    const results = await Promise.allSettled(
+      recipients.map(({ phone, message, subject }) => {
+        if (!phone || !message) {
+          return Promise.reject(new Error('Each recipient must have phone and message'));
+        }
+        return client.send(new PublishCommand({
+          PhoneNumber: phone,
+          Message: message,
+          Subject: subject || undefined,
+          MessageAttributes: {
+            'AWS.SNS.SMS.SenderID': { DataType: 'String', StringValue: 'SmartSwing' },
+            'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Promotional' }
+          }
+        }));
+      })
+    );
+
+    const summary = results.map((r, i) => ({
+      phone: recipients[i].phone,
+      success: r.status === 'fulfilled',
+      messageId: r.status === 'fulfilled' ? r.value.MessageId : undefined,
+      error: r.status === 'rejected' ? r.reason.message : undefined
+    }));
+
+    const sent = summary.filter(s => s.success).length;
+    const failed = summary.filter(s => !s.success).length;
+
+    return res.status(200).json({ success: true, sent, failed, results: summary });
+  } catch (err) {
+    console.error('[send-bulk-sms] Error:', err);
+    return res.status(500).json({ error: 'Bulk SMS send failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -1137,7 +1233,9 @@ const ROUTES = {
   'auto-enroll':     handleAutoEnroll,
   'publish-webhook': handlePublishWebhook,
   'youtube-stream':  handleYoutubeStream,
-  'ai-coach':        handleAiCoach
+  'ai-coach':        handleAiCoach,
+  'send-sms':        handleSendSms,
+  'send-bulk-sms':   handleSendBulkSms
 };
 
 module.exports = async function handler(req, res) {
