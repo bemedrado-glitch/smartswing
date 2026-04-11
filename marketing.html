@@ -3601,20 +3601,24 @@ function saveSocialStats() {
 }
 
 async function sendTestSms() {
-  showToast('Sending test SMS…', '');
+  var phone = prompt('Enter your phone number to receive the test SMS (e.g. +15551234567):');
+  if (!phone || !phone.trim()) { showToast('Cancelled — no phone number entered.', ''); return; }
+  phone = phone.trim();
+  if (!phone.startsWith('+')) phone = '+1' + phone.replace(/\D/g, '');
+
+  showToast('Sending test SMS to ' + phone + '…', '');
   try {
     var res = await fetch('/api/marketing/send-sms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: '+1555000TEST',
-        message: 'SmartSwing AI Marketing - Test SMS from dashboard. If you receive this, SMS is configured correctly!',
-        test: true
+        phone: phone,
+        message: 'SmartSwing AI Marketing — Test SMS from dashboard. If you receive this, SMS is configured correctly!'
       })
     });
     var data = await res.json();
     if (data.success) {
-      showToast('Test SMS sent successfully!', 'success');
+      showToast('Test SMS sent successfully to ' + phone + '!', 'success');
     } else {
       showToast('SMS failed: ' + (data.error || 'Unknown error'), 'error');
     }
