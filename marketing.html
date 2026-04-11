@@ -1487,6 +1487,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadNextActions();
   loadContacts();
   updateKPIs();
+  checkSocialConnections();
 });
 
 async function loadCampaigns() {
@@ -1624,6 +1625,7 @@ function switchTab(tabName, triggerEl) {
     if (ss.tt) document.getElementById('settTtFollowers').value = ss.tt;
     if (ss.yt) document.getElementById('settYtSubs').value = ss.yt;
     if (ss.fb) document.getElementById('settFbLikes').value = ss.fb;
+    checkSocialConnections();
   }
 }
 
@@ -3327,10 +3329,33 @@ function changeSecurityCode() {
 }
 
 function connectSocial(platform) {
-  var labels = { instagram: 'Instagram (Meta Graph API)', facebook: 'Facebook (Meta Graph API)', tiktok: 'TikTok for Business', youtube: 'YouTube (Google OAuth)' };
+  if (platform === 'instagram' || platform === 'facebook') {
+    // Meta platforms are connected via server-side tokens — just re-check status
+    showToast('Checking ' + platform + ' connection…', '');
+    checkSocialConnections();
+    return;
+  }
+  var labels = { tiktok: 'TikTok for Business', youtube: 'YouTube (Google OAuth)' };
   showToast('To connect ' + labels[platform] + ', add your API credentials in the Platform API Credentials section below.', '');
-  // Scroll to credentials section
-  switchTab('settings', document.querySelector('[data-tab=settings]'));
+}
+
+function checkSocialConnections() {
+  fetch('/api/marketing/meta-stats').then(function(r) { return r.json(); }).then(function(data) {
+    if (data.success) {
+      var igEl = document.getElementById('igStatus');
+      var fbEl = document.getElementById('fbStatus');
+      var igBtn = igEl ? igEl.closest('.mkt-social-conn').querySelector('button') : null;
+      var fbBtn = fbEl ? fbEl.closest('.mkt-social-conn').querySelector('button') : null;
+      if (data.instagram && data.instagram.username) {
+        if (igEl) { igEl.textContent = '✅ Connected — @' + data.instagram.username + ' (' + (data.instagram.followers || 0) + ' followers)'; igEl.style.color = '#00e87b'; }
+        if (igBtn) { igBtn.textContent = 'Connected'; igBtn.disabled = true; igBtn.style.opacity = '0.6'; }
+      }
+      if (data.facebook && data.facebook.name) {
+        if (fbEl) { fbEl.textContent = '✅ Connected — ' + data.facebook.name + ' (' + (data.facebook.followers || 0) + ' followers)'; fbEl.style.color = '#00e87b'; }
+        if (fbBtn) { fbBtn.textContent = 'Connected'; fbBtn.disabled = true; fbBtn.style.opacity = '0.6'; }
+      }
+    }
+  }).catch(function() { /* silent */ });
 }
 
 function checkSocialConnections() {
