@@ -2423,6 +2423,45 @@ function copyContentToClipboard() {
   navigator.clipboard.writeText(item.copy_text || item.title).then(() => showToast('Copied to clipboard!', 'success'));
 }
 
+async function publishToMeta() {
+  const id = document.getElementById('cdItemId').value;
+  const item = MarketingStore.contentItems.find(i => i.id === id);
+  if (!item) return;
+
+  // Determine target platform based on content item's platform field
+  var platform = 'both';
+  if (item.platform && item.platform.toLowerCase().indexOf('facebook') >= 0) platform = 'facebook';
+  if (item.platform && item.platform.toLowerCase().indexOf('instagram') >= 0) platform = 'instagram';
+
+  var payload = {
+    platform: platform,
+    message: item.copy_text || item.title || '',
+    link: item.link || item.url || null,
+    image_url: item.image_url || item.media_url || null
+  };
+
+  showToast('Publishing to Meta...', 'info');
+
+  try {
+    var res = await fetch('/api/marketing/meta-publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var data = await res.json();
+    if (data.success) {
+      item.status = 'published';
+      renderCalendar(); renderMiniCalendar();
+      showToast('Published to Meta successfully!', 'success');
+      closeModal('contentDetailModal');
+    } else {
+      showToast('Publish failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (err) {
+    showToast('Publish error: ' + err.message, 'error');
+  }
+}
+
 /* ── ORCHESTRATION ── */
 async function runOrchestration() {
   const workflow_type = document.getElementById('orchType').value;
@@ -2716,8 +2755,18 @@ async function loadAnalytics() {
     setKPI('anlSignupRate', signupRate + '%', usersThisMonth + ' signups this month');
     setKPI('anlMRR', '$' + mrr.toLocaleString(), activeSubs.length + ' active subscriptions');
 
-    // Social placeholders — populated when platform keys are configured
+    // Social stats — try live Meta Graph API first, then fall back to localStorage cache
     var socialData = JSON.parse(localStorage.getItem('mkt_social_stats') || '{}');
+    try {
+      var metaRes = await fetch('/api/marketing/meta-stats');
+      var metaData = await metaRes.json();
+      if (metaData.success) {
+        socialData.ig = metaData.instagram.followers ? formatNum(metaData.instagram.followers) : socialData.ig;
+        socialData.fb = metaData.facebook.likes ? formatNum(metaData.facebook.likes) : socialData.fb;
+        // Cache for offline/fallback
+        localStorage.setItem('mkt_social_stats', JSON.stringify(socialData));
+      }
+    } catch(e) { /* use cached localStorage data */ }
     setKPI('anlIgFollowers', socialData.ig || '—', socialData.ig ? '' : 'Connect in Settings');
     setKPI('anlTtFollowers', socialData.tt || '—', socialData.tt ? '' : 'Connect in Settings');
     setKPI('anlYtSubs', socialData.yt || '—', socialData.yt ? '' : 'Connect in Settings');
@@ -3251,6 +3300,7 @@ setTimeout(function() {
 
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="mkt-btn mkt-btn--primary" onclick="approveContentItem()">✓ Approve</button>
+        <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="publishToMeta()">📱 Publish to Meta</button>
         <button class="mkt-btn mkt-btn--ghost" onclick="editContentInAgents()">✍️ Edit with Agent</button>
         <button class="mkt-btn mkt-btn--ghost" onclick="copyContentToClipboard()">📋 Copy</button>
         <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('contentDetailModal')" style="margin-left:auto;">Close</button>
