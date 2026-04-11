@@ -1277,6 +1277,7 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="public-app-config.js"></script>
+<script src="/api/runtime-config.js"></script>
 <script src="app-data.js"></script>
 <script src="marketing-cadences.js"></script>
 <script>
@@ -2375,10 +2376,11 @@ async function loadAnalytics() {
     var isoThirty = thirtyDaysAgo.toISOString();
     var isoSixty = sixtyDaysAgo.toISOString();
 
-    // Parallel queries — analytics_events + existing business tables
-    const [eventsThisMonth, eventsLastMonth, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
+    // Parallel queries — analytics_events + email_events + existing business tables
+    const [eventsThisMonth, eventsLastMonth, emailEventsRes, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
       fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id,page_path,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(cfg.url + '/rest/v1/analytics_events?select=event_type,session_id&created_at=gte.' + isoSixty + '&created_at=lt.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch(cfg.url + '/rest/v1/email_events?select=event_type,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(cfg.url + '/rest/v1/profiles?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/customer_subscriptions?select=id,plan_id,status,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/analysis_reports?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
@@ -2461,8 +2463,23 @@ async function loadAnalytics() {
     var visitorBase = hasRealEvents ? uniqueSessionsCurrent : Math.max(totalUsers * 15, 100);
     var signupRate = visitorBase > 0 ? Math.round((usersThisMonth / visitorBase) * 100) : 0;
 
-    setKPI('anlOpenRate', '—', 'Connect Resend for live data');
-    setKPI('anlClickRate', '—', 'Connect Resend for live data');
+    // Email open/click rates from Resend webhook events
+    var emailEvts = Array.isArray(emailEventsRes) ? emailEventsRes : [];
+    var emailDelivered = emailEvts.filter(e => e.event_type === 'email_delivered').length;
+    var emailOpened = emailEvts.filter(e => e.event_type === 'email_opened').length;
+    var emailClicked = emailEvts.filter(e => e.event_type === 'email_clicked').length;
+    if (emailDelivered > 0) {
+      var openRate = Math.round((emailOpened / emailDelivered) * 100);
+      var clickRate = Math.round((emailClicked / emailDelivered) * 100);
+      setKPI('anlOpenRate', openRate + '%', emailOpened + ' opens / ' + emailDelivered + ' delivered');
+      setKPI('anlClickRate', clickRate + '%', emailClicked + ' clicks / ' + emailDelivered + ' delivered');
+    } else if (emailEvts.length > 0) {
+      setKPI('anlOpenRate', '0%', 'No delivered emails tracked yet');
+      setKPI('anlClickRate', '0%', 'No delivered emails tracked yet');
+    } else {
+      setKPI('anlOpenRate', '—', 'Awaiting Resend webhook events');
+      setKPI('anlClickRate', '—', 'Awaiting Resend webhook events');
+    }
     setKPI('anlConversion', conversionRate + '%', paidUsers + ' paid of ' + totalUsers + ' users');
     setKPI('anlSignupRate', signupRate + '%', usersThisMonth + ' signups this month');
     setKPI('anlMRR', '$' + mrr.toLocaleString(), activeSubs.length + ' active subscriptions');
