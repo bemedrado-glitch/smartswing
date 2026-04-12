@@ -1465,9 +1465,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="mt-panel" style="margin-bottom:16px;" id="mtFormatPanel">
             <div class="mt-label" style="margin-bottom:10px;">Match Format</div>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-              <button class="mt-pill-btn mt-format-btn selected" data-format="3" style="flex:1;min-width:80px;">Best of 3</button>
-              <button class="mt-pill-btn mt-format-btn" data-format="1" style="flex:1;min-width:80px;">1 Set</button>
-              <button class="mt-pill-btn mt-format-btn" data-format="5" style="flex:1;min-width:80px;">Best of 5</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="3" data-format-type="games" style="flex:1;min-width:90px;">Best of 3 Games</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="games" style="flex:1;min-width:90px;">Best of 5 Games</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="1" data-format-type="sets" style="flex:1;min-width:70px;">1 Set</button>
+              <button class="mt-pill-btn mt-format-btn selected" data-format="3" data-format-type="sets" style="flex:1;min-width:70px;">3 Sets</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="sets" style="flex:1;min-width:70px;">5 Sets</button>
             </div>
 
             <div class="mt-label" style="margin-bottom:10px; margin-top:16px; display:flex; align-items:center; gap:8px;">
@@ -3006,34 +3008,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           );
           const angles = computeAngles(metricKeypoints);
           const derivedMetrics = computeDerivedMetrics(metricKeypoints, poseMotion);
-          const shouldStoreFrame = validLandmarks >= 10 && (
-            analysisData.frames.length < 5 ||
-            poseMotion >= AI_SETTINGS.minPoseMotionPx
-          );
 
-          // ── Ball detection disabled — COCO-SSD conflicts with TF.js pose backend ──
-          // TODO: Re-enable when ball detection runs in a Web Worker or separate pipeline
-          let ballPos = null;
-          // ballDetectFrameCount++;
-          // if (ballDetector && ballDetectFrameCount % BALL_DETECT_INTERVAL === 0) {
-          //   try {
-          //     ballPos = await detectBall(detectorInput.source);
-          //     if (ballPos) {
-          //       updateBallVelocity(ballPos, video.currentTime, detectorInput.width, detectorInput.height);
-          //       pushWithCap(analysisData.ballDetections, {
-          //         timestamp: video.currentTime,
-          //         x: ballPos.x / detectorInput.width,
-          //         y: ballPos.y / detectorInput.height,
-          //         width: ballPos.width / detectorInput.width,
-          //         height: ballPos.height / detectorInput.height,
-          //         score: ballPos.score,
-          //         velocity: ballVelocity
-          //       });
-          //     }
-          //   } catch (_ballErr) { /* non-critical */ }
-          // }
-
-          if (shouldStoreFrame) {
+          // Store every frame with enough landmarks (no motion filter)
+          if (validLandmarks >= 8) {
             for (const k in angles) {
               if (angles[k] != null) {
                 pushWithCap(analysisData.angles[k], angles[k]);
@@ -3051,9 +3028,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               confidence,
               poseMotion,
               angles,
-              derivedMetrics,
-              ballDetected: !!ballPos,
-              ballPos: ballPos ? { x: ballPos.x / detectorInput.width, y: ballPos.y / detectorInput.height, velocity: ballVelocity } : null
+              derivedMetrics
             });
             pushWithCap(analysisData.landmarks, validLandmarks);
             pushWithCap(analysisData.confidence, confidence);
@@ -3064,13 +3039,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('framesCount').textContent = analysisData.frames.length;
             document.getElementById('landmarksCount').textContent = validLandmarks;
             document.getElementById('confidenceValue').textContent = confidence + '%';
-            // Ball tracking UI
-            if (analysisData.ballDetections.length > 0) {
-              const bCard = document.getElementById('ballTrackCard');
-              if (bCard) bCard.style.display = '';
-              const bCount = document.getElementById('ballDetectCount');
-              if (bCount) bCount.textContent = analysisData.ballDetections.length;
-            }
           }
 
           if (!lastAngleUiRefreshAt || now - lastAngleUiRefreshAt >= AI_SETTINGS.angleUiRefreshMs) {
@@ -3090,9 +3058,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           if (!lastDrawAt || now - lastDrawAt >= AI_SETTINGS.drawRefreshMs) {
             lastDrawAt = now;
-            // Pass latest ball detection for drawing
-            const latestBall = analysisData.ballDetections.length > 0 ? analysisData.ballDetections[analysisData.ballDetections.length - 1] : null;
-            drawPose(drawKeypoints, latestBall);
+            drawPose(drawKeypoints);
           }
         }
       } catch (error) {
@@ -6784,7 +6750,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         tiebreakScore: { left: 0, right: 0 },
         tiebreakServer: 'left',
         matchOver: false,
-        matchFormat: 3, // 1, 3, or 5 — sets needed to win
+        matchFormat: 3, // number of sets or games
+        matchFormatType: 'sets', // 'sets' or 'games'
         setsToWin: 2,   // Math.ceil(matchFormat / 2)
         pointIndex: 0,  // total points played
         // Stats
@@ -6872,6 +6839,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
 
       function matchWinner() {
+        if (mt.matchFormatType === 'games') {
+          // Game-based format: match ends when a player wins enough games
+          const gamesToWin = Math.ceil(mt.matchFormat / 2);
+          if (mt.currentSet.left >= gamesToWin) return 'left';
+          if (mt.currentSet.right >= gamesToWin) return 'right';
+          return null;
+        }
         if (mt.match.left >= mt.setsToWin) return 'left';
         if (mt.match.right >= mt.setsToWin) return 'right';
         return null;
@@ -6976,6 +6950,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           // Game over
           mt.currentSet[gWinner]++;
 
+          // For game-based formats, check match winner immediately after game
+          if (mt.matchFormatType === 'games') {
+            mt.currentGame = { left: 0, right: 0 };
+            mt.tiebreakScore = { left: 0, right: 0 };
+            mt.inTiebreak = false;
+            rotateServer();
+
+            const mWinner = matchWinner();
+            if (mWinner) {
+              mt.matchOver = true;
+              mt.finalScore = `${mt.leftName} ${mt.currentSet.left} - ${mt.currentSet.right} ${mt.rightName}`;
+              renderMatchTracker();
+              showPostMatch();
+              return;
+            }
+            renderMatchTracker();
+            return;
+          }
+
+          // Set-based formats: full set/tiebreak logic
           // Check for set entry into tiebreak
           const needTiebreak = mt.currentSet.left === 6 && mt.currentSet.right === 6 && !mt.inTiebreak;
 
@@ -7061,6 +7055,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       function resetMatch() {
         // Preserve match format across resets
         const savedFormat = mt.matchFormat;
+        const savedFormatType = mt.matchFormatType;
         const savedSetsToWin = mt.setsToWin;
         mt.leftName = document.getElementById('mtNameLeft')?.value || 'You';
         mt.rightName = document.getElementById('mtNameRight')?.value || 'Opponent';
@@ -7088,6 +7083,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         };
         mt.finalScore = '';
         mt.matchFormat = savedFormat;
+        mt.matchFormatType = savedFormatType;
         mt.setsToWin = savedSetsToWin;
         mt.miniGameScore = { left: 0, right: 0 };
         document.getElementById('mtPostMatch').style.display = 'none';
@@ -7400,7 +7396,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               if (!confirm('Changing format will reset the match. Continue?')) return;
             }
             mt.matchFormat = parseInt(btn.dataset.format, 10);
-            mt.setsToWin = mt.matchFormat === 1 ? 1 : Math.ceil(mt.matchFormat / 2);
+            mt.matchFormatType = btn.dataset.formatType || 'sets';
+            mt.setsToWin = mt.matchFormatType === 'games'
+              ? 1  // game-based formats play within a single set
+              : (mt.matchFormat === 1 ? 1 : Math.ceil(mt.matchFormat / 2));
             mt.miniGame = null; // exit mini game mode
             document.querySelectorAll('.mt-format-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.mt-mini-game-btn').forEach(b => b.classList.remove('selected'));
@@ -7510,7 +7509,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               result: result,
               finalScore: mt.finalScore || buildFinalScore(),
               sets: mt.sets,
-              matchFormat: mt.miniGame ? MINI_GAMES[mt.miniGame].label : (mt.matchFormat === 1 ? '1-set' : mt.matchFormat === 5 ? 'best-of-5' : 'best-of-3'),
+              matchFormat: mt.miniGame ? MINI_GAMES[mt.miniGame].label : (mt.matchFormatType === 'games' ? `best-of-${mt.matchFormat}-games` : (mt.matchFormat === 1 ? '1-set' : `${mt.matchFormat}-sets`)),
               miniGame: mt.miniGame || null,
               stats: { ...mt.stats },
               log: mt.log,
@@ -7564,7 +7563,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           result: matchWinner() === 'left' ? 'win' : (matchWinner() === 'right' ? 'loss' : 'in-progress'),
           finalScore: mt.finalScore || buildFinalScore(),
           sets: mt.sets,
-          matchFormat: mt.matchFormat,
+          matchFormat: mt.matchFormatType === 'games' ? `best-of-${mt.matchFormat}-games` : (mt.matchFormat === 1 ? '1-set' : `${mt.matchFormat}-sets`),
           stats: { ...mt.stats },
           log: mt.log,
           momentum: mt.momentum,
