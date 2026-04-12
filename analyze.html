@@ -1411,6 +1411,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div class="stat-value" id="confidenceValue">0%</div>
             </div>
 
+            <div class="stat-card" id="ballTrackCard" style="display:none;">
+              <div class="stat-label" style="color:rgba(255,216,77,.8);">Ball Tracked</div>
+              <div class="stat-value" id="ballDetectCount" style="color:#ffd84d;">0</div>
+              <div style="font-size:11px;color:var(--gray);margin-top:4px;">detections via COCO-SSD</div>
+            </div>
+
             <div style="margin-top: 24px;">
               <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--electric-cyan);">
                 Live Angles
@@ -1836,8 +1842,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         footworkLoad: []
       },
       landmarks: [],
-      confidence: []
+      confidence: [],
+      ballDetections: []  // { timestamp, x, y, width, height, score }
     };
+
+    // ── Ball Detection (COCO-SSD) ──────────────────────────────────────
+    let ballDetector = null;
+    let ballDetectFrameCount = 0;
+    const BALL_DETECT_INTERVAL = 3; // run ball detection every N pose frames (balance perf vs accuracy)
+    let lastBallPos = null; // { x, y, timestamp } for velocity calc
+    let ballVelocity = 0;  // px/sec normalized
 
     function withTimeout(promise, timeoutMs, label) {
       return Promise.race([
@@ -2397,6 +2411,70 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return checkFn();
     }
 
+    // Load COCO-SSD for ball detection (non-blocking, optional)
+    async function initBallDetector() {
+      try {
+        // Only attempt if TF.js is already loaded
+        if (!window.tf) { console.log('[BallDetect] TF.js not loaded, skipping'); return; }
+        const hasCocoSsd = () => !!window.cocoSsd;
+        if (!hasCocoSsd()) {
+          await loadFromMirrorSafe([
+            'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js',
+            'https://unpkg.com/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js'
+          ], hasCocoSsd);
+        }
+        if (window.cocoSsd) {
+          ballDetector = await window.cocoSsd.load({ base: 'lite_mobilenet_v2' });
+          console.log('[BallDetect] COCO-SSD ball detector ready');
+        }
+      } catch (err) {
+        console.warn('[BallDetect] Ball detection unavailable (non-critical):', err.message);
+        ballDetector = null;
+      }
+    }
+
+    // Detect ball in current video frame (returns {x, y, width, height, score} or null)
+    async function detectBall(videoElement) {
+      if (!ballDetector) return null;
+      try {
+        const predictions = await ballDetector.detect(videoElement);
+        // COCO-SSD class "sports ball" = class index 37
+        const ballPreds = predictions.filter(p => p.class === 'sports ball' && p.score >= 0.25);
+        if (ballPreds.length === 0) return null;
+        // Pick highest confidence ball
+        const best = ballPreds.reduce((a, b) => a.score > b.score ? a : b);
+        const [bx, by, bw, bh] = best.bbox;
+        return {
+          x: bx + bw / 2,  // center x
+          y: by + bh / 2,  // center y
+          width: bw,
+          height: bh,
+          score: best.score,
+          rawClass: best.class
+        };
+      } catch (err) {
+        // Silent fail — ball detection is supplementary
+        return null;
+      }
+    }
+
+    // Calculate ball velocity between detections
+    function updateBallVelocity(ballPos, timestamp, videoWidth, videoHeight) {
+      if (!ballPos || !lastBallPos) {
+        lastBallPos = ballPos ? { ...ballPos, timestamp } : null;
+        ballVelocity = 0;
+        return 0;
+      }
+      const dt = Math.abs(timestamp - lastBallPos.timestamp);
+      if (dt < 0.01) return ballVelocity; // same frame
+      const dx = (ballPos.x - lastBallPos.x) / Math.max(1, videoWidth);
+      const dy = (ballPos.y - lastBallPos.y) / Math.max(1, videoHeight);
+      const dist = Math.sqrt(dx * dx + dy * dy); // normalized 0-1
+      ballVelocity = dist / dt; // normalized velocity per second
+      lastBallPos = { ...ballPos, timestamp };
+      return ballVelocity;
+    }
+
     async function ensurePoseLibraries() {
       const hasTf = () => !!window.tf;
       const hasMediaPipePose = () => !!window.Pose;
@@ -2526,6 +2604,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           aiInitStage = 'ready';
           setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
           playBtn.disabled = false;
+          // Load ball detector in background (non-blocking, optional)
+          initBallDetector().then(() => {
+            if (ballDetector) setStatus(`AI Ready (${detectorLabel} + Ball Tracking)`, 'ready');
+          }).catch(() => {});
           return true;
         } catch (error) {
           console.error('AI initialization failed:', error);
@@ -2778,7 +2860,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const FACE_KEYPOINT_INDICES = new Set([1, 2, 3, 4]); // l_eye, r_eye, l_ear, r_ear (nose is now tracked for head angle)
     const WRIST_KEYPOINT_INDICES = new Set([9, 10]);        // left_wrist, right_wrist
 
-    function drawPose(keypoints) {
+    function drawPose(keypoints, ballDetection) {
       const canvas = document.getElementById('poseCanvas');
       if (!canvas || !Array.isArray(keypoints)) return;
       const ctx = canvas.getContext('2d');
@@ -2837,6 +2919,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         ctx.arc(kp.x, kp.y, innerRadius, 0, 2 * Math.PI);
         ctx.fill();
       });
+
+      // ── Ball marker ──
+      if (ballDetection) {
+        const bx = ballDetection.x * canvas.width;
+        const by = ballDetection.y * canvas.height;
+        const br = Math.max(8, Math.round(canvas.width / 80));
+        // Outer glow
+        ctx.fillStyle = 'rgba(255, 216, 77, 0.25)';
+        ctx.beginPath();
+        ctx.arc(bx, by, br + 6, 0, 2 * Math.PI);
+        ctx.fill();
+        // Ball circle
+        ctx.fillStyle = 'rgba(255, 216, 77, 0.9)';
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, 2 * Math.PI);
+        ctx.fill();
+        // Inner dot
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(bx, by, br * 0.35, 0, 2 * Math.PI);
+        ctx.fill();
+        // Label
+        ctx.font = `bold ${Math.max(10, Math.round(canvas.width / 60))}px "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = 'rgba(255, 216, 77, 0.9)';
+        ctx.textAlign = 'center';
+        ctx.fillText('BALL', bx, by - br - 4);
+      }
     }
 
     // Analysis Loop
@@ -2991,6 +3100,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             poseMotion >= AI_SETTINGS.minPoseMotionPx
           );
 
+          // ── Ball detection (every Nth frame, non-blocking) ──
+          let ballPos = null;
+          ballDetectFrameCount++;
+          if (ballDetector && ballDetectFrameCount % BALL_DETECT_INTERVAL === 0) {
+            try {
+              ballPos = await detectBall(detectorInput.source);
+              if (ballPos) {
+                updateBallVelocity(ballPos, video.currentTime, detectorInput.width, detectorInput.height);
+                pushWithCap(analysisData.ballDetections, {
+                  timestamp: video.currentTime,
+                  x: ballPos.x / detectorInput.width,   // normalize 0-1
+                  y: ballPos.y / detectorInput.height,
+                  width: ballPos.width / detectorInput.width,
+                  height: ballPos.height / detectorInput.height,
+                  score: ballPos.score,
+                  velocity: ballVelocity
+                });
+              }
+            } catch (_ballErr) { /* non-critical */ }
+          }
+
           if (shouldStoreFrame) {
             for (const k in angles) {
               if (angles[k] != null) {
@@ -3009,7 +3139,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               confidence,
               poseMotion,
               angles,
-              derivedMetrics
+              derivedMetrics,
+              ballDetected: !!ballPos,
+              ballPos: ballPos ? { x: ballPos.x / detectorInput.width, y: ballPos.y / detectorInput.height, velocity: ballVelocity } : null
             });
             pushWithCap(analysisData.landmarks, validLandmarks);
             pushWithCap(analysisData.confidence, confidence);
@@ -3020,6 +3152,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('framesCount').textContent = analysisData.frames.length;
             document.getElementById('landmarksCount').textContent = validLandmarks;
             document.getElementById('confidenceValue').textContent = confidence + '%';
+            // Ball tracking UI
+            if (analysisData.ballDetections.length > 0) {
+              const bCard = document.getElementById('ballTrackCard');
+              if (bCard) bCard.style.display = '';
+              const bCount = document.getElementById('ballDetectCount');
+              if (bCount) bCount.textContent = analysisData.ballDetections.length;
+            }
           }
 
           if (!lastAngleUiRefreshAt || now - lastAngleUiRefreshAt >= AI_SETTINGS.angleUiRefreshMs) {
@@ -3039,7 +3178,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           if (!lastDrawAt || now - lastDrawAt >= AI_SETTINGS.drawRefreshMs) {
             lastDrawAt = now;
-            drawPose(drawKeypoints);
+            // Pass latest ball detection for drawing
+            const latestBall = analysisData.ballDetections.length > 0 ? analysisData.ballDetections[analysisData.ballDetections.length - 1] : null;
+            drawPose(drawKeypoints, latestBall);
           }
         }
       } catch (error) {
@@ -3918,7 +4059,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const trunk = safeNumber(frame.angles?.trunk, 0);
         const wristHip = safeNumber(frame.derivedMetrics?.wristHipDistance, 0);
 
+        // Ball presence and velocity boost the activation score
+        const hasBall = frame.ballDetected ? 1 : 0;
+        const bVel = safeNumber(frame.ballPos?.velocity, 0);
+
         let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18 + wristHip * 0.30;
+        activation += hasBall * 0.40 + bVel * 0.35; // ball detected = likely active shot
         if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
         else activation += reach * 0.25 + contactHeight * 0.18;
 
@@ -4810,10 +4956,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // Insufficient data detection
       const insufficientData = avgConfidence < 40 || avgLandmarks < 10 || focusFrames.length < 15;
 
+      // Ball tracking stats
+      const ballFrames = focusFrames.filter(f => f.ballDetected);
+      const ballTrackingRate = focusFrames.length > 0 ? Math.round(100 * ballFrames.length / focusFrames.length) : 0;
+      const totalBallDetections = analysisData.ballDetections.length;
+
       return {
         framesAnalyzed: analysisData.frames.length,
         focusFramesAnalyzed: focusFrames.length,
         shotWindowsDetected: focusFrames._shotWindowCount || 0,
+        ballDetections: totalBallDetections,
+        ballTrackingRate,
         avgLandmarks,
         avgConfidence,
         avgAngles,
@@ -4989,7 +5142,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="smartswing-score" style="color:${band.color};">${s.score}</div>
           <div class="grade-badge" style="background:${band.color}22; color:${band.color}; border-color:${band.color}44; font-size:16px; padding:8px 20px;">${band.label} · Grade ${s.grade}</div>
           <div style="font-size:13px; color:var(--gray); margin-top:10px;">${session.profile.level} · Age ${session.profile.age} · ${s.shotType} · ${new Date(session.timestamp).toLocaleDateString()}</div>
-          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}${s.ballDetections ? ' · ' + s.ballDetections + ' ball detections (' + s.ballTrackingRate + '%)' : ''}</div>
         </div>
 
         <!-- Swing Story -->
