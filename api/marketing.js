@@ -2064,80 +2064,94 @@ async function handleGoogleAnalytics(req, res) {
     ]);
 
     const apiBase = 'https://analyticsdata.googleapis.com/v1beta/properties/' + propertyId;
+    const debug = req.query.debug === '1';
 
-    // Run 3 reports in parallel: overview, daily breakdown, top pages, traffic sources
+    // Helper: fetch and check for GA4 API errors
+    async function ga4Fetch(url, body) {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await r.json();
+      if (data.error) {
+        console.error('[GA4] API error:', JSON.stringify(data.error));
+        if (debug) data._httpStatus = r.status;
+      }
+      return data;
+    }
+
+    // Run 4 reports in parallel: overview, daily breakdown, top pages, traffic sources
     const [overviewRes, dailyRes, pagesRes, sourcesRes] = await Promise.all([
       // 1) Overview metrics (last 30 days)
-      fetch(apiBase + ':runReport', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dateRanges: [
-            { startDate: '30daysAgo', endDate: 'today' },
-            { startDate: '60daysAgo', endDate: '31daysAgo' }
-          ],
-          metrics: [
-            { name: 'totalUsers' },
-            { name: 'newUsers' },
-            { name: 'sessions' },
-            { name: 'screenPageViews' },
-            { name: 'bounceRate' },
-            { name: 'averageSessionDuration' },
-            { name: 'engagedSessions' }
-          ]
-        })
-      }).then(r => r.json()),
+      ga4Fetch(apiBase + ':runReport', {
+        dateRanges: [
+          { startDate: '30daysAgo', endDate: 'today' },
+          { startDate: '60daysAgo', endDate: '31daysAgo' }
+        ],
+        metrics: [
+          { name: 'totalUsers' },
+          { name: 'newUsers' },
+          { name: 'sessions' },
+          { name: 'screenPageViews' },
+          { name: 'bounceRate' },
+          { name: 'averageSessionDuration' },
+          { name: 'engagedSessions' }
+        ]
+      }),
 
       // 2) Daily breakdown for chart
-      fetch(apiBase + ':runReport', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
-          dimensions: [{ name: 'date' }],
-          metrics: [
-            { name: 'totalUsers' },
-            { name: 'sessions' },
-            { name: 'screenPageViews' }
-          ],
-          orderBys: [{ dimension: { dimensionName: 'date' } }]
-        })
-      }).then(r => r.json()),
+      ga4Fetch(apiBase + ':runReport', {
+        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dimensions: [{ name: 'date' }],
+        metrics: [
+          { name: 'totalUsers' },
+          { name: 'sessions' },
+          { name: 'screenPageViews' }
+        ],
+        orderBys: [{ dimension: { dimensionName: 'date' } }]
+      }),
 
       // 3) Top pages
-      fetch(apiBase + ':runReport', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
-          dimensions: [{ name: 'pagePath' }],
-          metrics: [
-            { name: 'screenPageViews' },
-            { name: 'totalUsers' },
-            { name: 'bounceRate' }
-          ],
-          orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-          limit: 15
-        })
-      }).then(r => r.json()),
+      ga4Fetch(apiBase + ':runReport', {
+        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dimensions: [{ name: 'pagePath' }],
+        metrics: [
+          { name: 'screenPageViews' },
+          { name: 'totalUsers' },
+          { name: 'bounceRate' }
+        ],
+        orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+        limit: 15
+      }),
 
       // 4) Traffic sources / channels
-      fetch(apiBase + ':runReport', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
-          dimensions: [{ name: 'sessionDefaultChannelGroup' }],
-          metrics: [
-            { name: 'sessions' },
-            { name: 'totalUsers' },
-            { name: 'engagedSessions' }
-          ],
-          orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-          limit: 10
-        })
-      }).then(r => r.json())
+      ga4Fetch(apiBase + ':runReport', {
+        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+        metrics: [
+          { name: 'sessions' },
+          { name: 'totalUsers' },
+          { name: 'engagedSessions' }
+        ],
+        orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+        limit: 10
+      })
     ]);
+
+    // Debug mode: surface raw API responses
+    if (debug) {
+      return res.status(200).json({
+        success: true,
+        debug: true,
+        propertyId,
+        serviceAccountEmail: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}').client_email || 'unknown',
+        overviewRes,
+        dailyRes,
+        pagesRes,
+        sourcesRes
+      });
+    }
 
     // Parse overview metrics
     function parseMetrics(row) {
