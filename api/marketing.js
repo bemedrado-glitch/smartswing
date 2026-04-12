@@ -188,9 +188,9 @@ Current growth stage: early traction, moving to scale. Focus on referral loops, 
 // CLAUDE API HELPER
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function callClaude(systemPrompt, userMessage, apiKey) {
+async function callClaude(systemPrompt, userMessage, apiKey, preferredModel) {
   const payload = {
-    model: 'claude-opus-4-5',
+    model: preferredModel || 'claude-opus-4-5',
     max_tokens: 2048,
     system: systemPrompt,
     messages: [{ role: 'user', content: userMessage }]
@@ -378,11 +378,15 @@ async function generateImage(prompt, size) {
   if (!apiKey) return null;
   size = size || '1024x1024';
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000); // 25s max for image gen
     const res = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'dall-e-3', prompt: prompt.slice(0, 4000), n: 1, size, quality: 'standard' })
+      body: JSON.stringify({ model: 'dall-e-3', prompt: prompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     if (!res.ok) { console.warn('[generateImage] DALL-E error:', res.status); return null; }
     const data = await res.json();
     return data.data?.[0]?.url || null;
@@ -422,7 +426,8 @@ async function runWorkflowChain(chain, title, context, campaignId, apiKey) {
     let userMessage = `Task: ${step.role}\n\nContent title/brief: ${title}\n\n${contextString}`;
     if (previousOutput) userMessage += `\n\nPrevious step output:\n${previousOutput}`;
 
-    const output = await callClaude(systemPrompt, userMessage, apiKey);
+    // Use Sonnet for workflow steps — fast enough for 4 steps + image gen within 60s
+    const output = await callClaude(systemPrompt, userMessage, apiKey, 'claude-sonnet-4-20250514');
     steps.push({ agent: step.agent, role: step.role, output });
 
     if (supabaseUrl && supabaseKey) {
@@ -2281,6 +2286,10 @@ const ROUTES = {
   'generate-image':    handleGenerateImage,
   'auto-publish':      handleAutoPublish
 };
+
+// Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
+// Orchestration with 4 Claude calls + DALL-E needs the full window.
+module.exports.maxDuration = 60;
 
 module.exports = async function handler(req, res) {
   // The _route param is injected by Vercel rewrite:
