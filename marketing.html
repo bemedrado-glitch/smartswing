@@ -289,6 +289,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="coach">Coach</option>
             <option value="club">Club</option>
             <option value="parent">Parent</option>
+            <option value="academy">Academy</option>
+          </select>
+          <select class="mkt-filter-select" id="filterDataSource" onchange="filterContacts()">
+            <option value="">All Sources</option>
+            <option value="google_places">Google Places</option>
+            <option value="itf_ranking">ITF Rankings</option>
+            <option value="atp_ranking">ATP Rankings</option>
+            <option value="wta_ranking">WTA Rankings</option>
+            <option value="usta_ranking">USTA Rankings</option>
+            <option value="organic_signup">Organic Signup</option>
+            <option value="manual">Manual</option>
           </select>
           <select class="mkt-filter-select" id="filterStage" onchange="filterContacts()">
             <option value="">All Stages</option>
@@ -314,8 +325,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   <tr>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Persona</th>
+                    <th>Type</th>
                     <th>Stage</th>
+                    <th>Country</th>
                     <th>Source</th>
                     <th>Tags</th>
                     <th>Actions</th>
@@ -334,6 +346,101 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <!-- Lead Prospecting Panel -->
+        <div class="mkt-panel" style="margin-top:20px;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">🔍 Lead Prospecting Pipeline</div>
+            <div style="display:flex;gap:8px;">
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="toggleProspectPanel('clubs')" id="btnProspectClubs">Prospect Clubs</button>
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="toggleProspectPanel('players')" id="btnProspectPlayers">Prospect Players</button>
+            </div>
+          </div>
+          <div class="mkt-panel__body" id="prospectPanelBody" style="display:none;">
+
+            <!-- Club Prospecting -->
+            <div id="prospectClubsPanel" style="display:none;">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Search for tennis clubs and academies worldwide using Google Places. Results are saved to your contacts pipeline.</p>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
+                <div>
+                  <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Region</label>
+                  <select class="mkt-filter-select" id="prospectRegion" style="min-width:200px;">
+                    <option value="">Select region…</option>
+                    <option value="us-northeast">US Northeast</option>
+                    <option value="us-southeast">US Southeast</option>
+                    <option value="us-midwest">US Midwest</option>
+                    <option value="us-west">US West</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="france">France</option>
+                    <option value="spain">Spain</option>
+                    <option value="germany">Germany</option>
+                    <option value="australia">Australia</option>
+                    <option value="south-america">South America</option>
+                    <option value="middle-east">Middle East</option>
+                    <option value="asia-pacific">Asia Pacific</option>
+                    <option value="eastern-europe">Eastern Europe</option>
+                    <option value="africa">Africa</option>
+                  </select>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runProspecting('clubs', true)">Preview (Dry Run)</button>
+                  <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="runProspecting('clubs', false)">Run Prospecting</button>
+                </div>
+              </div>
+              <div id="prospectClubsResults"></div>
+            </div>
+
+            <!-- Player Prospecting -->
+            <div id="prospectPlayersPanel" style="display:none;">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+                Fetch publicly ranked tennis players from federation databases. Only public record data is collected (name, nationality, ranking). No private information.
+                <span style="display:inline-block;background:#10b98120;color:#10b981;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:6px;">GDPR Safe — Public Record</span>
+              </p>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
+                <div>
+                  <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Federation</label>
+                  <select class="mkt-filter-select" id="prospectFederation" style="min-width:160px;" onchange="updateFederationCategories()">
+                    <option value="itf">ITF (International)</option>
+                    <option value="atp">ATP (Men's Pro)</option>
+                    <option value="wta">WTA (Women's Pro)</option>
+                    <option value="usta">USTA (US National)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Category</label>
+                  <select class="mkt-filter-select" id="prospectCategory" style="min-width:200px;">
+                    <option value="mens-singles">Men's Singles</option>
+                    <option value="womens-singles">Women's Singles</option>
+                    <option value="juniors-boys">Juniors Boys</option>
+                    <option value="juniors-girls">Juniors Girls</option>
+                    <option value="seniors">Seniors</option>
+                    <option value="wheelchair">Wheelchair</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Ranking Range</label>
+                  <div style="display:flex;gap:4px;align-items:center;">
+                    <input type="number" class="mkt-search" id="prospectRankStart" value="1" min="1" style="width:80px;font-size:14px;">
+                    <span style="color:var(--muted);">to</span>
+                    <input type="number" class="mkt-search" id="prospectRankEnd" value="500" min="1" style="width:80px;font-size:14px;">
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="checkbox" id="prospectMatchClubs" checked style="width:16px;height:16px;">
+                    Match to clubs
+                  </label>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runProspecting('players', true)">Preview (Dry Run)</button>
+                  <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="runProspecting('players', false)">Run Prospecting</button>
+                </div>
+              </div>
+              <div id="prospectPlayersResults"></div>
+            </div>
+
           </div>
         </div>
 
@@ -1834,27 +1941,53 @@ function loadContacts_demo() {
 function renderContacts(contacts) {
   const tbody = document.getElementById('contactsTbody');
   if (!contacts.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">👥</div><div class="mkt-empty__title">No contacts</div><div class="mkt-empty__text">Add your first contact to get started.</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="mkt-empty"><div class="mkt-empty__icon">👥</div><div class="mkt-empty__title">No contacts</div><div class="mkt-empty__text">Add your first contact to get started.</div></div></td></tr>`;
     return;
   }
-  tbody.innerHTML = contacts.map(c => `
-    <tr>
+
+  function typeIcon(pt) {
+    if (pt === 'club' || pt === 'academy') return '🏟️';
+    if (pt === 'player') return '🎾';
+    if (pt === 'coach') return '📋';
+    if (pt === 'federation') return '🏛️';
+    return '👤';
+  }
+  function sourceBadge(src) {
+    if (!src) return '—';
+    var colors = { google_places: '#4285F4', itf_ranking: '#0057B8', atp_ranking: '#00205B', wta_ranking: '#7B2D8E', usta_ranking: '#C41230', organic_signup: '#10B981', manual: '#888' };
+    var c = colors[src] || '#888';
+    var label = (src || '').replace(/_/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+    return '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:' + c + '15;color:' + c + ';white-space:nowrap;">' + label + '</span>';
+  }
+
+  tbody.innerHTML = contacts.map(c => {
+    var emailDisplay = (c.email || '').includes('@pending-enrichment') || (c.email || '').includes('@federation-record')
+      ? '<span style="font-size:11px;color:var(--muted);font-style:italic;">needs enrichment</span>'
+      : '<div class="mkt-table__sub">' + escHtml(c.email) + '</div>';
+    var rankBadge = c.ranking_position ? '<span style="font-size:10px;color:#c8ff00;margin-left:4px;">#' + c.ranking_position + '</span>' : '';
+    var clubLink = c.club_affiliation_name ? '<div style="font-size:11px;color:var(--muted);">@ ' + escHtml(c.club_affiliation_name) + '</div>' : '';
+    var country = c.country || c.nationality || c.country_code || '';
+
+    return `<tr>
       <td>
-        <div class="mkt-table__name">${escHtml(c.name || '')}</div>
+        <div class="mkt-table__name">${escHtml(c.name || '')}${rankBadge}</div>
+        ${clubLink}
       </td>
-      <td><div class="mkt-table__sub">${escHtml(c.email)}</div></td>
-      <td><span class="mkt-badge mkt-badge--${c.persona || 'player'}">${c.persona || 'player'}</span></td>
+      <td>${emailDisplay}</td>
+      <td><span title="${c.player_type || c.persona || 'player'}">${typeIcon(c.player_type || c.persona)}</span> <span class="mkt-badge mkt-badge--${c.persona || 'player'}">${c.player_type || c.persona || 'player'}</span></td>
       <td><span class="mkt-badge mkt-badge--${c.stage || 'lead'}">${c.stage || 'lead'}</span></td>
-      <td><span style="font-size:12px;color:var(--muted);">${escHtml(c.source || '—')}</span></td>
+      <td><span style="font-size:12px;">${escHtml(country)}</span></td>
+      <td>${sourceBadge(c.data_source || c.enrichment_source || c.source)}</td>
       <td>${(c.tags || []).slice(0,3).map(t => `<span style="font-size:11px;background:var(--bg-soft);padding:2px 7px;border-radius:999px;margin-right:3px;">${escHtml(t)}</span>`).join('')}</td>
       <td>
         <div class="mkt-table__actions">
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openAssignCadenceModal('${c.id}', '${escHtml(c.name || c.email)}')">Cadence</button>
+          ${c.federation_profile_url ? '<a class="mkt-btn mkt-btn--ghost mkt-btn--sm" href="' + c.federation_profile_url + '" target="_blank" title="Federation Profile">↗</a>' : ''}
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-btn--icon" onclick="deleteContact('${c.id}')" title="Remove">✕</button>
         </div>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function exportContacts(type) {
@@ -1883,13 +2016,192 @@ function filterContacts() {
   const q = document.getElementById('contactSearch').value.toLowerCase();
   const persona = document.getElementById('filterPersona').value;
   const stage = document.getElementById('filterStage').value;
+  const dataSource = document.getElementById('filterDataSource') ? document.getElementById('filterDataSource').value : '';
   const filtered = MarketingStore.contacts.filter(c => {
-    const matchQ = !q || (c.name || '').toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+    const matchQ = !q || (c.name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.nationality || '').toLowerCase().includes(q) || (c.country || '').toLowerCase().includes(q);
     const matchPersona = !persona || c.persona === persona;
     const matchStage = !stage || c.stage === stage;
-    return matchQ && matchPersona && matchStage;
+    const matchSource = !dataSource || c.data_source === dataSource || c.enrichment_source === dataSource;
+    return matchQ && matchPersona && matchStage && matchSource;
   });
   renderContacts(filtered);
+}
+
+// ── PROSPECTING UI ──
+
+const FEDERATION_CATEGORIES = {
+  itf: [
+    { id: 'mens-singles', label: "Men's Singles" },
+    { id: 'womens-singles', label: "Women's Singles" },
+    { id: 'juniors-boys', label: 'Juniors Boys' },
+    { id: 'juniors-girls', label: 'Juniors Girls' },
+    { id: 'seniors', label: 'Seniors' },
+    { id: 'wheelchair', label: 'Wheelchair' }
+  ],
+  atp: [
+    { id: 'singles', label: 'Singles' },
+    { id: 'doubles', label: 'Doubles' },
+    { id: 'race', label: 'Race to Turin' }
+  ],
+  wta: [
+    { id: 'singles', label: 'Singles' },
+    { id: 'doubles', label: 'Doubles' },
+    { id: 'race', label: 'Race to Finals' }
+  ],
+  usta: [
+    { id: 'ntrp-3.0', label: 'NTRP 3.0 (Beginner-Intermediate)' },
+    { id: 'ntrp-3.5', label: 'NTRP 3.5 (Intermediate)' },
+    { id: 'ntrp-4.0', label: 'NTRP 4.0 (Advanced-Intermediate)' },
+    { id: 'ntrp-4.5', label: 'NTRP 4.5 (Advanced)' },
+    { id: 'ntrp-5.0', label: 'NTRP 5.0 (Tournament)' },
+    { id: 'open', label: 'Open / Ranked' },
+    { id: 'junior', label: 'Junior Rankings' },
+    { id: 'collegiate', label: 'Collegiate' }
+  ]
+};
+
+function updateFederationCategories() {
+  var fed = document.getElementById('prospectFederation').value;
+  var catSelect = document.getElementById('prospectCategory');
+  var cats = FEDERATION_CATEGORIES[fed] || [];
+  catSelect.innerHTML = cats.map(function(c) {
+    return '<option value="' + c.id + '">' + c.label + '</option>';
+  }).join('');
+}
+
+function toggleProspectPanel(type) {
+  var body = document.getElementById('prospectPanelBody');
+  var clubsPanel = document.getElementById('prospectClubsPanel');
+  var playersPanel = document.getElementById('prospectPlayersPanel');
+
+  if (type === 'clubs') {
+    var wasVisible = clubsPanel.style.display !== 'none';
+    body.style.display = wasVisible ? 'none' : 'block';
+    clubsPanel.style.display = wasVisible ? 'none' : 'block';
+    playersPanel.style.display = 'none';
+  } else {
+    var wasVisible = playersPanel.style.display !== 'none';
+    body.style.display = wasVisible ? 'none' : 'block';
+    playersPanel.style.display = wasVisible ? 'none' : 'block';
+    clubsPanel.style.display = 'none';
+  }
+}
+
+async function runProspecting(type, dryRun) {
+  var resultsEl = document.getElementById(type === 'clubs' ? 'prospectClubsResults' : 'prospectPlayersResults');
+  resultsEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);"><div class="mkt-spin" style="width:24px;height:24px;border:3px solid #333;border-top-color:#c8ff00;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>Searching ' + (type === 'clubs' ? 'clubs' : 'federation rankings') + '…</div>';
+
+  try {
+    var body;
+    var endpoint;
+
+    if (type === 'clubs') {
+      var region = document.getElementById('prospectRegion').value;
+      if (!region) { showToast('Select a region first', 'error'); resultsEl.innerHTML = ''; return; }
+      endpoint = '/api/marketing/prospect-clubs';
+      body = { region: region, dry_run: dryRun };
+    } else {
+      endpoint = '/api/marketing/prospect-players';
+      body = {
+        federation: document.getElementById('prospectFederation').value,
+        category: document.getElementById('prospectCategory').value,
+        ranking_start: parseInt(document.getElementById('prospectRankStart').value) || 1,
+        ranking_end: parseInt(document.getElementById('prospectRankEnd').value) || 500,
+        match_clubs: document.getElementById('prospectMatchClubs').checked,
+        dry_run: dryRun
+      };
+    }
+
+    var resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    var data = await resp.json();
+
+    if (!data.success && data.error) {
+      resultsEl.innerHTML = '<div style="padding:16px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">' + data.error + '</div>';
+      return;
+    }
+
+    // Render results
+    var html = '<div class="prospect-results" style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">';
+    html += '<div style="padding:14px 16px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
+    html += '<div>';
+    html += '<span style="font-weight:700;font-size:15px;">' + (data.total_found || data.total_players || 0) + ' ' + (type === 'clubs' ? 'clubs' : 'players') + ' found</span>';
+    if (dryRun) html += ' <span style="background:#f59e0b20;color:#f59e0b;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:6px;">DRY RUN — Preview Only</span>';
+    if (!dryRun) html += ' <span style="background:#10b98120;color:#10b981;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:6px;">Inserted: ' + (data.inserted || 0) + ' | Skipped: ' + (data.skipped || 0) + '</span>';
+    html += '</div>';
+
+    if (type === 'players' && data.matched_to_clubs > 0) {
+      html += '<span style="font-size:12px;color:var(--muted);">Matched to clubs: ' + data.matched_to_clubs + '</span>';
+    }
+    html += '</div>';
+
+    // Sample table
+    var sample = data.sample || [];
+    if (sample.length > 0) {
+      html += '<div style="overflow-x:auto;">';
+      html += '<table class="mkt-table" style="margin:0;border-radius:0;">';
+      if (type === 'clubs') {
+        html += '<thead><tr><th>Name</th><th>City</th><th>Country</th><th>Phone</th><th>Website</th><th>Rating</th></tr></thead><tbody>';
+        sample.forEach(function(s) {
+          html += '<tr>';
+          html += '<td style="font-weight:600;">' + (s.name || '') + '</td>';
+          html += '<td>' + (s.city || '') + '</td>';
+          html += '<td>' + (s.country || '') + '</td>';
+          html += '<td>' + (s.phone || '—') + '</td>';
+          html += '<td>' + (s.website ? '<a href="' + s.website + '" target="_blank" style="color:#c8ff00;">Visit</a>' : '—') + '</td>';
+          html += '<td>' + (s.rating ? s.rating + ' ★' : '—') + '</td>';
+          html += '</tr>';
+        });
+      } else {
+        html += '<thead><tr><th>#</th><th>Name</th><th>Nationality</th><th>Tier</th><th>Club</th><th>Match</th><th>Profile</th></tr></thead><tbody>';
+        sample.forEach(function(s) {
+          html += '<tr>';
+          html += '<td style="font-weight:700;color:#c8ff00;">' + (s.ranking || s.ranking_position || '') + '</td>';
+          html += '<td style="font-weight:600;">' + (s.name || '') + '</td>';
+          html += '<td>' + (s.nationality || '—') + '</td>';
+          html += '<td><span style="font-size:11px;padding:2px 6px;border-radius:4px;background:#c8ff0015;color:#c8ff00;">' + (s.tier || s.ranking_tier || '') + '</span></td>';
+          html += '<td>' + (s.club || s.club_affiliation_name || '—') + '</td>';
+          html += '<td>' + (s.club_match || s._match_method || '—') + '</td>';
+          html += '<td>' + (s.profile_url || s.federation_profile_url ? '<a href="' + (s.profile_url || s.federation_profile_url) + '" target="_blank" style="color:#c8ff00;">View</a>' : '—') + '</td>';
+          html += '</tr>';
+        });
+      }
+      html += '</tbody></table></div>';
+    }
+
+    // GDPR compliance badge for players
+    if (type === 'players' && data.gdpr_compliance) {
+      html += '<div style="padding:12px 16px;background:#10b98108;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">';
+      html += '<strong style="color:#10b981;">GDPR Compliance:</strong> ' + data.gdpr_compliance.legal_basis;
+      if (data.gdpr_compliance.data_not_collected) {
+        html += ' — <em>Not collected: ' + data.gdpr_compliance.data_not_collected.join(', ') + '</em>';
+      }
+      html += '</div>';
+    }
+
+    // Next steps
+    if (!dryRun && data.next_steps) {
+      html += '<div style="padding:12px 16px;border-top:1px solid var(--border);font-size:12px;">';
+      html += '<strong>Next steps:</strong><ul style="margin:4px 0 0;padding-left:20px;">';
+      data.next_steps.forEach(function(s) { html += '<li style="margin-bottom:2px;">' + s + '</li>'; });
+      html += '</ul></div>';
+    }
+
+    html += '</div>';
+    resultsEl.innerHTML = html;
+
+    if (!dryRun && data.inserted > 0) {
+      showToast(data.inserted + ' ' + (type === 'clubs' ? 'clubs' : 'players') + ' added to contacts pipeline!', 'success');
+      // Refresh contacts table
+      if (typeof loadContacts === 'function') loadContacts();
+    }
+  } catch (err) {
+    resultsEl.innerHTML = '<div style="padding:16px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
+  }
 }
 
 async function saveContact() {
