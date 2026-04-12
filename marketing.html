@@ -1062,34 +1062,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- SMS Provider -->
           <div class="mkt-panel">
             <div class="mkt-panel__header">
-              <div class="mkt-panel__title">💬 SMS Provider</div>
+              <div class="mkt-panel__title">💬 SMS Provider (Amazon SNS)</div>
             </div>
             <div class="mkt-panel__body">
-              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Configure SMS sending for cadences and campaigns.</p>
-              <div class="mkt-form-group">
-                <label class="mkt-label">Provider</label>
-                <select class="mkt-select" id="settSmsProvider">
-                  <option value="">— Select provider —</option>
-                  <option value="sns">Amazon SNS (Configured — Account 229475224417)</option>
-                  <option value="twilio">Twilio (best API, $0.0079/msg)</option>
-                  <option value="vonage">Vonage ($0.0068/msg)</option>
-                </select>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">SMS sending is configured via Amazon SNS through Vercel environment variables.</p>
+              <div id="smsStatusBox" style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg-soft);border-radius:8px;margin-bottom:16px;">
+                <span style="font-size:14px;">⏳</span>
+                <span style="font-size:13px;color:var(--muted);">Checking SMS configuration…</span>
               </div>
-              <div class="mkt-form-group">
-                <label class="mkt-label">API Key / Access Key</label>
-                <input type="password" class="mkt-input" id="settSmsKey" placeholder="Enter API key">
-              </div>
-              <div class="mkt-form-group">
-                <label class="mkt-label">API Secret / From Number</label>
-                <input type="password" class="mkt-input" id="settSmsSecret" placeholder="Enter secret or phone number">
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="saveSmsConfig()">Save SMS Config</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
                 <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="sendTestSms()">Send Test SMS</button>
+                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="checkSmsStatus()">Refresh Status</button>
               </div>
-              <div style="margin-top:12px;padding:10px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5;">
+              <div style="padding:10px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5;">
                 <strong>Note:</strong> All US SMS requires A2P 10DLC registration. Amazon SNS offers 100 free SMS/month in the free tier.<br>
-                <strong>Endpoint:</strong> SMS sending uses the <code>/api/marketing/send-sms</code> serverless function.
+                <strong>Endpoint:</strong> <code>/api/marketing/send-sms</code><br>
+                <strong>Credentials:</strong> Managed via <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> in Vercel env vars.
               </div>
             </div>
           </div>
@@ -1687,6 +1675,7 @@ function switchTab(tabName, triggerEl) {
     if (ss.yt) document.getElementById('settYtSubs').value = ss.yt;
     if (ss.fb) document.getElementById('settFbLikes').value = ss.fb;
     checkSocialConnections();
+    checkSmsStatus();
   }
 }
 
@@ -3538,14 +3527,27 @@ function checkSocialConnections() {
   }).catch(function() { /* silent */ });
 }
 
-function saveSmsConfig() {
-  var provider = document.getElementById('settSmsProvider').value;
-  var key = document.getElementById('settSmsKey').value.trim();
-  var secret = document.getElementById('settSmsSecret').value.trim();
-  if (!provider) { showToast('Select an SMS provider', 'error'); return; }
-  if (!key) { showToast('API key is required', 'error'); return; }
-  localStorage.setItem('mkt_sms_config', JSON.stringify({ provider: provider, configured: true }));
-  showToast('SMS provider configured! Keys are stored securely.', 'success');
+function checkSmsStatus() {
+  var box = document.getElementById('smsStatusBox');
+  if (!box) return;
+  // Send a lightweight probe to the SMS endpoint to check if AWS creds are configured
+  fetch('/api/marketing/send-sms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: '+1', message: 'probe' })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.error && data.error.indexOf('AWS credentials not configured') !== -1) {
+      box.style.background = '#fef2f2';
+      box.innerHTML = '<span style="font-size:14px;">❌</span><span style="font-size:13px;color:#dc2626;">Not configured — add <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> to Vercel env vars.</span>';
+    } else {
+      // Either success or a phone validation error — means AWS creds are working
+      box.style.background = '#f0fdf4';
+      box.innerHTML = '<span style="font-size:14px;">✅</span><span style="font-size:13px;color:#16a34a;">Amazon SNS is configured via Vercel env vars and ready to send.</span>';
+    }
+  }).catch(function() {
+    box.style.background = '#fef2f2';
+    box.innerHTML = '<span style="font-size:14px;">⚠️</span><span style="font-size:13px;color:#b45309;">Could not reach SMS endpoint.</span>';
+  });
 }
 
 function saveEmailConfig() {
