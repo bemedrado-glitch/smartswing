@@ -308,7 +308,29 @@
     
     .card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--neon-green); }
     .card-subtitle { font-size: 12px; color: var(--silver); font-weight: 600; }
-    
+
+    /* Session Goal Cards */
+    .session-goal-card {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 16px 10px; border-radius: 14px; cursor: pointer;
+      background: rgba(255,255,255,.03); border: 2px solid rgba(255,255,255,.08);
+      color: var(--silver); font-size: 12px; font-weight: 700;
+      transition: all .2s ease; text-align: center; user-select: none;
+    }
+    .session-goal-card:hover { border-color: rgba(57,255,20,.35); background: rgba(57,255,20,.04); transform: translateY(-2px); }
+    .session-goal-card.selected { border-color: var(--neon-green); background: rgba(57,255,20,.1); color: var(--neon-green); box-shadow: 0 0 16px rgba(57,255,20,.2); }
+    .session-goal-card.selected svg { stroke: var(--neon-green); }
+
+    /* Capture Readiness Guide Items */
+    .capture-guide-item {
+      display: flex; gap: 12px; align-items: flex-start; cursor: pointer;
+      padding: 8px; border-radius: 10px; transition: opacity .2s;
+    }
+    .capture-guide-item.unchecked { opacity: .4; }
+    .capture-guide-item .guide-check-icon { transition: all .2s; }
+    .capture-guide-item.unchecked .guide-check-icon { background: rgba(255,100,100,.1) !important; border-color: rgba(255,100,100,.2) !important; }
+    .capture-guide-item.unchecked .guide-check-icon svg { stroke: #ff6464 !important; }
+
     /* Buttons */
     .btn {
       padding: 16px 32px;
@@ -883,6 +905,9 @@
     .mt-pill-btn.mt-pill-danger { background: rgba(255,62,108,.1); border-color: rgba(255,62,108,.3); color: #ff3e6c; }
     .mt-pill-btn.mt-pill-danger:hover { background: rgba(255,62,108,.2); }
     .mt-format-btn.selected { background: rgba(57,255,20,0.2); border-color: rgba(57,255,20,0.5); color: #39ff14; }
+    .mt-mini-game-btn { transition: all .2s; border-color: rgba(0,188,212,.2); }
+    .mt-mini-game-btn:hover { border-color: rgba(0,188,212,.5); background: rgba(0,188,212,.08); }
+    .mt-mini-game-btn.selected { background: rgba(0,188,212,.18); border-color: rgba(0,188,212,.5); color: var(--electric-cyan); }
     .mt-btn-group-label {
       font-size: 11px;
       font-weight: 700;
@@ -1099,11 +1124,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div style="margin-bottom: 40px;">
           <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Playing Level</h3>
-          <div class="selection-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-            <div class="selection-card" data-field="level" data-value="beginner"><div class="card-title">Beginner</div><div class="card-subtitle">Just started</div></div>
-            <div class="selection-card" data-field="level" data-value="intermediate"><div class="card-title">Intermediate</div><div class="card-subtitle">USTA 3.0-3.5</div></div>
-            <div class="selection-card" data-field="level" data-value="advanced"><div class="card-title">Advanced</div><div class="card-subtitle">USTA 4.0-4.5</div></div>
-            <div class="selection-card" data-field="level" data-value="pro"><div class="card-title">Pro/Elite</div><div class="card-subtitle">USTA 5.0+</div></div>
+          <div class="selection-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+            <div class="selection-card" data-field="level" data-value="starter"><div class="card-title">Starter</div><div class="card-subtitle">Just started playing</div></div>
+            <div class="selection-card" data-field="level" data-value="beginner"><div class="card-title">Beginner</div><div class="card-subtitle">USTA 2.5 - 3.0</div></div>
+            <div class="selection-card" data-field="level" data-value="intermediate"><div class="card-title">Intermediate</div><div class="card-subtitle">USTA 3.0 - 4.0</div></div>
+            <div class="selection-card" data-field="level" data-value="advanced"><div class="card-title">Advanced</div><div class="card-subtitle">USTA 4.0 - 4.5</div></div>
+            <div class="selection-card" data-field="level" data-value="atp-pro"><div class="card-title">ATP Pro</div><div class="card-subtitle">USTA 4.5 - 5.0</div></div>
           </div>
         </div>
 
@@ -1180,9 +1206,62 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               </div>
               <div>
                 <div style="font-size:13px;font-weight:700;color:#f5f5f7;margin-bottom:3px;" data-i18n="analyzer.guideDuration">Duration</div>
-                <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;" data-i18n="analyzer.guideDurationDesc">10–60 seconds of one stroke type with good lighting</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;" data-i18n="analyzer.guideDurationDesc">10-60 seconds of one stroke type with good lighting</div>
               </div>
             </div>
+          </div>
+
+          <!-- Capture Readiness Checklist (integrated) -->
+          <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(57,255,20,.1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(57,255,20,.7);">Capture Readiness</span>
+              <span style="font-size:12px;font-weight:800;color:var(--electric-cyan,#00d4ff);">Score: <span id="setupScore">100</span>/100</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+              <div class="capture-guide-item" onclick="toggleGuideCheck(this)">
+                <div class="guide-check-icon" style="flex-shrink:0;width:32px;height:32px;border-radius:8px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Full body visible</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Head to toe visible from split-step through follow-through</div>
+                </div>
+                <input type="checkbox" class="setup-check" checked style="display:none;">
+              </div>
+              <div class="capture-guide-item" onclick="toggleGuideCheck(this)">
+                <div class="guide-check-icon" style="flex-shrink:0;width:32px;height:32px;border-radius:8px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Stable camera</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Tripod at waist height with clear movement chain view</div>
+                </div>
+                <input type="checkbox" class="setup-check" checked style="display:none;">
+              </div>
+              <div class="capture-guide-item" onclick="toggleGuideCheck(this)">
+                <div class="guide-check-icon" style="flex-shrink:0;width:32px;height:32px;border-radius:8px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Good lighting</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Court lines, player shape, and lighting clean for AI detection</div>
+                </div>
+                <input type="checkbox" class="setup-check" checked style="display:none;">
+              </div>
+              <div class="capture-guide-item" onclick="toggleGuideCheck(this)">
+                <div class="guide-check-icon" style="flex-shrink:0;width:32px;height:32px;border-radius:8px;background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.15);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Single stroke focus</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Clip focuses on one main stroke instead of mixing patterns</div>
+                </div>
+                <input type="checkbox" class="setup-check" checked style="display:none;">
+              </div>
+            </div>
+          </div>
+          <div id="captureGuidance" class="info-box" style="margin-top:12px;">
+            Select shot type and session mode to get pre-capture guidance.
           </div>
         </div>
 
@@ -1246,49 +1325,36 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <div class="stats-panel" style="margin-top: 20px;">
-          <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; color: var(--neon-green);">
-            Capture Readiness
-          </div>
-          <div style="display: grid; gap: 10px;">
-            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-              <input type="checkbox" class="setup-check" checked>
-              <span>Full body stays visible from split-step through follow-through.</span>
-            </label>
-            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-              <input type="checkbox" class="setup-check" checked>
-              <span>Camera is stable on a tripod and high enough to see your movement chain clearly.</span>
-            </label>
-            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-              <input type="checkbox" class="setup-check" checked>
-              <span>Court lines, player shape, and lighting are clean enough for strong AI detection.</span>
-            </label>
-            <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-              <input type="checkbox" class="setup-check" checked>
-              <span>This clip focuses on one main stroke goal instead of mixing multiple patterns together.</span>
-            </label>
-          </div>
-          <div style="margin-top: 14px; font-weight: 800; color: var(--electric-cyan);">
-            Setup score: <span id="setupScore">100</span>/100
-          </div>
-          <div id="captureGuidance" class="info-box" style="margin-top: 12px;">
-            Select shot type and session mode to get pre-capture guidance.
-          </div>
-          <div style="margin-top: 16px; display:grid; gap:12px;">
-            <div>
-              <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:8px; color:var(--gray);">Session Goal</label>
-              <select id="sessionMode" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--silver); padding:14px; border-radius:12px;">
-                <option value="stroke-tune-up">Stroke tune-up</option>
-                <option value="match-readiness">Match readiness</option>
-                <option value="coach-review">Coach review</option>
-                <option value="injury-safe-rebuild">Injury-safe rebuild</option>
-                <option value="match-mode" data-plan-gate="paid">Match Mode — Live Score &amp; Shot Tracker</option>
-              </select>
-            </div>
-            <div>
-              <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:8px; color:var(--gray);">What do you want to improve?</label>
-              <input id="sessionGoal" type="text" placeholder="Example: earlier contact point and cleaner hip rotation" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); color:var(--silver); padding:14px; border-radius:12px;">
+          <!-- Session Goal — visual cards -->
+          <div style="margin-top: 16px;">
+            <label style="display:block; font-size:12px; text-transform:uppercase; font-weight:800; margin-bottom:10px; color:var(--gray); letter-spacing:.08em;">Session Goal</label>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px;" id="sessionModeGrid">
+              <div class="session-goal-card selected" data-mode="stroke-tune-up" onclick="selectSessionGoal(this)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <span>Stroke Practice</span>
+              </div>
+              <div class="session-goal-card" data-mode="match-readiness" onclick="selectSessionGoal(this)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 9 7 12 7s5-3 7.5-3a2.5 2.5 0 0 1 0 5H18"/><path d="M18 15h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M6 15H4.5a2.5 2.5 0 0 1 0 5H6"/><path d="M18 15h1.5a2.5 2.5 0 0 1 0 5H18"/><line x1="12" y1="7" x2="12" y2="21"/></svg>
+                <span>Match Prep</span>
+              </div>
+              <div class="session-goal-card" data-mode="coach-review" onclick="selectSessionGoal(this)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+                <span>Coach Review</span>
+              </div>
+              <div class="session-goal-card" data-mode="match-mode" data-plan-gate="paid" onclick="selectSessionGoal(this)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="7" x2="12" y2="22"/></svg>
+                <span>Match Mode</span>
+              </div>
             </div>
           </div>
+          <!-- Hidden select for backward compatibility -->
+          <select id="sessionMode" style="display:none;">
+            <option value="stroke-tune-up" selected>Stroke tune-up</option>
+            <option value="match-readiness">Match readiness</option>
+            <option value="coach-review">Coach review</option>
+            <option value="match-mode" data-plan-gate="paid">Match Mode</option>
+          </select>
+          <input id="sessionGoal" type="hidden" value="">
         </div>
 
         <div class="btn-group">
@@ -1337,7 +1403,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="stat-card">
               <div class="stat-label">Landmarks Detected</div>
               <div class="stat-value" id="landmarksCount">0</div>
-              <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">of 17 keypoints</div>
+              <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">of 17 keypoints tracked</div>
             </div>
 
             <div class="stat-card">
@@ -1391,10 +1457,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- Match format -->
           <div class="mt-panel" style="margin-bottom:16px;" id="mtFormatPanel">
             <div class="mt-label" style="margin-bottom:10px;">Match Format</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="mt-pill-btn mt-format-btn" data-format="1" style="flex:1;min-width:80px;">1 Set</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
               <button class="mt-pill-btn mt-format-btn selected" data-format="3" style="flex:1;min-width:80px;">Best of 3</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="1" style="flex:1;min-width:80px;">1 Set</button>
               <button class="mt-pill-btn mt-format-btn" data-format="5" style="flex:1;min-width:80px;">Best of 5</button>
+            </div>
+
+            <div class="mt-label" style="margin-bottom:10px; margin-top:16px; display:flex; align-items:center; gap:8px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--electric-cyan)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              Fun Games / Drills
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px;">
+              <button class="mt-pill-btn mt-mini-game-btn" data-game="first-to-7" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">First to 7</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Rally scoring</div>
+              </button>
+              <button class="mt-pill-btn mt-mini-game-btn" data-game="king-of-court" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">King of Court</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Stay on to win</div>
+              </button>
+              <button class="mt-pill-btn mt-mini-game-btn" data-game="21-tiebreak" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">21-Pt Tiebreak</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Win by 2</div>
+              </button>
+              <button class="mt-pill-btn mt-mini-game-btn" data-game="around-the-world" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Around the World</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Rotate positions</div>
+              </button>
+              <button class="mt-pill-btn mt-mini-game-btn" data-game="serve-volley" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Serve &amp; Volley</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Net approach only</div>
+              </button>
+              <button class="mt-pill-btn mt-mini-game-btn" data-game="target-practice" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Target Practice</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Hit zones for pts</div>
+              </button>
             </div>
           </div>
 
@@ -1872,16 +1969,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       RIGHT_ANKLE: 16
     };
 
-    // MoveNet Skeleton Connections
+    // MoveNet Skeleton Connections (17 keypoints, 17 connections)
     const POSE_CONNECTIONS = [
+      // Head & neck
+      [KEYPOINT.NOSE, KEYPOINT.LEFT_SHOULDER],
+      [KEYPOINT.NOSE, KEYPOINT.RIGHT_SHOULDER],
+      [KEYPOINT.LEFT_EAR, KEYPOINT.LEFT_SHOULDER],
+      [KEYPOINT.RIGHT_EAR, KEYPOINT.RIGHT_SHOULDER],
+      [KEYPOINT.NOSE, KEYPOINT.LEFT_EYE],
+      // Upper body
       [KEYPOINT.LEFT_SHOULDER, KEYPOINT.RIGHT_SHOULDER],
       [KEYPOINT.LEFT_SHOULDER, KEYPOINT.LEFT_ELBOW],
       [KEYPOINT.LEFT_ELBOW, KEYPOINT.LEFT_WRIST],
       [KEYPOINT.RIGHT_SHOULDER, KEYPOINT.RIGHT_ELBOW],
       [KEYPOINT.RIGHT_ELBOW, KEYPOINT.RIGHT_WRIST],
+      // Torso
       [KEYPOINT.LEFT_SHOULDER, KEYPOINT.LEFT_HIP],
       [KEYPOINT.RIGHT_SHOULDER, KEYPOINT.RIGHT_HIP],
       [KEYPOINT.LEFT_HIP, KEYPOINT.RIGHT_HIP],
+      // Lower body
       [KEYPOINT.LEFT_HIP, KEYPOINT.LEFT_KNEE],
       [KEYPOINT.LEFT_KNEE, KEYPOINT.LEFT_ANKLE],
       [KEYPOINT.RIGHT_HIP, KEYPOINT.RIGHT_KNEE],
@@ -1940,10 +2046,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     function normalizeLevel(value) {
       const input = String(value || '').toLowerCase();
-      if (input.includes('beginner')) return 'beginner';
+      if (input === 'starter' || input.includes('just started')) return 'starter';
+      if (input.includes('beginner') || input.includes('2.5')) return 'beginner';
       if (input.includes('competitive') || input.includes('tournament')) return 'competitive';
-      if (input.includes('advanced')) return 'advanced';
-      if (input.includes('pro') || input.includes('5.0')) return 'pro';
+      if (input.includes('advanced') || input.includes('4.0') || input.includes('4.5')) return 'advanced';
+      if (input === 'atp-pro' || input.includes('pro') || input.includes('5.0') || input.includes('atp')) return 'pro';
       return 'intermediate';
     }
 
@@ -2499,6 +2606,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         angles.trunk = calculateAngle(shoulderMid, hipMid, vertical);
       }
 
+      // ── Head angle ──
+      // Angle between nose-to-shoulder-midpoint line and vertical.
+      // Tracks whether the player's head is stable and eyes on the ball.
+      // 0° = head perfectly upright; higher values = tilting toward the shot.
+      const nose = keypoints[KEYPOINT.NOSE];
+      if (kpOk(nose) && kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        const shoulderCenter = midpoint(leftShoulder, rightShoulder);
+        const headDx = nose.x - shoulderCenter.x;
+        const headDy = nose.y - shoulderCenter.y; // negative = nose above shoulders (normal)
+        const headLen = Math.sqrt(headDx * headDx + headDy * headDy);
+        if (headLen > 0.0001) {
+          const headCos = Math.max(-1, Math.min(1, -headDy / headLen));
+          angles.headAngle = Math.round((Math.acos(headCos) * 180) / Math.PI);
+        }
+      }
+
       // ── Wrist angle ──
       // Defined as the orientation of the FOREARM (elbow → wrist vector)
       // relative to vertical, in degrees. 0° means the forearm is pointing
@@ -2539,7 +2662,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         reach: null,
         balance: null,
         alignmentGap: null,
-        footworkLoad: null
+        footworkLoad: null,
+        wristHipDistance: null,
+        wristHeightRelative: null,
+        headStability: null
       };
 
       const leftShoulder = keypoints[KEYPOINT.LEFT_SHOULDER];
@@ -2617,6 +2743,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         metrics.footworkLoad = roundMetric(clamp(poseMotion * 8, 0, 100));
       }
 
+      // ── Wrist-Hip distance (racquet proxy) ──
+      // Normalized distance from dominant wrist to dominant hip.
+      // Low = preparation phase, high = follow-through or contact extension.
+      const hip = keypoints[isRight ? KEYPOINT.RIGHT_HIP : KEYPOINT.LEFT_HIP];
+      if (kpOk(wrist) && kpOk(hip) && kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        const torsoScale = Math.max(distance(midpoint(leftShoulder, rightShoulder), midpoint(leftHip, rightHip)) || 0, 1);
+        metrics.wristHipDistance = roundMetric((distance(wrist, hip) / torsoScale) * 100);
+      }
+
+      // ── Wrist height relative to shoulder (contact height proxy) ──
+      // 0 = at shoulder level, negative = above shoulder (serve trophy), positive = below
+      if (kpOk(wrist) && kpOk(shoulder)) {
+        metrics.wristHeightRelative = roundMetric(((wrist.y - shoulder.y) / Math.max(Math.abs(shoulder.y) || 1, 0.01)) * 100);
+      }
+
+      // ── Head stability ──
+      // How centered the nose is relative to the shoulder midpoint (lateral sway).
+      // 0 = perfectly centered, higher = head drifting off center.
+      if (kpOk(nose) && kpOk(leftShoulder) && kpOk(rightShoulder)) {
+        const shoulderCenter = midpoint(leftShoulder, rightShoulder);
+        const shoulderW = distance(leftShoulder, rightShoulder) || 1;
+        metrics.headStability = roundMetric((Math.abs(nose.x - shoulderCenter.x) / shoulderW) * 100);
+      }
+
       return metrics;
     }
 
@@ -2625,7 +2775,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     // overlay to reduce visual clutter and free up the head area for the
     // viewer\u2019s eye to focus on the swing mechanics. The wrists are drawn
     // larger and in gold to emphasise the new wrist-lag metric.
-    const FACE_KEYPOINT_INDICES = new Set([0, 1, 2, 3, 4]); // nose, l_eye, r_eye, l_ear, r_ear
+    const FACE_KEYPOINT_INDICES = new Set([1, 2, 3, 4]); // l_eye, r_eye, l_ear, r_ear (nose is now tracked for head angle)
     const WRIST_KEYPOINT_INDICES = new Set([9, 10]);        // left_wrist, right_wrist
 
     function drawPose(keypoints) {
@@ -3047,6 +3197,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
 
     const PROFILE_SCORE_CURVE = {
+      starter: { tolerance: 1.70, boost: 15, percentileShift: 20 },
       beginner: { tolerance: 1.55, boost: 12, percentileShift: 15 },
       intermediate: { tolerance: 1.38, boost: 9, percentileShift: 11 },
       advanced: { tolerance: 1.15, boost: 4, percentileShift: 3 },
@@ -3055,6 +3206,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
 
     const LEVEL_EXPECTATIONS = {
+      starter: 0.40,
       beginner: 0.55,
       intermediate: 0.75,
       advanced: 0.9,
@@ -3757,20 +3909,74 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const list = Array.isArray(frames) ? frames.filter((frame) => frame?.angles) : [];
       if (list.length <= 24) return list;
 
+      // Score each frame by biomechanical activation
       const scored = list.map((frame, index) => {
         const poseMotion = safeNumber(frame.poseMotion, 0);
         const reach = safeNumber(frame.derivedMetrics?.reach, 0);
         const contactHeight = safeNumber(frame.derivedMetrics?.contactHeight, 0);
         const footworkLoad = safeNumber(frame.derivedMetrics?.footworkLoad, 0);
         const trunk = safeNumber(frame.angles?.trunk, 0);
+        const wristHip = safeNumber(frame.derivedMetrics?.wristHipDistance, 0);
 
-        let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18;
+        let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18 + wristHip * 0.30;
         if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
         else activation += reach * 0.25 + contactHeight * 0.18;
 
         return { frame, index, activation };
       });
 
+      // Detect shot windows: clusters of frames where activation exceeds a dynamic threshold
+      const activations = scored.map(s => s.activation);
+      const meanAct = average(activations) || 0;
+      const stdAct = standardDeviation(activations) || 0;
+      const shotThreshold = meanAct + stdAct * 0.5; // frames above mean + 0.5 std are "active"
+
+      // Find contiguous windows of active frames (with small gaps allowed)
+      const maxGap = 3; // allow up to 3 low-activity frames within a shot window
+      const minWindowSize = 5; // a valid shot window must have at least 5 active frames
+      const windows = [];
+      let currentWindow = null;
+      let gapCount = 0;
+
+      for (let i = 0; i < scored.length; i++) {
+        const isActive = scored[i].activation >= shotThreshold;
+        if (isActive) {
+          if (!currentWindow) {
+            currentWindow = { start: i, end: i, activeCount: 1 };
+          } else {
+            currentWindow.end = i;
+            currentWindow.activeCount++;
+          }
+          gapCount = 0;
+        } else if (currentWindow) {
+          gapCount++;
+          if (gapCount <= maxGap) {
+            currentWindow.end = i; // extend through small gaps
+          } else {
+            if (currentWindow.activeCount >= minWindowSize) windows.push(currentWindow);
+            currentWindow = null;
+            gapCount = 0;
+          }
+        }
+      }
+      if (currentWindow && currentWindow.activeCount >= minWindowSize) windows.push(currentWindow);
+
+      // If we detected shot windows, use only those frames (plus a small buffer before/after)
+      if (windows.length > 0) {
+        const buffer = 3; // include a few frames before and after each window for context
+        const selectedIndexes = new Set();
+        windows.forEach(w => {
+          for (let i = Math.max(0, w.start - buffer); i <= Math.min(scored.length - 1, w.end + buffer); i++) {
+            selectedIndexes.add(i);
+          }
+        });
+        // Store window count for reporting
+        const result = list.filter((_, index) => selectedIndexes.has(index));
+        result._shotWindowCount = windows.length;
+        return result;
+      }
+
+      // Fallback: no clear windows detected, use top activation frames (original behavior)
       const takeCount = clamp(Math.round(list.length * 0.38), 18, 72);
       const selectedIndexes = new Set(
         scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount).map((item) => item.index)
@@ -3963,7 +4169,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // Score floors: prevent unrealistically low scores from tracking noise, but keep them
       // honest. A pro with poor mechanics SHOULD score low — the tighter tolerance already
       // handles the expectation. Floors only catch noise, not bad swings.
-      const levelFloor = { beginner: 55, intermediate: 50, advanced: 42, competitive: 38, pro: 40 }[profileContext.level] || 45;
+      const levelFloor = { starter: 60, beginner: 55, intermediate: 50, advanced: 42, competitive: 38, pro: 40 }[profileContext.level] || 45;
       const rawScore = Math.round(
         (biomechanicsScore * 0.62) +
         (performanceKpis.timingConsistency * 0.14) +
@@ -4533,11 +4739,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     // ============================================================================
     // Session Building
     // ============================================================================
-    function buildSession() {
-      console.log('🔨 buildSession() called');
-      console.log('   Total frames:', analysisData.frames.length);
-      
-      const shotType = playerProfile.shots[0] || 'forehand';
+    function buildSingleShotSummary(shotType) {
       const focusFrames = selectAssessmentFrames(analysisData.frames, shotType);
       const avgAngles = averageMetricMapFromFrames(focusFrames, Object.keys(analysisData.angles));
       const avgDerivedMetrics = averageMetricMapFromFrames(focusFrames, Object.keys(analysisData.derivedMetrics));
@@ -4605,43 +4807,134 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         gripAssessment = null;
       }
 
+      // Insufficient data detection
+      const insufficientData = avgConfidence < 40 || avgLandmarks < 10 || focusFrames.length < 15;
+
+      return {
+        framesAnalyzed: analysisData.frames.length,
+        focusFramesAnalyzed: focusFrames.length,
+        shotWindowsDetected: focusFrames._shotWindowCount || 0,
+        avgLandmarks,
+        avgConfidence,
+        avgAngles,
+        avgDerivedMetrics,
+        score: insufficientData ? null : scoreResult.overallScore,
+        grade: insufficientData ? null : scoreResult.grade,
+        percentile: insufficientData ? null : scoreResult.percentile,
+        shotType,
+        insufficientData,
+        metricComparisons: insufficientData ? [] : metricComparisons,
+        benchmarkSummary: insufficientData ? '' : benchmarkSummary,
+        tailoredDrills: insufficientData ? [] : tailoredDrills,
+        tailoredTactics: insufficientData ? [] : tailoredTactics,
+        componentScores: insufficientData ? {} : scoreResult.componentScores,
+        performanceKpis: insufficientData ? {} : scoreResult.performanceKpis,
+        progressContext: insufficientData ? {} : scoreResult.progressContext,
+        milestone: insufficientData ? null : scoreResult.milestone,
+        achievements: insufficientData ? [] : scoreResult.achievements,
+        scoringMeta: insufficientData ? {} : scoreResult.scoringMeta,
+        sessionMode: playerProfile.sessionMode,
+        sessionGoal: playerProfile.sessionGoal,
+        setupScore: playerProfile.setupScore,
+        temporalStats,
+        chainAnalysis,
+        rootCause: insufficientData ? null : rootCause,
+        gripAssessment: insufficientData ? null : gripAssessment
+      };
+    }
+
+    function buildSession() {
+      console.log('buildSession() called');
+      console.log('   Total frames:', analysisData.frames.length);
+
+      const shots = playerProfile.shots.length ? playerProfile.shots : ['forehand'];
+      const summaries = shots.map(shotType => buildSingleShotSummary(shotType));
+
       return {
         profile: playerProfile,
-        summary: {
-          framesAnalyzed: analysisData.frames.length,
-          focusFramesAnalyzed: focusFrames.length,
-          avgLandmarks,
-          avgConfidence,
-          avgAngles,
-          avgDerivedMetrics,
-          score: scoreResult.overallScore,
-          grade: scoreResult.grade,
-          percentile: scoreResult.percentile,
-          shotType,
-          metricComparisons,
-          benchmarkSummary,
-          tailoredDrills,
-          tailoredTactics,
-          componentScores: scoreResult.componentScores,
-          performanceKpis: scoreResult.performanceKpis,
-          progressContext: scoreResult.progressContext,
-          milestone: scoreResult.milestone,
-          achievements: scoreResult.achievements,
-          scoringMeta: scoreResult.scoringMeta,
-          sessionMode: playerProfile.sessionMode,
-          sessionGoal: playerProfile.sessionGoal,
-          setupScore: playerProfile.setupScore,
-          temporalStats,
-          chainAnalysis,
-          rootCause,
-          gripAssessment
-        },
+        summary: summaries[0], // backward compatibility
+        summaries: summaries,
         timestamp: new Date().toISOString()
       };
     }
 
+    function generateInsufficientDataHtml(s) {
+      const shotLabel = s.shotType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      return `
+        <div class="report-section" style="border-left:4px solid #ff6d00;text-align:center;padding:40px 24px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff6d00" stroke-width="1.5" style="margin-bottom:16px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <h3 style="font-size:20px;font-weight:900;color:#ff6d00;margin-bottom:12px;">Insufficient Data for ${shotLabel}</h3>
+          <p style="font-size:14px;color:var(--silver);line-height:1.7;max-width:500px;margin:0 auto 20px;">
+            The video did not capture enough reliable tracking data to generate an accurate ${shotLabel} analysis.
+            <strong>Detected ${s.avgLandmarks} landmarks</strong> with <strong>${s.avgConfidence}% confidence</strong>
+            across <strong>${s.focusFramesAnalyzed} focus frames</strong>.
+          </p>
+          <div style="background:rgba(255,109,0,.08);border:1px solid rgba(255,109,0,.2);border-radius:14px;padding:18px;text-align:left;max-width:440px;margin:0 auto;">
+            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#ff6d00;margin-bottom:10px;">Please re-record following these tips:</div>
+            <ul style="font-size:13px;color:var(--silver);line-height:1.8;padding-left:18px;margin:0;">
+              <li>Film from the <strong>side view</strong> (90 degrees to baseline)</li>
+              <li>Keep your <strong>full body visible</strong> head to toe</li>
+              <li>Use a <strong>tripod or stable surface</strong> at waist height</li>
+              <li>Record <strong>10-60 seconds</strong> of the same stroke</li>
+              <li>Ensure <strong>good lighting</strong> and a clear background</li>
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
     function generateReport(session) {
-      const s = session.summary;
+      const summaries = session.summaries || [session.summary];
+      const multiShot = summaries.length > 1;
+
+      // Build tab bar for multi-shot
+      let tabBarHtml = '';
+      if (multiShot) {
+        tabBarHtml = '<div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;">' +
+          summaries.map((sm, idx) => {
+            const label = sm.shotType.replace('-', ' ').replace(/\\b\\w/g, l => l.toUpperCase());
+            const active = idx === 0 ? 'background:var(--neon-green);color:#000;' : 'background:rgba(255,255,255,.08);color:var(--silver);';
+            const warn = sm.insufficientData ? ' style="opacity:.5;"' : '';
+            return '<button class="shot-report-tab" data-tab-idx="' + idx + '" onclick="switchShotReportTab(' + idx + ')" style="padding:8px 18px;border-radius:10px;border:none;font-weight:800;font-size:13px;cursor:pointer;transition:all .2s;' + active + '"' + warn + '>' +
+              label + (sm.insufficientData ? ' ⚠' : (sm.score ? ' (' + sm.score + ')' : '')) + '</button>';
+          }).join('') + '</div>';
+      }
+
+      // Generate HTML for each shot
+      const panelsHtml = summaries.map((s, idx) => {
+        const display = idx === 0 ? '' : 'display:none;';
+        if (s.insufficientData) {
+          return '<div class="shot-report-panel" data-panel-idx="' + idx + '" style="' + display + '">' + generateInsufficientDataHtml(s) + '</div>';
+        }
+        return '<div class="shot-report-panel" data-panel-idx="' + idx + '" style="' + display + '">' + generateSingleShotReport(s, session) + '</div>';
+      }).join('');
+
+      document.getElementById('reportContent').innerHTML = tabBarHtml + panelsHtml;
+
+      // Async: fetch AI coach insight for each valid shot (DOM now exists)
+      summaries.forEach(sm => {
+        if (!sm.insufficientData) {
+          fetchAiCoachInsight(session, sm).catch(() => {});
+        }
+      });
+
+      // Tab switching function
+      window.switchShotReportTab = function(idx) {
+        document.querySelectorAll('.shot-report-tab').forEach((tab, i) => {
+          tab.style.background = i === idx ? 'var(--neon-green)' : 'rgba(255,255,255,.08)';
+          tab.style.color = i === idx ? '#000' : 'var(--silver)';
+        });
+        document.querySelectorAll('.shot-report-panel').forEach((panel, i) => {
+          panel.style.display = i === idx ? '' : 'none';
+        });
+      };
+    }
+
+    function generateSingleShotReport(s, session) {
+      // Original generateReport logic for a single shot
+      const _session_unused = session; // keep reference for future use
       const bench = getBenchmarkForShot(s.shotType);
       const topMetrics = [...(s.metricComparisons || [])].sort((a, b) => a.score - b.score).slice(0, 3);
       const strengths = [...(s.metricComparisons || [])].sort((a, b) => b.score - a.score).slice(0, 2);
@@ -4696,6 +4989,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="smartswing-score" style="color:${band.color};">${s.score}</div>
           <div class="grade-badge" style="background:${band.color}22; color:${band.color}; border-color:${band.color}44; font-size:16px; padding:8px 20px;">${band.label} · Grade ${s.grade}</div>
           <div style="font-size:13px; color:var(--gray); margin-top:10px;">${session.profile.level} · Age ${session.profile.age} · ${s.shotType} · ${new Date(session.timestamp).toLocaleDateString()}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}</div>
         </div>
 
         <!-- Swing Story -->
@@ -4861,7 +5155,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <!-- AI Coach Feedback (GPT fills this) -->
-        <div id="gptAnalysisContainer" style="display:none;"></div>
+        <div id="gptAnalysisContainer-${s.shotType}" class="gpt-analysis-container" style="display:none;"></div>
 
         <!-- Full Technical Details (collapsible) -->
         <details style="margin-top:16px;">
@@ -4880,23 +5174,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </details>
       `;
-      document.getElementById('reportContent').innerHTML = html;
-
-      // Async: fetch personalized AI coaching narrative
-      fetchAiCoachInsight(session).catch(() => {});
-
-      // Store report data for match tracker AI insight
+      // Store report data for match tracker AI insight (last shot wins)
       window._lastSmartSwingReport = {
         overallScore: s.score,
         shotType: s.shotType,
         grade: s.grade,
         topIssues: (s.metricComparisons || []).filter(m => m.score < 60).map(m => m.metric),
       };
+
+      return html;
     }
 
-    async function fetchAiCoachInsight(session) {
-      const s = session.summary;
-      const container = document.getElementById('gptAnalysisContainer');
+    async function fetchAiCoachInsight(session, shotSummary) {
+      const s = shotSummary || session.summary;
+      const container = document.getElementById('gptAnalysisContainer-' + s.shotType);
       if (!container) return;
 
       // Show loading state immediately
@@ -5265,9 +5556,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     // UI Event Handlers
+    // Toggle capture readiness guide items
+    window.toggleGuideCheck = function(item) {
+      var cb = item.querySelector('.setup-check');
+      if (cb) { cb.checked = !cb.checked; }
+      item.classList.toggle('unchecked', !cb.checked);
+      refreshSetupScore();
+    };
+
     document.querySelectorAll('.setup-check').forEach(input => {
       input.addEventListener('change', refreshSetupScore);
     });
+
+    // Session Goal visual card handler
+    window.selectSessionGoal = function(card) {
+      document.querySelectorAll('.session-goal-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      var mode = card.dataset.mode;
+      var sel = document.getElementById('sessionMode');
+      if (sel) sel.value = mode;
+      sel.dispatchEvent(new Event('change'));
+    };
 
     document.getElementById('sessionMode').addEventListener('change', (event) => {
       playerProfile.sessionMode = event.target.value;
@@ -6145,12 +6454,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     function persistSession(session) {
-      const signature = JSON.stringify({
-        shotType: session.summary.shotType,
-        score: session.summary.score,
-        framesAnalyzed: session.summary.framesAnalyzed,
-        avgAngles: session.summary.avgAngles
-      });
+      const summaries = session.summaries || [session.summary];
+      // Only persist valid summaries (skip insufficient data)
+      const validSummaries = summaries.filter(s => !s.insufficientData);
+      if (!validSummaries.length) return null;
+
+      const signature = JSON.stringify(validSummaries.map(s => ({
+        shotType: s.shotType, score: s.score, framesAnalyzed: s.framesAnalyzed
+      })));
 
       if (signature === lastPersistedSignature) {
         return null;
@@ -6159,46 +6470,50 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       lastPersistedSignature = signature;
       localStorage.setItem('smartswing_last_session', JSON.stringify(session));
 
-      const payload = buildAssessmentPayload(session);
-
-      // Include match data if match tracker was used
+      // Match data (shared across all shot summaries)
+      let matchData = null;
       if (window._getMatchTrackerData) {
         const mtData = window._getMatchTrackerData();
         if (mtData && mtData.log && mtData.log.length > 0) {
-          payload.matchData = mtData;
+          matchData = mtData;
         }
       }
 
-      // Re-check auth — session may have restored since page load
+      // Re-check auth
       if (store && !currentUser) {
         currentUser = store.getCurrentUser();
       }
 
-      // If still no user, try async Supabase restore then queue the save
-      if (!store || !currentUser) {
-        console.warn('[SmartSwing] No user yet — queuing assessment for deferred save.');
-        pendingAssessmentPayloads.push(payload);
-        // Attempt async auth restore and flush
+      // Save one assessment per valid shot type
+      const results = [];
+      for (const summary of validSummaries) {
+        const shotSession = { ...session, summary: summary };
+        const payload = buildAssessmentPayload(shotSession);
+        if (matchData) payload.matchData = matchData;
+
+        if (!store || !currentUser) {
+          pendingAssessmentPayloads.push(payload);
+        } else {
+          try {
+            results.push(store.saveAssessment(payload));
+          } catch (err) {
+            console.error('[SmartSwing] saveAssessment failed for ' + summary.shotType + ':', err);
+            pendingAssessmentPayloads.push(payload);
+          }
+        }
+      }
+
+      // Async auth restore for queued assessments
+      if ((!store || !currentUser) && pendingAssessmentPayloads.length) {
         if (store && store.restoreSupabaseSession) {
           store.restoreSupabaseSession().then(function(restored) {
-            if (restored) {
-              currentUser = restored;
-              flushPendingAssessments();
-            }
+            if (restored) { currentUser = restored; flushPendingAssessments(); }
           }).catch(function() {});
         }
         return null;
       }
 
-      // Save to store (localStorage + cloud sync)
-      try {
-        return store.saveAssessment(payload);
-      } catch (err) {
-        console.error('[SmartSwing] saveAssessment failed:', err);
-        // Still queue for retry so data isn't lost
-        pendingAssessmentPayloads.push(payload);
-        return null;
-      }
+      return results[0] || null;
     }
 
     // Cached session — ensures Save and Generate Report show the same score
@@ -6363,6 +6678,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // ── State ──────────────────────────────────────────────────────────
       const POINT_VALUES = [0, 15, 30, 40];
 
+      // Mini game definitions
+      const MINI_GAMES = {
+        'first-to-7':      { label: 'First to 7', target: 7, winBy: 1, description: 'Rally scoring — first to 7 points wins' },
+        'king-of-court':   { label: 'King of Court', target: 7, winBy: 1, description: 'Winner stays on — challenger must win to take the throne' },
+        '21-tiebreak':     { label: '21-Point Tiebreak', target: 21, winBy: 2, description: 'Extended tiebreak — first to 21, win by 2' },
+        'around-the-world':{ label: 'Around the World', target: 10, winBy: 1, description: 'Rotate positions after each point — first to 10' },
+        'serve-volley':    { label: 'Serve & Volley', target: 7, winBy: 1, description: 'Must approach net after serve — first to 7' },
+        'target-practice': { label: 'Target Practice', target: 10, winBy: 1, description: 'Hit designated zones for bonus points — first to 10' },
+      };
+
       const mt = {
         leftName: 'You',
         rightName: 'Opponent',
@@ -6372,6 +6697,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         logBy: 'left',
         // Active selected shot tag
         shotTag: null,
+        // Mini game mode: null or key from MINI_GAMES
+        miniGame: null,
+        miniGameScore: { left: 0, right: 0 },
         // Point log: array of { winner:'left'|'right', type, shot, pointIndex, isBreakPoint, isTiebreak }
         log: [],
         // scores: { sets: [{left,right,tiebreak:{left,right}}], currentGame:{left,right}, currentSet:{left,right}, match:{left,right} }
@@ -6485,6 +6813,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // ── Score a point ──────────────────────────────────────────────────
       function scorePoint(winner, pointType, shotTag) {
         if (mt.matchOver) return;
+
+        // ── Mini game mode: simplified rally scoring ──
+        if (mt.miniGame) {
+          const game = MINI_GAMES[mt.miniGame];
+          mt.log.push({ winner, type: pointType, shot: shotTag, pointIndex: mt.pointIndex, miniGame: mt.miniGame });
+          mt.pointIndex++;
+          mt.momentum.push(winner === 'left' ? 1 : -1);
+          mt.miniGameScore[winner]++;
+
+          // Stats tracking (same as standard)
+          if (pointType === 'ace') { mt.stats.aces++; mt.stats.winners++; }
+          else if (['winner-fh','winner-bh','volley-winner','drop-shot-winner','lob-winner','overhead-winner','passing-shot','return-winner','service-winner'].includes(pointType)) { mt.stats.winners++; }
+          else if (pointType === 'ue-fh' || pointType === 'ue-bh' || pointType === 'ue-volley') { mt.stats.ufErrors++; }
+          else if (pointType === 'forced-error') { mt.stats.forcedErrors++; }
+          else if (pointType === 'double-fault') { mt.stats.doubleFaults++; }
+
+          // Check for mini game win
+          const lScore = mt.miniGameScore.left;
+          const rScore = mt.miniGameScore.right;
+          const target = game.target;
+          const winBy = game.winBy;
+          if ((lScore >= target && lScore - rScore >= winBy) || (rScore >= target && rScore - lScore >= winBy)) {
+            mt.matchOver = true;
+            mt.finalScore = `${game.label}: ${mt.leftName} ${lScore} - ${rScore} ${mt.rightName}`;
+            renderMatchTracker();
+            showPostMatch();
+            return;
+          }
+
+          // Alternate server every 2 points in mini games
+          if (mt.pointIndex % 2 === 0) mt.server = opposite(mt.server);
+          renderMatchTracker();
+          return;
+        }
 
         const isBP = isBreakPoint();
         // Track break point faced by server
@@ -6651,8 +7013,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         mt.finalScore = '';
         mt.matchFormat = savedFormat;
         mt.setsToWin = savedSetsToWin;
+        mt.miniGameScore = { left: 0, right: 0 };
         document.getElementById('mtPostMatch').style.display = 'none';
         document.getElementById('mtPointLogger').style.display = '';
+        // Show game row again (hidden in mini game mode)
+        const gameRow = document.querySelector('.mt-game-row');
+        if (gameRow) gameRow.style.display = mt.miniGame ? 'none' : '';
         clearShotTags();
         renderMatchTracker();
       }
@@ -6664,9 +7030,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // ── Render ─────────────────────────────────────────────────────────
       function renderMatchTracker() {
         renderServeIndicators();
-        renderSets();
-        renderGameScore();
+        if (mt.miniGame) {
+          renderMiniGameScore();
+        } else {
+          renderSets();
+          renderGameScore();
+        }
         renderStats();
+      }
+
+      function renderMiniGameScore() {
+        const game = MINI_GAMES[mt.miniGame];
+        const row = document.getElementById('mtSetsRow');
+        if (row) {
+          row.innerHTML = `<div class="mt-set-cell" style="flex:1;">
+            <div class="mt-set-label" style="color:var(--electric-cyan);">${game.label}</div>
+            <div class="mt-set-scores" style="font-size:28px;">
+              <span class="mt-set-score ${mt.miniGameScore.left > mt.miniGameScore.right ? 'leading' : ''}">${mt.miniGameScore.left}</span>
+              <span class="mt-set-sep">-</span>
+              <span class="mt-set-score ${mt.miniGameScore.right > mt.miniGameScore.left ? 'leading' : ''}">${mt.miniGameScore.right}</span>
+            </div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px;">First to ${game.target}${game.winBy > 1 ? ', win by ' + game.winBy : ''}</div>
+          </div>`;
+        }
+        const gameRow = document.querySelector('.mt-game-row');
+        if (gameRow) gameRow.style.display = 'none';
       }
 
       function renderServeIndicators() {
@@ -6937,9 +7325,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
             mt.matchFormat = parseInt(btn.dataset.format, 10);
             mt.setsToWin = mt.matchFormat === 1 ? 1 : Math.ceil(mt.matchFormat / 2);
+            mt.miniGame = null; // exit mini game mode
             document.querySelectorAll('.mt-format-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.mt-mini-game-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            // Restore game row visibility
+            const gameRow = document.querySelector('.mt-game-row');
+            if (gameRow) gameRow.style.display = '';
             resetMatch();
+          });
+        });
+
+        // Mini game selection
+        document.querySelectorAll('.mt-mini-game-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const gameKey = btn.dataset.game;
+            if (mt.log.length > 0 && !confirm('Starting a mini game will reset the current match. Continue?')) return;
+            // Deselect format buttons and other mini games
+            document.querySelectorAll('.mt-format-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.mt-mini-game-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            mt.miniGame = gameKey;
+            mt.miniGameScore = { left: 0, right: 0 };
+            resetMatch();
+            // Show game-row again for mini game render
+            const gameRow = document.querySelector('.mt-game-row');
+            if (gameRow) gameRow.style.display = 'none';
+            renderMatchTracker();
           });
         });
 
@@ -7022,7 +7434,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               result: result,
               finalScore: mt.finalScore || buildFinalScore(),
               sets: mt.sets,
-              matchFormat: mt.matchFormat === 1 ? '1-set' : mt.matchFormat === 5 ? 'best-of-5' : 'best-of-3',
+              matchFormat: mt.miniGame ? MINI_GAMES[mt.miniGame].label : (mt.matchFormat === 1 ? '1-set' : mt.matchFormat === 5 ? 'best-of-5' : 'best-of-3'),
+              miniGame: mt.miniGame || null,
               stats: { ...mt.stats },
               log: mt.log,
               momentum: mt.momentum,

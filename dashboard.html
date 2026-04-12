@@ -355,6 +355,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <section class="tabs" style="grid-template-columns:repeat(3,1fr);">
       <button class="tab active" data-tab="overview">Overview</button>
       <button class="tab" data-tab="analytics">Analytics</button>
+      <button class="tab" data-tab="matches">Matches</button>
       <button class="tab" data-tab="library">Library</button>
       <button class="tab" data-tab="messages">Messaging</button>
       <button class="tab" data-tab="exports">Exports</button>
@@ -464,6 +465,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="shot-legend" id="shotLegend"></div>
       </article>
 
+      <!-- Recent Matches Overview -->
+      <article class="panel" id="overviewMatchPanel" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h2 style="margin:0;">Recent Matches</h2>
+          <button class="btn" style="font-size:12px;padding:6px 12px;" onclick="document.querySelector('[data-tab=matches]').click();">View All</button>
+        </div>
+        <div id="overviewMatchList" style="display:grid;gap:8px;"></div>
+      </article>
+
       <!-- Free Plan Nudge -->
       <article class="free-nudge" id="freeNudge">
         <div class="nudge-top">
@@ -501,6 +511,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <article class="panel"><h2>Session History</h2><div class="list" id="activityList"></div></article>
     </section>
 
+    <!-- ── Matches Tab ── -->
+    <section class="tab-panel" id="tab-matches">
+      <!-- Match KPI Cards -->
+      <div class="stats" id="matchKpiRow" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+        <article class="card" style="text-align:center;">
+          <div class="eyebrow">Win Rate</div>
+          <div class="stat"><span class="value" id="kpiWinRate">—</span></div>
+        </article>
+        <article class="card" style="text-align:center;">
+          <div class="eyebrow">Matches</div>
+          <div class="stat"><span class="value" id="kpiMatchesPlayed">0</span></div>
+        </article>
+        <article class="card" style="text-align:center;">
+          <div class="eyebrow">Avg Winners</div>
+          <div class="stat"><span class="value" id="kpiAvgWinners">—</span></div>
+        </article>
+        <article class="card" style="text-align:center;">
+          <div class="eyebrow">Avg UFEs</div>
+          <div class="stat"><span class="value" id="kpiAvgUFE">—</span></div>
+        </article>
+        <article class="card" style="text-align:center;">
+          <div class="eyebrow">Aces Total</div>
+          <div class="stat"><span class="value" id="kpiAcesTotal">0</span></div>
+        </article>
+        <article class="card" style="text-align:center;">
+          <div class="eyebrow">Dbl Faults</div>
+          <div class="stat"><span class="value" id="kpiDFTotal">0</span></div>
+        </article>
+      </div>
+
+      <!-- Match History List -->
+      <article class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <h2 style="margin:0;">Match History</h2>
+          <a href="./analyze.html" class="btn primary" style="font-size:13px;padding:8px 16px;">New Match</a>
+        </div>
+        <div id="matchHistoryList" style="display:grid;gap:10px;">
+          <p class="muted" style="text-align:center;padding:28px 0;">No matches tracked yet. Use the Live Match Tracker in the Analyzer to record your first match.</p>
+        </div>
+      </article>
+    </section>
 
 <section class="tab-panel" id="tab-library">
       <div class="grid">
@@ -1988,6 +2039,80 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (picker) picker.addEventListener('change', redraw);
 
       document.fonts.ready.then(redraw);
+    })();
+
+    // ── Recent Matches (overview tab) ──────────────────────────────────
+    (function renderOverviewMatches() {
+      const matches = store.getUserMatches ? store.getUserMatches(user.id) : [];
+      if (!matches.length) return;
+      const panel = document.getElementById('overviewMatchPanel');
+      const listEl = document.getElementById('overviewMatchList');
+      if (!panel || !listEl) return;
+      panel.style.display = '';
+      const recent = matches.slice(0, 3);
+      listEl.innerHTML = recent.map(m => {
+        const isWin = m.result === 'win';
+        const c = isWin ? '#39ff14' : m.result === 'loss' ? '#ff5252' : '#ffd84d';
+        const d = m.date ? new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+          <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;"></div>
+          <div style="flex:1;font-size:13px;font-weight:700;">vs ${m.opponent || 'Opponent'}</div>
+          <div style="font-size:12px;color:var(--muted);">${m.finalScore || ''}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);">${d}</div>
+          <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;background:${c}15;color:${c};">${(m.result||'').toUpperCase()}</span>
+        </div>`;
+      }).join('');
+    })();
+
+    // ── Matches Tab Rendering ───────────────────────────────────────────
+    (function renderMatchesTab() {
+      const matches = store.getUserMatches ? store.getUserMatches(user.id) : [];
+      const stats = store.getMatchStats ? store.getMatchStats(user.id) : null;
+
+      // KPI Cards
+      const setKpi = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      if (stats && stats.matchesPlayed > 0) {
+        setKpi('kpiWinRate', stats.winRate + '%');
+        setKpi('kpiMatchesPlayed', String(stats.matchesPlayed));
+        setKpi('kpiAvgWinners', String(stats.avgWinnersPerMatch));
+        setKpi('kpiAvgUFE', String(stats.avgUfePerMatch));
+        setKpi('kpiAcesTotal', String(stats.aces));
+        setKpi('kpiDFTotal', String(stats.doubleFaults));
+      }
+
+      // Match History List
+      const listEl = document.getElementById('matchHistoryList');
+      if (!listEl || !matches.length) return;
+
+      listEl.innerHTML = matches.slice(0, 30).map(m => {
+        const isWin = m.result === 'win';
+        const resultColor = isWin ? '#39ff14' : m.result === 'loss' ? '#ff5252' : '#ffd84d';
+        const resultLabel = (m.result || 'played').toUpperCase();
+        const dateStr = m.date ? new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+        const s = m.stats || {};
+        const format = m.miniGame ? m.matchFormat : (m.matchFormat || '');
+
+        return `<div class="card" style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:14px 18px;">
+          <div style="width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:${resultColor}22;border:2px solid ${resultColor};font-size:11px;font-weight:800;color:${resultColor};">
+            ${resultLabel.slice(0, 1)}
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:14px;">vs ${m.opponent || 'Opponent'}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">
+              ${m.finalScore || 'In progress'} ${format ? '&middot; ' + format : ''} ${dateStr ? '&middot; ' + dateStr : ''}
+            </div>
+            <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;color:rgba(255,255,255,.5);">
+              ${s.winners != null ? '<span>W: ' + s.winners + '</span>' : ''}
+              ${s.ufErrors != null ? '<span>UFE: ' + s.ufErrors + '</span>' : ''}
+              ${s.aces != null ? '<span>Aces: ' + s.aces + '</span>' : ''}
+              ${s.doubleFaults != null ? '<span>DF: ' + s.doubleFaults + '</span>' : ''}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:${resultColor}15;color:${resultColor};border:1px solid ${resultColor}33;">${resultLabel}</span>
+          </div>
+        </div>`;
+      }).join('');
     })();
   </script>
 

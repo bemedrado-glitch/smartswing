@@ -2352,6 +2352,42 @@
       });
       persistMessages(Array.from(map.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     }
+
+    // Pull matches
+    const { data: remoteMatches, error: matchError } = await client
+      .from('matches')
+      .select('*')
+      .eq('user_id', userId)
+      .order('played_at', { ascending: false })
+      .limit(120);
+
+    if (!matchError && Array.isArray(remoteMatches)) {
+      const local = getMatches();
+      const map = new Map(local.map((item) => [item.externalId || item.id, item]));
+      remoteMatches.forEach((row) => {
+        const externalId = row.id;
+        map.set(externalId, {
+          ...map.get(externalId),
+          id: externalId,
+          externalId,
+          remoteId: row.id,
+          userId: row.user_id,
+          date: row.played_at || row.created_at || nowIso(),
+          opponent: row.opponent || 'Opponent',
+          result: row.result || 'abandoned',
+          finalScore: row.final_score || '',
+          sets: row.sets || [],
+          matchFormat: row.match_format || 'best-of-3',
+          miniGame: row.mini_game || null,
+          stats: row.stats || {},
+          log: row.log || [],
+          momentum: row.momentum || [],
+          aiInsight: row.notes || '',
+          syncedAt: nowIso()
+        });
+      });
+      persistMatches(Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date)));
+    }
   }
 
   async function signUp(fields) {
@@ -3118,6 +3154,7 @@
     const user = requireUser();
     const match = {
       id: uid('match'),
+      externalId: uid('match'),
       userId: user.id,
       date: matchPayload.date || nowIso(),
       opponent: matchPayload.opponent || 'Opponent',
@@ -3125,6 +3162,7 @@
       finalScore: matchPayload.finalScore || '',
       sets: matchPayload.sets || [],
       matchFormat: matchPayload.matchFormat || 'best-of-3',
+      miniGame: matchPayload.miniGame || null,
       stats: matchPayload.stats || {},
       log: matchPayload.log || [],
       momentum: matchPayload.momentum || [],
@@ -3133,7 +3171,32 @@
       linkedAssessmentId: matchPayload.linkedAssessmentId || null,
     };
     persistMatches([match, ...getMatches()]);
+    syncMatchToCloud(match).catch(() => {});
     return match;
+  }
+
+  async function syncMatchToCloud(match) {
+    const client = await getSupabaseClient();
+    if (!client || !match?.userId) return;
+    try {
+      await client.from('matches').upsert({
+        id: match.id.startsWith('match_') ? undefined : match.id,
+        user_id: match.userId,
+        opponent: match.opponent || 'Opponent',
+        result: match.result === 'unknown' ? 'abandoned' : match.result,
+        final_score: match.finalScore || null,
+        match_format: match.matchFormat || null,
+        mini_game: match.miniGame || null,
+        sets: match.sets || [],
+        stats: match.stats || {},
+        log: match.log || [],
+        momentum: match.momentum || [],
+        notes: match.aiInsight || null,
+        played_at: match.date || nowIso(),
+      });
+    } catch (err) {
+      console.warn('[SmartSwing] Match cloud sync failed:', err);
+    }
   }
 
   function getUserMatches(userId) {
@@ -3576,6 +3639,12 @@
       if (!message.syncedAt) {
         // eslint-disable-next-line no-await-in-loop
         await syncMessageToCloud(message);
+      }
+    }
+    for (const match of getUserMatches(user.id)) {
+      if (!match.syncedAt) {
+        // eslint-disable-next-line no-await-in-loop
+        await syncMatchToCloud(match);
       }
     }
   }
