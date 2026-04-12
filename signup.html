@@ -53,11 +53,6 @@
       margin-left: calc(-50vw + 50%);
     }
 
-    .ss-footer {
-      width: 100vw;
-      margin-left: calc(-50vw + 50%);
-    }
-
     /* ── Layout ─────────────────────────────────────── */
     .auth-wrapper {
       flex: 1;
@@ -359,6 +354,11 @@
       .oauth-btn.apple-btn:hover:not(:disabled) { background: #1a1a1a; }
     }
 
+    .oauth-btn:active:not(:disabled) {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
     .oauth-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
@@ -443,8 +443,8 @@
 
     .role-copy {
       color: var(--gray);
-      font-size: 12px;
-      line-height: 1.45;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     /* ── Form fields ──────────────────────────────────── */
@@ -455,7 +455,7 @@
     label {
       display: block;
       margin-bottom: 8px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       color: rgba(255,255,255,0.6);
     }
@@ -491,7 +491,7 @@
     }
 
     input::placeholder {
-      color: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.38);
     }
 
     .two-col {
@@ -502,18 +502,37 @@
 
     /* two-col stacking handled in 820px breakpoint above */
 
+    /* ── Inline field errors ─────────────────────────── */
+    .field-error {
+      display: none;
+      font-size: 13px;
+      color: var(--error);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .field-error.visible {
+      display: block;
+    }
+
+    input.has-error,
+    select.has-error {
+      border-color: rgba(255, 77, 115, 0.5);
+      box-shadow: 0 0 0 3px rgba(255, 77, 115, 0.1);
+    }
+
     /* ── Password strength indicator ──────────────────── */
     .pw-strength {
-      height: 3px;
-      border-radius: 3px;
+      height: 5px;
+      border-radius: 5px;
       margin-top: 8px;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.08);
       overflow: hidden;
     }
 
     .pw-strength-bar {
       height: 100%;
-      border-radius: 3px;
+      border-radius: 5px;
       width: 0;
       transition: width 0.3s ease, background 0.3s ease;
     }
@@ -590,6 +609,25 @@
       color: rgba(255,255,255,0.65);
     }
 
+    /* ── Skip link ─────────────────────────────────────── */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      background: var(--neon-green);
+      color: #04110a;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      z-index: 9999;
+      text-decoration: none;
+      transition: top 0.2s;
+    }
+    .skip-link:focus {
+      top: 16px;
+    }
+
     /* ── Referral banner ──────────────────────────────── */
     .referral-banner {
       display: none;
@@ -624,7 +662,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K67BDXDX"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
-  <div class="auth-wrapper">
+  <a class="skip-link" href="#signupForm">Skip to signup form</a>
+  <main class="auth-wrapper" id="mainContent">
     <!-- ── Left: Value panel (desktop only) ──────────── -->
     <div class="value-panel" aria-hidden="true">
       <a href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="64"></a>
@@ -726,7 +765,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <!-- Signup form — essentials only -->
-        <form autocomplete="on" onsubmit="handleSignup(event)">
+        <form id="signupForm" autocomplete="on" onsubmit="handleSignup(event)">
           <input id="userRole" name="userRole" type="hidden" value="player">
           <input id="planId" name="planId" type="hidden" value="free">
           <input id="startTrial" name="startTrial" type="hidden" value="0">
@@ -734,23 +773,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           <div class="field">
             <label for="fullName">Full name</label>
-            <input id="fullName" name="fullName" type="text" autocomplete="name" placeholder="Your full name" required>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" placeholder="Your full name" required aria-describedby="fullNameError">
+            <div class="field-error" id="fullNameError" role="alert"></div>
           </div>
 
           <div class="field">
             <label for="email">Email</label>
-            <input id="email" name="email" type="email" inputmode="email" spellcheck="false" autocomplete="email username" placeholder="you@example.com" required>
+            <input id="email" name="email" type="email" inputmode="email" spellcheck="false" autocomplete="email username" placeholder="you@example.com" required aria-describedby="emailError">
+            <div class="field-error" id="emailError" role="alert"></div>
           </div>
 
           <div class="two-col">
             <div class="field">
               <label for="password">Password</label>
-              <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Min. 6 characters" minlength="6" required>
+              <input id="password" name="password" type="password" autocomplete="new-password" placeholder="Min. 6 characters" minlength="6" required aria-describedby="passwordError">
               <div class="pw-strength"><div class="pw-strength-bar" id="pwStrengthBar"></div></div>
+              <div class="field-error" id="passwordError" role="alert"></div>
             </div>
             <div class="field">
               <label for="confirmPassword">Confirm password</label>
-              <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password" minlength="6" required>
+              <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password" minlength="6" required aria-describedby="confirmPasswordError">
+              <div class="field-error" id="confirmPasswordError" role="alert"></div>
             </div>
           </div>
 
@@ -778,7 +821,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <a class="back-link" href="./index.html">Back to homepage</a>
     </div>
-  </div>
+  </main>
 
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
@@ -1060,6 +1103,58 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       bar.style.width = pct + '%';
       bar.style.background = colors[strength] || colors[0];
     });
+
+    /* ── Inline field validation on blur ──────────────── */
+    (function initInlineValidation() {
+      function showFieldError(inputId, errorId, message) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        if (!input || !error) return;
+        if (message) {
+          input.classList.add('has-error');
+          error.textContent = message;
+          error.classList.add('visible');
+        } else {
+          input.classList.remove('has-error');
+          error.textContent = '';
+          error.classList.remove('visible');
+        }
+      }
+
+      document.getElementById('fullName').addEventListener('blur', function () {
+        showFieldError('fullName', 'fullNameError',
+          this.value.trim().length < 2 ? 'Please enter your full name.' : '');
+      });
+
+      document.getElementById('email').addEventListener('blur', function () {
+        const v = this.value.trim();
+        let msg = '';
+        if (!v) msg = 'Email is required.';
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) msg = 'Please enter a valid email address.';
+        showFieldError('email', 'emailError', msg);
+      });
+
+      document.getElementById('password').addEventListener('blur', function () {
+        showFieldError('password', 'passwordError',
+          this.value.length > 0 && this.value.length < 6 ? 'Password must be at least 6 characters.' : '');
+      });
+
+      document.getElementById('confirmPassword').addEventListener('blur', function () {
+        const pw = document.getElementById('password').value;
+        const cpw = this.value;
+        let msg = '';
+        if (cpw && cpw !== pw) msg = 'Passwords do not match.';
+        showFieldError('confirmPassword', 'confirmPasswordError', msg);
+      });
+
+      // Clear error on input
+      ['fullName', 'email', 'password', 'confirmPassword'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', function () {
+          showFieldError(id, id + 'Error', '');
+        });
+      });
+    })();
 
     /* ── Auth bootstrap ─────────────────────────────────── */
     async function bootstrapAuth() {

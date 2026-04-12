@@ -404,7 +404,81 @@ function mapWorkflowTypeToCalendarType(workflowType) {
   return mapping[workflowType] || 'content';
 }
 
-async function runWorkflowChain(chain, title, context, campaignId, apiKey) {
+// Optimal posting times by platform (based on social media engagement research)
+// Times in 24h format (EST/EDT). Multiple slots per platform for variety.
+const OPTIMAL_POST_TIMES = {
+  tiktok:    ['09:00', '12:00', '19:00'],     // Morning, lunch, evening
+  instagram: ['08:00', '11:00', '14:00', '19:00'], // Pre-work, mid-morning, afternoon, evening
+  youtube:   ['14:00', '16:00'],               // Afternoon for max first-24h views
+  facebook:  ['09:00', '13:00', '16:00'],      // Morning, lunch, afternoon
+  linkedin:  ['07:30', '10:00', '12:00'],      // Pre-work, mid-morning, lunch
+  blog:      ['10:00', '14:00'],               // Mid-morning, afternoon
+  email:     ['06:00', '10:00', '14:00']       // Early morning, mid-morning, afternoon
+};
+
+// Optimal posting days by platform (0=Sun, 1=Mon, ... 6=Sat)
+const OPTIMAL_POST_DAYS = {
+  tiktok:    [2, 4, 6],        // Tue, Thu, Sat
+  instagram: [1, 3, 5],        // Mon, Wed, Fri
+  youtube:   [4, 6],           // Thu, Sat
+  facebook:  [1, 3, 5],        // Mon, Wed, Fri
+  linkedin:  [2, 3, 4],        // Tue, Wed, Thu
+  blog:      [2, 4],           // Tue, Thu
+  email:     [2, 4]            // Tue, Thu
+};
+
+/**
+ * Calculate the next optimal posting slot for a given platform.
+ * @param {string} platform - e.g. 'instagram', 'tiktok'
+ * @param {number} contentIndex - index of the content item (for spacing multiple items)
+ * @param {Date} [baseDate] - starting date (defaults to now)
+ * @returns {{ date: string, time: string }} ISO date string + HH:MM time
+ */
+function getOptimalPostSlot(platform, contentIndex = 0, baseDate = null) {
+  const now = baseDate || new Date();
+  const bestDays = OPTIMAL_POST_DAYS[platform] || [1, 3, 5];
+  const bestTimes = OPTIMAL_POST_TIMES[platform] || ['10:00', '14:00'];
+
+  // Start at least 2 days from now to allow review time
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() + 2);
+
+  // Find the next optimal day, cycling through for multiple items
+  let slotsFound = 0;
+  const searchDate = new Date(startDate);
+  let targetDate = null;
+  let targetTime = null;
+
+  // Search up to 30 days ahead
+  for (let d = 0; d < 30 && slotsFound <= contentIndex; d++) {
+    const dayOfWeek = searchDate.getDay();
+    if (bestDays.includes(dayOfWeek)) {
+      // Each optimal day can hold multiple time slots
+      for (let t = 0; t < bestTimes.length && slotsFound <= contentIndex; t++) {
+        if (slotsFound === contentIndex) {
+          targetDate = new Date(searchDate);
+          targetTime = bestTimes[t];
+        }
+        slotsFound++;
+      }
+    }
+    searchDate.setDate(searchDate.getDate() + 1);
+  }
+
+  // Fallback: if we couldn't find enough slots, just space by 2 days
+  if (!targetDate) {
+    targetDate = new Date(startDate);
+    targetDate.setDate(targetDate.getDate() + contentIndex * 2);
+    targetTime = bestTimes[contentIndex % bestTimes.length];
+  }
+
+  return {
+    date: targetDate.toISOString().split('T')[0],
+    time: targetTime
+  };
+}
+
+async function runWorkflowChain(chain, title, context, campaignId, apiKey, contentIndex = 0) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -464,16 +538,17 @@ async function runWorkflowChain(chain, title, context, campaignId, apiKey) {
         imageUrl = await generateImage(imgPrompt, '1024x1024');
       }
 
-      const scheduledDate = new Date();
-      scheduledDate.setDate(scheduledDate.getDate() + 3);
+      const platform = context.platform || 'instagram';
+      const slot = getOptimalPostSlot(platform, contentIndex);
       const row = {
         title, type: calendarType,
-        platform: context.platform || 'instagram', status: 'scheduled',
-        scheduled_date: scheduledDate.toISOString().split('T')[0],
+        platform, status: 'draft',
+        scheduled_date: slot.date,
+        scheduled_time: slot.time,
         copy_text: finalOutput.copy || previousOutput,
         image_url: imageUrl,
         assigned_agent: chain[chain.length - 1].agent,
-        approval_status: 'approved',
+        approval_status: 'pending',
         created_at: new Date().toISOString()
       };
       // Only include campaign_id if it's a valid existing campaign reference
@@ -511,7 +586,7 @@ async function handleOrchestrate(req, res) {
     let allSteps = [];
     let allContentItems = [];
     let finalOutput = {};
-    let status = 'approved';
+    let status = 'pending';
 
     if (workflow_type === 'campaign_strategy') {
       const { steps: strategySteps, finalOutput: strategyOutput } = await runWorkflowChain(
@@ -529,7 +604,7 @@ async function handleOrchestrate(req, res) {
         const subContext = { ...context, platform: d.platform || context.platform || 'instagram', topic: d.goal || d.description || context.topic };
         try {
           const { steps: subSteps, contentItems: subItems } = await runWorkflowChain(
-            subChain, subTitle, subContext, workflowId, apiKey
+            subChain, subTitle, subContext, workflowId, apiKey, i
           );
           allSteps.push(...subSteps);
           allContentItems.push(...subItems);
@@ -543,7 +618,7 @@ async function handleOrchestrate(req, res) {
       allSteps = steps;
       finalOutput = fo;
       allContentItems = contentItems;
-      status = workflow_type === 'email_response' ? 'awaiting_approval' : 'approved';
+      status = 'pending';
     }
 
     if (supabase_url && supabase_key) {
@@ -708,16 +783,30 @@ async function handleNextAction(req, res) {
 async function handleExportLeads(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const supabase_url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabase_key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const url = supabase_url || req.query.supabase_url;
-  const key = supabase_key || req.query.supabase_key;
+  // Use service role key to bypass RLS (anon key cannot SELECT from these tables)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || req.query.supabase_url;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || req.query.supabase_key;
   if (!url || !key) return res.status(500).json({ error: 'Supabase not configured' });
 
   const format = req.query.format || 'csv';
   const source = req.query.source;
   const since = req.query.since;
   const table = req.query.table || 'lead_captures';
+
+  // Define consistent column order matching the dashboard table display
+  const COLUMN_ORDER = {
+    lead_captures: [
+      'name', 'email', 'phone', 'persona', 'source',
+      'utm_source', 'utm_medium', 'utm_campaign',
+      'referrer_url', 'page_url', 'ip_country',
+      'notes', 'converted', 'converted_at', 'created_at'
+    ],
+    marketing_contacts: [
+      'name', 'email', 'phone', 'persona', 'stage',
+      'source', 'tags', 'notes',
+      'created_at', 'updated_at'
+    ]
+  };
 
   let endpoint = `${url}/rest/v1/${table}?order=created_at.desc&limit=10000`;
   if (source) endpoint += `&source=eq.${source}`;
@@ -732,16 +821,25 @@ async function handleExportLeads(req, res) {
 
     if (format === 'json') return res.status(200).json({ success: true, count: data.length, data });
 
+    // Use defined column order, falling back to keys from first row
+    const orderedCols = COLUMN_ORDER[table] || [];
+    const dataCols = data.length ? Object.keys(data[0]) : [];
+    // Start with ordered columns that exist in data, then append any extras
+    const cols = orderedCols.length
+      ? [...orderedCols.filter(c => !data.length || dataCols.includes(c)),
+         ...dataCols.filter(c => !orderedCols.includes(c) && c !== 'id' && c !== 'assigned_to')]
+      : dataCols;
+
     if (!data.length) {
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="${table}_export.csv"`);
-      return res.status(200).send('No data found');
+      // Return header row even when empty so the user sees the columns
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="smartswing_${table}_${new Date().toISOString().split('T')[0]}.csv"`);
+      return res.status(200).send('\uFEFF' + cols.join(','));
     }
 
-    const cols = Object.keys(data[0]);
     const escape = v => {
       if (v === null || v === undefined) return '';
-      const str = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      const str = Array.isArray(v) ? v.join('; ') : typeof v === 'object' ? JSON.stringify(v) : String(v);
       return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str.replace(/"/g, '""')}"` : str;
     };
     const csv = [cols.join(','), ...data.map(row => cols.map(c => escape(row[c])).join(','))].join('\r\n');

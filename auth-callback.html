@@ -13,6 +13,7 @@
     body {
       font-family: "DM Sans", Arial, sans-serif;
       min-height:100vh;
+      min-height:100dvh;
       display:grid;
       place-items:center;
       color:var(--text);
@@ -21,6 +22,17 @@
         radial-gradient(circle at bottom right, rgba(255,216,77,.12), transparent 24%),
         linear-gradient(180deg,#050505 0%,#0c1410 100%);
       padding:24px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--green); outline-offset: 2px;
     }
     .card {
       width:min(560px,100%);
@@ -43,7 +55,9 @@
       background:rgba(255,255,255,.04);
       color:var(--text);
       font-weight:700;
+      font-size:16px;
     }
+    .btn:active { transform: scale(0.98); }
   .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
 .brand-logo { height: 80px; width: auto; }
 .footer-logo { height: 64px; width: auto; }
@@ -61,6 +75,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K67BDXDX"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
+  <main>
   <section class="card">
     <h1>Signing you in</h1>
     <p>SmartSwing is finalizing your secure sign-in and restoring your player or coach workspace.</p>
@@ -73,6 +88,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a class="btn" href="./index.html">Homepage</a>
     </div>
   </section>
+
+  </main>
 
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
@@ -153,12 +170,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .ss-footer-col strong{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;display:block}
 .ss-footer-links{display:flex;flex-direction:column;gap:10px}
 .ss-footer-links a{font-size:14px;color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s}
-.ss-footer-links a:hover{color:#f5f5f7}
+@media(hover:hover) and (pointer:fine){.ss-footer-links a:hover{color:#f5f5f7}}
 .ss-footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:24px;border-top:1px solid rgba(255,255,255,.07)}
 .ss-footer-bottom p{font-size:13px;color:rgba(255,255,255,.3)}
 .ss-footer-bottom-links{display:flex;gap:20px}
 .ss-footer-bottom-links a{font-size:13px;color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
-.ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}
+@media(hover:hover) and (pointer:fine){.ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}}
 @media(max-width:900px){.ss-footer-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.ss-footer-grid{grid-template-columns:1fr}.ss-footer-bottom{flex-direction:column;gap:12px;text-align:center}}
 </style>
