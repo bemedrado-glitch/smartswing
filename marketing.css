@@ -740,11 +740,11 @@
 
 .mkt-cal-day {
   background: #fff;
-  min-height: 110px;
-  padding: 8px;
+  min-height: 90px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   transition: background var(--dur-fast);
 }
@@ -788,17 +788,111 @@
   border-radius: 3px; margin-bottom: 2px; display: block;
 }
 
-.mkt-cal-item--tiktok    { background: #000; }
-.mkt-cal-item--instagram { background: #c13584; }
-.mkt-cal-item--youtube   { background: #ff0000; }
-.mkt-cal-item--facebook  { background: #1877f2; }
-.mkt-cal-item--blog      { background: #166534; }
-.mkt-cal-item--email     { background: #ea580c; }
-.mkt-cal-item--linkedin  { background: #0a66c2; }
+.mkt-cal-item--tiktok    { background: #000; color: #fff; }
+.mkt-cal-item--instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+.mkt-cal-item--youtube   { background: #FF0000; color: #fff; }
+.mkt-cal-item--facebook  { background: #1877F2; color: #fff; }
+.mkt-cal-item--blog      { background: #10B981; color: #fff; }
+.mkt-cal-item--email     { background: #F59E0B; color: #fff; }
+.mkt-cal-item--linkedin  { background: #0A66C2; color: #fff; }
 
-.mkt-cal-item--draft    { opacity: .55; }
-.mkt-cal-item--scheduled { opacity: .8; }
+/* Status indicator icons on calendar items */
+.mkt-cal-item--draft    { opacity: 1; border: 1.5px dashed rgba(255,255,255,.5); }
+.mkt-cal-item--draft .mkt-cal-status-icon::before { content: '\270E'; }
+.mkt-cal-item--approved { opacity: 1; }
+.mkt-cal-item--approved .mkt-cal-status-icon::before { content: '\2713'; }
+.mkt-cal-item--approved .mkt-cal-status-icon { color: #22c55e; }
+.mkt-cal-item--scheduled { opacity: 1; }
+.mkt-cal-item--scheduled .mkt-cal-status-icon::before { content: '\1F551'; font-size: 9px; }
 .mkt-cal-item--published { opacity: 1; }
+.mkt-cal-item--published .mkt-cal-status-icon { display: inline-block; width: 7px; height: 7px; background: #22c55e; border-radius: 50%; vertical-align: middle; margin-right: 3px; }
+.mkt-cal-item--published .mkt-cal-status-icon::before { content: ''; }
+
+.mkt-cal-status-icon {
+  font-size: 10px;
+  margin-right: 2px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Calendar item time label */
+.mkt-cal-item-time {
+  font-size: 9px;
+  opacity: .8;
+  margin-right: 2px;
+}
+
+/* Grayed out days (prev/next month) */
+.mkt-cal-day--outside {
+  background: #f9fafb;
+}
+.mkt-cal-day--outside .mkt-cal-day__num {
+  color: #d1d5db;
+}
+
+/* Platform legend bar */
+.mkt-cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.mkt-cal-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mid);
+}
+.mkt-cal-legend__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.mkt-cal-legend__dot--tiktok    { background: #000; }
+.mkt-cal-legend__dot--instagram { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
+.mkt-cal-legend__dot--youtube   { background: #FF0000; }
+.mkt-cal-legend__dot--facebook  { background: #1877F2; }
+.mkt-cal-legend__dot--linkedin  { background: #0A66C2; }
+.mkt-cal-legend__dot--blog      { background: #10B981; }
+.mkt-cal-legend__dot--email     { background: #F59E0B; }
+
+/* Status legend items */
+.mkt-cal-legend__sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.mkt-cal-legend__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* Date/time editing in detail modal */
+.cd-datetime-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.cd-datetime-row .mkt-form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+.cd-datetime-row .mkt-label {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+.cd-datetime-row .mkt-input {
+  font-size: 12px;
+  padding: 6px 8px;
+}
 
 /* ── CAMPAIGN CARDS ── */
 .mkt-campaign-grid {
