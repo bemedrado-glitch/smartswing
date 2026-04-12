@@ -4242,42 +4242,131 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return stats;
     }
 
-    // Detect when each kinetic chain link peaks during the swing.
-    // Chain should fire in order: legs → hips → trunk → shoulder → arm → wrist.
+    // ── Kinetic Chain Analysis ────────────────────────────────────────
+    // Measures WHEN each body segment fires fastest (peak angular velocity)
+    // relative to the detected swing phase. Chain should fire in order:
+    // legs → hips → trunk → shoulder → arm → wrist (proximal to distal).
+
+    function _smoothArray(arr, windowSize) {
+      if (!arr || arr.length < windowSize) return arr ? [...arr] : [];
+      const result = [];
+      const half = Math.floor(windowSize / 2);
+      for (let i = 0; i < arr.length; i++) {
+        const start = Math.max(0, i - half);
+        const end = Math.min(arr.length, i + half + 1);
+        const slice = arr.slice(start, end);
+        result.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+      }
+      return result;
+    }
+
+    function _detectSwingPhase(frames) {
+      const motions = frames.map(f => safeNumber(f.poseMotion, 0));
+      if (motions.length < 5) return { startIdx: 0, endIdx: motions.length - 1 };
+      const smoothed = _smoothArray(motions, 5);
+      const mean = smoothed.reduce((a, b) => a + b, 0) / smoothed.length;
+      const threshold = mean * 0.6;
+      let bestStart = 0, bestEnd = smoothed.length - 1, bestLen = 0, curStart = -1;
+      for (let i = 0; i < smoothed.length; i++) {
+        if (smoothed[i] >= threshold) {
+          if (curStart === -1) curStart = i;
+          const len = i - curStart + 1;
+          if (len > bestLen) { bestStart = curStart; bestEnd = i; bestLen = len; }
+        } else { curStart = -1; }
+      }
+      bestStart = Math.max(0, bestStart - 2);
+      bestEnd = Math.min(smoothed.length - 1, bestEnd + 2);
+      return { startIdx: bestStart, endIdx: bestEnd };
+    }
+
+    function _findPeakVelocityIndex(frames, key, swingPhase) {
+      const { startIdx, endIdx } = swingPhase;
+      const phaseFrames = frames.slice(startIdx, endIdx + 1);
+      const values = phaseFrames.map(f => getFrameMetric(f, key));
+      const valid = values.filter(v => v != null);
+      if (valid.length < 5) return null;
+      // Fill nulls with last valid for smooth velocity calc
+      const filled = [];
+      let lastValid = values.find(v => v != null);
+      for (const v of values) {
+        if (v != null) { filled.push(v); lastValid = v; }
+        else { filled.push(lastValid); }
+      }
+      // Compute angular velocity (absolute frame-to-frame difference)
+      const velocity = [];
+      for (let i = 1; i < filled.length; i++) velocity.push(Math.abs(filled[i] - filled[i - 1]));
+      const smoothedVel = _smoothArray(velocity, 3);
+      if (smoothedVel.length === 0) return null;
+      let peakIdx = 0, peakVal = smoothedVel[0];
+      for (let i = 1; i < smoothedVel.length; i++) {
+        if (smoothedVel[i] > peakVal) { peakVal = smoothedVel[i]; peakIdx = i; }
+      }
+      const phaseLen = endIdx - startIdx;
+      return phaseLen > 0 ? Math.round((peakIdx / phaseLen) * 100) : 50;
+    }
+
     function analyzeKineticChain(frames, shotType) {
       if (!frames || frames.length < 15) return null;
+
       const CHAIN_CONFIG = {
-        forehand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: { knee:30, hip:45, trunk:60, shoulder:72, elbow:82, wrist:92 } },
-        backhand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: { knee:28, hip:42, trunk:58, shoulder:70, elbow:80, wrist:90 } },
-        serve:       { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: { knee:25, hip:38, trunk:52, shoulder:65, elbow:78, wrist:90 } },
-        volley:      { order: ['shoulder','elbow','wrist'],                      ideal: { shoulder:40, elbow:60, wrist:75 } },
-        'drop-shot': { order: ['knee','hip','shoulder','elbow','wrist'],          ideal: { knee:25, hip:40, shoulder:58, elbow:72, wrist:85 } },
-        lob:         { order: ['knee','hip','trunk','shoulder','wrist'],          ideal: { knee:30, hip:45, trunk:60, shoulder:73, wrist:90 } }
+        forehand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: [10,25,40,55,72,88] },
+        backhand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: [10,25,38,52,70,86] },
+        serve:       { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: [8,22,38,55,74,90] },
+        volley:      { order: ['shoulder','elbow','wrist'],                      ideal: [25,52,78] },
+        'drop-shot': { order: ['knee','hip','shoulder','elbow','wrist'],          ideal: [12,28,48,66,84] },
+        lob:         { order: ['knee','hip','trunk','shoulder','wrist'],          ideal: [12,28,44,62,85] }
       };
       const config = CHAIN_CONFIG[shotType] || CHAIN_CONFIG.forehand;
       const { order, ideal } = config;
+
+      // Step 1: Detect the swing phase from poseMotion
+      const swingPhase = _detectSwingPhase(frames);
+
+      // Step 2: Find peak angular velocity for each chain link
       const peakPcts = {};
       for (const key of order) {
-        const values = frames.map(f => getFrameMetric(f, key)).filter(Number.isFinite);
-        if (values.length < 5) { peakPcts[key] = null; continue; }
-        const maxVal = Math.max(...values);
-        peakPcts[key] = Math.round(values.indexOf(maxVal) / values.length * 100);
+        peakPcts[key] = _findPeakVelocityIndex(frames, key, swingPhase);
       }
+
+      // Step 3: Score each link by timing accuracy vs ideal
       const linkScores = {};
       const chainBreaks = [];
       let prevKey = null;
-      for (const key of order) {
+      for (let i = 0; i < order.length; i++) {
+        const key = order[i];
         const pct = peakPcts[key];
         if (pct == null) { linkScores[key] = null; continue; }
-        linkScores[key] = Math.max(0, Math.round(100 - Math.abs(pct - ideal[key]) * 1.8));
-        if (prevKey && peakPcts[prevKey] != null && pct < peakPcts[prevKey] - 8) {
-          chainBreaks.push({ link: key, prevLink: prevKey });
+        const diff = Math.abs(pct - ideal[i]);
+        linkScores[key] = Math.max(0, Math.min(100, Math.round(100 - diff * 1.2)));
+        // Chain break: this link peaks BEFORE the previous one (wrong order)
+        if (prevKey && peakPcts[prevKey] != null && pct < peakPcts[prevKey] - 5) {
+          chainBreaks.push({ link: key, prevLink: prevKey, gap: peakPcts[prevKey] - pct });
         }
         prevKey = key;
       }
-      const valid = Object.values(linkScores).filter(v => v != null);
-      const avgScore = valid.length ? Math.round(valid.reduce((a,b)=>a+b,0)/valid.length) : 0;
-      return { peakPcts, linkScores, chainBreaks, avgScore, primaryBreak: chainBreaks[0] || null, isWellSequenced: chainBreaks.length === 0 && avgScore >= 65 };
+
+      // Step 4: Sequence order score — are peaks in the right order?
+      const validPeaks = order.filter(k => peakPcts[k] != null).map(k => peakPcts[k]);
+      let orderScore = 100;
+      if (validPeaks.length >= 2) {
+        let inversions = 0;
+        for (let i = 1; i < validPeaks.length; i++) {
+          if (validPeaks[i] < validPeaks[i - 1]) inversions++;
+        }
+        orderScore = Math.round(100 * (1 - inversions / (validPeaks.length - 1)));
+      }
+
+      // Step 5: Overall score = 60% timing accuracy + 40% sequence order
+      const validScores = Object.values(linkScores).filter(v => v != null);
+      const timingAvg = validScores.length ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length) : 0;
+      const avgScore = Math.round(timingAvg * 0.6 + orderScore * 0.4);
+
+      return {
+        peakPcts, linkScores, chainBreaks, avgScore, orderScore, timingScore: timingAvg,
+        primaryBreak: chainBreaks[0] || null,
+        isWellSequenced: chainBreaks.length === 0 && avgScore >= 60,
+        swingPhase: { start: swingPhase.startIdx, end: swingPhase.endIdx }
+      };
     }
 
     // Shot-specific root cause definitions — each cause maps to per-shot explanations.
@@ -4557,15 +4646,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         : chainAnalysis.chainBreaks.length
         ? `Break detected at <strong>${breakLabel}</strong> — segments before over-work, segments after under-fire.`
         : 'Some timing gaps in the sequence — work on connecting segments more smoothly.';
-      // Add coaching explanation of what these scores represent
-      const explainer = `<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:8px;line-height:1.5;">Each score reflects <strong>when</strong> this segment peaks relative to ideal sequence timing — not how well the angle or position looks. A low score here means the segment fires too early or too late in the chain, even if the movement itself looks correct.</div>`;
+      // Sub-scores breakdown
+      const timingLabel = chainAnalysis.timingScore != null ? chainAnalysis.timingScore : '-';
+      const orderLabel = chainAnalysis.orderScore != null ? chainAnalysis.orderScore : '-';
+      const subScores = `<div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:rgba(255,255,255,.45);">
+        <span>Timing accuracy: <strong style="color:rgba(255,255,255,.65);">${timingLabel}</strong></span>
+        <span>Sequence order: <strong style="color:rgba(255,255,255,.65);">${orderLabel}</strong></span>
+      </div>`;
+      const explainer = `<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:8px;line-height:1.5;">Each score reflects <strong>when</strong> this segment reaches peak angular velocity relative to ideal timing. <em>Timing accuracy</em> measures how close each peak is to its ideal position. <em>Sequence order</em> measures whether segments fire in the correct proximal-to-distal order.</div>`;
       return `<div style="padding:14px 12px;background:rgba(10,22,40,.58);border:1px solid rgba(255,255,255,.1);border-radius:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);">Kinetic Chain — Timing Sequence</div>
           <div style="font-size:20px;font-weight:900;color:${cColor};">Score: ${cScore}</div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:4px;margin-bottom:12px;">${nodes}</div>
-        <div style="font-size:12px;color:var(--silver);line-height:1.6;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;">${msg}${explainer}</div>
+        <div style="font-size:12px;color:var(--silver);line-height:1.6;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;">${msg}${subScores}${explainer}</div>
       </div>`;
     }
 
