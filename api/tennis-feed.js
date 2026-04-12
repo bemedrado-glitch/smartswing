@@ -1,5 +1,6 @@
 // api/tennis-feed.js
-// Vercel serverless function — fetches ATP + WTA tournament events from TheSportsDB
+// Vercel serverless function — fetches live tennis events from ESPN API
+// Primary: ESPN public API (no auth, reliable, CORS-friendly)
 // Cache: 1 hour at edge, 24 hour stale-while-revalidate
 // Never 500s for the blog — always returns 200 with fallback shape
 
@@ -13,11 +14,9 @@ const CACHE_HEADERS = {
   'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
 };
 
-// TheSportsDB free API — ATP = 4424, WTA = 4429
-const ATP_UPCOMING = 'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4424';
-const ATP_PAST = 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4424';
-const WTA_UPCOMING = 'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4429';
-const WTA_PAST = 'https://www.thesportsdb.com/api/v1/json/3/eventspastleague.php?id=4429';
+// ESPN public API endpoints — no auth required
+const ESPN_ATP = 'https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard';
+const ESPN_WTA = 'https://site.api.espn.com/apis/site/v2/sports/tennis/wta/scoreboard';
 
 async function fetchWithTimeout(url, timeoutMs = 8000) {
   const controller = new AbortController();
@@ -31,47 +30,66 @@ async function fetchWithTimeout(url, timeoutMs = 8000) {
   }
 }
 
-function normaliseEvent(ev) {
+// Convert ESPN competitor to player name: "Carlos Alcaraz" → "C. Alcaraz"
+function shortName(displayName) {
+  if (!displayName) return null;
+  const parts = displayName.split(' ');
+  if (parts.length >= 2) return parts[0][0] + '. ' + parts.slice(1).join(' ');
+  return displayName;
+}
+
+// Format set scores from linescores: [{value:6},{value:3}] → "6-3"
+function formatSetScores(home, away) {
+  if (!home?.linescores?.length || !away?.linescores?.length) return null;
+  return home.linescores.map((s, i) => {
+    const a = away.linescores[i];
+    return s.value != null && a?.value != null ? `${Math.round(s.value)}-${Math.round(a.value)}` : null;
+  }).filter(Boolean).join(', ');
+}
+
+function normaliseESPNEvent(ev) {
+  const home = ev.competitors?.[0] || {};
+  const away = ev.competitors?.[1] || {};
+  const status = ev.status?.type || {};
+  // tournamentName and season are injected during flattening
+  const tourName = ev.tournamentName || '';
+
+  // Count sets won for score display
+  const homeSetsWon = (home.linescores || []).filter(s => s.winner).length;
+  const awaySetsWon = (away.linescores || []).filter(s => s.winner).length;
+
   return {
-    id: ev.idEvent || null,
-    name: ev.strEvent || null,
-    tournament: ev.strLeague || null,
-    date: ev.dateEvent || null,
-    time: ev.strTime || null,
-    homeTeam: ev.strHomeTeam || null,
-    awayTeam: ev.strAwayTeam || null,
-    homeScore: ev.intHomeScore ?? null,
-    awayScore: ev.intAwayScore ?? null,
-    venue: ev.strVenue || null,
-    city: ev.strCity || null,
-    country: ev.strCountry || null,
-    thumbnail: ev.strThumb || null,
-    status: ev.strStatus || null,
-    round: ev.intRound || null,
-    season: ev.strSeason || null,
-    sport: ev.strSport || null,
+    id: ev.id || null,
+    name: ev.notes?.[0]?.text || `${home.displayName || '?'} vs ${away.displayName || '?'}`,
+    tournament: tourName || null,
+    date: ev.date ? ev.date.slice(0, 10) : null,
+    time: ev.date ? ev.date.slice(11, 16) : null,
+    homeTeam: shortName(home.displayName),
+    awayTeam: shortName(away.displayName),
+    homeScore: status.completed ? String(homeSetsWon) : null,
+    awayScore: status.completed ? String(awaySetsWon) : null,
+    setScores: formatSetScores(home, away),
+    venue: ev.venue?.fullName || tourName || null,
+    city: null,
+    country: null,
+    thumbnail: null,
+    status: status.completed ? 'Match Finished' : (status.state === 'in' ? 'In Progress' : 'Not Started'),
+    round: ev.round?.displayName || null,
+    season: ev.season?.year ? String(ev.season.year) : null,
+    sport: 'Tennis',
   };
-}
-
-function isTennisEvent(ev) {
-  if (ev.sport && ev.sport.toLowerCase() !== 'tennis') return false;
-  const name = (ev.name || '').toLowerCase();
-  if (name.includes('soccer') || name.includes('football') || name.includes('basketball')) return false;
-  return true;
-}
-
-function safeEventList(response) {
-  return Array.isArray(response?.events) ? response.events : [];
 }
 
 function setHeaders(res, headers) {
   Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
 }
 
+// ──────────────────────────────────────────────────────────────
 // IMPORTANT: Fallbacks must ONLY contain verified real results.
 // Never invent scores or results for tournaments that haven't happened.
 // When no real data is available, show an empty state instead of fake data.
 // Last verified: 2026-04-12
+// ──────────────────────────────────────────────────────────────
 
 const FALLBACK_UPCOMING = [
   {
@@ -140,35 +158,71 @@ module.exports = async (req, res) => {
   const fetchedAt = new Date().toISOString();
 
   try {
-    // Fetch ATP + WTA in parallel
-    const [atpUp, atpPast, wtaUp, wtaPast] = await Promise.all([
-      fetchWithTimeout(ATP_UPCOMING).catch(() => ({ events: null })),
-      fetchWithTimeout(ATP_PAST).catch(() => ({ events: null })),
-      fetchWithTimeout(WTA_UPCOMING).catch(() => ({ events: null })),
-      fetchWithTimeout(WTA_PAST).catch(() => ({ events: null })),
+    // Fetch ATP + WTA scoreboard in parallel from ESPN
+    const [atpData, wtaData] = await Promise.all([
+      fetchWithTimeout(ESPN_ATP).catch(() => null),
+      fetchWithTimeout(ESPN_WTA).catch(() => null),
     ]);
 
-    const upcoming = [...safeEventList(atpUp), ...safeEventList(wtaUp)]
-      .sort((a, b) => (a.dateEvent || '').localeCompare(b.dateEvent || ''))
-      .slice(0, 25)
-      .map(normaliseEvent)
-      .filter(isTennisEvent);
+    const atpEvents = atpData?.events || [];
+    const wtaEvents = wtaData?.events || [];
+    const allEvents = [...atpEvents, ...wtaEvents];
 
-    const recent = [...safeEventList(atpPast), ...safeEventList(wtaPast)]
-      .sort((a, b) => (b.dateEvent || '').localeCompare(a.dateEvent || ''))
-      .slice(0, 25)
-      .map(normaliseEvent)
-      .filter(isTennisEvent);
+    if (allEvents.length === 0) {
+      return res.status(200).json({
+        upcoming: FALLBACK_UPCOMING,
+        recent: FALLBACK_RECENT,
+        live: false,
+        source: 'fallback',
+        error: 'no events from ESPN — showing cached results',
+        fetchedAt,
+      });
+    }
 
+    // Flatten: ESPN nests competitions under events[].groupings[].competitions[]
+    // Some responses also have events[].competitions[] directly
+    const competitions = [];
+    for (const event of allEvents) {
+      const tourName = event.name || '';
+      const season = event.season || {};
+      const league = event.leagues?.[0] || {};
+
+      // Try groupings first (main structure)
+      for (const group of (event.groupings || [])) {
+        for (const comp of (group.competitions || [])) {
+          competitions.push({ ...comp, season, league, tournamentName: tourName });
+        }
+      }
+      // Also check direct competitions array (some responses use this)
+      for (const comp of (event.competitions || [])) {
+        competitions.push({ ...comp, season, league, tournamentName: tourName });
+      }
+    }
+
+    const normalised = competitions.map(normaliseESPNEvent);
+
+    const finished = normalised
+      .filter(ev => ev.status === 'Match Finished')
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+      .slice(0, 25);
+
+    const live = normalised
+      .filter(ev => ev.status === 'In Progress');
+
+    const upcoming = normalised
+      .filter(ev => ev.status === 'Not Started')
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+      .slice(0, 25);
+
+    const hasRecent = finished.length > 0 || live.length > 0;
     const hasUpcoming = upcoming.length > 0;
-    const hasRecent = recent.length > 0;
 
     return res.status(200).json({
       upcoming: hasUpcoming ? upcoming : FALLBACK_UPCOMING,
-      recent: hasRecent ? recent : FALLBACK_RECENT,
-      live: hasUpcoming || hasRecent,
-      source: (hasUpcoming || hasRecent) ? 'thesportsdb' : 'fallback',
-      error: (!hasUpcoming && !hasRecent) ? 'no live events — showing cached results' : null,
+      recent: hasRecent ? [...live, ...finished] : FALLBACK_RECENT,
+      live: live.length > 0,
+      source: 'espn',
+      error: null,
       fetchedAt,
     });
   } catch (err) {

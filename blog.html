@@ -1948,6 +1948,9 @@ async function fetchTennisData() {
       if (data.source === 'fallback') {
         liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#fb923c;"></span>CACHED';
         liveBadge.title = 'Showing cached results — live feed temporarily unavailable';
+      } else if ((data.source === 'espn' || data.source === 'sofascore') && data.live) {
+        liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true"></span>LIVE';
+        liveBadge.title = 'Live data';
       } else if (data.live === false) {
         liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#ffd84d;"></span>RECENT';
       }
@@ -2060,6 +2063,18 @@ var SURFACE_COLORS = {
 // with TBD placeholders. Only change status to 'completed' and add scores AFTER verifying
 // results on official sources (atptour.com, wtatennis.com, or Wikipedia).
 // Last verified: 2026-04-12 — Source: atptour.com/en/news/monte-carlo-2026-results
+// ──────────────────────────────────────────────────────────────────────
+// TOURNAMENT_DATA — Fallback/cache for bracket display.
+// This data is shown IMMEDIATELY when the modal opens.
+// The dynamic bracket fetcher (/api/tennis-brackets) will then
+// overwrite this with live data from SofaScore if available.
+//
+// RULES FOR MAINTAINING THIS DATA:
+// 1. NEVER invent scores or results. Only add verified results.
+// 2. For upcoming tournaments: use TBD placeholders, status 'upcoming'
+// 3. Seedings are projections — note this clearly in the UI
+// 4. When in doubt, leave fields as TBD — wrong data is worse than no data
+// ──────────────────────────────────────────────────────────────────────
 var TOURNAMENT_DATA = {
   'monte-carlo-2026': {
     name: 'Monte-Carlo Rolex Masters',
@@ -2296,7 +2311,69 @@ var RESULT_TID_MAP = {
   'queens': 'queens-2026'
 };
 
+// ── Dynamic bracket fetching ──────────────────────────────────
+// Fetches real bracket data from /api/tennis-brackets and merges
+// into TOURNAMENT_DATA. NEVER fabricates results — if the API
+// returns data, it replaces the hardcoded fallback. If the API
+// fails, the existing TOURNAMENT_DATA is shown with a notice.
+var _bracketCache = {};
+
+function fetchBracketData(tid) {
+  if (_bracketCache[tid]) return Promise.resolve(_bracketCache[tid]);
+  return fetch('/api/tennis-brackets?slug=' + encodeURIComponent(tid))
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.source !== 'error' && data.bracket) {
+        _bracketCache[tid] = data;
+        // Merge into TOURNAMENT_DATA so bracket renders with live info
+        if (TOURNAMENT_DATA[tid]) {
+          var t = TOURNAMENT_DATA[tid];
+          var b = data.bracket;
+          if (b.qf && b.qf.some(function(m) { return m.p1 !== 'TBD'; })) t.qf = b.qf;
+          if (b.sf && b.sf.some(function(m) { return m.p1 !== 'TBD'; })) t.sf = b.sf;
+          if (b.f && b.f.some(function(m) { return m.p1 !== 'TBD'; })) t.f = b.f;
+          if (b.champion) t.champion = b.champion;
+          if (data.status === 'completed') t.status = 'completed';
+          else if (data.status === 'in-progress') t.status = 'live';
+        }
+        return data;
+      }
+      return null;
+    })
+    .catch(function() { return null; });
+}
+
 function openBracketModal(tid) {
+  var t = TOURNAMENT_DATA[tid];
+  if (!t) return;
+
+  // Show modal immediately with current data, then refresh from API
+  _showBracketModalContent(tid);
+
+  var modal = document.getElementById('bracketModal');
+  modal.classList.add('open');
+  modal.removeAttribute('aria-hidden');
+  document.body.style.overflow = 'hidden';
+  var closeBtn = modal.querySelector('.bm-close');
+  if (closeBtn) closeBtn.focus();
+
+  // Fetch live bracket data in background and re-render if updated
+  fetchBracketData(tid).then(function(data) {
+    if (data && (data.source === 'espn' || data.source === 'sofascore')) {
+      _showBracketModalContent(tid);
+      // Show live data source indicator
+      var bmBody = document.getElementById('bmBody');
+      if (bmBody) {
+        var srcBadge = document.createElement('div');
+        srcBadge.style.cssText = 'text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,0.3);';
+        srcBadge.textContent = 'Live data · Updated ' + new Date(data.fetchedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        bmBody.appendChild(srcBadge);
+      }
+    }
+  });
+}
+
+function _showBracketModalContent(tid) {
   var t = TOURNAMENT_DATA[tid];
   if (!t) return;
 
@@ -2321,7 +2398,9 @@ function openBracketModal(tid) {
 
   // Render inline bracket if draw data exists, otherwise show placeholder
   var bmBody = document.getElementById('bmBody');
-  if (t.qf && t.qf.length > 0) {
+  var hasRealMatches = t.qf && t.qf.length > 0 && t.qf.some(function(m) { return m.p1 !== 'TBD' || m.p2 !== 'TBD'; });
+
+  if (hasRealMatches) {
     bmBody.innerHTML = renderBracketHTML(t, surfaceColor) +
       '<div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);">' +
         '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
@@ -2336,7 +2415,7 @@ function openBracketModal(tid) {
       '<div style="text-align:center;padding:40px 20px;">' +
         (t.champion
           ? '<div style="margin-bottom:24px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:8px;">Champion</div><div style="font-size:28px;font-weight:800;color:#39ff14;">' + escHtml(t.champion) + '</div></div>'
-          : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('–')[0] || t.dates) + '</div>') +
+          : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('\u2013')[0] || t.dates) + '</div>') +
         '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
           'style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.4);border-radius:12px;color:#39ff14;font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;" ' +
           'onmouseenter="this.style.background=\'rgba(57,255,20,.2)\'" onmouseleave="this.style.background=\'rgba(57,255,20,.12)\'">' +
@@ -2345,14 +2424,6 @@ function openBracketModal(tid) {
         '</a>' +
       '</div>';
   }
-
-  var modal = document.getElementById('bracketModal');
-  modal.classList.add('open');
-  modal.removeAttribute('aria-hidden');
-  document.body.style.overflow = 'hidden';
-  // Focus close btn
-  var closeBtn = modal.querySelector('.bm-close');
-  if (closeBtn) closeBtn.focus();
 }
 
 function closeBracketModal() {
@@ -2496,7 +2567,7 @@ document.querySelectorAll('.result-card').forEach(function(card) {
 
 // ══════════════════════════════════════════════════════════════
 // LIVE TOURNAMENT STRIP — replaces hardcoded cards with real
-// data fetched from /api/tennis-feed (TheSportsDB ATP league).
+// data fetched from /api/tennis-feed (SofaScore via server proxy).
 // Falls back silently to the hardcoded cards if fetch fails.
 // ══════════════════════════════════════════════════════════════
 (function loadLiveTournamentStrip() {
