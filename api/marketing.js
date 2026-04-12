@@ -373,7 +373,37 @@ function mapDeliverableToWorkflowType(type = '') {
   return 'social_post';
 }
 
-async function runWorkflowChain(chain, title, context, supabaseUrl, supabaseKey, campaignId, apiKey) {
+async function generateImage(prompt, size) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+  size = size || '1024x1024';
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'dall-e-3', prompt: prompt.slice(0, 4000), n: 1, size, quality: 'standard' })
+    });
+    if (!res.ok) { console.warn('[generateImage] DALL-E error:', res.status); return null; }
+    const data = await res.json();
+    return data.data?.[0]?.url || null;
+  } catch (err) { console.warn('[generateImage] Error:', err.message); return null; }
+}
+
+function mapWorkflowTypeToCalendarType(workflowType) {
+  const mapping = {
+    social_post: 'post',
+    reel: 'reel',
+    youtube_video: 'video',
+    blog_post: 'blog',
+    email_response: 'email'
+  };
+  return mapping[workflowType] || 'content';
+}
+
+async function runWorkflowChain(chain, title, context, campaignId, apiKey) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
   const steps = [];
   let previousOutput = '';
   const contentItems = [];
@@ -417,13 +447,26 @@ async function runWorkflowChain(chain, title, context, supabaseUrl, supabaseKey,
 
   if (isContentWorkflow && supabaseUrl && supabaseKey) {
     try {
+      // Determine the correct content_calendar type
+      const matchedWorkflow = contentWorkflows.find(wt => chain === WORKFLOW_CHAINS[wt]);
+      const calendarType = matchedWorkflow ? mapWorkflowTypeToCalendarType(matchedWorkflow) : (context.platform ? 'post' : 'content');
+
+      // Try to generate an image from the visual brief
+      let imageUrl = null;
+      if (finalOutput.visual_brief) {
+        const briefText = finalOutput.visual_brief;
+        const imgPrompt = 'Professional sports marketing image for SmartSwing AI tennis/pickleball platform. ' + briefText.slice(0, 500);
+        imageUrl = await generateImage(imgPrompt, '1024x1024');
+      }
+
       const scheduledDate = new Date();
       scheduledDate.setDate(scheduledDate.getDate() + 3);
       const calendarItem = await supabaseInsert(supabaseUrl, supabaseKey, 'content_calendar', {
-        title, type: context.platform ? 'social_post' : 'content',
+        title, type: calendarType,
         platform: context.platform || 'instagram', status: 'approved',
         scheduled_date: scheduledDate.toISOString().split('T')[0],
         copy_text: finalOutput.copy || previousOutput,
+        image_url: imageUrl,
         assigned_agent: chain[chain.length - 1].agent,
         campaign_id: campaignId || context.campaign_id || null,
         created_at: new Date().toISOString()
@@ -438,9 +481,12 @@ async function runWorkflowChain(chain, title, context, supabaseUrl, supabaseKey,
 async function handleOrchestrate(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { workflow_type, title, context = {}, supabase_url, supabase_key } = req.body || {};
+  const { workflow_type, title, context = {} } = req.body || {};
   if (!workflow_type) return res.status(400).json({ error: 'workflow_type is required' });
   if (!title) return res.status(400).json({ error: 'title is required' });
+
+  const supabase_url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabase_key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   const validWorkflows = Object.keys(WORKFLOW_CHAINS);
   if (!validWorkflows.includes(workflow_type)) {
@@ -460,7 +506,7 @@ async function handleOrchestrate(req, res) {
 
     if (workflow_type === 'campaign_strategy') {
       const { steps: strategySteps, finalOutput: strategyOutput } = await runWorkflowChain(
-        WORKFLOW_CHAINS.campaign_strategy, title, context, supabase_url, supabase_key, null, apiKey
+        WORKFLOW_CHAINS.campaign_strategy, title, context, null, apiKey
       );
       allSteps.push(...strategySteps);
       finalOutput = strategyOutput;
@@ -474,7 +520,7 @@ async function handleOrchestrate(req, res) {
         const subContext = { ...context, platform: d.platform || context.platform || 'instagram', topic: d.goal || d.description || context.topic };
         try {
           const { steps: subSteps, contentItems: subItems } = await runWorkflowChain(
-            subChain, subTitle, subContext, supabase_url, supabase_key, workflowId, apiKey
+            subChain, subTitle, subContext, workflowId, apiKey
           );
           allSteps.push(...subSteps);
           allContentItems.push(...subItems);
@@ -483,7 +529,7 @@ async function handleOrchestrate(req, res) {
     } else {
       const chain = WORKFLOW_CHAINS[workflow_type];
       const { steps, finalOutput: fo, contentItems } = await runWorkflowChain(
-        chain, title, context, supabase_url, supabase_key, context.campaign_id || null, apiKey
+        chain, title, context, context.campaign_id || null, apiKey
       );
       allSteps = steps;
       finalOutput = fo;
@@ -1238,6 +1284,12 @@ async function handleCredentialsStatus(req, res) {
       configured: !!process.env.STRIPE_SECRET_KEY,
       masked: maskValue(process.env.STRIPE_SECRET_KEY, 6),
       env_var: 'STRIPE_SECRET_KEY'
+    },
+    openai_api_key: {
+      label: 'OpenAI API Key (DALL-E)',
+      configured: !!process.env.OPENAI_API_KEY,
+      masked: maskValue(process.env.OPENAI_API_KEY, 6),
+      env_var: 'OPENAI_API_KEY'
     }
   };
 
@@ -2087,6 +2139,118 @@ async function handleGoogleSearchConsole(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: generate-image
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleGenerateImage(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only.' });
+  const { prompt, content_item_id, size } = req.body || {};
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  const imageUrl = await generateImage(prompt, size);
+  if (!imageUrl) return res.status(500).json({ error: 'Image generation failed. Check OPENAI_API_KEY.' });
+
+  // If content_item_id provided, update the calendar item
+  if (content_item_id) {
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (supabaseUrl && supabaseKey) {
+      try {
+        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', content_item_id, { image_url: imageUrl });
+      } catch (err) { console.warn('[generate-image] Failed to update content_calendar:', err.message); }
+    }
+  }
+
+  return res.status(200).json({ success: true, image_url: imageUrl });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: auto-publish
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleAutoPublish(req, res) {
+  if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  const pageId = process.env.META_PAGE_ID || '724180587440946';
+  const igAccountId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
+
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!accessToken) return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured' });
+
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    // Get scheduled items due for publishing today or earlier
+    const items = await supabaseGet(
+      supabaseUrl + '/rest/v1/content_calendar?status=eq.scheduled&scheduled_date=lte.' + today + '&select=*',
+      supabaseKey
+    );
+
+    if (!items || items.length === 0) {
+      return res.status(200).json({ success: true, message: 'No items due for publishing', published: 0 });
+    }
+
+    const results = [];
+
+    for (const item of items) {
+      const platform = item.platform || 'facebook';
+      const message = item.copy_text || item.title;
+
+      try {
+        let publishResult = {};
+
+        if (platform === 'facebook' || platform === 'both') {
+          const fbPayload = { message, access_token: accessToken };
+          const fbRes = await fetch('https://graph.facebook.com/v21.0/' + pageId + '/feed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fbPayload)
+          }).then(r => r.json());
+          publishResult.facebook = fbRes;
+        }
+
+        if ((platform === 'instagram' || platform === 'both') && item.image_url) {
+          const containerRes = await fetch('https://graph.facebook.com/v21.0/' + igAccountId + '/media', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image_url: item.image_url, caption: message, access_token: accessToken })
+          }).then(r => r.json());
+
+          if (containerRes.id) {
+            const pubRes = await fetch('https://graph.facebook.com/v21.0/' + igAccountId + '/media_publish', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ creation_id: containerRes.id, access_token: accessToken })
+            }).then(r => r.json());
+            publishResult.instagram = pubRes;
+          } else {
+            publishResult.instagram = { error: 'Container creation failed', details: containerRes };
+          }
+        }
+
+        // Update status to published
+        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
+          status: 'published', published_date: today
+        });
+
+        results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'published' });
+      } catch (pubErr) {
+        console.error('[auto-publish] Failed to publish item ' + item.id + ':', pubErr.message);
+        results.push({ id: item.id, title: item.title, platform, error: pubErr.message, status: 'failed' });
+      }
+    }
+
+    return res.status(200).json({ success: true, published: results.filter(r => r.status === 'published').length, total: items.length, results });
+  } catch (err) {
+    console.error('[auto-publish] Error:', err);
+    return res.status(500).json({ error: 'Auto-publish failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -2109,7 +2273,9 @@ const ROUTES = {
   'meta-ad-insights':   handleMetaAdInsights,
   'google-analytics':   handleGoogleAnalytics,
   'google-search-console': handleGoogleSearchConsole,
-  'credentials-status': handleCredentialsStatus
+  'credentials-status': handleCredentialsStatus,
+  'generate-image':    handleGenerateImage,
+  'auto-publish':      handleAutoPublish
 };
 
 module.exports = async function handler(req, res) {

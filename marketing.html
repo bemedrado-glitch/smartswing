@@ -366,6 +366,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="calToday()">Today</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="publishAllDue()" title="Publish all scheduled items due today or earlier">Publish All Due</button>
             <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openModal('addContentModal')">+ Add Content</button>
           </div>
         </div>
@@ -2755,16 +2756,13 @@ async function runOrchestration() {
   `).join('');
 
   try {
-    const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
     const res = await fetch('/api/marketing/orchestrate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         workflow_type,
         title,
-        context: { platform, additional: context_text },
-        supabase_url: cfg.url || '',
-        supabase_key: cfg.anonKey || ''
+        context: { platform, additional: context_text }
       })
     });
     const data = await res.json();
@@ -2802,6 +2800,37 @@ async function runOrchestration() {
     btn.textContent = '🚀 Launch Pipeline';
     btn.disabled = false;
   }
+}
+
+/* ── AUTO-PUBLISH ── */
+async function publishAllDue() {
+  if (!confirm('Publish all scheduled items due today or earlier to Meta (FB/IG)?')) return;
+  showToast('Publishing...', 'info');
+  try {
+    const res = await fetch('/api/marketing/auto-publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Published ${data.published}/${data.total} items`, 'success');
+      renderCalendar(); renderMiniCalendar(); updateKPIs();
+    } else {
+      showToast('Publish failed: ' + (data.error || 'Unknown'), 'error');
+    }
+  } catch (err) { showToast('Publish error: ' + err.message, 'error'); }
+}
+
+async function publishSingleItem(itemId) {
+  if (!confirm('Publish this item now?')) return;
+  showToast('Publishing...', 'info');
+  try {
+    const res = await fetch('/api/marketing/auto-publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ item_id: itemId }) });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Published!', 'success');
+      renderCalendar(); renderMiniCalendar();
+    } else {
+      showToast('Publish failed: ' + (data.error || 'Unknown'), 'error');
+    }
+  } catch (err) { showToast('Publish error: ' + err.message, 'error'); }
 }
 
 /* ── DATA REFRESH ── */
