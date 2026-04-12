@@ -68,71 +68,56 @@ function setHeaders(res, headers) {
   Object.entries(headers).forEach(([k, v]) => res.setHeader(k, v));
 }
 
+// IMPORTANT: Fallbacks must ONLY contain verified real results.
+// Never invent scores or results for tournaments that haven't happened.
+// When no real data is available, show an empty state instead of fake data.
+// Last verified: 2026-04-12
+
 const FALLBACK_UPCOMING = [
   {
-    id: 'fallback-u1', name: 'ATP Masters 1000 — Monte-Carlo',
-    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-12',
+    id: 'fallback-u1', name: 'ATP 500 — Barcelona Open',
+    tournament: 'Barcelona Open Banc Sabadell', date: '2026-04-13',
     homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
-    venue: 'Monte-Carlo Country Club', city: 'Roquebrune-Cap-Martin', country: 'France',
+    venue: 'Real Club de Tenis Barcelona', city: 'Barcelona', country: 'Spain',
     thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
   },
   {
-    id: 'fallback-u2', name: 'WTA 500 — Stuttgart Open',
-    tournament: 'Porsche Tennis Grand Prix', date: '2026-04-14',
+    id: 'fallback-u2', name: 'WTA 500 — Porsche Tennis Grand Prix',
+    tournament: 'Porsche Tennis Grand Prix', date: '2026-04-13',
     homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
     venue: 'Porsche Arena', city: 'Stuttgart', country: 'Germany',
     thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
   },
   {
-    id: 'fallback-u3', name: 'ATP 500 — Barcelona Open',
-    tournament: 'Barcelona Open Banc Sabadell', date: '2026-04-20',
+    id: 'fallback-u3', name: 'ATP/WTA 1000 — Mutua Madrid Open',
+    tournament: 'Mutua Madrid Open', date: '2026-04-27',
     homeTeam: null, awayTeam: null, homeScore: null, awayScore: null,
-    venue: 'Real Club de Tenis Barcelona', city: 'Barcelona', country: 'Spain',
+    venue: 'Caja Magica', city: 'Madrid', country: 'Spain',
     thumbnail: null, status: 'Upcoming', round: null, season: '2026', sport: 'Tennis'
   }
 ];
 
+// Only verified real results — source: atptour.com/en/news/monte-carlo-2026-results
 const FALLBACK_RECENT = [
   {
     id: 'fallback-r1', name: 'Monte-Carlo Masters — Final',
-    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-06',
-    homeTeam: 'C. Alcaraz', awayTeam: 'J. Sinner', homeScore: '2', awayScore: '0',
+    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-12',
+    homeTeam: 'J. Sinner', awayTeam: 'C. Alcaraz', homeScore: '2', awayScore: '0',
     venue: 'Monte-Carlo Country Club', city: 'Monaco', country: 'France',
     thumbnail: null, status: 'Match Finished', round: 'Final', season: '2026', sport: 'Tennis'
   },
   {
     id: 'fallback-r2', name: 'Monte-Carlo Masters — Semifinal',
-    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-05',
-    homeTeam: 'C. Alcaraz', awayTeam: 'A. Zverev', homeScore: '2', awayScore: '1',
+    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-11',
+    homeTeam: 'J. Sinner', awayTeam: 'A. Zverev', homeScore: '2', awayScore: '0',
     venue: 'Monte-Carlo Country Club', city: 'Monaco', country: 'France',
     thumbnail: null, status: 'Match Finished', round: 'SF', season: '2026', sport: 'Tennis'
   },
   {
     id: 'fallback-r3', name: 'Monte-Carlo Masters — Semifinal',
-    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-05',
-    homeTeam: 'J. Sinner', awayTeam: 'S. Tsitsipas', homeScore: '2', awayScore: '0',
+    tournament: 'Monte-Carlo Rolex Masters', date: '2026-04-11',
+    homeTeam: 'C. Alcaraz', awayTeam: 'V. Vacherot', homeScore: '2', awayScore: '0',
     venue: 'Monte-Carlo Country Club', city: 'Monaco', country: 'France',
-    thumbnail: null, status: 'Match Finished', round: 'SF', season: '2026', sport: 'Tennis'
-  },
-  {
-    id: 'fallback-r4', name: 'Barcelona Open — Final',
-    tournament: 'Barcelona Open Banc Sabadell', date: '2026-04-13',
-    homeTeam: 'J. Sinner', awayTeam: 'C. Alcaraz', homeScore: '2', awayScore: '1',
-    venue: 'Real Club de Tenis Barcelona', city: 'Barcelona', country: 'Spain',
-    thumbnail: null, status: 'Match Finished', round: 'Final', season: '2026', sport: 'Tennis'
-  },
-  {
-    id: 'fallback-r5', name: 'WTA Stuttgart — Final',
-    tournament: 'Porsche Tennis Grand Prix', date: '2026-04-13',
-    homeTeam: 'I. Swiatek', awayTeam: 'A. Sabalenka', homeScore: '2', awayScore: '1',
-    venue: 'Porsche Arena', city: 'Stuttgart', country: 'Germany',
-    thumbnail: null, status: 'Match Finished', round: 'Final', season: '2026', sport: 'Tennis'
-  },
-  {
-    id: 'fallback-r6', name: 'WTA Stuttgart — Semifinal',
-    tournament: 'Porsche Tennis Grand Prix', date: '2026-04-12',
-    homeTeam: 'I. Swiatek', awayTeam: 'J. Pegula', homeScore: '2', awayScore: '0',
-    venue: 'Porsche Arena', city: 'Stuttgart', country: 'Germany',
     thumbnail: null, status: 'Match Finished', round: 'SF', season: '2026', sport: 'Tennis'
   }
 ];
@@ -182,7 +167,8 @@ module.exports = async (req, res) => {
       upcoming: hasUpcoming ? upcoming : FALLBACK_UPCOMING,
       recent: hasRecent ? recent : FALLBACK_RECENT,
       live: hasUpcoming || hasRecent,
-      error: (!hasUpcoming && !hasRecent) ? 'no live events — showing recent results' : null,
+      source: (hasUpcoming || hasRecent) ? 'thesportsdb' : 'fallback',
+      error: (!hasUpcoming && !hasRecent) ? 'no live events — showing cached results' : null,
       fetchedAt,
     });
   } catch (err) {
@@ -192,7 +178,8 @@ module.exports = async (req, res) => {
       upcoming: FALLBACK_UPCOMING,
       recent: FALLBACK_RECENT,
       live: false,
-      error: 'live data unavailable — showing recent results',
+      source: 'fallback',
+      error: 'live data unavailable — showing cached results',
       fetchedAt,
     });
   }

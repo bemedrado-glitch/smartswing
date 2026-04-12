@@ -1038,7 +1038,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="tc-content">
               <span class="tc-badge badge-500">ATP 500</span>
               <div class="tc-name">Barcelona Open Banc Sabadell</div>
-              <div class="tc-dates">Apr 14 – 21</div>
+              <div class="tc-dates">Apr 13 – 19</div>
               <div class="tc-location">Spain 🇪🇸</div>
               <div class="tc-prize">€3.74M</div>
               <span class="surface-label">Clay</span>
@@ -1050,7 +1050,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="tc-content">
               <span class="tc-badge badge-500">WTA 500</span>
               <div class="tc-name">Porsche Tennis Grand Prix</div>
-              <div class="tc-dates">Apr 14 – 21</div>
+              <div class="tc-dates">Apr 13 – 19</div>
               <div class="tc-location">Stuttgart 🇩🇪</div>
               <div class="tc-prize">€802K</div>
               <span class="surface-label">Clay</span>
@@ -1944,8 +1944,13 @@ async function fetchTennisData() {
 
     // Update live badge to reflect data source
     var liveBadge = document.getElementById('liveBadge');
-    if (liveBadge && data.live === false) {
-      liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#ffd84d;"></span>RECENT';
+    if (liveBadge) {
+      if (data.source === 'fallback') {
+        liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#fb923c;"></span>CACHED';
+        liveBadge.title = 'Showing cached results — live feed temporarily unavailable';
+      } else if (data.live === false) {
+        liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#ffd84d;"></span>RECENT';
+      }
     }
 
     if (!data.recent || data.recent.length === 0) {
@@ -2050,6 +2055,11 @@ var SURFACE_COLORS = {
   indoor: '#5a4a8a'
 };
 
+// ⚠️ IMPORTANT: Tournament brackets must contain ONLY verified real results.
+// Never invent or predict match scores. For upcoming tournaments, use status: 'upcoming'
+// with TBD placeholders. Only change status to 'completed' and add scores AFTER verifying
+// results on official sources (atptour.com, wtatennis.com, or Wikipedia).
+// Last verified: 2026-04-12 — Source: atptour.com/en/news/monte-carlo-2026-results
 var TOURNAMENT_DATA = {
   'monte-carlo-2026': {
     name: 'Monte-Carlo Rolex Masters',
@@ -2061,67 +2071,67 @@ var TOURNAMENT_DATA = {
     status: 'completed',
     officialUrl: 'https://www.atptour.com/en/tournaments/monte-carlo/410/draws',
     qf: [
-      { p1: 'C. Alcaraz', s1: '[1]', p2: 'T. Paul', s2: '[14]', score: '6-3, 7-5', w: 1 },
-      { p1: 'A. Zverev', s1: '[3]', p2: 'H. Rune', s2: '[9]', score: '7-6(4), 6-4', w: 1 },
-      { p1: 'J. Sinner', s1: '[2]', p2: 'C. Ruud', s2: '[7]', score: '6-4, 6-3', w: 1 },
-      { p1: 'S. Tsitsipas', s1: '[5]', p2: 'N. Djokovic', s2: '[6]', score: '6-4, 3-6, 7-5', w: 1 }
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'A. Bublik', s2: '[8]', score: '6-3, 6-0', w: 1 },
+      { p1: 'V. Vacherot', s1: '[WC]', p2: 'A. de Minaur', s2: '[5]', score: '6-4, 3-6, 6-3', w: 1 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'F. Auger-Aliassime', s2: '[6]', score: '6-3, 6-4', w: 1 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'J. Fonseca', s2: '', score: '7-5, 6-7(3), 6-3', w: 1 }
     ],
     sf: [
-      { p1: 'C. Alcaraz', s1: '[1]', p2: 'A. Zverev', s2: '[3]', score: '6-4, 3-6, 6-3', w: 1 },
-      { p1: 'J. Sinner', s1: '[2]', p2: 'S. Tsitsipas', s2: '[5]', score: '6-3, 6-4', w: 1 }
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'V. Vacherot', s2: '[WC]', score: '6-4, 6-4', w: 1 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'A. Zverev', s2: '[3]', score: '6-1, 6-4', w: 1 }
     ],
     f: [
-      { p1: 'C. Alcaraz', s1: '[1]', p2: 'J. Sinner', s2: '[2]', score: '6-4, 6-3', w: 1 }
+      { p1: 'J. Sinner', s1: '[2]', p2: 'C. Alcaraz', s2: '[1]', score: '7-6(5), 6-3', w: 1 }
     ],
-    champion: 'Carlos Alcaraz'
+    champion: 'Jannik Sinner'
   },
   'barcelona-2026': {
     name: 'Barcelona Open Banc Sabadell',
-    dates: 'Apr 14 – 21, 2026',
+    dates: 'Apr 13 – 19, 2026',
     location: 'Barcelona, Spain 🇪🇸',
     surface: 'clay',
     category: 'ATP 500',
     prize: '€3.74M',
-    status: 'completed',
-    officialUrl: 'https://www.atptour.com/en/tournaments/barcelona/430/draws',
+    status: 'upcoming',
+    officialUrl: 'https://www.atptour.com/en/tournaments/barcelona/425/overview',
     qf: [
-      { p1: 'J. Sinner', s1: '[1]', p2: 'F. Cerundolo', s2: '[8]', score: '6-3, 6-2', w: 1 },
-      { p1: 'C. Alcaraz', s1: '[2]', p2: 'A. Davidovich Fokina', s2: '[WC]', score: '6-4, 6-1', w: 1 },
-      { p1: 'A. Zverev', s1: '[3]', p2: 'S. Baez', s2: '[7]', score: '6-2, 7-5', w: 1 },
-      { p1: 'C. Norrie', s1: '[5]', p2: 'B. Coric', s2: '[4]', score: '3-6, 6-3, 6-4', w: 1 }
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'L. Musetti', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. de Minaur', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Ruud', s1: '[5]', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     sf: [
-      { p1: 'J. Sinner', s1: '[1]', p2: 'C. Alcaraz', s2: '[2]', score: '7-6(3), 6-4', w: 1 },
-      { p1: 'A. Zverev', s1: '[3]', p2: 'C. Norrie', s2: '[5]', score: '6-1, 6-3', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     f: [
-      { p1: 'J. Sinner', s1: '[1]', p2: 'A. Zverev', s2: '[3]', score: '6-3, 6-4', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
-    champion: 'Jannik Sinner'
+    champion: null
   },
   'stuttgart-wta-2026': {
     name: 'Porsche Tennis Grand Prix',
-    dates: 'Apr 14 – 21, 2026',
+    dates: 'Apr 13 – 19, 2026',
     location: 'Stuttgart, Germany 🇩🇪',
-    surface: 'clay',
+    surface: 'clay (indoor)',
     category: 'WTA 500',
-    prize: '€802K',
-    status: 'completed',
-    officialUrl: 'https://www.wtatennis.com/tournaments/1455/porsche-grand-prix/2026/draws',
+    prize: '€1.05M',
+    status: 'upcoming',
+    officialUrl: 'https://www.wtatennis.com/tournaments/1051/stuttgart/2026',
     qf: [
-      { p1: 'I. Swiatek', s1: '[1]', p2: 'D. Collins', s2: '[8]', score: '6-2, 6-1', w: 1 },
-      { p1: 'A. Sabalenka', s1: '[2]', p2: 'B. Andreescu', s2: '[6]', score: '7-5, 6-3', w: 1 },
-      { p1: 'C. Gauff', s1: '[3]', p2: 'M. Bouzkova', s2: '[7]', score: '6-3, 6-2', w: 1 },
-      { p1: 'E. Rybakina', s1: '[4]', p2: 'M. Vondrousova', s2: '[5]', score: '6-4, 3-6, 6-2', w: 1 }
+      { p1: 'A. Sabalenka', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'E. Rybakina', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Gauff', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'I. Swiatek', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     sf: [
-      { p1: 'I. Swiatek', s1: '[1]', p2: 'A. Sabalenka', s2: '[2]', score: '7-5, 6-2', w: 1 },
-      { p1: 'C. Gauff', s1: '[3]', p2: 'E. Rybakina', s2: '[4]', score: '6-4, 6-4', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     f: [
-      { p1: 'I. Swiatek', s1: '[1]', p2: 'C. Gauff', s2: '[3]', score: '6-3, 7-5', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
-    champion: 'Iga Swiatek'
+    champion: null
   },
   'madrid-2026': {
     name: 'Mutua Madrid Open',
@@ -2269,22 +2279,21 @@ var TOURNAMENT_DATA = {
   }
 };
 
-// Map result-card tournament name keywords → tid
+// Map result-card tournament name keywords → tid (tournament names only, not player names)
 var RESULT_TID_MAP = {
   'monte-carlo': 'monte-carlo-2026',
-  'alcaraz': 'monte-carlo-2026',
+  'monte carlo': 'monte-carlo-2026',
   'stuttgart': 'stuttgart-wta-2026',
-  'swiatek': 'stuttgart-wta-2026',
+  'porsche': 'stuttgart-wta-2026',
   'barcelona': 'barcelona-2026',
-  'sinner': 'barcelona-2026',
-  'miami': 'miami-open',
-  'indian wells': 'monte-carlo-2026',
   'madrid': 'madrid-2026',
   'rome': 'rome-2026',
   'roland': 'roland-garros-2026',
+  'roland garros': 'roland-garros-2026',
   'wimbledon': 'wimbledon-2026',
   'us open': 'us-open-2026',
-  'gauff': 'miami-open'
+  "queen's": 'queens-2026',
+  'queens': 'queens-2026'
 };
 
 function openBracketModal(tid) {
