@@ -1105,38 +1105,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="mkt-panel" style="grid-column:1/-1;">
             <div class="mkt-panel__header">
               <div class="mkt-panel__title">🔑 Platform API Credentials</div>
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadCredentialsStatus()">Refresh</button>
             </div>
             <div class="mkt-panel__body">
-              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Store API tokens for social media publishing. These are saved locally and used by AI agents for auto-posting.</p>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="mkt-form-group">
-                  <label class="mkt-label">Meta (IG + FB) Access Token</label>
-                  <input type="password" class="mkt-input" id="settMetaToken" placeholder="Long-lived page access token">
-                </div>
-                <div class="mkt-form-group">
-                  <label class="mkt-label">Meta Page ID</label>
-                  <input type="text" class="mkt-input" id="settMetaPageId" placeholder="e.g. 123456789">
-                </div>
-                <div class="mkt-form-group">
-                  <label class="mkt-label">YouTube OAuth Refresh Token</label>
-                  <input type="password" class="mkt-input" id="settYtToken" placeholder="OAuth2 refresh token">
-                </div>
-                <div class="mkt-form-group">
-                  <label class="mkt-label">YouTube Channel ID</label>
-                  <input type="text" class="mkt-input" id="settYtChannelId" placeholder="e.g. UC...">
-                </div>
-                <div class="mkt-form-group">
-                  <label class="mkt-label">TikTok Access Token</label>
-                  <input type="password" class="mkt-input" id="settTtToken" placeholder="TikTok for Business token">
-                </div>
-                <div class="mkt-form-group">
-                  <label class="mkt-label">Buffer / Publer API Key (optional)</label>
-                  <input type="password" class="mkt-input" id="settBufferKey" placeholder="For multi-platform scheduling">
-                </div>
-              </div>
-              <div style="margin-top:16px;display:flex;gap:8px;">
-                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="savePlatformKeys()">Save All Keys</button>
-                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="testPlatformConnections()">Test Connections</button>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">All credentials are stored securely in Vercel environment variables. Manage them in the <a href="https://vercel.com/team_fFLOWRKPV8cPmnjnBiO7TlW9/smartswing/settings/environment-variables" target="_blank" rel="noopener" style="color:var(--volt);text-decoration:underline;">Vercel dashboard</a>.</p>
+              <div id="credentialsGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px;">Loading credentials status…</div>
               </div>
             </div>
           </div>
@@ -1676,6 +1650,7 @@ function switchTab(tabName, triggerEl) {
     if (ss.fb) document.getElementById('settFbLikes').value = ss.fb;
     checkSocialConnections();
     checkSmsStatus();
+    loadCredentialsStatus();
   }
 }
 
@@ -3525,6 +3500,72 @@ function checkSocialConnections() {
       }
     }
   }).catch(function() { /* silent */ });
+}
+
+function loadCredentialsStatus() {
+  var grid = document.getElementById('credentialsGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px;">Loading…</div>';
+
+  fetch('/api/marketing/credentials-status').then(function(r) { return r.json(); }).then(function(data) {
+    if (!data.success) { grid.innerHTML = '<div style="grid-column:1/-1;color:#dc2626;padding:12px;">Failed to load credentials.</div>'; return; }
+
+    var creds = data.credentials;
+    var html = '<div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg-soft);border-radius:8px;margin-bottom:4px;">' +
+      '<span style="font-size:14px;">📋</span>' +
+      '<span style="font-size:13px;font-weight:600;color:var(--black);">' + data.configured + ' of ' + data.total + ' credentials configured</span></div>';
+
+    var groups = {
+      'Meta / Facebook / Instagram': ['meta_page_access_token', 'meta_page_id', 'meta_app_id', 'meta_app_secret', 'meta_ad_account_id', 'meta_pixel_id'],
+      'Google': ['ga4_property_id', 'google_service_account'],
+      'Email & SMS': ['resend_api_key', 'aws_access_key_id', 'aws_secret_access_key', 'aws_sms_origination_number'],
+      'Supabase & Stripe': ['supabase_url', 'supabase_service_role_key', 'stripe_secret_key']
+    };
+
+    Object.keys(groups).forEach(function(groupName) {
+      html += '<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--black);margin-top:12px;padding:0 4px;text-transform:uppercase;letter-spacing:0.5px;">' + groupName + '</div>';
+      groups[groupName].forEach(function(key) {
+        var c = creds[key];
+        if (!c) return;
+        var status = c.configured ? '✅' : '❌';
+        var displayVal = c.configured ? (c.value || c.masked || '●●●● configured') : 'Not set';
+        var valColor = c.configured ? 'var(--black)' : '#dc2626';
+        var id = 'cred_' + key;
+
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-soft);border-radius:8px;min-height:44px;">' +
+          '<span style="font-size:13px;">' + status + '</span>' +
+          '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:12px;font-weight:600;color:var(--black);">' + c.label + '</div>' +
+          '<div style="font-size:11px;color:var(--muted);font-family:monospace;">' + c.env_var + '</div>' +
+          '</div>' +
+          '<div id="' + id + '" style="font-size:12px;color:' + valColor + ';font-family:monospace;word-break:break-all;max-width:200px;text-align:right;" data-masked="' + (c.masked || '') + '" data-value="' + (c.value || '') + '" data-showing="masked">' + displayVal + '</div>';
+
+        if (c.configured && (c.masked || c.value)) {
+          html += '<button onclick="toggleCredential(\'' + id + '\')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;">Show</button>';
+        }
+        html += '</div>';
+      });
+    });
+
+    grid.innerHTML = html;
+  }).catch(function() {
+    grid.innerHTML = '<div style="grid-column:1/-1;color:#dc2626;padding:12px;">Could not reach credentials endpoint.</div>';
+  });
+}
+
+function toggleCredential(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var btn = el.nextElementSibling;
+  if (el.dataset.showing === 'masked') {
+    el.textContent = el.dataset.value || el.dataset.masked || '';
+    el.dataset.showing = 'value';
+    if (btn) btn.textContent = 'Hide';
+  } else {
+    el.textContent = el.dataset.masked || el.dataset.value || '';
+    el.dataset.showing = 'masked';
+    if (btn) btn.textContent = 'Show';
+  }
 }
 
 function checkSmsStatus() {

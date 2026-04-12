@@ -1133,6 +1133,121 @@ async function handleAiCoach(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// CREDENTIALS STATUS (masked, read-only)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function maskValue(val, showLast) {
+  if (!val) return null;
+  const s = String(val).trim();
+  if (!s) return null;
+  const n = showLast || 4;
+  if (s.length <= n) return '●'.repeat(s.length);
+  return '●'.repeat(Math.min(s.length - n, 20)) + s.slice(-n);
+}
+
+async function handleCredentialsStatus(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only.' });
+
+  const credentials = {
+    meta_page_access_token: {
+      label: 'Meta (IG + FB) Access Token',
+      configured: !!process.env.META_PAGE_ACCESS_TOKEN,
+      masked: maskValue(process.env.META_PAGE_ACCESS_TOKEN, 6),
+      env_var: 'META_PAGE_ACCESS_TOKEN'
+    },
+    meta_page_id: {
+      label: 'Meta Page ID',
+      configured: !!process.env.META_PAGE_ID,
+      value: process.env.META_PAGE_ID || null,
+      env_var: 'META_PAGE_ID'
+    },
+    meta_app_id: {
+      label: 'Meta App ID',
+      configured: !!process.env.META_APP_ID,
+      value: process.env.META_APP_ID || null,
+      env_var: 'META_APP_ID'
+    },
+    meta_app_secret: {
+      label: 'Meta App Secret',
+      configured: !!process.env.META_APP_SECRET,
+      masked: maskValue(process.env.META_APP_SECRET, 4),
+      env_var: 'META_APP_SECRET'
+    },
+    meta_ad_account_id: {
+      label: 'Meta Ad Account ID',
+      configured: !!process.env.META_AD_ACCOUNT_ID,
+      value: process.env.META_AD_ACCOUNT_ID || null,
+      env_var: 'META_AD_ACCOUNT_ID'
+    },
+    meta_pixel_id: {
+      label: 'Meta Pixel ID',
+      configured: !!(process.env.META_PIXEL_ID),
+      value: process.env.META_PIXEL_ID || null,
+      env_var: 'META_PIXEL_ID'
+    },
+    resend_api_key: {
+      label: 'Resend API Key',
+      configured: !!process.env.RESEND_API_KEY,
+      masked: maskValue(process.env.RESEND_API_KEY, 6),
+      env_var: 'RESEND_API_KEY'
+    },
+    aws_access_key_id: {
+      label: 'AWS Access Key ID',
+      configured: !!process.env.AWS_ACCESS_KEY_ID,
+      masked: maskValue(process.env.AWS_ACCESS_KEY_ID, 4),
+      env_var: 'AWS_ACCESS_KEY_ID'
+    },
+    aws_secret_access_key: {
+      label: 'AWS Secret Access Key',
+      configured: !!process.env.AWS_SECRET_ACCESS_KEY,
+      masked: maskValue(process.env.AWS_SECRET_ACCESS_KEY, 4),
+      env_var: 'AWS_SECRET_ACCESS_KEY'
+    },
+    aws_sms_origination_number: {
+      label: 'AWS SMS Origination Number',
+      configured: !!(process.env.AWS_SMS_ORIGINATION_NUMBER),
+      value: process.env.AWS_SMS_ORIGINATION_NUMBER || '+18885429135',
+      env_var: 'AWS_SMS_ORIGINATION_NUMBER'
+    },
+    ga4_property_id: {
+      label: 'GA4 Property ID',
+      configured: !!process.env.GA4_PROPERTY_ID,
+      value: process.env.GA4_PROPERTY_ID || null,
+      env_var: 'GA4_PROPERTY_ID'
+    },
+    google_service_account: {
+      label: 'Google Service Account Key',
+      configured: !!process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+      masked: maskValue(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, 0) ? '●●●● (JSON key configured)' : null,
+      env_var: 'GOOGLE_SERVICE_ACCOUNT_KEY'
+    },
+    supabase_url: {
+      label: 'Supabase URL',
+      configured: !!process.env.SUPABASE_URL,
+      value: process.env.SUPABASE_URL || null,
+      env_var: 'SUPABASE_URL'
+    },
+    supabase_service_role_key: {
+      label: 'Supabase Service Role Key',
+      configured: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      masked: maskValue(process.env.SUPABASE_SERVICE_ROLE_KEY, 6),
+      env_var: 'SUPABASE_SERVICE_ROLE_KEY'
+    },
+    stripe_secret_key: {
+      label: 'Stripe Secret Key',
+      configured: !!process.env.STRIPE_SECRET_KEY,
+      masked: maskValue(process.env.STRIPE_SECRET_KEY, 6),
+      env_var: 'STRIPE_SECRET_KEY'
+    }
+  };
+
+  const total = Object.keys(credentials).length;
+  const configured = Object.values(credentials).filter(c => c.configured).length;
+
+  return res.status(200).json({ success: true, configured, total, credentials });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // SMS SENDING VIA AWS SNS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1993,7 +2108,8 @@ const ROUTES = {
   'meta-ads':           handleMetaAds,
   'meta-ad-insights':   handleMetaAdInsights,
   'google-analytics':   handleGoogleAnalytics,
-  'google-search-console': handleGoogleSearchConsole
+  'google-search-console': handleGoogleSearchConsole,
+  'credentials-status': handleCredentialsStatus
 };
 
 module.exports = async function handler(req, res) {
