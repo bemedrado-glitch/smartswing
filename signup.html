@@ -29,8 +29,8 @@
       min-height: 100vh;
       color: var(--silver);
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
       padding: 24px;
       background:
         radial-gradient(circle at top left, rgba(57, 255, 20, 0.12), transparent 26%),
@@ -38,8 +38,14 @@
         linear-gradient(160deg, #020406 0%, #09131d 100%);
     }
 
+    .ss-footer {
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+    }
+
     /* ── Layout ─────────────────────────────────────── */
     .auth-wrapper {
+      flex: 1;
       width: 100%;
       max-width: 1060px;
       display: grid;
