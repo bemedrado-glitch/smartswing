@@ -1419,7 +1419,7 @@ async function handleMetaStats(req, res) {
     return res.status(500).json({ error: 'META_PAGE_ACCESS_TOKEN not configured in Vercel env vars.' });
   }
 
-  const pageId = process.env.META_PAGE_ID || '61578118551710';
+  const pageId = process.env.META_PAGE_ID || '724180587440946';
   const igAccountId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
 
   try {
@@ -1457,7 +1457,7 @@ async function handleMetaPublish(req, res) {
 
   const { platform, message, link, image_url } = req.body || {};
 
-  const pageId = process.env.META_PAGE_ID || '61578118551710';
+  const pageId = process.env.META_PAGE_ID || '724180587440946';
   const igAccountId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
 
   try {

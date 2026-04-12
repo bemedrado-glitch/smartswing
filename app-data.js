@@ -2365,11 +2365,13 @@
       const local = getMatches();
       const map = new Map(local.map((item) => [item.externalId || item.id, item]));
       remoteMatches.forEach((row) => {
-        const externalId = row.id;
-        map.set(externalId, {
-          ...map.get(externalId),
-          id: externalId,
-          externalId,
+        // Find existing local match by remoteId
+        const existingLocal = local.find(m => m.remoteId === row.id);
+        const key = existingLocal ? (existingLocal.externalId || existingLocal.id) : row.id;
+        map.set(key, {
+          ...map.get(key),
+          id: existingLocal?.id || row.id,
+          externalId: existingLocal?.externalId || row.id,
           remoteId: row.id,
           userId: row.user_id,
           date: row.played_at || row.created_at || nowIso(),
@@ -3169,6 +3171,7 @@
       surface: matchPayload.surface || '',
       aiInsight: matchPayload.aiInsight || '',
       linkedAssessmentId: matchPayload.linkedAssessmentId || null,
+      syncedAt: null,
     };
     persistMatches([match, ...getMatches()]);
     syncMatchToCloud(match).catch(() => {});
@@ -3179,11 +3182,15 @@
     const client = await getSupabaseClient();
     if (!client || !match?.userId) return;
     try {
-      await client.from('matches').upsert({
-        id: match.id.startsWith('match_') ? undefined : match.id,
+      const result = match.result === 'unknown' ? 'abandoned' : (match.result || 'abandoned');
+      // Validate result against DB constraint
+      const validResults = ['win', 'loss', 'draw', 'abandoned'];
+      const safeResult = validResults.includes(result) ? result : 'abandoned';
+
+      const { data, error } = await client.from('matches').upsert({
         user_id: match.userId,
         opponent: match.opponent || 'Opponent',
-        result: match.result === 'unknown' ? 'abandoned' : match.result,
+        result: safeResult,
         final_score: match.finalScore || null,
         match_format: match.matchFormat || null,
         mini_game: match.miniGame || null,
@@ -3193,7 +3200,20 @@
         momentum: match.momentum || [],
         notes: match.aiInsight || null,
         played_at: match.date || nowIso(),
-      });
+      }).select('id').single();
+
+      if (error) {
+        console.warn('[SmartSwing] Match cloud sync failed:', error.message);
+        return;
+      }
+
+      // Update local match with remote ID and syncedAt
+      const matches = getMatches();
+      const idx = matches.findIndex(m => m.id === match.id || m.externalId === match.externalId);
+      if (idx >= 0) {
+        matches[idx] = { ...matches[idx], remoteId: data.id, syncedAt: nowIso() };
+        persistMatches(matches);
+      }
     } catch (err) {
       console.warn('[SmartSwing] Match cloud sync failed:', err);
     }
