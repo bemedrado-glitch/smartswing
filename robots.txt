@@ -2,12 +2,16 @@ User-agent: *
 Allow: /
 Disallow: /dashboard.html
 Disallow: /coach-dashboard.html
+Disallow: /analyze.html
 Disallow: /cart.html
 Disallow: /checkout.html
 Disallow: /auth-callback.html
 Disallow: /settings.html
+Disallow: /library.html
 Disallow: /payment-success.html
 Disallow: /payment-cancelled.html
 Disallow: /welcome.html
+Disallow: /marketing.html
+Disallow: /api/
 
 Sitemap: https://www.smartswingai.com/sitemap.xml

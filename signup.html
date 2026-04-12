@@ -41,10 +41,10 @@
     /* ── Layout ─────────────────────────────────────── */
     .auth-wrapper {
       width: 100%;
-      max-width: 960px;
+      max-width: 1060px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 56px;
       align-items: center;
     }
 
@@ -610,7 +610,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div class="card">
         <h1 data-i18n="auth.signUp.heading">Create Account</h1>
-        <p class="subtext" data-i18n="auth.signUp.subtext">Start analyzing your swings with AI-powered coaching feedback.</p>
+        <p class="subtext" data-i18n="auth.signUp.subtext">Set up your player or coach profile and start analyzing swings in 60 seconds.</p>
 
         <div class="auth-tabs">
           <a data-preserve-intent href="./login.html" data-i18n="auth.signUp.tabSignIn">Sign in</a>
@@ -687,9 +687,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           <div id="submitFeedback" class="alert" role="status" aria-live="polite"></div>
 
-          <label style="display:flex;align-items:flex-start;gap:10px;margin:16px 0 8px;cursor:pointer;font-size:13px;color:var(--silver);line-height:1.5;">
+          <!-- Mandatory: User Agreement + Privacy Policy -->
+          <label class="consent-label" style="display:flex;align-items:flex-start;gap:10px;margin:16px 0 8px;cursor:pointer;font-size:13px;color:var(--silver);line-height:1.5;">
+            <input type="checkbox" id="agreeTerms" name="agreeTerms" required style="margin-top:3px;accent-color:var(--neon-green);width:16px;height:16px;flex-shrink:0;" aria-required="true">
+            <span>I agree to the <a href="./user-agreement.html" target="_blank" style="color:var(--neon-green);">User Agreement</a> and <a href="./privacy-policy.html" target="_blank" style="color:var(--neon-green);">Privacy Policy</a>. <span style="color:var(--error);font-weight:700;">*</span></span>
+          </label>
+
+          <!-- Optional: SMS notifications -->
+          <label class="consent-label" style="display:flex;align-items:flex-start;gap:10px;margin:4px 0 16px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;">
             <input type="checkbox" id="smsOptIn" name="smsOptIn" style="margin-top:3px;accent-color:var(--neon-green);width:16px;height:16px;flex-shrink:0;">
-            <span>I agree to receive SMS notifications from SmartSwing AI, including swing analysis results, coaching reminders, and promotional offers. Message &amp; data rates may apply. Reply STOP to unsubscribe at any time. View our <a href="./privacy-policy.html" style="color:var(--neon-green);">Privacy Policy</a>.</span>
+            <span>Send me SMS notifications about analysis results and coaching updates. <span style="font-size:11px;opacity:0.7;">(Optional — Message &amp; data rates may apply. Reply STOP anytime.)</span></span>
           </label>
 
           <button id="signupBtn" class="btn" type="submit" data-i18n="auth.signUp.submit">Create Account</button>
@@ -697,8 +704,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="card-footer">
           Already have an account? <a href="./login.html">Sign in</a>
-          <br>
-          By creating an account, you agree to the <a href="./user-agreement.html">User Agreement</a> and <a href="./privacy-policy.html">Privacy Policy</a>.
         </div>
       </div>
 
@@ -837,6 +842,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (!document.getElementById('agreeTerms').checked) {
+        showAlert('You must agree to the User Agreement and Privacy Policy to create an account.');
+        return;
+      }
 
       if (password !== confirmPassword) {
         showAlert('Passwords do not match.');

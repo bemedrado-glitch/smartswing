@@ -657,7 +657,7 @@ Annual SmartSwing cost: $3,588<br>
 ROI: 1,118%</strong></p>
 <p>These are conservative estimates based on real club data. Actual results vary.</p>
 <p>Would it be worth 20 minutes to walk through this for your specific numbers?</p>
-<p><a href="mailto:hello@smartswingai.com?subject=Club ROI Discussion">Schedule a call →</a></p>
+<p><a href="mailto:contact@smartswingai.com?subject=Club ROI Discussion">Schedule a call →</a></p>
 <p>— The SmartSwing AI Team</p>`,
         body_text: `Hi {{first_name}},
 
@@ -679,7 +679,7 @@ ROI: 1,118%
 
 Worth 20 minutes to run your specific numbers?
 
-Schedule a call: hello@smartswingai.com — The SmartSwing AI Team`
+Schedule a call: contact@smartswingai.com — The SmartSwing AI Team`
       },
       {
         sequence_num: 3,
@@ -734,7 +734,7 @@ Would {{club_name}} be a fit? — The SmartSwing AI Team`
 <p>If at 60 days you don't see the impact in your member engagement data, you walk away. No contract, no invoice.</p>
 <p>If you do — and 91% of club pilots convert — we'll set up your annual plan at our standard club rate ($299/month).</p>
 <p>Are you the right person to move this forward, or should I be talking to someone else at the club?</p>
-<p><a href="mailto:hello@smartswingai.com?subject=Club Pilot Program">Start the pilot conversation →</a></p>
+<p><a href="mailto:contact@smartswingai.com?subject=Club Pilot Program">Start the pilot conversation →</a></p>
 <p>— The SmartSwing AI Team</p>`,
         body_text: `Hi {{first_name}},
 
@@ -753,7 +753,7 @@ If you don't see impact, you walk away. No contract, no invoice.
 
 91% of club pilots convert. Ready to talk?
 
-hello@smartswingai.com — The SmartSwing AI Team`
+contact@smartswingai.com — The SmartSwing AI Team`
       },
       {
         sequence_num: 5,

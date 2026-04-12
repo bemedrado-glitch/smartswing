@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Tennis Biomechanics Analysis</title>
   <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="Upload or record a tennis swing and get real-time AI biomechanics analysis with pose estimation, joint angles, and performance scoring.">
   <link rel="manifest" href="./manifest.json">
   
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1411,11 +1412,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div class="stat-value" id="confidenceValue">0%</div>
             </div>
 
-            <div class="stat-card" id="ballTrackCard" style="display:none;">
-              <div class="stat-label" style="color:rgba(255,216,77,.8);">Ball Tracked</div>
-              <div class="stat-value" id="ballDetectCount" style="color:#ffd84d;">0</div>
-              <div style="font-size:11px;color:var(--gray);margin-top:4px;">detections via COCO-SSD</div>
-            </div>
 
             <div style="margin-top: 24px;">
               <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--electric-cyan);">
@@ -1464,9 +1460,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="mt-panel" style="margin-bottom:16px;" id="mtFormatPanel">
             <div class="mt-label" style="margin-bottom:10px;">Match Format</div>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-              <button class="mt-pill-btn mt-format-btn selected" data-format="3" style="flex:1;min-width:80px;">Best of 3</button>
-              <button class="mt-pill-btn mt-format-btn" data-format="1" style="flex:1;min-width:80px;">1 Set</button>
-              <button class="mt-pill-btn mt-format-btn" data-format="5" style="flex:1;min-width:80px;">Best of 5</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="1" data-format-type="sets" style="flex:1;min-width:70px;">1 Set</button>
+              <button class="mt-pill-btn mt-format-btn selected" data-format="3" data-format-type="sets" style="flex:1;min-width:70px;">3 Sets</button>
+              <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="sets" style="flex:1;min-width:70px;">5 Sets</button>
             </div>
 
             <div class="mt-label" style="margin-bottom:10px; margin-top:16px; display:flex; align-items:center; gap:8px;">
@@ -1474,6 +1470,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               Fun Games / Drills
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px;">
+              <button class="mt-pill-btn mt-format-btn" data-format="3" data-format-type="games" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Best of 3 Games</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Short match</div>
+              </button>
+              <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="games" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Best of 5 Games</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Quick match</div>
+              </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="first-to-7" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">First to 7</div>
                 <div style="font-size:10px; opacity:.6; margin-top:2px;">Rally scoring</div>
@@ -1805,11 +1809,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       backendTimeoutMs: 20000,
       detectorTimeoutMs: 50000,
       metadataTimeoutMs: 20000,
-      poseFpsCap: 10,
-      fallbackPoseFpsCap: 12,
-      litePoseFpsCap: 10,
-      fullPoseFpsCap: 8,
-      cpuMoveNetFpsCap: 12,
+      poseFpsCap: 15,
+      fallbackPoseFpsCap: 15,
+      litePoseFpsCap: 14,
+      fullPoseFpsCap: 12,
+      cpuMoveNetFpsCap: 15,
       maxStoredFrames: 1800,
       uiRefreshMs: 90,
       angleUiRefreshMs: 110,
@@ -1817,8 +1821,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       minKeypointConfidence: 0.18,
       smoothingAlpha: 0.68,
       carryForwardDecay: 0.92,
-      analysisInputMaxSide: 288,
-      minPoseMotionPx: 3.5
+      analysisInputMaxSide: 288
     };
 
     const analysisData = {
@@ -1846,16 +1849,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         headStability: []
       },
       landmarks: [],
-      confidence: [],
-      ballDetections: []  // { timestamp, x, y, width, height, score }
+      confidence: []
     };
-
-    // ── Ball Detection (COCO-SSD) ──────────────────────────────────────
-    let ballDetector = null;
-    let ballDetectFrameCount = 0;
-    const BALL_DETECT_INTERVAL = 3; // run ball detection every N pose frames (balance perf vs accuracy)
-    let lastBallPos = null; // { x, y, timestamp } for velocity calc
-    let ballVelocity = 0;  // px/sec normalized
 
     function withTimeout(promise, timeoutMs, label) {
       return Promise.race([
@@ -2415,70 +2410,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return checkFn();
     }
 
-    // Load COCO-SSD for ball detection (non-blocking, optional)
-    async function initBallDetector() {
-      try {
-        // Only attempt if TF.js is already loaded
-        if (!window.tf) { console.log('[BallDetect] TF.js not loaded, skipping'); return; }
-        const hasCocoSsd = () => !!window.cocoSsd;
-        if (!hasCocoSsd()) {
-          await loadFromMirrorSafe([
-            'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js',
-            'https://unpkg.com/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js'
-          ], hasCocoSsd);
-        }
-        if (window.cocoSsd) {
-          ballDetector = await window.cocoSsd.load({ base: 'lite_mobilenet_v2' });
-          console.log('[BallDetect] COCO-SSD ball detector ready');
-        }
-      } catch (err) {
-        console.warn('[BallDetect] Ball detection unavailable (non-critical):', err.message);
-        ballDetector = null;
-      }
-    }
-
-    // Detect ball in current video frame (returns {x, y, width, height, score} or null)
-    async function detectBall(videoElement) {
-      if (!ballDetector) return null;
-      try {
-        const predictions = await ballDetector.detect(videoElement);
-        // COCO-SSD class "sports ball" = class index 37
-        const ballPreds = predictions.filter(p => p.class === 'sports ball' && p.score >= 0.25);
-        if (ballPreds.length === 0) return null;
-        // Pick highest confidence ball
-        const best = ballPreds.reduce((a, b) => a.score > b.score ? a : b);
-        const [bx, by, bw, bh] = best.bbox;
-        return {
-          x: bx + bw / 2,  // center x
-          y: by + bh / 2,  // center y
-          width: bw,
-          height: bh,
-          score: best.score,
-          rawClass: best.class
-        };
-      } catch (err) {
-        // Silent fail — ball detection is supplementary
-        return null;
-      }
-    }
-
-    // Calculate ball velocity between detections
-    function updateBallVelocity(ballPos, timestamp, videoWidth, videoHeight) {
-      if (!ballPos || !lastBallPos) {
-        lastBallPos = ballPos ? { ...ballPos, timestamp } : null;
-        ballVelocity = 0;
-        return 0;
-      }
-      const dt = Math.abs(timestamp - lastBallPos.timestamp);
-      if (dt < 0.01) return ballVelocity; // same frame
-      const dx = (ballPos.x - lastBallPos.x) / Math.max(1, videoWidth);
-      const dy = (ballPos.y - lastBallPos.y) / Math.max(1, videoHeight);
-      const dist = Math.sqrt(dx * dx + dy * dy); // normalized 0-1
-      ballVelocity = dist / dt; // normalized velocity per second
-      lastBallPos = { ...ballPos, timestamp };
-      return ballVelocity;
-    }
-
     async function ensurePoseLibraries() {
       const hasTf = () => !!window.tf;
       const hasMediaPipePose = () => !!window.Pose;
@@ -2608,10 +2539,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           aiInitStage = 'ready';
           setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
           playBtn.disabled = false;
-          // Load ball detector in background (non-blocking, optional)
-          initBallDetector().then(() => {
-            if (ballDetector) setStatus(`AI Ready (${detectorLabel} + Ball Tracking)`, 'ready');
-          }).catch(() => {});
           return true;
         } catch (error) {
           console.error('AI initialization failed:', error);
@@ -2864,7 +2791,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const FACE_KEYPOINT_INDICES = new Set([1, 2, 3, 4]); // l_eye, r_eye, l_ear, r_ear (nose is now tracked for head angle)
     const WRIST_KEYPOINT_INDICES = new Set([9, 10]);        // left_wrist, right_wrist
 
-    function drawPose(keypoints, ballDetection) {
+    function drawPose(keypoints) {
       const canvas = document.getElementById('poseCanvas');
       if (!canvas || !Array.isArray(keypoints)) return;
       const ctx = canvas.getContext('2d');
@@ -2924,130 +2851,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         ctx.fill();
       });
 
-      // ── Ball marker ──
-      if (ballDetection) {
-        const bx = ballDetection.x * canvas.width;
-        const by = ballDetection.y * canvas.height;
-        const br = Math.max(8, Math.round(canvas.width / 80));
-        // Outer glow
-        ctx.fillStyle = 'rgba(255, 216, 77, 0.25)';
-        ctx.beginPath();
-        ctx.arc(bx, by, br + 6, 0, 2 * Math.PI);
-        ctx.fill();
-        // Ball circle
-        ctx.fillStyle = 'rgba(255, 216, 77, 0.9)';
-        ctx.beginPath();
-        ctx.arc(bx, by, br, 0, 2 * Math.PI);
-        ctx.fill();
-        // Inner dot
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(bx, by, br * 0.35, 0, 2 * Math.PI);
-        ctx.fill();
-        // Label
-        ctx.font = `bold ${Math.max(10, Math.round(canvas.width / 60))}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillStyle = 'rgba(255, 216, 77, 0.9)';
-        ctx.textAlign = 'center';
-        ctx.fillText('BALL', bx, by - br - 4);
-      }
     }
 
     // Analysis Loop
-    async function analyzeFrame() {
-      const video = document.getElementById('videoElement');
-      
-      if (!isAnalyzing || video.paused || !detector) {
-        videoFrameCallbackId = null;
-        rafId = null;
-        return;
-      }
-
-      try {
-        syncCanvasToViewport();
-        if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
-          scheduleAnalyzeFrame(video);
-          return;
-        }
-        lastAnalyzedVideoTime = video.currentTime;
-
-        const now = performance.now();
-        const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
-        if (lastFrameAt && now - lastFrameAt < minDelta) {
-          scheduleAnalyzeFrame(video);
-          return;
-        }
-        lastFrameAt = now;
-
-        const poses = await detector.estimatePoses(video);
-        
-        if (poses && poses.length > 0) {
-          const canvas = document.getElementById('poseCanvas');
-          const transform = getVideoFitTransform(video, canvas);
-          const rawMetricKeypoints = normalizeKeypointsToMoveNet(
-            poses[0].keypoints || [],
-            transform.sourceWidth,
-            transform.sourceHeight
-          );
-          const metricKeypoints = stabilizeKeypoints(rawMetricKeypoints);
-          const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
-          const validLandmarks = metricKeypoints.filter(kp => kpOk(kp, AI_SETTINGS.minKeypointConfidence)).length;
-          const confidence = Math.round(
-            (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
-          );
-
-          const angles = computeAngles(metricKeypoints);
-
-          // Store data
-          for (const k in angles) {
-            if (angles[k] != null) {
-              pushWithCap(analysisData.angles[k], angles[k]);
-            }
-          }
-
-          pushWithCap(analysisData.frames, {
-            timestamp: video.currentTime,
-            landmarks: validLandmarks,
-            confidence,
-            angles
-          });
-          pushWithCap(analysisData.landmarks, validLandmarks);
-          pushWithCap(analysisData.confidence, confidence);
-
-          // Update UI
-          const framesCount = analysisData.frames.length;
-          document.getElementById('framesCount').textContent = framesCount;
-          document.getElementById('landmarksCount').textContent = validLandmarks;
-          document.getElementById('confidenceValue').textContent = confidence + '%';
-
-          // Update angle displays
-          document.getElementById('angleShoulder').textContent = angles.shoulder != null ? angles.shoulder + '°' : '-°';
-          document.getElementById('angleElbow').textContent = angles.elbow != null ? angles.elbow + '°' : '-°';
-          document.getElementById('angleHip').textContent = angles.hip != null ? angles.hip + '°' : '-°';
-          document.getElementById('angleKnee').textContent = angles.knee != null ? angles.knee + '°' : '-°';
-          document.getElementById('angleTrunk').textContent = angles.trunk != null ? angles.trunk + '°' : '-°';
-          document.getElementById('angleWrist').textContent = angles.wrist != null ? angles.wrist + '°' : '-°';
-
-          // Show save button after 30 frames
-          if (framesCount >= 30) {
-            document.getElementById('saveBtn').style.display = 'inline-block';
-            document.getElementById('generateReportBtn').style.display = 'inline-block';
-          }
-
-          drawPose(drawKeypoints);
-        }
-      } catch (error) {
-        console.error('Analysis error:', error);
-        isAnalyzing = false;
-        setStatus('AI processing paused due to an error. Retry AI Setup and continue.', 'error');
-      } finally {
-        if (isAnalyzing && !video.paused && detector) {
-          rafId = requestAnimationFrame(analyzeFrame);
-        } else {
-          rafId = null;
-        }
-      }
-    }
-
     analyzeFrame = async function() {
       const video = document.getElementById('videoElement');
 
@@ -3099,33 +2905,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           );
           const angles = computeAngles(metricKeypoints);
           const derivedMetrics = computeDerivedMetrics(metricKeypoints, poseMotion);
-          const shouldStoreFrame = validLandmarks >= 10 && (
-            analysisData.frames.length < 5 ||
-            poseMotion >= AI_SETTINGS.minPoseMotionPx
-          );
 
-          // ── Ball detection (every Nth frame, non-blocking) ──
-          let ballPos = null;
-          ballDetectFrameCount++;
-          if (ballDetector && ballDetectFrameCount % BALL_DETECT_INTERVAL === 0) {
-            try {
-              ballPos = await detectBall(detectorInput.source);
-              if (ballPos) {
-                updateBallVelocity(ballPos, video.currentTime, detectorInput.width, detectorInput.height);
-                pushWithCap(analysisData.ballDetections, {
-                  timestamp: video.currentTime,
-                  x: ballPos.x / detectorInput.width,   // normalize 0-1
-                  y: ballPos.y / detectorInput.height,
-                  width: ballPos.width / detectorInput.width,
-                  height: ballPos.height / detectorInput.height,
-                  score: ballPos.score,
-                  velocity: ballVelocity
-                });
-              }
-            } catch (_ballErr) { /* non-critical */ }
-          }
-
-          if (shouldStoreFrame) {
+          // Store every frame with enough landmarks (no motion filter)
+          if (validLandmarks >= 8) {
             for (const k in angles) {
               if (angles[k] != null) {
                 pushWithCap(analysisData.angles[k], angles[k]);
@@ -3143,9 +2925,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               confidence,
               poseMotion,
               angles,
-              derivedMetrics,
-              ballDetected: !!ballPos,
-              ballPos: ballPos ? { x: ballPos.x / detectorInput.width, y: ballPos.y / detectorInput.height, velocity: ballVelocity } : null
+              derivedMetrics
             });
             pushWithCap(analysisData.landmarks, validLandmarks);
             pushWithCap(analysisData.confidence, confidence);
@@ -3156,13 +2936,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             document.getElementById('framesCount').textContent = analysisData.frames.length;
             document.getElementById('landmarksCount').textContent = validLandmarks;
             document.getElementById('confidenceValue').textContent = confidence + '%';
-            // Ball tracking UI
-            if (analysisData.ballDetections.length > 0) {
-              const bCard = document.getElementById('ballTrackCard');
-              if (bCard) bCard.style.display = '';
-              const bCount = document.getElementById('ballDetectCount');
-              if (bCount) bCount.textContent = analysisData.ballDetections.length;
-            }
           }
 
           if (!lastAngleUiRefreshAt || now - lastAngleUiRefreshAt >= AI_SETTINGS.angleUiRefreshMs) {
@@ -3182,9 +2955,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           if (!lastDrawAt || now - lastDrawAt >= AI_SETTINGS.drawRefreshMs) {
             lastDrawAt = now;
-            // Pass latest ball detection for drawing
-            const latestBall = analysisData.ballDetections.length > 0 ? analysisData.ballDetections[analysisData.ballDetections.length - 1] : null;
-            drawPose(drawKeypoints, latestBall);
+            drawPose(drawKeypoints);
           }
         }
       } catch (error) {
@@ -4052,9 +3823,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     function selectAssessmentFrames(frames, shotType) {
       const list = Array.isArray(frames) ? frames.filter((frame) => frame?.angles) : [];
-      if (list.length <= 24) return list;
+      if (list.length <= 30) return list;
 
-      // Score each frame by biomechanical activation
+      // Score each frame by biomechanical activation (pose motion + body metrics)
       const scored = list.map((frame, index) => {
         const poseMotion = safeNumber(frame.poseMotion, 0);
         const reach = safeNumber(frame.derivedMetrics?.reach, 0);
@@ -4063,12 +3834,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const trunk = safeNumber(frame.angles?.trunk, 0);
         const wristHip = safeNumber(frame.derivedMetrics?.wristHipDistance, 0);
 
-        // Ball presence and velocity boost the activation score
-        const hasBall = frame.ballDetected ? 1 : 0;
-        const bVel = safeNumber(frame.ballPos?.velocity, 0);
-
         let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18 + wristHip * 0.30;
-        activation += hasBall * 0.40 + bVel * 0.35; // ball detected = likely active shot
         if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
         else activation += reach * 0.25 + contactHeight * 0.18;
 
@@ -4079,11 +3845,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const activations = scored.map(s => s.activation);
       const meanAct = average(activations) || 0;
       const stdAct = standardDeviation(activations) || 0;
-      const shotThreshold = meanAct + stdAct * 0.5; // frames above mean + 0.5 std are "active"
+      const shotThreshold = meanAct + stdAct * 0.25; // inclusive threshold — captures more motion
 
       // Find contiguous windows of active frames (with small gaps allowed)
-      const maxGap = 3; // allow up to 3 low-activity frames within a shot window
-      const minWindowSize = 5; // a valid shot window must have at least 5 active frames
+      const maxGap = 4; // allow up to 4 low-activity frames within a shot window
+      const minWindowSize = 3; // a valid shot window must have at least 3 active frames
       const windows = [];
       let currentWindow = null;
       let gapCount = 0;
@@ -4111,23 +3877,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       if (currentWindow && currentWindow.activeCount >= minWindowSize) windows.push(currentWindow);
 
-      // If we detected shot windows, use only those frames (plus a small buffer before/after)
+      // If we detected shot windows, use those frames (plus a buffer before/after)
       if (windows.length > 0) {
-        const buffer = 3; // include a few frames before and after each window for context
+        const buffer = 4; // include frames before and after each window for context
         const selectedIndexes = new Set();
         windows.forEach(w => {
           for (let i = Math.max(0, w.start - buffer); i <= Math.min(scored.length - 1, w.end + buffer); i++) {
             selectedIndexes.add(i);
           }
         });
-        // Store window count for reporting
         const result = list.filter((_, index) => selectedIndexes.has(index));
         result._shotWindowCount = windows.length;
+
+        // Guarantee minimum of 30 frames when available — backfill with top-activation frames
+        if (result.length < 30 && list.length >= 30) {
+          const takeCount = Math.min(list.length, Math.max(30, result.length));
+          const topFrames = scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount);
+          const mergedIndexes = new Set([...selectedIndexes, ...topFrames.map(f => f.index)]);
+          const merged = list.filter((_, index) => mergedIndexes.has(index));
+          merged._shotWindowCount = windows.length;
+          return merged;
+        }
         return result;
       }
 
-      // Fallback: no clear windows detected, use top activation frames (original behavior)
-      const takeCount = clamp(Math.round(list.length * 0.38), 18, 72);
+      // Fallback: no clear windows detected, use top 55% of activation frames (minimum 30)
+      const takeCount = clamp(Math.round(list.length * 0.55), 30, 120);
       const selectedIndexes = new Set(
         scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount).map((item) => item.index)
       );
@@ -4962,17 +4737,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // Insufficient data detection
       const insufficientData = avgConfidence < 40 || avgLandmarks < 10 || focusFrames.length < 15;
 
-      // Ball tracking stats
-      const ballFrames = focusFrames.filter(f => f.ballDetected);
-      const ballTrackingRate = focusFrames.length > 0 ? Math.round(100 * ballFrames.length / focusFrames.length) : 0;
-      const totalBallDetections = analysisData.ballDetections.length;
-
       return {
         framesAnalyzed: analysisData.frames.length,
         focusFramesAnalyzed: focusFrames.length,
         shotWindowsDetected: focusFrames._shotWindowCount || 0,
-        ballDetections: totalBallDetections,
-        ballTrackingRate,
         avgLandmarks,
         avgConfidence,
         avgAngles,
@@ -5148,7 +4916,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="smartswing-score" style="color:${band.color};">${s.score}</div>
           <div class="grade-badge" style="background:${band.color}22; color:${band.color}; border-color:${band.color}44; font-size:16px; padding:8px 20px;">${band.label} · Grade ${s.grade}</div>
           <div style="font-size:13px; color:var(--gray); margin-top:10px;">${session.profile.level} · Age ${session.profile.age} · ${s.shotType} · ${new Date(session.timestamp).toLocaleDateString()}</div>
-          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}${s.ballDetections ? ' · ' + s.ballDetections + ' ball detections (' + s.ballTrackingRate + '%)' : ''}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}</div>
         </div>
 
         <!-- Swing Story -->
@@ -6372,8 +6140,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
-      analysisData.ballDetections = [];
-      lastBallPos = null; ballVelocity = 0; ballDetectFrameCount = 0;
+
+
       lastPersistedSignature = null;
       cachedSession = null;
       cachedSessionFrameCount = 0;
@@ -6519,8 +6287,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
-      analysisData.ballDetections = [];
-      lastBallPos = null; ballVelocity = 0; ballDetectFrameCount = 0;
+
+
       lastPersistedSignature = null;
       cachedSession = null;
       cachedSessionFrameCount = 0;
@@ -6785,8 +6553,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
-      analysisData.ballDetections = [];
-      lastBallPos = null; ballVelocity = 0; ballDetectFrameCount = 0;
+
+
       lastPersistedSignature = null;
       cachedSession = null;
       cachedSessionFrameCount = 0;
@@ -6876,7 +6644,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         tiebreakScore: { left: 0, right: 0 },
         tiebreakServer: 'left',
         matchOver: false,
-        matchFormat: 3, // 1, 3, or 5 — sets needed to win
+        matchFormat: 3, // number of sets or games
+        matchFormatType: 'sets', // 'sets' or 'games'
         setsToWin: 2,   // Math.ceil(matchFormat / 2)
         pointIndex: 0,  // total points played
         // Stats
@@ -6964,6 +6733,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
 
       function matchWinner() {
+        if (mt.matchFormatType === 'games') {
+          // Game-based format: match ends when a player wins enough games
+          const gamesToWin = Math.ceil(mt.matchFormat / 2);
+          if (mt.currentSet.left >= gamesToWin) return 'left';
+          if (mt.currentSet.right >= gamesToWin) return 'right';
+          return null;
+        }
         if (mt.match.left >= mt.setsToWin) return 'left';
         if (mt.match.right >= mt.setsToWin) return 'right';
         return null;
@@ -7068,6 +6844,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           // Game over
           mt.currentSet[gWinner]++;
 
+          // For game-based formats, check match winner immediately after game
+          if (mt.matchFormatType === 'games') {
+            mt.currentGame = { left: 0, right: 0 };
+            mt.tiebreakScore = { left: 0, right: 0 };
+            mt.inTiebreak = false;
+            rotateServer();
+
+            const mWinner = matchWinner();
+            if (mWinner) {
+              mt.matchOver = true;
+              mt.finalScore = `${mt.leftName} ${mt.currentSet.left} - ${mt.currentSet.right} ${mt.rightName}`;
+              renderMatchTracker();
+              showPostMatch();
+              return;
+            }
+            renderMatchTracker();
+            return;
+          }
+
+          // Set-based formats: full set/tiebreak logic
           // Check for set entry into tiebreak
           const needTiebreak = mt.currentSet.left === 6 && mt.currentSet.right === 6 && !mt.inTiebreak;
 
@@ -7153,6 +6949,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       function resetMatch() {
         // Preserve match format across resets
         const savedFormat = mt.matchFormat;
+        const savedFormatType = mt.matchFormatType;
         const savedSetsToWin = mt.setsToWin;
         mt.leftName = document.getElementById('mtNameLeft')?.value || 'You';
         mt.rightName = document.getElementById('mtNameRight')?.value || 'Opponent';
@@ -7180,6 +6977,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         };
         mt.finalScore = '';
         mt.matchFormat = savedFormat;
+        mt.matchFormatType = savedFormatType;
         mt.setsToWin = savedSetsToWin;
         mt.miniGameScore = { left: 0, right: 0 };
         document.getElementById('mtPostMatch').style.display = 'none';
@@ -7492,7 +7290,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               if (!confirm('Changing format will reset the match. Continue?')) return;
             }
             mt.matchFormat = parseInt(btn.dataset.format, 10);
-            mt.setsToWin = mt.matchFormat === 1 ? 1 : Math.ceil(mt.matchFormat / 2);
+            mt.matchFormatType = btn.dataset.formatType || 'sets';
+            mt.setsToWin = mt.matchFormatType === 'games'
+              ? 1  // game-based formats play within a single set
+              : (mt.matchFormat === 1 ? 1 : Math.ceil(mt.matchFormat / 2));
             mt.miniGame = null; // exit mini game mode
             document.querySelectorAll('.mt-format-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.mt-mini-game-btn').forEach(b => b.classList.remove('selected'));
@@ -7602,7 +7403,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               result: result,
               finalScore: mt.finalScore || buildFinalScore(),
               sets: mt.sets,
-              matchFormat: mt.miniGame ? MINI_GAMES[mt.miniGame].label : (mt.matchFormat === 1 ? '1-set' : mt.matchFormat === 5 ? 'best-of-5' : 'best-of-3'),
+              matchFormat: mt.miniGame ? MINI_GAMES[mt.miniGame].label : (mt.matchFormatType === 'games' ? `best-of-${mt.matchFormat}-games` : (mt.matchFormat === 1 ? '1-set' : `${mt.matchFormat}-sets`)),
               miniGame: mt.miniGame || null,
               stats: { ...mt.stats },
               log: mt.log,
@@ -7656,7 +7457,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           result: matchWinner() === 'left' ? 'win' : (matchWinner() === 'right' ? 'loss' : 'in-progress'),
           finalScore: mt.finalScore || buildFinalScore(),
           sets: mt.sets,
-          matchFormat: mt.matchFormat,
+          matchFormat: mt.matchFormatType === 'games' ? `best-of-${mt.matchFormat}-games` : (mt.matchFormat === 1 ? '1-set' : `${mt.matchFormat}-sets`),
           stats: { ...mt.stats },
           log: mt.log,
           momentum: mt.momentum,
