@@ -511,7 +511,7 @@ async function handleOrchestrate(req, res) {
     let allSteps = [];
     let allContentItems = [];
     let finalOutput = {};
-    let status = 'approved';
+    let status = 'pending';
 
     if (workflow_type === 'campaign_strategy') {
       const { steps: strategySteps, finalOutput: strategyOutput } = await runWorkflowChain(
@@ -543,7 +543,7 @@ async function handleOrchestrate(req, res) {
       allSteps = steps;
       finalOutput = fo;
       allContentItems = contentItems;
-      status = workflow_type === 'email_response' ? 'awaiting_approval' : 'approved';
+      status = 'pending';
     }
 
     if (supabase_url && supabase_key) {

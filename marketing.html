@@ -371,14 +371,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
 
-        <!-- Legend -->
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-          <span class="mkt-badge mkt-badge--tiktok">TikTok</span>
-          <span class="mkt-badge mkt-badge--instagram">Instagram</span>
-          <span class="mkt-badge mkt-badge--youtube">YouTube</span>
-          <span class="mkt-badge mkt-badge--facebook">Facebook</span>
-          <span class="mkt-badge mkt-badge--blog">Blog</span>
-          <span class="mkt-badge mkt-badge--email">Email</span>
+        <!-- Platform & Status Legend -->
+        <div class="mkt-cal-legend">
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--tiktok"></span>TikTok</span>
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--instagram"></span>Instagram</span>
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--youtube"></span>YouTube</span>
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--facebook"></span>Facebook</span>
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--linkedin"></span>LinkedIn</span>
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--blog"></span>Blog</span>
+          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--email"></span>Email</span>
+          <span class="mkt-cal-legend__sep"></span>
+          <span class="mkt-cal-legend__status">&#9998; Draft</span>
+          <span class="mkt-cal-legend__status">&#10003; Approved</span>
+          <span class="mkt-cal-legend__status">&#128337; Scheduled</span>
+          <span class="mkt-cal-legend__status">&#9679; Published</span>
         </div>
 
         <div class="mkt-cal-grid" id="calGrid">
@@ -1315,6 +1321,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="mkt-label">Status</label>
           <select class="mkt-select" id="ctStatus">
             <option value="draft">Draft</option>
+            <option value="approved">Approved</option>
             <option value="scheduled">Scheduled</option>
             <option value="published">Published</option>
           </select>
@@ -1322,6 +1329,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="mkt-form-group">
           <label class="mkt-label">Scheduled Date</label>
           <input type="date" class="mkt-input" id="ctDate">
+        </div>
+        <div class="mkt-form-group">
+          <label class="mkt-label">Time</label>
+          <input type="time" class="mkt-input" id="ctTime">
         </div>
       </div>
       <div class="mkt-form-group">
@@ -1470,7 +1481,7 @@ window.MarketingStore = {
   taskHistory: [],
   selectedAgent: 'copywriter',
   currentEmailPreview: null,
-  calOffset: 0, // weeks from today
+  calOffset: 0, // months from today
   supabase: null,
 
   // Seed campaigns
@@ -2344,53 +2355,101 @@ async function toggleCampaignStatus(campaignId, currentStatus) {
   }
 }
 
-/* ── CONTENT CALENDAR ── */
-function getWeekStart(offset) {
-  const today = new Date();
-  const day = today.getDay(); // 0 = Sun
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7));
-  monday.setHours(0, 0, 0, 0);
-  return monday;
+/* ── CONTENT CALENDAR (Monthly View) ── */
+function getCalendarMonth(offset) {
+  var today = new Date();
+  var year = today.getFullYear();
+  var month = today.getMonth() + offset;
+  // Normalize month/year
+  while (month < 0) { month += 12; year--; }
+  while (month > 11) { month -= 12; year++; }
+  return { year: year, month: month };
 }
 
 function renderCalendar() {
-  const weekStart = getWeekStart(MarketingStore.calOffset);
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    days.push(d);
+  var cal = getCalendarMonth(MarketingStore.calOffset);
+  var year = cal.year;
+  var month = cal.month;
+
+  // First day of the month
+  var firstDay = new Date(year, month, 1);
+  // Last day of the month
+  var lastDay = new Date(year, month + 1, 0);
+  var daysInMonth = lastDay.getDate();
+
+  // Day of week for first day (0=Sun, convert to Mon=0)
+  var startDow = firstDay.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1; // Mon=0, Tue=1, ... Sun=6
+
+  // Build 6-row grid (42 cells)
+  var cells = [];
+  // Prev month fill
+  var prevMonthLast = new Date(year, month, 0);
+  for (var i = startDow - 1; i >= 0; i--) {
+    var d = new Date(year, month, 0 - i);
+    cells.push({ date: d, outside: true });
+  }
+  // Current month days
+  for (var i = 1; i <= daysInMonth; i++) {
+    cells.push({ date: new Date(year, month, i), outside: false });
+  }
+  // Next month fill (up to 42 cells = 6 rows)
+  var remaining = 42 - cells.length;
+  for (var i = 1; i <= remaining; i++) {
+    cells.push({ date: new Date(year, month + 1, i), outside: true });
   }
 
-  const today = new Date();
+  var today = new Date();
   today.setHours(0, 0, 0, 0);
 
   // Update label
-  const startFmt = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const endD = new Date(weekStart); endD.setDate(weekStart.getDate() + 6);
-  const endFmt = endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  document.getElementById('calLabel').textContent = `${startFmt} – ${endFmt}`;
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calLabel').textContent = monthNames[month] + ' ' + year;
 
-  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = dayNames.map(d => `<div class="mkt-cal-day-header">${d}</div>`).join('') +
-    days.map(d => {
-      const isToday = d.getTime() === today.getTime();
-      const dateStr = d.toISOString().split('T')[0];
-      const dayItems = MarketingStore.contentItems.filter(c => c.scheduled_date === dateStr);
-      return `
-        <div class="mkt-cal-day ${isToday ? 'mkt-cal-day--today' : ''}" onclick="openModal('addContentModal'); document.getElementById('ctDate').value='${dateStr}'">
-          <div class="mkt-cal-day__num">${d.getDate()}</div>
-          ${dayItems.map(item => `
-            <div class="mkt-cal-item mkt-cal-item--${item.platform} mkt-cal-item--${item.status}" title="${escHtml(item.title)}" onclick="event.stopPropagation(); openContentDetail('${item.id}');">
-              ${item.image_url ? '<img src="' + item.image_url + '" class="mkt-cal-item-thumb" alt="">' : ''}
-              <span>${escHtml(item.title.substring(0, 22))}${item.title.length > 22 ? '\u2026' : ''}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
+  var dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var grid = document.getElementById('calGrid');
+
+  var platformIcons = {
+    tiktok: '\u266B', instagram: '\uD83D\uDCF7', youtube: '\u25B6',
+    facebook: '\uD83D\uDC65', blog: '\uD83D\uDCDD', email: '\u2709', linkedin: '\uD83D\uDCBC'
+  };
+
+  var html = dayNames.map(function(d) { return '<div class="mkt-cal-day-header">' + d + '</div>'; }).join('');
+
+  html += cells.map(function(cell) {
+    var d = cell.date;
+    var isToday = (!cell.outside && d.getTime() === today.getTime());
+    var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var dayItems = MarketingStore.contentItems.filter(function(c) { return c.scheduled_date === dateStr; });
+    var outsideClass = cell.outside ? ' mkt-cal-day--outside' : '';
+    var todayClass = isToday ? ' mkt-cal-day--today' : '';
+
+    var itemsHtml = dayItems.map(function(item) {
+      var timeLabel = '';
+      if (item.scheduled_time) {
+        var parts = item.scheduled_time.split(':');
+        var h = parseInt(parts[0], 10);
+        var m = parts[1];
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        var h12 = h % 12 || 12;
+        timeLabel = '<span class="mkt-cal-item-time">' + h12 + ':' + m + ' ' + ampm + '</span>';
+      }
+      var statusIcon = '<span class="mkt-cal-status-icon"></span>';
+      var icon = platformIcons[item.platform] || '';
+      var titleTrunc = escHtml(item.title.substring(0, 18)) + (item.title.length > 18 ? '\u2026' : '');
+      return '<div class="mkt-cal-item mkt-cal-item--' + item.platform + ' mkt-cal-item--' + item.status + '" title="' + escHtml(item.title) + '" onclick="event.stopPropagation(); openContentDetail(\'' + item.id + '\');">' +
+        (item.image_url ? '<img src="' + item.image_url + '" class="mkt-cal-item-thumb" alt="">' : '') +
+        statusIcon + timeLabel + '<span>' + icon + ' ' + titleTrunc + '</span>' +
+      '</div>';
     }).join('');
+
+    return '<div class="mkt-cal-day' + outsideClass + todayClass + '" onclick="openModal(\'addContentModal\'); document.getElementById(\'ctDate\').value=\'' + dateStr + '\'">' +
+      '<div class="mkt-cal-day__num">' + d.getDate() + '</div>' +
+      itemsHtml +
+    '</div>';
+  }).join('');
+
+  grid.innerHTML = html;
 }
 
 function renderMiniCalendar() {
@@ -2424,7 +2483,7 @@ function renderMiniCalendar() {
 }
 
 function calNav(dir) {
-  MarketingStore.calOffset += dir;
+  MarketingStore.calOffset += dir; // now months instead of weeks
   renderCalendar();
 }
 
@@ -2436,6 +2495,7 @@ function calToday() {
 async function saveContent() {
   const title = document.getElementById('ctTitle').value.trim();
   if (!title) { showToast('Title is required', 'error'); return; }
+  var timeVal = document.getElementById('ctTime').value.trim();
   const item = {
     id: 'local_' + Date.now(),
     title,
@@ -2443,6 +2503,7 @@ async function saveContent() {
     type: document.getElementById('ctType').value,
     status: document.getElementById('ctStatus').value,
     scheduled_date: document.getElementById('ctDate').value || offsetDate(1),
+    scheduled_time: timeVal || null,
     copy_text: document.getElementById('ctCopy').value.trim()
   };
 
@@ -2474,7 +2535,7 @@ async function saveContent() {
   renderMiniCalendar();
   updateKPIs();
   closeModal('addContentModal');
-  ['ctTitle','ctCopy'].forEach(id => document.getElementById(id).value = '');
+  ['ctTitle','ctCopy','ctTime'].forEach(id => document.getElementById(id).value = '');
   showToast('Content added to calendar!', 'success');
 }
 
@@ -2616,13 +2677,31 @@ function openContentDetail(id) {
   const typeLabels = { post: 'Post', reel: 'Reel', story: 'Story', video: 'Video', blog: 'Blog Post', email: 'Email', ad: 'Ad', script: 'Script', social_post: 'Social Post', content: 'Content' };
 
   document.getElementById('cdTitle').textContent = item.title;
+
+  // Format time for display
+  var timeDisplay = '';
+  if (item.scheduled_time) {
+    var tp = item.scheduled_time.split(':');
+    var th = parseInt(tp[0], 10);
+    var tm = tp[1];
+    var tampm = th >= 12 ? 'PM' : 'AM';
+    var th12 = th % 12 || 12;
+    timeDisplay = ' at ' + th12 + ':' + tm + ' ' + tampm;
+  }
+
   document.getElementById('cdMeta').innerHTML = `
     <span class="mkt-badge mkt-badge--${item.platform}">${platformEmojis[item.platform] || ''} ${item.platform}</span>
     <span class="mkt-badge">${typeLabels[item.type] || item.type}</span>
     <span class="mkt-badge mkt-badge--${item.status}">${item.status}</span>
-    ${item.scheduled_date ? `<span style="font-size:12px;color:var(--muted);">&#128197; ${item.scheduled_date}</span>` : ''}
+    ${item.scheduled_date ? `<span style="font-size:12px;color:var(--muted);">&#128197; ${item.scheduled_date}${timeDisplay}</span>` : ''}
     ${item.approval_status ? `<span class="mkt-badge mkt-badge--${item.approval_status === 'approved' ? 'customer' : 'lead'}">${item.approval_status}</span>` : ''}
   `;
+
+  // Populate date/time editing fields
+  document.getElementById('cdDate').value = item.scheduled_date || '';
+  document.getElementById('cdTime').value = item.scheduled_time || '';
+  document.getElementById('cdDate').onchange = function() { _previewDirty = true; showSaveBar(); };
+  document.getElementById('cdTime').onchange = function() { _previewDirty = true; showSaveBar(); };
 
   // ── Phone preview ──
   const phoneImg = document.getElementById('cdPhoneImg');
@@ -2645,9 +2724,22 @@ function openContentDetail(id) {
   frame.className = 'cd-phone-frame';
   if (item.platform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
   else if (item.platform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
-  // Activate matching platform button
+  // Activate matching platform button; gray out unconnected platforms
+  var _configured = JSON.parse(localStorage.getItem('mkt_platform_keys') || '{}');
   document.querySelectorAll('.cd-plat-btn').forEach(function(b) {
-    b.classList.toggle('cd-plat-btn--active', b.dataset.plat === (item.platform || 'instagram'));
+    var plat = b.dataset.plat;
+    var isItemPlatform = plat === (item.platform || 'instagram');
+    b.classList.toggle('cd-plat-btn--active', isItemPlatform);
+    var isConnected = (plat === 'instagram' || plat === 'facebook') ? !!_configured.meta : !!_configured[plat];
+    if (!isItemPlatform) {
+      b.disabled = !isConnected;
+      b.style.opacity = isConnected ? '1' : '0.35';
+      b.title = isConnected ? '' : plat + ' not connected';
+    } else {
+      b.disabled = false;
+      b.style.opacity = '1';
+      b.title = '';
+    }
   });
 
   // ── Full image in details ──
@@ -2691,6 +2783,23 @@ function openContentDetail(id) {
 
   document.getElementById('cdItemId').value = id;
   hideSaveBar();
+
+  // Restore standard actions bar (in case it was replaced by approval view)
+  var actionsBar = document.querySelector('.cd-preview-actions');
+  if (actionsBar && actionsBar.getAttribute('data-approval-view')) {
+    actionsBar.removeAttribute('data-approval-view');
+    actionsBar.innerHTML =
+      '<button class="mkt-btn mkt-btn--primary" onclick="approveContentItem()">Approve</button>' +
+      '<button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="publishToMeta()">Publish to Meta</button>' +
+      '<button class="mkt-btn mkt-btn--ghost" onclick="editContentInAgents()">Edit with Agent</button>' +
+      '<button class="mkt-btn mkt-btn--ghost" onclick="copyContentToClipboard()">Copy</button>' +
+      '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'contentDetailModal\')" style="margin-left:auto;">Close</button>';
+  }
+
+  // Ensure phone column is visible for content detail
+  var phoneCol = document.querySelector('.cd-preview-phone-col');
+  if (phoneCol) phoneCol.style.display = '';
+
   openModal('contentDetailModal');
 }
 
@@ -2726,6 +2835,12 @@ async function saveContentEdits() {
   var newCopy = document.getElementById('cdCopyText').textContent.trim();
   item.copy_text = newCopy;
 
+  // Update date/time from detail modal fields
+  var newDate = document.getElementById('cdDate').value;
+  var newTime = document.getElementById('cdTime').value;
+  if (newDate) item.scheduled_date = newDate;
+  item.scheduled_time = newTime || null;
+
   // Persist to Supabase
   var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
   if (cfg.url && cfg.anonKey && id && !id.startsWith('local_')) {
@@ -2733,7 +2848,7 @@ async function saveContentEdits() {
       await fetch(cfg.url + '/rest/v1/content_calendar?id=eq.' + id, {
         method: 'PATCH',
         headers: { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ copy_text: newCopy, image_url: item.image_url || null })
+        body: JSON.stringify({ copy_text: newCopy, image_url: item.image_url || null, scheduled_date: item.scheduled_date, scheduled_time: item.scheduled_time })
       });
     } catch (e) { console.warn('Save edit failed:', e); }
   }
@@ -2938,15 +3053,34 @@ async function runOrchestration() {
       if (stepStatus) stepStatus.textContent = '✓ Done';
     });
 
-    // Add content items to local store
+    // Add content items to local store AND route to approval queue
     if (data.content_items_created && data.content_items_created.length) {
       data.content_items_created.forEach(item => {
         if (!MarketingStore.contentItems.find(c => c.id === item.id)) {
           MarketingStore.contentItems.push(item);
         }
+        // Always push to approval queue with pending status
+        if (!MarketingStore.approvalQueue.find(a => a.id === item.id)) {
+          MarketingStore.approvalQueue.push({
+            id: item.id,
+            title: item.title || item.copy_text || 'Untitled',
+            content_type: item.type || item.content_type || 'post',
+            platform: item.platform || 'email',
+            agent: 'orchestration',
+            content: item.copy_text || item.content || '',
+            image_url: item.image_url || '',
+            approval_status: 'pending',
+            created_at: new Date().toLocaleString()
+          });
+        }
       });
       renderCalendar(); renderMiniCalendar(); updateKPIs();
-      showToast(`✓ ${data.content_items_created.length} content item(s) added to calendar!`, 'success');
+      renderApprovals();
+      // Update badge count
+      var pendingCount = MarketingStore.approvalQueue.filter(a => a.approval_status === 'pending').length;
+      var badge = document.getElementById('approvalsBadge');
+      if (badge) badge.textContent = pendingCount;
+      showToast(`✓ ${data.content_items_created.length} content item(s) sent to CMO Approvals!`, 'success');
     } else {
       showToast('✓ Pipeline complete! Check calendar.', 'success');
     }
@@ -3534,7 +3668,7 @@ function approveItem(id) {
   if (!item) return;
   item.approval_status = 'approved';
 
-  // Persist approval status to Supabase
+  // Persist approval status to Supabase (set status to scheduled, not published)
   if (!id.startsWith('local_')) {
     var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
     if (cfg.url && cfg.anonKey) {
@@ -3546,26 +3680,34 @@ function approveItem(id) {
           'Content-Type': 'application/json',
           'Prefer': 'return=representation'
         },
-        body: JSON.stringify({ approval_status: 'approved' })
+        body: JSON.stringify({ approval_status: 'approved', status: 'scheduled' })
       }).catch(function(e) { console.warn('approveItem: PATCH failed', e); });
     }
   }
 
-  // Move to content calendar if applicable
+  // Move to content calendar as "scheduled" (not published — explicit Publish action needed)
   if (item.title) {
-    MarketingStore.contentItems.push({
-      id: 'appr_' + Date.now(),
-      title: item.title,
-      platform: item.platform || 'email',
-      type: item.content_type || 'post',
-      status: 'scheduled',
-      scheduled_date: offsetDate(1),
-      copy_text: item.content || ''
-    });
+    // Update existing content item if it matches, otherwise create new
+    var existing = MarketingStore.contentItems.find(function(c) { return c.id === id; });
+    if (existing) {
+      existing.status = 'scheduled';
+      existing.copy_text = item.content || existing.copy_text || '';
+    } else {
+      MarketingStore.contentItems.push({
+        id: 'appr_' + Date.now(),
+        title: item.title,
+        platform: item.platform || 'email',
+        type: item.content_type || 'post',
+        status: 'scheduled',
+        scheduled_date: offsetDate(1),
+        copy_text: item.content || '',
+        image_url: item.image_url || ''
+      });
+    }
     renderCalendar(); renderMiniCalendar(); updateKPIs();
   }
   renderApprovals();
-  showToast('Content approved and scheduled!', 'success');
+  showToast('Content approved → scheduled. Use Publish to go live.', 'success');
 }
 
 function rejectItem(id) {
@@ -3604,20 +3746,121 @@ function deleteApprovalItem(id) {
 function viewApprovalDetail(id) {
   var item = MarketingStore.approvalQueue.find(function(a) { return a.id === id; });
   if (!item) return;
-  // Reuse content detail modal
+
+  // Title & meta badges
   document.getElementById('cdTitle').textContent = item.title || 'Content Detail';
+  var statusBadgeClass = item.approval_status === 'approved' ? 'customer' : item.approval_status === 'rejected' ? 'churned' : 'prospect';
   document.getElementById('cdMeta').innerHTML =
     '<span class="mkt-badge mkt-badge--' + (item.platform || 'email') + '">' + (item.platform || '') + '</span>' +
     '<span class="mkt-badge">' + (item.content_type || 'content') + '</span>' +
-    '<span class="mkt-badge mkt-badge--' + (item.approval_status === 'approved' ? 'customer' : item.approval_status === 'rejected' ? 'churned' : 'prospect') + '">' + item.approval_status + '</span>';
+    '<span class="mkt-badge mkt-badge--' + statusBadgeClass + '">' + item.approval_status + '</span>';
+
+  // Phone mockup preview — show only for social platforms
+  var socialPlatforms = ['instagram', 'facebook', 'linkedin', 'tiktok', 'youtube'];
+  var phoneCol = document.querySelector('.cd-preview-phone-col');
+  var itemPlatform = (item.platform || '').toLowerCase();
+  if (socialPlatforms.indexOf(itemPlatform) !== -1) {
+    phoneCol.style.display = '';
+    var phoneImg = document.getElementById('cdPhoneImg');
+    var phoneEmpty = document.getElementById('cdPhoneImgEmpty');
+    if (item.image_url) {
+      phoneImg.src = item.image_url;
+      phoneImg.style.display = 'block';
+      phoneEmpty.style.display = 'none';
+    } else {
+      phoneImg.style.display = 'none';
+      phoneEmpty.style.display = 'flex';
+    }
+    var captionText = (item.content || item.title || '').replace(/\*\*/g, '').replace(/^Caption:\s*/i, '').trim();
+    document.getElementById('cdPhoneCaptionText').textContent = captionText.length > 140 ? captionText.substring(0, 140) + '...' : captionText;
+    var frame = document.getElementById('cdPhoneFrame');
+    frame.className = 'cd-phone-frame';
+    if (itemPlatform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
+    else if (itemPlatform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
+    // Show only the item's platform button as active, disable others
+    var configured = JSON.parse(localStorage.getItem('mkt_platform_keys') || '{}');
+    document.querySelectorAll('.cd-plat-btn').forEach(function(b) {
+      var plat = b.dataset.plat;
+      b.classList.toggle('cd-plat-btn--active', plat === itemPlatform);
+      var isConnected = (plat === 'instagram' || plat === 'facebook') ? !!configured.meta : !!configured[plat];
+      if (plat !== itemPlatform) {
+        b.disabled = !isConnected;
+        b.style.opacity = isConnected ? '1' : '0.35';
+        b.title = isConnected ? '' : plat + ' not connected';
+      } else {
+        b.disabled = false;
+        b.style.opacity = '1';
+        b.title = '';
+      }
+    });
+  } else {
+    phoneCol.style.display = 'none';
+  }
+
+  // Full image in details panel
+  var imgSection = document.getElementById('cdImageSection');
+  if (item.image_url) {
+    imgSection.style.display = 'block';
+    document.getElementById('cdFullImage').src = item.image_url;
+  } else {
+    imgSection.style.display = 'none';
+  }
+
+  // Editable copy text
   var copyEl = document.getElementById('cdCopy');
+  var copyBox = document.getElementById('cdCopyText');
   if (item.content) {
     copyEl.style.display = 'block';
-    document.getElementById('cdCopyText').textContent = item.content;
+    copyBox.textContent = item.content;
+    copyBox.setAttribute('contenteditable', 'true');
+    copyBox.oninput = function() {
+      _previewDirty = true;
+      showSaveBar();
+      // Sync to phone caption live
+      var text = (copyBox.textContent || '').replace(/\*\*/g, '').replace(/^Caption:\s*/i, '').trim();
+      document.getElementById('cdPhoneCaptionText').textContent = text.length > 140 ? text.substring(0, 140) + '...' : text;
+    };
   } else { copyEl.style.display = 'none'; }
+
+  // Hide workflow section (approval items don't have it)
   document.getElementById('cdWorkflow').style.display = 'none';
   document.getElementById('cdItemId').value = id;
+
+  // Date/time fields
+  document.getElementById('cdDate').value = item.scheduled_date || '';
+  document.getElementById('cdTime').value = item.scheduled_time || '';
+
+  hideSaveBar();
+
+  // Replace actions bar with approval-specific buttons
+  var actionsBar = document.querySelector('.cd-preview-actions');
+  if (actionsBar) {
+    actionsBar.setAttribute('data-approval-view', id);
+    var isPending = item.approval_status === 'pending';
+    actionsBar.innerHTML =
+      (isPending ? '<button class="mkt-btn mkt-btn--primary" onclick="approveFromDetail(\'' + id + '\')">Approve</button>' +
+      '<button class="mkt-btn mkt-btn--ghost" style="color:#dc2626;border-color:#dc2626;" onclick="rejectFromDetail(\'' + id + '\')">Reject</button>' : '') +
+      '<button class="mkt-btn mkt-btn--ghost" onclick="copyContentToClipboard()">Copy</button>' +
+      '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'contentDetailModal\')" style="margin-left:auto;">Close</button>';
+  }
+
   openModal('contentDetailModal');
+}
+
+function approveFromDetail(id) {
+  // Save any edits to copy text before approving
+  var item = MarketingStore.approvalQueue.find(function(a) { return a.id === id; });
+  if (item) {
+    var editedText = (document.getElementById('cdCopyText').textContent || '').trim();
+    if (editedText) item.content = editedText;
+  }
+  approveItem(id);
+  closeModal('contentDetailModal');
+}
+
+function rejectFromDetail(id) {
+  rejectItem(id);
+  closeModal('contentDetailModal');
 }
 
 // Hook into orchestration to route completed items to approval queue
@@ -3991,6 +4234,18 @@ setTimeout(function() {
         <!-- RIGHT: Details Panel -->
         <div class="cd-preview-details">
           <div id="cdMeta" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+
+          <!-- Date/Time editing -->
+          <div class="cd-datetime-row">
+            <div class="mkt-form-group">
+              <label class="mkt-label">Date</label>
+              <input type="date" class="mkt-input" id="cdDate">
+            </div>
+            <div class="mkt-form-group">
+              <label class="mkt-label">Time</label>
+              <input type="time" class="mkt-input" id="cdTime">
+            </div>
+          </div>
 
           <!-- Full-size image -->
           <div id="cdImageSection" class="cd-detail-section" style="display:none;">
