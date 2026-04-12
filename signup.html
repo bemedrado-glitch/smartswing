@@ -27,15 +27,30 @@
     body {
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
+      min-height: 100dvh;
       color: var(--silver);
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 24px;
+      padding-bottom: env(safe-area-inset-bottom, 24px);
       background:
         radial-gradient(circle at top left, rgba(57, 255, 20, 0.12), transparent 26%),
         radial-gradient(circle at bottom right, rgba(0, 229, 255, 0.12), transparent 30%),
         linear-gradient(160deg, #020406 0%, #09131d 100%);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    .ss-footer {
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
     }
 
     .ss-footer {
@@ -58,6 +73,7 @@
       body {
         align-items: flex-start;
         padding: 16px;
+        padding-bottom: env(safe-area-inset-bottom, 16px);
       }
       .auth-wrapper {
         grid-template-columns: 1fr;
@@ -67,18 +83,31 @@
       }
       .value-panel { display: none; }
       .shell { max-width: 100%; margin: 0 auto; }
-      .card { padding: 24px 20px; border-radius: 20px; }
+      .card { padding: 28px 20px; border-radius: 20px; }
       h1 { font-size: 24px; }
-      .subtext { font-size: 13px; margin-bottom: 20px; }
-      .oauth-btn { padding: 12px 16px; font-size: 14px; }
+      .subtext { font-size: 14px; margin-bottom: 20px; }
+      .oauth-btn { padding: 14px 16px; font-size: 15px; }
+      .two-col { grid-template-columns: 1fr; }
+      .role-card { padding: 16px; }
+      .consent-label { font-size: 14px !important; }
+      .consent-label .sms-label { font-size: 13px !important; }
     }
 
     @media (max-width: 480px) {
-      body { padding: 12px; }
-      .card { padding: 20px 16px; border-radius: 18px; }
+      body { padding: 12px; padding-bottom: env(safe-area-inset-bottom, 12px); }
+      .card { padding: 24px 16px; border-radius: 18px; }
       h1 { font-size: 22px; }
-      .oauth-btn { padding: 11px 14px; font-size: 13px; gap: 10px; }
-      .auth-tabs a { padding: 10px 10px; font-size: 13px; }
+      .oauth-btn { padding: 14px 16px; font-size: 14px; gap: 10px; }
+      .auth-tabs a { padding: 12px 10px; font-size: 14px; }
+      .plan-badge { font-size: 12px; padding: 8px 14px; }
+      .card-footer { font-size: 14px; }
+      .back-link { font-size: 14px; padding: 8px 0; }
+    }
+
+    @media (max-width: 380px) {
+      body { padding: 8px; }
+      .card { padding: 20px 14px; border-radius: 16px; }
+      h1 { font-size: 20px; }
     }
 
     /* ── Value panel (left side on desktop) ──────────── */
@@ -303,9 +332,11 @@
       transition: background 0.18s ease, transform 0.15s ease;
     }
 
-    .oauth-btn:hover:not(:disabled) {
-      background: rgba(255,255,255,0.11);
-      transform: translateY(-1px);
+    @media (hover: hover) and (pointer: fine) {
+      .oauth-btn:hover:not(:disabled) {
+        background: rgba(255,255,255,0.11);
+        transform: translateY(-1px);
+      }
     }
 
     .oauth-btn.google-btn {
@@ -314,7 +345,9 @@
       border-color: #dadce0;
     }
 
-    .oauth-btn.google-btn:hover:not(:disabled) { background: #f8fafe; }
+    @media (hover: hover) and (pointer: fine) {
+      .oauth-btn.google-btn:hover:not(:disabled) { background: #f8fafe; }
+    }
 
     .oauth-btn.apple-btn {
       background: #000;
@@ -322,7 +355,9 @@
       border-color: #333;
     }
 
-    .oauth-btn.apple-btn:hover:not(:disabled) { background: #1a1a1a; }
+    @media (hover: hover) and (pointer: fine) {
+      .oauth-btn.apple-btn:hover:not(:disabled) { background: #1a1a1a; }
+    }
 
     .oauth-btn:disabled {
       opacity: 0.45;
@@ -380,9 +415,15 @@
       color: inherit;
     }
 
-    .role-card:hover {
-      border-color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.06);
+    @media (hover: hover) and (pointer: fine) {
+      .role-card:hover {
+        border-color: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.06);
+      }
+    }
+
+    .role-card:active {
+      transform: scale(0.97);
     }
 
     .role-card.selected {
@@ -428,8 +469,10 @@
       background: rgba(255, 255, 255, 0.04);
       color: var(--silver);
       font: inherit;
-      font-size: 15px;
+      font-size: 16px;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     input:focus,
@@ -437,6 +480,14 @@
       outline: none;
       border-color: rgba(57, 255, 20, 0.5);
       box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.1);
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--neon-green);
+      outline-offset: 2px;
     }
 
     input::placeholder {
@@ -449,9 +500,7 @@
       gap: 12px;
     }
 
-    @media (max-width: 400px) {
-      .two-col { grid-template-columns: 1fr; }
-    }
+    /* two-col stacking handled in 820px breakpoint above */
 
     /* ── Password strength indicator ──────────────────── */
     .pw-strength {
@@ -484,9 +533,15 @@
       background: linear-gradient(135deg, var(--neon-green), #82ff63);
     }
 
-    .btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(57,255,20,0.2);
+    @media (hover: hover) and (pointer: fine) {
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(57,255,20,0.2);
+      }
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.98);
     }
 
     .btn:disabled {
@@ -499,32 +554,40 @@
     .card-footer {
       margin-top: 24px;
       text-align: center;
-      font-size: 13px;
-      color: rgba(255,255,255,0.35);
+      font-size: 14px;
+      color: rgba(255,255,255,0.4);
       line-height: 1.7;
+      padding: 8px 0;
     }
 
     .card-footer a {
       color: var(--neon-green);
-      text-decoration: none;
+      text-decoration: underline;
+      text-underline-offset: 2px;
       font-weight: 600;
+      padding: 4px 2px;
     }
 
     .card-footer a:hover {
       text-decoration: underline;
+      color: #82ff63;
     }
 
     .back-link {
       display: inline-block;
       margin-top: 18px;
-      color: rgba(255,255,255,0.35);
+      padding: 10px 0;
+      color: rgba(255,255,255,0.4);
       text-decoration: none;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
       transition: color 0.2s;
+      min-height: 44px;
+      line-height: 24px;
     }
 
     .back-link:hover {
-      color: rgba(255,255,255,0.6);
+      color: rgba(255,255,255,0.65);
     }
 
     /* ── Referral banner ──────────────────────────────── */
@@ -694,15 +757,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div id="submitFeedback" class="alert" role="status" aria-live="polite"></div>
 
           <!-- Mandatory: User Agreement + Privacy Policy -->
-          <label class="consent-label" style="display:flex;align-items:flex-start;gap:10px;margin:16px 0 8px;cursor:pointer;font-size:13px;color:var(--silver);line-height:1.5;">
-            <input type="checkbox" id="agreeTerms" name="agreeTerms" required style="margin-top:3px;accent-color:var(--neon-green);width:16px;height:16px;flex-shrink:0;" aria-required="true">
-            <span>I agree to the <a href="./user-agreement.html" target="_blank" style="color:var(--neon-green);">User Agreement</a> and <a href="./privacy-policy.html" target="_blank" style="color:var(--neon-green);">Privacy Policy</a>. <span style="color:var(--error);font-weight:700;">*</span></span>
+          <label class="consent-label" style="display:flex;align-items:flex-start;gap:12px;margin:16px 0 8px;cursor:pointer;font-size:14px;color:var(--silver);line-height:1.55;">
+            <input type="checkbox" id="agreeTerms" name="agreeTerms" required style="margin-top:2px;accent-color:var(--neon-green);width:20px;height:20px;min-width:20px;flex-shrink:0;" aria-required="true">
+            <span>I agree to the <a href="./user-agreement.html" target="_blank" style="color:var(--neon-green);text-decoration:underline;text-underline-offset:2px;">User Agreement</a> and <a href="./privacy-policy.html" target="_blank" style="color:var(--neon-green);text-decoration:underline;text-underline-offset:2px;">Privacy Policy</a>. <span style="color:var(--error);font-weight:700;">*</span></span>
           </label>
 
           <!-- Optional: SMS notifications -->
-          <label class="consent-label" style="display:flex;align-items:flex-start;gap:10px;margin:4px 0 16px;cursor:pointer;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;">
-            <input type="checkbox" id="smsOptIn" name="smsOptIn" style="margin-top:3px;accent-color:var(--neon-green);width:16px;height:16px;flex-shrink:0;">
-            <span>Send me SMS notifications about analysis results and coaching updates. <span style="font-size:11px;opacity:0.7;">(Optional — Message &amp; data rates may apply. Reply STOP anytime.)</span></span>
+          <label class="consent-label sms-label" style="display:flex;align-items:flex-start;gap:12px;margin:4px 0 20px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.5);line-height:1.55;">
+            <input type="checkbox" id="smsOptIn" name="smsOptIn" style="margin-top:2px;accent-color:var(--neon-green);width:20px;height:20px;min-width:20px;flex-shrink:0;">
+            <span>Send me SMS notifications about analysis results and coaching updates. <span style="font-size:12px;opacity:0.7;">(Optional — Message &amp; data rates may apply. Reply STOP anytime.)</span></span>
           </label>
 
           <button id="signupBtn" class="btn" type="submit" data-i18n="auth.signUp.submit">Create Account</button>
@@ -1080,8 +1143,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .ss-footer-bottom-links{display:flex;gap:20px}
 .ss-footer-bottom-links a{font-size:13px;color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
 .ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}
-@media(max-width:900px){.ss-footer-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.ss-footer-grid{grid-template-columns:1fr}.ss-footer-bottom{flex-direction:column;gap:12px;text-align:center}}
+@media(max-width:900px){.ss-footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
+@media(max-width:600px){.ss-footer-grid{grid-template-columns:1fr;gap:28px}.ss-footer{padding:40px 0 24px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}.ss-footer-inner{padding:0 20px}.ss-footer-links{gap:12px}.ss-footer-links a{font-size:15px;padding:4px 0;min-height:44px;display:flex;align-items:center}.ss-footer-bottom{flex-direction:column;gap:12px;text-align:center}.ss-footer-bottom-links{gap:16px}.ss-footer-bottom-links a{font-size:14px;padding:4px 0}}
 </style>
 <footer class="ss-footer" role="contentinfo" aria-label="Site footer">
   <div class="ss-footer-inner">
