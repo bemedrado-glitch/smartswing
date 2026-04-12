@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI | Payment Status</title>
   <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="SmartSwing AI payment confirmation and subscription activation status.">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,8 +87,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const status = params.get('status') || 'returned';
     const requestedPlanId = params.get('plan') || '';
     const sessionId = params.get('session_id') || '';
-    const product = (params.get('product') || '').toLowerCase();
-    const isSmartFlip = product === 'smartflip';
     const pending = store.getPendingExternalCheckout();
     let currentUser = store.getCurrentUser();
     let currentPlan = currentUser ? store.getCurrentPlan(currentUser.id) : null;
@@ -105,24 +104,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const checkoutAction = document.getElementById('checkoutAction');
     const pricingLink = document.getElementById('pricingLink');
     const brandLink = document.querySelector('.brand');
-    const summaryLabel = isSmartFlip ? 'SmartFlip' : 'SmartSwing';
-
-    if (isSmartFlip) {
-      document.title = 'SmartFlip AI | Payment Status';
-      brandLink.href = './smartflip.html';
-      brandLink.innerHTML = 'Smart<span>Flip</span> AI';
-      pricingLink.href = './smartflip-app.html#pricing';
-      pricingLink.textContent = 'Back to SmartFlip pricing';
-      primaryAction.href = './smartflip-dashboard.html';
-      if (pending?.planId) {
-        const interval = pending.billingInterval || 'monthly';
-        const checkoutBase = pending.checkoutPath || './smartflip-checkout.html';
-        checkoutAction.href = `${checkoutBase}?plan=${encodeURIComponent(pending.planId)}${pending.planId !== 'free' ? `&interval=${encodeURIComponent(interval)}` : ''}`;
-      } else {
-        checkoutAction.href = './smartflip-checkout.html';
-      }
-      checkoutAction.textContent = 'Return to SmartFlip checkout';
-    }
+    const summaryLabel = 'SmartSwing';
 
     function setPrimaryDestination(href, label) {
       primaryAction.href = href;
@@ -222,9 +204,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             setTimeout(() => {
               window.location.href = onboardingRoute;
             }, 1200);
-          } else if (isSmartFlip) {
-            setPrimaryDestination('./smartflip-dashboard.html', 'Open SmartFlip dashboard');
-            setTimeout(() => { window.location.href = './smartflip-dashboard.html'; }, 2500);
           } else {
             // Auto-redirect to dashboard after showing success briefly
             setTimeout(() => { window.location.href = './dashboard.html'; }, 2500);

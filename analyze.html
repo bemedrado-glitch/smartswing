@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI - Tennis Biomechanics Analysis</title>
   <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="Upload or record a tennis swing and get real-time AI biomechanics analysis with pose estimation, joint angles, and performance scoring.">
   <link rel="manifest" href="./manifest.json">
   
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -2608,10 +2609,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           aiInitStage = 'ready';
           setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
           playBtn.disabled = false;
-          // Load ball detector in background (non-blocking, optional)
-          initBallDetector().then(() => {
-            if (ballDetector) setStatus(`AI Ready (${detectorLabel} + Ball Tracking)`, 'ready');
-          }).catch(() => {});
+          // Ball detector disabled — COCO-SSD interferes with TF.js pose backend
+          // TODO: Re-enable when ball detection runs in a Web Worker or separate pipeline
+          // initBallDetector().then(() => {
+          //   if (ballDetector) setStatus(`AI Ready (${detectorLabel} + Ball Tracking)`, 'ready');
+          // }).catch(() => {});
           return true;
         } catch (error) {
           console.error('AI initialization failed:', error);
@@ -2953,101 +2955,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     // Analysis Loop
-    async function analyzeFrame() {
-      const video = document.getElementById('videoElement');
-      
-      if (!isAnalyzing || video.paused || !detector) {
-        videoFrameCallbackId = null;
-        rafId = null;
-        return;
-      }
-
-      try {
-        syncCanvasToViewport();
-        if (!Number.isFinite(video.currentTime) || video.currentTime === lastAnalyzedVideoTime) {
-          scheduleAnalyzeFrame(video);
-          return;
-        }
-        lastAnalyzedVideoTime = video.currentTime;
-
-        const now = performance.now();
-        const minDelta = 1000 / AI_SETTINGS.poseFpsCap;
-        if (lastFrameAt && now - lastFrameAt < minDelta) {
-          scheduleAnalyzeFrame(video);
-          return;
-        }
-        lastFrameAt = now;
-
-        const poses = await detector.estimatePoses(video);
-        
-        if (poses && poses.length > 0) {
-          const canvas = document.getElementById('poseCanvas');
-          const transform = getVideoFitTransform(video, canvas);
-          const rawMetricKeypoints = normalizeKeypointsToMoveNet(
-            poses[0].keypoints || [],
-            transform.sourceWidth,
-            transform.sourceHeight
-          );
-          const metricKeypoints = stabilizeKeypoints(rawMetricKeypoints);
-          const drawKeypoints = projectKeypointsToCanvas(metricKeypoints, transform);
-          const validLandmarks = metricKeypoints.filter(kp => kpOk(kp, AI_SETTINGS.minKeypointConfidence)).length;
-          const confidence = Math.round(
-            (metricKeypoints.reduce((sum, kp) => sum + safeNumber(kp.score ?? kp.confidence ?? kp.visibility, 0), 0) / Math.max(1, metricKeypoints.length)) * 100
-          );
-
-          const angles = computeAngles(metricKeypoints);
-
-          // Store data
-          for (const k in angles) {
-            if (angles[k] != null) {
-              pushWithCap(analysisData.angles[k], angles[k]);
-            }
-          }
-
-          pushWithCap(analysisData.frames, {
-            timestamp: video.currentTime,
-            landmarks: validLandmarks,
-            confidence,
-            angles
-          });
-          pushWithCap(analysisData.landmarks, validLandmarks);
-          pushWithCap(analysisData.confidence, confidence);
-
-          // Update UI
-          const framesCount = analysisData.frames.length;
-          document.getElementById('framesCount').textContent = framesCount;
-          document.getElementById('landmarksCount').textContent = validLandmarks;
-          document.getElementById('confidenceValue').textContent = confidence + '%';
-
-          // Update angle displays
-          document.getElementById('angleShoulder').textContent = angles.shoulder != null ? angles.shoulder + '°' : '-°';
-          document.getElementById('angleElbow').textContent = angles.elbow != null ? angles.elbow + '°' : '-°';
-          document.getElementById('angleHip').textContent = angles.hip != null ? angles.hip + '°' : '-°';
-          document.getElementById('angleKnee').textContent = angles.knee != null ? angles.knee + '°' : '-°';
-          document.getElementById('angleTrunk').textContent = angles.trunk != null ? angles.trunk + '°' : '-°';
-          document.getElementById('angleWrist').textContent = angles.wrist != null ? angles.wrist + '°' : '-°';
-
-          // Show save button after 30 frames
-          if (framesCount >= 30) {
-            document.getElementById('saveBtn').style.display = 'inline-block';
-            document.getElementById('generateReportBtn').style.display = 'inline-block';
-          }
-
-          drawPose(drawKeypoints);
-        }
-      } catch (error) {
-        console.error('Analysis error:', error);
-        isAnalyzing = false;
-        setStatus('AI processing paused due to an error. Retry AI Setup and continue.', 'error');
-      } finally {
-        if (isAnalyzing && !video.paused && detector) {
-          rafId = requestAnimationFrame(analyzeFrame);
-        } else {
-          rafId = null;
-        }
-      }
-    }
-
     analyzeFrame = async function() {
       const video = document.getElementById('videoElement');
 
@@ -3104,26 +3011,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             poseMotion >= AI_SETTINGS.minPoseMotionPx
           );
 
-          // ── Ball detection (every Nth frame, non-blocking) ──
+          // ── Ball detection disabled — COCO-SSD conflicts with TF.js pose backend ──
+          // TODO: Re-enable when ball detection runs in a Web Worker or separate pipeline
           let ballPos = null;
-          ballDetectFrameCount++;
-          if (ballDetector && ballDetectFrameCount % BALL_DETECT_INTERVAL === 0) {
-            try {
-              ballPos = await detectBall(detectorInput.source);
-              if (ballPos) {
-                updateBallVelocity(ballPos, video.currentTime, detectorInput.width, detectorInput.height);
-                pushWithCap(analysisData.ballDetections, {
-                  timestamp: video.currentTime,
-                  x: ballPos.x / detectorInput.width,   // normalize 0-1
-                  y: ballPos.y / detectorInput.height,
-                  width: ballPos.width / detectorInput.width,
-                  height: ballPos.height / detectorInput.height,
-                  score: ballPos.score,
-                  velocity: ballVelocity
-                });
-              }
-            } catch (_ballErr) { /* non-critical */ }
-          }
+          // ballDetectFrameCount++;
+          // if (ballDetector && ballDetectFrameCount % BALL_DETECT_INTERVAL === 0) {
+          //   try {
+          //     ballPos = await detectBall(detectorInput.source);
+          //     if (ballPos) {
+          //       updateBallVelocity(ballPos, video.currentTime, detectorInput.width, detectorInput.height);
+          //       pushWithCap(analysisData.ballDetections, {
+          //         timestamp: video.currentTime,
+          //         x: ballPos.x / detectorInput.width,
+          //         y: ballPos.y / detectorInput.height,
+          //         width: ballPos.width / detectorInput.width,
+          //         height: ballPos.height / detectorInput.height,
+          //         score: ballPos.score,
+          //         velocity: ballVelocity
+          //       });
+          //     }
+          //   } catch (_ballErr) { /* non-critical */ }
+          // }
 
           if (shouldStoreFrame) {
             for (const k in angles) {

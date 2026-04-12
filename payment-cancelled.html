@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartSwing AI | Checkout Cancelled</title>
   <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Your SmartSwing AI checkout was cancelled. No charges were made.">
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,9 +84,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         if (u) el.textContent = (u.fullName || u.email || '') + (p ? ' \u00B7 ' + p.name : '');
       }
     })();
-    const params = new URLSearchParams(window.location.search);
-    const product = (params.get('product') || '').toLowerCase();
-    const isSmartFlip = product === 'smartflip';
     const brandLink = document.getElementById('brandLink');
     const pricingLink = document.getElementById('pricingLink');
     const checkoutLink = document.getElementById('checkoutLink');
@@ -93,24 +91,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const dashboardLink = document.getElementById('dashboardLink');
     const cancelSummary = document.getElementById('cancelSummary');
 
-    if (isSmartFlip) {
-      document.title = 'SmartFlip AI | Checkout Cancelled';
-      brandLink.href = './smartflip.html';
-      brandLink.innerHTML = 'Smart<span>Flip</span> AI';
-      pricingLink.href = './smartflip-app.html#pricing';
-      pricingLink.textContent = 'Back to SmartFlip pricing';
-      compareLink.href = './smartflip-app.html#pricing';
-      dashboardLink.href = './smartflip-dashboard.html';
-      dashboardLink.textContent = 'Open SmartFlip dashboard';
-      cancelSummary.textContent = 'Your current SmartFlip access stays exactly as it was. If you canceled Stripe Checkout, no subscription was created and you can return anytime when you are ready.';
-    }
-
     if (window.SmartSwingStore?.getPendingExternalCheckout) {
       const pending = window.SmartSwingStore.getPendingExternalCheckout();
       if (pending?.planId) {
         const interval = pending.billingInterval || 'monthly';
-        const checkoutBase = pending.checkoutPath || (isSmartFlip ? './smartflip-checkout.html' : './checkout.html');
-        const compareBase = isSmartFlip ? './smartflip-app.html#pricing' : './pricing.html';
+        const checkoutBase = pending.checkoutPath || './checkout.html';
+        const compareBase = './pricing.html';
         checkoutLink.href = `${checkoutBase}?plan=${encodeURIComponent(pending.planId)}${pending.planId !== 'free' ? `&interval=${encodeURIComponent(interval)}` : ''}`;
         compareLink.href = compareBase;
       }
