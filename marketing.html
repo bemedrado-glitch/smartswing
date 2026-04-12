@@ -2384,7 +2384,8 @@ function renderCalendar() {
           <div class="mkt-cal-day__num">${d.getDate()}</div>
           ${dayItems.map(item => `
             <div class="mkt-cal-item mkt-cal-item--${item.platform} mkt-cal-item--${item.status}" title="${escHtml(item.title)}" onclick="event.stopPropagation(); openContentDetail('${item.id}');">
-              ${escHtml(item.title.substring(0, 22))}${item.title.length > 22 ? '…' : ''}
+              ${item.image_url ? '<img src="' + item.image_url + '" class="mkt-cal-item-thumb" alt="">' : ''}
+              <span>${escHtml(item.title.substring(0, 22))}${item.title.length > 22 ? '\u2026' : ''}</span>
             </div>
           `).join('')}
         </div>
@@ -2605,45 +2606,205 @@ function clearTaskHistory() {
 }
 
 /* ── CONTENT DETAIL ── */
+var _previewDirty = false;
+
 function openContentDetail(id) {
   const item = MarketingStore.contentItems.find(i => i.id === id);
   if (!item) return;
-  const platformEmojis = { tiktok: '🎵', instagram: '📸', youtube: '▶️', facebook: '👥', blog: '📝', email: '📧', linkedin: '💼' };
-  const typeLabels = { post: 'Post', reel: 'Reel', story: 'Story', video: 'Video', blog: 'Blog Post', email: 'Email', ad: 'Ad', script: 'Script' };
+  _previewDirty = false;
+  const platformEmojis = { tiktok: '&#127925;', instagram: '&#128248;', youtube: '&#9654;&#65039;', facebook: '&#128101;', blog: '&#128221;', email: '&#128231;', linkedin: '&#128188;' };
+  const typeLabels = { post: 'Post', reel: 'Reel', story: 'Story', video: 'Video', blog: 'Blog Post', email: 'Email', ad: 'Ad', script: 'Script', social_post: 'Social Post', content: 'Content' };
+
   document.getElementById('cdTitle').textContent = item.title;
   document.getElementById('cdMeta').innerHTML = `
     <span class="mkt-badge mkt-badge--${item.platform}">${platformEmojis[item.platform] || ''} ${item.platform}</span>
     <span class="mkt-badge">${typeLabels[item.type] || item.type}</span>
     <span class="mkt-badge mkt-badge--${item.status}">${item.status}</span>
-    ${item.scheduled_date ? `<span style="font-size:12px;color:var(--muted);">📅 ${item.scheduled_date}</span>` : ''}
+    ${item.scheduled_date ? `<span style="font-size:12px;color:var(--muted);">&#128197; ${item.scheduled_date}</span>` : ''}
+    ${item.approval_status ? `<span class="mkt-badge mkt-badge--${item.approval_status === 'approved' ? 'customer' : 'lead'}">${item.approval_status}</span>` : ''}
   `;
-  const copyEl = document.getElementById('cdCopy');
+
+  // ── Phone preview ──
+  const phoneImg = document.getElementById('cdPhoneImg');
+  const phoneEmpty = document.getElementById('cdPhoneImgEmpty');
+  if (item.image_url) {
+    phoneImg.src = item.image_url;
+    phoneImg.style.display = 'block';
+    phoneEmpty.style.display = 'none';
+  } else {
+    phoneImg.style.display = 'none';
+    phoneEmpty.style.display = 'flex';
+  }
+  // Caption preview (first 120 chars for phone)
+  const captionText = item.copy_text || item.title || '';
+  var cleanCaption = captionText.replace(/\*\*/g, '').replace(/^Caption:\s*/i, '').trim();
+  document.getElementById('cdPhoneCaptionText').textContent = cleanCaption.length > 140 ? cleanCaption.substring(0, 140) + '...' : cleanCaption;
+
+  // Set platform on phone frame
+  var frame = document.getElementById('cdPhoneFrame');
+  frame.className = 'cd-phone-frame';
+  if (item.platform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
+  else if (item.platform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
+  // Activate matching platform button
+  document.querySelectorAll('.cd-plat-btn').forEach(function(b) {
+    b.classList.toggle('cd-plat-btn--active', b.dataset.plat === (item.platform || 'instagram'));
+  });
+
+  // ── Full image in details ──
+  var imgSection = document.getElementById('cdImageSection');
+  if (item.image_url) {
+    imgSection.style.display = 'block';
+    document.getElementById('cdFullImage').src = item.image_url;
+  } else {
+    imgSection.style.display = 'none';
+  }
+
+  // ── Copy text (editable) ──
+  var copyEl = document.getElementById('cdCopy');
+  var copyBox = document.getElementById('cdCopyText');
   if (item.copy_text) {
     copyEl.style.display = 'block';
-    document.getElementById('cdCopyText').textContent = item.copy_text;
+    copyBox.textContent = item.copy_text;
+    copyBox.setAttribute('contenteditable', 'true');
+    copyBox.oninput = function() { _previewDirty = true; showSaveBar(); updatePhoneCaption(); };
   } else {
     copyEl.style.display = 'none';
   }
-  // Show workflow history if available
-  const wfEl = document.getElementById('cdWorkflow');
+
+  // ── Workflow history ──
+  var wfEl = document.getElementById('cdWorkflow');
   if (item.workflow_steps && item.workflow_steps.length) {
     wfEl.style.display = 'block';
-    document.getElementById('cdWorkflowSteps').innerHTML = item.workflow_steps.map((s, i) => `
-      <div class="mkt-workflow-step mkt-workflow-step--${s.status}">
-        <div class="mkt-workflow-step__header">
-          <span class="mkt-workflow-step__num">${i+1}</span>
-          <span class="mkt-workflow-step__agent">${s.agent}</span>
-          <span class="mkt-workflow-step__role">${s.role}</span>
-          <span class="mkt-badge mkt-badge--${s.status === 'completed' ? 'customer' : s.status === 'running' ? 'prospect' : 'lead'}">${s.status}</span>
-        </div>
-        ${s.output ? `<div class="mkt-workflow-step__output">${escHtml(s.output.substring(0, 300))}${s.output.length > 300 ? '…' : ''}</div>` : ''}
-      </div>
-    `).join('');
+    document.getElementById('cdWorkflowSteps').innerHTML = item.workflow_steps.map(function(s, i) {
+      return '<div class="mkt-workflow-step mkt-workflow-step--' + (s.status||'') + '">' +
+        '<div class="mkt-workflow-step__header">' +
+          '<span class="mkt-workflow-step__num">' + (i+1) + '</span>' +
+          '<span class="mkt-workflow-step__agent">' + escHtml(s.agent) + '</span>' +
+          '<span class="mkt-workflow-step__role">' + escHtml(s.role) + '</span>' +
+        '</div>' +
+        (s.output ? '<div class="mkt-workflow-step__output">' + escHtml(s.output.substring(0, 400)) + (s.output.length > 400 ? '...' : '') + '</div>' : '') +
+      '</div>';
+    }).join('');
   } else {
     wfEl.style.display = 'none';
   }
+
   document.getElementById('cdItemId').value = id;
+  hideSaveBar();
   openModal('contentDetailModal');
+}
+
+function updatePhoneCaption() {
+  var text = (document.getElementById('cdCopyText').textContent || '').replace(/\*\*/g, '').replace(/^Caption:\s*/i, '').trim();
+  document.getElementById('cdPhoneCaptionText').textContent = text.length > 140 ? text.substring(0, 140) + '...' : text;
+}
+
+function switchPreviewPlatform(platform, btn) {
+  document.querySelectorAll('.cd-plat-btn').forEach(function(b) { b.classList.remove('cd-plat-btn--active'); });
+  if (btn) btn.classList.add('cd-plat-btn--active');
+  var frame = document.getElementById('cdPhoneFrame');
+  frame.className = 'cd-phone-frame';
+  if (platform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
+  else if (platform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
+}
+
+function showSaveBar() {
+  var bar = document.getElementById('cdSaveBar');
+  if (bar) bar.classList.add('is-visible');
+}
+function hideSaveBar() {
+  var bar = document.getElementById('cdSaveBar');
+  if (bar) bar.classList.remove('is-visible');
+  _previewDirty = false;
+}
+
+async function saveContentEdits() {
+  var id = document.getElementById('cdItemId').value;
+  var item = MarketingStore.contentItems.find(function(i) { return i.id === id; });
+  if (!item) return;
+
+  var newCopy = document.getElementById('cdCopyText').textContent.trim();
+  item.copy_text = newCopy;
+
+  // Persist to Supabase
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  if (cfg.url && cfg.anonKey && id && !id.startsWith('local_')) {
+    try {
+      await fetch(cfg.url + '/rest/v1/content_calendar?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ copy_text: newCopy, image_url: item.image_url || null })
+      });
+    } catch (e) { console.warn('Save edit failed:', e); }
+  }
+
+  hideSaveBar();
+  renderCalendar(); renderMiniCalendar();
+  showToast('Content updated!', 'success');
+}
+
+async function regenerateImage() {
+  var id = document.getElementById('cdItemId').value;
+  var item = MarketingStore.contentItems.find(function(i) { return i.id === id; });
+  if (!item) return;
+
+  var btn = document.getElementById('cdRegenBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+
+  var prompt = 'Professional sports marketing image for SmartSwing AI tennis and pickleball platform. ' + (item.copy_text || item.title || '').substring(0, 500);
+
+  try {
+    var res = await fetch('/api/marketing/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt, size: '1024x1024', content_id: id })
+    });
+    var data = await res.json();
+    if (data.success && data.image_url) {
+      item.image_url = data.image_url;
+      // Update phone preview
+      var phoneImg = document.getElementById('cdPhoneImg');
+      phoneImg.src = data.image_url;
+      phoneImg.style.display = 'block';
+      document.getElementById('cdPhoneImgEmpty').style.display = 'none';
+      // Update full image
+      document.getElementById('cdImageSection').style.display = 'block';
+      document.getElementById('cdFullImage').src = data.image_url;
+      showToast('Image generated!', 'success');
+    } else {
+      showToast('Image generation failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('Image generation error: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Regenerate'; }
+  }
+}
+
+function removeContentImage() {
+  var id = document.getElementById('cdItemId').value;
+  var item = MarketingStore.contentItems.find(function(i) { return i.id === id; });
+  if (!item) return;
+
+  item.image_url = null;
+  // Update phone preview
+  document.getElementById('cdPhoneImg').style.display = 'none';
+  document.getElementById('cdPhoneImgEmpty').style.display = 'flex';
+  // Hide full image
+  document.getElementById('cdImageSection').style.display = 'none';
+  _previewDirty = true;
+  showSaveBar();
+  showToast('Image removed. Click Save to persist.', 'info');
+}
+
+function downloadContentImage() {
+  var img = document.getElementById('cdFullImage');
+  if (!img || !img.src) return;
+  var a = document.createElement('a');
+  a.href = img.src;
+  a.download = 'smartswing-content-' + Date.now() + '.png';
+  a.target = '_blank';
+  a.click();
 }
 
 function approveContentItem() {
@@ -3781,32 +3942,103 @@ setTimeout(function() {
 
 <!-- CONTENT DETAIL MODAL -->
 <div class="mkt-modal-overlay" id="contentDetailModal" onclick="closeModal('contentDetailModal')">
-  <div class="mkt-modal mkt-modal--lg" onclick="event.stopPropagation()">
+  <div class="mkt-modal mkt-modal--preview" onclick="event.stopPropagation()">
     <div class="mkt-modal__header">
-      <div class="mkt-modal__title" id="cdTitle">Content Detail</div>
-      <button class="mkt-modal__close" onclick="closeModal('contentDetailModal')">✕</button>
+      <div class="mkt-modal__title" id="cdTitle">Content Preview</div>
+      <button class="mkt-modal__close" onclick="closeModal('contentDetailModal')">&#10005;</button>
     </div>
-    <div class="mkt-modal__body">
-      <div id="cdMeta" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+    <div class="mkt-modal__body" style="padding:0;">
+      <div class="cd-preview-layout">
 
-      <div id="cdCopy" style="margin-bottom:20px;">
-        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Content / Copy</div>
-        <div id="cdCopyText" style="white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--black);background:var(--surface-2,#f5f5f7);border-radius:12px;padding:16px;border:1px solid var(--border);"></div>
-      </div>
+        <!-- LEFT: Phone Mockup -->
+        <div class="cd-preview-phone-col">
+          <div class="cd-phone-frame" id="cdPhoneFrame">
+            <div class="cd-phone-notch"></div>
+            <div class="cd-phone-screen" id="cdPhoneScreen">
+              <div class="cd-phone-header" id="cdPhoneHeader">
+                <div class="cd-phone-avatar">SS</div>
+                <div class="cd-phone-username">smartswing.ai</div>
+              </div>
+              <div class="cd-phone-img-wrap" id="cdPhoneImgWrap">
+                <div class="cd-phone-img-placeholder" id="cdPhoneImgEmpty">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                  <span>No image yet</span>
+                  <button class="cd-gen-img-btn" onclick="regenerateImage()">Generate Image</button>
+                </div>
+                <img id="cdPhoneImg" class="cd-phone-img" alt="Preview" style="display:none;">
+              </div>
+              <div class="cd-phone-engage">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.8"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#262626" stroke-width="1.8" style="margin-left:auto;"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="cd-phone-caption" id="cdPhoneCaption">
+                <strong class="cd-phone-caption-user">smartswing.ai</strong>
+                <span id="cdPhoneCaptionText"></span>
+              </div>
+            </div>
+            <div class="cd-phone-home-bar"></div>
+          </div>
+          <!-- Platform switcher -->
+          <div class="cd-platform-switcher">
+            <button class="cd-plat-btn cd-plat-btn--active" data-plat="instagram" onclick="switchPreviewPlatform('instagram',this)">Instagram</button>
+            <button class="cd-plat-btn" data-plat="facebook" onclick="switchPreviewPlatform('facebook',this)">Facebook</button>
+            <button class="cd-plat-btn" data-plat="linkedin" onclick="switchPreviewPlatform('linkedin',this)">LinkedIn</button>
+          </div>
+        </div>
 
-      <div id="cdWorkflow" style="margin-bottom:20px;">
-        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Agent Workflow History</div>
-        <div id="cdWorkflowSteps"></div>
-      </div>
+        <!-- RIGHT: Details Panel -->
+        <div class="cd-preview-details">
+          <div id="cdMeta" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
 
-      <input type="hidden" id="cdItemId">
+          <!-- Full-size image -->
+          <div id="cdImageSection" class="cd-detail-section" style="display:none;">
+            <div class="cd-section-label">Generated Image</div>
+            <div class="cd-full-img-wrap">
+              <img id="cdFullImage" class="cd-full-img" alt="Generated image">
+              <button class="cd-remove-img-btn" onclick="removeContentImage()" title="Remove image">&#10005;</button>
+              <div class="cd-img-actions">
+                <button class="cd-img-action-btn" onclick="regenerateImage()" id="cdRegenBtn">Regenerate</button>
+                <button class="cd-img-action-btn" onclick="downloadContentImage()">Download</button>
+              </div>
+            </div>
+          </div>
 
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="mkt-btn mkt-btn--primary" onclick="approveContentItem()">✓ Approve</button>
-        <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="publishToMeta()">📱 Publish to Meta</button>
-        <button class="mkt-btn mkt-btn--ghost" onclick="editContentInAgents()">✍️ Edit with Agent</button>
-        <button class="mkt-btn mkt-btn--ghost" onclick="copyContentToClipboard()">📋 Copy</button>
-        <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('contentDetailModal')" style="margin-left:auto;">Close</button>
+          <!-- Copy text -->
+          <div id="cdCopy" class="cd-detail-section">
+            <div class="cd-section-label">Content / Copy</div>
+            <div id="cdCopyText" class="cd-copy-box"></div>
+          </div>
+
+          <!-- Workflow history (collapsed by default) -->
+          <div id="cdWorkflow" class="cd-detail-section">
+            <button class="cd-section-toggle" onclick="this.parentElement.classList.toggle('cd-detail-section--open')">
+              <span class="cd-section-label" style="margin-bottom:0;">Agent Workflow</span>
+              <svg class="cd-toggle-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="cd-section-collapsible" id="cdWorkflowSteps"></div>
+          </div>
+
+          <input type="hidden" id="cdItemId">
+
+          <!-- Save bar (appears when edits are made) -->
+          <div class="cd-save-bar" id="cdSaveBar">
+            <span class="cd-edit-indicator">Unsaved changes</span>
+            <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="saveContentEdits()">Save Changes</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openContentDetail(document.getElementById('cdItemId').value)">Discard</button>
+          </div>
+
+          <!-- Actions -->
+          <div class="cd-preview-actions">
+            <button class="mkt-btn mkt-btn--primary" onclick="approveContentItem()">Approve</button>
+            <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="publishToMeta()">Publish to Meta</button>
+            <button class="mkt-btn mkt-btn--ghost" onclick="editContentInAgents()">Edit with Agent</button>
+            <button class="mkt-btn mkt-btn--ghost" onclick="copyContentToClipboard()">Copy</button>
+            <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('contentDetailModal')" style="margin-left:auto;">Close</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
