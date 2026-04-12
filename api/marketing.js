@@ -2358,6 +2358,205 @@ async function handleAutoPublish(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: prospect-clubs — Google Places API prospecting for tennis clubs/academies
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Segmented prospecting regions. Each region has cities/areas to search.
+ * This breaks the global search into manageable chunks.
+ */
+const PROSPECT_REGIONS = {
+  'us-northeast': { country: 'US', cities: ['New York', 'Boston', 'Philadelphia', 'Washington DC', 'Hartford', 'Providence', 'Baltimore', 'Pittsburgh'] },
+  'us-southeast': { country: 'US', cities: ['Miami', 'Atlanta', 'Charlotte', 'Orlando', 'Tampa', 'Jacksonville', 'Nashville', 'Raleigh'] },
+  'us-midwest': { country: 'US', cities: ['Chicago', 'Detroit', 'Minneapolis', 'Cleveland', 'Cincinnati', 'Indianapolis', 'St Louis', 'Milwaukee'] },
+  'us-southwest': { country: 'US', cities: ['Dallas', 'Houston', 'Phoenix', 'San Antonio', 'Austin', 'Denver', 'Las Vegas', 'Albuquerque'] },
+  'us-west': { country: 'US', cities: ['Los Angeles', 'San Francisco', 'San Diego', 'Seattle', 'Portland', 'Sacramento', 'Salt Lake City', 'Honolulu'] },
+  'us-florida': { country: 'US', cities: ['Boca Raton', 'Naples', 'Sarasota', 'Fort Lauderdale', 'Palm Beach', 'Delray Beach', 'Key Biscayne', 'Bradenton'] },
+  'canada': { country: 'CA', cities: ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa', 'Edmonton'] },
+  'uk': { country: 'GB', cities: ['London', 'Manchester', 'Birmingham', 'Edinburgh', 'Leeds', 'Bristol', 'Liverpool'] },
+  'europe-west': { country: null, cities: ['Paris', 'Madrid', 'Barcelona', 'Rome', 'Milan', 'Lisbon', 'Amsterdam', 'Brussels', 'Munich', 'Berlin'] },
+  'europe-east': { country: null, cities: ['Prague', 'Vienna', 'Warsaw', 'Budapest', 'Bucharest', 'Zagreb', 'Belgrade'] },
+  'australia': { country: 'AU', cities: ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Gold Coast'] },
+  'latin-america': { country: null, cities: ['Sao Paulo', 'Buenos Aires', 'Mexico City', 'Bogota', 'Santiago', 'Lima', 'Rio de Janeiro'] },
+  'asia': { country: null, cities: ['Tokyo', 'Singapore', 'Dubai', 'Mumbai', 'Hong Kong', 'Seoul', 'Bangkok', 'Shanghai'] },
+  'africa': { country: null, cities: ['Cape Town', 'Johannesburg', 'Nairobi', 'Lagos', 'Cairo', 'Casablanca'] }
+};
+
+async function handleProspectClubs(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const googleApiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!googleApiKey) {
+    return res.status(200).json({
+      success: false,
+      error: 'GOOGLE_PLACES_API_KEY not configured in Vercel environment variables',
+      setup_instructions: {
+        step1: 'Go to https://console.cloud.google.com/apis/credentials',
+        step2: 'Create an API key with Places API (New) enabled',
+        step3: 'Add GOOGLE_PLACES_API_KEY to your Vercel project environment variables',
+        step4: 'Re-deploy or re-run this endpoint'
+      },
+      available_regions: Object.keys(PROSPECT_REGIONS),
+      estimated_leads_per_region: '50-200 clubs/academies'
+    });
+  }
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const { region, queries, dry_run } = req.body || {};
+
+  if (!region) {
+    return res.status(200).json({
+      success: true,
+      available_regions: Object.keys(PROSPECT_REGIONS),
+      region_details: PROSPECT_REGIONS,
+      usage: 'POST with { "region": "us-southeast" } to prospect that region. Add "dry_run": true to preview without saving.'
+    });
+  }
+
+  const regionConfig = PROSPECT_REGIONS[region];
+  if (!regionConfig) {
+    return res.status(400).json({ error: `Unknown region: ${region}`, available_regions: Object.keys(PROSPECT_REGIONS) });
+  }
+
+  const searchQueries = queries || ['tennis club', 'tennis academy', 'tennis center', 'tennis school'];
+  const batchId = `prospect_${region}_${new Date().toISOString().split('T')[0]}`;
+  const allPlaces = [];
+  const seenPlaceIds = new Set();
+
+  try {
+    for (const city of regionConfig.cities) {
+      for (const query of searchQueries) {
+        const textQuery = `${query} in ${city}`;
+        const searchUrl = `https://places.googleapis.com/v1/places:searchText`;
+
+        try {
+          const placesRes = await fetch(searchUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': googleApiKey,
+              'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri,places.rating,places.userRatingCount,places.location,places.addressComponents'
+            },
+            body: JSON.stringify({
+              textQuery,
+              maxResultCount: 20,
+              languageCode: 'en'
+            })
+          });
+
+          if (!placesRes.ok) {
+            console.warn(`[prospect] Places API error for "${textQuery}": ${placesRes.status}`);
+            continue;
+          }
+
+          const placesData = await placesRes.json();
+          const places = placesData.places || [];
+
+          for (const place of places) {
+            if (seenPlaceIds.has(place.id)) continue;
+            seenPlaceIds.add(place.id);
+
+            // Extract country and city from address components
+            const components = place.addressComponents || [];
+            const countryComp = components.find(c => (c.types || []).includes('country'));
+            const cityComp = components.find(c => (c.types || []).includes('locality'));
+            const stateComp = components.find(c => (c.types || []).includes('administrative_area_level_1'));
+
+            allPlaces.push({
+              name: place.displayName?.text || '',
+              email: '',  // Google Places doesn't provide email — needs enrichment
+              phone: place.internationalPhoneNumber || place.nationalPhoneNumber || '',
+              website: place.websiteUri || '',
+              address: place.formattedAddress || '',
+              city: cityComp?.longText || city,
+              state_region: stateComp?.shortText || '',
+              country: countryComp?.longText || '',
+              country_code: countryComp?.shortText || regionConfig.country || '',
+              latitude: place.location?.latitude || null,
+              longitude: place.location?.longitude || null,
+              rating: place.rating || null,
+              review_count: place.userRatingCount || 0,
+              persona: 'club',
+              stage: 'lead',
+              source: 'google_places',
+              enrichment_source: 'google_places',
+              enrichment_batch: batchId,
+              tags: `{tennis,${query.replace('tennis ', '')}}`,
+              notes: `Found via Google Places: "${textQuery}". Rating: ${place.rating || 'N/A'} (${place.userRatingCount || 0} reviews)`
+            });
+          }
+        } catch (err) {
+          console.warn(`[prospect] Error searching "${query} in ${city}":`, err.message);
+        }
+      }
+    }
+
+    if (dry_run) {
+      return res.status(200).json({
+        success: true,
+        dry_run: true,
+        region,
+        batch_id: batchId,
+        total_found: allPlaces.length,
+        cities_searched: regionConfig.cities.length,
+        queries_used: searchQueries,
+        sample: allPlaces.slice(0, 5).map(p => ({ name: p.name, city: p.city, country: p.country, phone: p.phone, website: p.website, rating: p.rating })),
+        note: 'Remove "dry_run": true to save these leads to the database'
+      });
+    }
+
+    // Insert into marketing_contacts (upsert by name+city to avoid duplicates)
+    let inserted = 0;
+    let skipped = 0;
+
+    for (const place of allPlaces) {
+      try {
+        // Check if already exists by name + city
+        const checkUrl = `${supabaseUrl}/rest/v1/marketing_contacts?name=eq.${encodeURIComponent(place.name)}&city=eq.${encodeURIComponent(place.city)}&select=id&limit=1`;
+        const existing = await supabaseGet(checkUrl, supabaseKey);
+        if (existing && existing.length > 0) {
+          skipped++;
+          continue;
+        }
+
+        // Insert with a generated placeholder email if none available
+        const emailPlaceholder = place.email || `${place.name.toLowerCase().replace(/[^a-z0-9]+/g, '.')}@pending-enrichment.smartswingai.com`;
+        await supabaseInsert(supabaseUrl, supabaseKey, 'marketing_contacts', {
+          ...place,
+          email: emailPlaceholder,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        inserted++;
+      } catch (err) {
+        // Likely duplicate email constraint — skip
+        skipped++;
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      region,
+      batch_id: batchId,
+      total_found: allPlaces.length,
+      inserted,
+      skipped,
+      cities_searched: regionConfig.cities.length,
+      queries_used: searchQueries,
+      next_steps: [
+        'Enrich leads with email addresses (check websites, LinkedIn)',
+        'Run cadence enrollment for outreach',
+        'Assign to campaigns for targeted marketing'
+      ]
+    });
+  } catch (err) {
+    console.error('[prospect-clubs] Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
 
 const ROUTES = {
   'agent':           handleAgent,
@@ -2382,7 +2581,8 @@ const ROUTES = {
   'google-search-console': handleGoogleSearchConsole,
   'credentials-status': handleCredentialsStatus,
   'generate-image':    handleGenerateImage,
-  'auto-publish':      handleAutoPublish
+  'auto-publish':      handleAutoPublish,
+  'prospect-clubs':    handleProspectClubs
 };
 
 // Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
