@@ -106,6 +106,11 @@
       "source": "/cart.html",
       "destination": "/checkout.html",
       "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -150,7 +155,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com; base-uri 'self'; object-src 'none'; form-action 'self' https://checkout.stripe.com https://billing.stripe.com"
+          "value": "frame-ancestors 'self' https://smartswingai.com https://www.smartswingai.com; frame-src 'self' https://www.youtube.com https://youtube.com; base-uri 'self'; object-src 'none'; form-action 'self' https://checkout.stripe.com https://billing.stripe.com"
         }
       ]
     },

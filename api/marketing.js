@@ -1467,6 +1467,12 @@ async function handleCredentialsStatus(req, res) {
       configured: !!process.env.OPENAI_API_KEY,
       masked: maskValue(process.env.OPENAI_API_KEY, 6),
       env_var: 'OPENAI_API_KEY'
+    },
+    google_places_api_key: {
+      label: 'Google Places API Key (Club Prospecting)',
+      configured: !!process.env.GOOGLE_PLACES_API_KEY,
+      masked: maskValue(process.env.GOOGLE_PLACES_API_KEY, 4),
+      env_var: 'GOOGLE_PLACES_API_KEY'
     }
   };
 
@@ -3141,6 +3147,202 @@ async function handleProspectPlayers(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: enrich-emails
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/marketing/enrich-emails
+ *
+ * Scrapes club websites to find contact email addresses.
+ * Only processes marketing_contacts that have a website but no real email
+ * (placeholder @pending-enrichment addresses).
+ *
+ * Body: { limit, dry_run, batch_id }
+ */
+
+// Common email patterns found on club/academy websites
+const EMAIL_REGEX = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+const EXCLUDE_EMAIL_DOMAINS = new Set([
+  'example.com', 'test.com', 'sentry.io', 'wixpress.com',
+  'schema.org', 'w3.org', 'googleapis.com', 'facebook.com',
+  'twitter.com', 'instagram.com', 'pending-enrichment.smartswingai.com'
+]);
+
+function extractEmailsFromHtml(html) {
+  if (!html || typeof html !== 'string') return [];
+  // Strip script/style tags to reduce false positives
+  const cleaned = html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '');
+  const matches = cleaned.match(EMAIL_REGEX) || [];
+  // Deduplicate and filter
+  const seen = new Set();
+  return matches.filter(email => {
+    const lower = email.toLowerCase();
+    const domain = lower.split('@')[1];
+    if (!domain) return false;
+    if (EXCLUDE_EMAIL_DOMAINS.has(domain)) return false;
+    if (lower.includes('noreply') || lower.includes('no-reply')) return false;
+    if (lower.includes('unsubscribe') || lower.includes('mailer-daemon')) return false;
+    if (seen.has(lower)) return false;
+    seen.add(lower);
+    return true;
+  });
+}
+
+function scoreEmail(email, clubName) {
+  // Rank emails by likelihood of being the right contact
+  const lower = email.toLowerCase();
+  const name = (clubName || '').toLowerCase();
+  let score = 0;
+
+  // Prefer info@, contact@, admin@, hello@
+  if (/^(info|contact|admin|hello|enquir|office|reception)@/.test(lower)) score += 10;
+  // Penalize generic role accounts less useful for outreach
+  if (/^(support|billing|webmaster|postmaster|abuse)@/.test(lower)) score -= 5;
+  // Bonus if domain matches club name keywords
+  const domain = lower.split('@')[1].split('.')[0];
+  const nameWords = name.split(/[\s\-_]+/).filter(w => w.length > 3);
+  if (nameWords.some(w => domain.includes(w))) score += 5;
+
+  return score;
+}
+
+async function handleEnrichEmails(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const { limit: maxLimit, dry_run, batch_id } = req.body || {};
+  const fetchLimit = Math.min(maxLimit || 20, 50); // cap at 50 per run
+
+  try {
+    // Fetch contacts with placeholder emails but real websites
+    const query = `${supabaseUrl}/rest/v1/marketing_contacts?email=like.*pending-enrichment*&website=neq.&website=not.is.null&select=id,name,email,website,city,country&limit=${fetchLimit}&order=created_at.desc`;
+    const contacts = await supabaseGet(query, supabaseKey);
+
+    if (!contacts || contacts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No contacts need email enrichment (all have real emails or no website)',
+        enriched: 0,
+        checked: 0
+      });
+    }
+
+    const results = [];
+    let enriched = 0;
+    let failed = 0;
+
+    for (const contact of contacts) {
+      const result = { id: contact.id, name: contact.name, website: contact.website };
+
+      try {
+        // Fetch the website with a timeout
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        const webRes = await fetch(contact.website, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'SmartSwing-AI/1.0 (contact enrichment; +https://smartswingai.com)',
+            'Accept': 'text/html'
+          }
+        });
+        clearTimeout(timeout);
+
+        if (!webRes.ok) {
+          result.status = 'http_error';
+          result.http_code = webRes.status;
+          failed++;
+          results.push(result);
+          continue;
+        }
+
+        const html = await webRes.text();
+        const emails = extractEmailsFromHtml(html);
+
+        if (emails.length === 0) {
+          // Try /contact page as fallback
+          try {
+            const contactUrl = new URL('/contact', contact.website).href;
+            const contactRes = await fetch(contactUrl, {
+              signal: AbortSignal.timeout(6000),
+              headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+            });
+            if (contactRes.ok) {
+              const contactHtml = await contactRes.text();
+              emails.push(...extractEmailsFromHtml(contactHtml));
+            }
+          } catch (_) {}
+        }
+
+        if (emails.length === 0) {
+          result.status = 'no_email_found';
+          failed++;
+          results.push(result);
+          continue;
+        }
+
+        // Pick the best email
+        const scored = emails.map(e => ({ email: e, score: scoreEmail(e, contact.name) }));
+        scored.sort((a, b) => b.score - a.score);
+        const bestEmail = scored[0].email;
+
+        result.status = 'enriched';
+        result.email_found = bestEmail;
+        result.all_emails = emails.slice(0, 5);
+        result.score = scored[0].score;
+
+        if (!dry_run) {
+          // Update the contact's email
+          await fetch(`${supabaseUrl}/rest/v1/marketing_contacts?id=eq.${contact.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              email: bestEmail,
+              enrichment_source: 'website_scrape',
+              enrichment_batch: batch_id || `enrich_${new Date().toISOString().split('T')[0]}`,
+              updated_at: new Date().toISOString()
+            })
+          });
+        }
+
+        enriched++;
+        results.push(result);
+      } catch (err) {
+        result.status = 'fetch_error';
+        result.error = err.message;
+        failed++;
+        results.push(result);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      dry_run: !!dry_run,
+      checked: contacts.length,
+      enriched,
+      failed,
+      results,
+      next_steps: enriched > 0
+        ? ['Run cadence enrollment for newly enriched contacts', 'Review emails in marketing dashboard']
+        : ['Manually add emails for contacts without website', 'Try enriching from LinkedIn or social profiles']
+    });
+  } catch (err) {
+    console.error('[enrich-emails] Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 const ROUTES = {
   'agent':           handleAgent,
   'orchestrate':     handleOrchestrate,
@@ -3166,7 +3368,8 @@ const ROUTES = {
   'generate-image':    handleGenerateImage,
   'auto-publish':      handleAutoPublish,
   'prospect-clubs':    handleProspectClubs,
-  'prospect-players':  handleProspectPlayers
+  'prospect-players':  handleProspectPlayers,
+  'enrich-emails':     handleEnrichEmails
 };
 
 // Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.

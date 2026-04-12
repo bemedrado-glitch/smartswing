@@ -442,6 +442,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
 
           </div>
+
+          <!-- ── Email Enrichment ── -->
+          <div style="margin-top:24px;padding:20px;background:var(--bg-soft);border-radius:12px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <h4 style="font-size:15px;font-weight:700;color:var(--black);margin:0;">Email Enrichment</h4>
+                <p style="font-size:12px;color:var(--muted);margin-top:2px;">Scrape club websites to find contact emails for leads with placeholder addresses.</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runEnrichment(true)">Preview</button>
+                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="runEnrichment(false)">Enrich Emails</button>
+              </div>
+            </div>
+            <div id="enrichResults" style="margin-top:12px;"></div>
+          </div>
+
         </div>
 
       </div><!-- /tab-contacts -->
@@ -2201,6 +2217,54 @@ async function runProspecting(type, dryRun) {
     }
   } catch (err) {
     resultsEl.innerHTML = '<div style="padding:16px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
+  }
+}
+
+async function runEnrichment(dryRun) {
+  var resultsEl = document.getElementById('enrichResults');
+  resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);"><div class="mkt-spin" style="width:20px;height:20px;border:3px solid #333;border-top-color:#c8ff00;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px;"></div>Scanning club websites for emails…</div>';
+
+  try {
+    var resp = await fetch('/api/marketing/enrich-emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 20, dry_run: dryRun })
+    });
+    var data = await resp.json();
+
+    if (!data.success) {
+      resultsEl.innerHTML = '<div style="padding:12px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">' + (data.error || 'Unknown error') + '</div>';
+      return;
+    }
+
+    var html = '<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">';
+    html += 'Checked: <strong>' + data.checked + '</strong> · Enriched: <strong style="color:#10b981;">' + data.enriched + '</strong> · Failed: <strong>' + data.failed + '</strong>';
+    if (dryRun) html += ' <span style="background:#ffa72615;color:#ffa726;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">DRY RUN</span>';
+    html += '</div>';
+
+    if (data.results && data.results.length > 0) {
+      html += '<div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;">';
+      html += '<table class="mkt-table" style="font-size:12px;"><thead><tr><th>Club</th><th>Website</th><th>Status</th><th>Email Found</th></tr></thead><tbody>';
+      data.results.forEach(function(r) {
+        var statusColor = r.status === 'enriched' ? '#10b981' : '#ff4d4f';
+        html += '<tr>';
+        html += '<td>' + (r.name || '') + '</td>';
+        html += '<td><a href="' + (r.website || '') + '" target="_blank" style="color:#c8ff00;font-size:11px;">' + ((r.website || '').replace(/https?:\/\//, '').slice(0, 30)) + '</a></td>';
+        html += '<td><span style="color:' + statusColor + ';font-size:11px;font-weight:600;">' + (r.status || '') + '</span></td>';
+        html += '<td>' + (r.email_found || '—') + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    resultsEl.innerHTML = html;
+
+    if (!dryRun && data.enriched > 0) {
+      showToast(data.enriched + ' emails enriched from club websites!', 'success');
+      if (typeof loadContacts === 'function') loadContacts();
+    }
+  } catch (err) {
+    resultsEl.innerHTML = '<div style="padding:12px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
   }
 }
 
