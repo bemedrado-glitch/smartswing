@@ -461,16 +461,20 @@ async function runWorkflowChain(chain, title, context, campaignId, apiKey) {
 
       const scheduledDate = new Date();
       scheduledDate.setDate(scheduledDate.getDate() + 3);
-      const calendarItem = await supabaseInsert(supabaseUrl, supabaseKey, 'content_calendar', {
+      const row = {
         title, type: calendarType,
-        platform: context.platform || 'instagram', status: 'approved',
+        platform: context.platform || 'instagram', status: 'scheduled',
         scheduled_date: scheduledDate.toISOString().split('T')[0],
         copy_text: finalOutput.copy || previousOutput,
         image_url: imageUrl,
         assigned_agent: chain[chain.length - 1].agent,
-        campaign_id: campaignId || context.campaign_id || null,
+        approval_status: 'approved',
         created_at: new Date().toISOString()
-      });
+      };
+      // Only include campaign_id if it's a valid existing campaign reference
+      if (campaignId) row.campaign_id = campaignId;
+      else if (context.campaign_id) row.campaign_id = context.campaign_id;
+      const calendarItem = await supabaseInsert(supabaseUrl, supabaseKey, 'content_calendar', row);
       contentItems.push(calendarItem);
     } catch (err) { console.warn('content_calendar insert warning:', err.message); }
   }
@@ -2183,11 +2187,11 @@ async function handleAutoPublish(req, res) {
   const today = new Date().toISOString().split('T')[0];
 
   try {
-    // Get scheduled items due for publishing today or earlier
-    const items = await supabaseGet(
-      supabaseUrl + '/rest/v1/content_calendar?status=eq.scheduled&scheduled_date=lte.' + today + '&select=*',
-      supabaseKey
-    );
+    // Get scheduled items due for publishing today or earlier (with approved status)
+    const { item_id } = req.body || {};
+    let queryUrl = supabaseUrl + '/rest/v1/content_calendar?status=eq.scheduled&approval_status=eq.approved&scheduled_date=lte.' + today + '&select=*';
+    if (item_id) queryUrl = supabaseUrl + '/rest/v1/content_calendar?id=eq.' + item_id + '&status=eq.scheduled&select=*';
+    const items = await supabaseGet(queryUrl, supabaseKey);
 
     if (!items || items.length === 0) {
       return res.status(200).json({ success: true, message: 'No items due for publishing', published: 0 });
