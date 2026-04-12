@@ -383,10 +383,10 @@
       align-items: center;
       gap: 6px;
     }
-    /* Mobile hero: stack vertically */
+    /* Mobile hero: text-first, then visual */
     @media (max-width: 900px) {
       .hero { text-align: center; padding-bottom: 48px; }
-      .hero-split { flex-direction: column-reverse; gap: 36px; }
+      .hero-split { flex-direction: column; gap: 36px; }
       .hero-inner { max-width: 100%; }
       .hero-sub { margin-left: auto; margin-right: auto; }
       .hero-actions { justify-content: center; }
@@ -1203,6 +1203,183 @@
     }
     .secondary-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
 
+    /* ── STICKY MOBILE CTA BAR ── */
+    .sticky-cta-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 950;
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(57,255,20,0.2);
+      padding: 12px 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transform: translateY(100%);
+      transition: transform 0.35s ease;
+    }
+    .sticky-cta-bar.visible { transform: translateY(0); }
+    .sticky-cta-bar .sticky-text {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sticky-cta-bar .btn-primary { padding: 10px 20px; font-size: 14px; white-space: nowrap; }
+    @media (max-width: 900px) {
+      .sticky-cta-bar { display: flex; }
+    }
+
+    /* ── INLINE EMAIL CAPTURE (below hero) ── */
+    .hero-email-capture {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      max-width: 480px;
+    }
+    .hero-email-capture input[type="email"] {
+      flex: 1;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    .hero-email-capture input[type="email"]:focus {
+      border-color: var(--volt);
+      box-shadow: 0 0 0 3px rgba(57,255,20,0.15);
+    }
+    .hero-email-capture input[type="email"]::placeholder { color: rgba(255,255,255,0.35); }
+    .hero-email-capture .btn-primary { flex-shrink: 0; }
+    .hero-email-capture .capture-ok {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: rgba(57,255,20,0.1);
+      border: 1px solid rgba(57,255,20,0.3);
+      border-radius: var(--radius-sm);
+      color: var(--volt);
+      font-weight: 600;
+      font-size: 14px;
+      width: 100%;
+    }
+    @media (max-width: 640px) {
+      .hero-email-capture { flex-direction: column; max-width: 100%; }
+      .hero-email-capture .btn-primary { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 900px) {
+      .hero-email-capture { margin-left: auto; margin-right: auto; }
+    }
+
+    /* ── EXIT-INTENT POPUP ── */
+    .exit-popup-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .exit-popup-overlay.active { display: flex; opacity: 1; }
+    .exit-popup {
+      background: var(--bg-mid);
+      border: 1px solid rgba(57,255,20,0.25);
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      max-width: 460px;
+      width: calc(100% - 32px);
+      text-align: center;
+      position: relative;
+    }
+    .exit-popup h3 {
+      font-size: 24px; font-weight: 800;
+      margin-bottom: 8px; color: var(--text);
+    }
+    .exit-popup p {
+      color: var(--muted); font-size: 15px;
+      margin-bottom: 20px; line-height: 1.5;
+    }
+    .exit-popup .exit-email-row {
+      display: flex; gap: 10px;
+    }
+    .exit-popup input[type="email"] {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+    .exit-popup input[type="email"]:focus {
+      border-color: var(--volt);
+    }
+    .exit-popup .btn-primary { flex-shrink: 0; }
+    .exit-popup .close-popup {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: none; border: none;
+      color: var(--muted); font-size: 20px;
+      cursor: pointer; line-height: 1;
+      padding: 4px;
+    }
+    .exit-popup .close-popup:hover { color: var(--text); }
+    .exit-popup .exit-ok {
+      display: none; color: var(--volt); font-weight: 600;
+      font-size: 15px; margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .exit-popup .exit-email-row { flex-direction: column; }
+      .exit-popup { padding: 32px 24px; }
+    }
+
+    /* ── VIDEO DEMO MODAL ── */
+    .demo-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .demo-modal-overlay.active { display: flex; opacity: 1; }
+    .demo-modal {
+      width: min(800px, calc(100% - 32px));
+      aspect-ratio: 16/9;
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+    .demo-modal iframe {
+      width: 100%; height: 100%; border: none;
+    }
+    .demo-modal .close-demo {
+      position: absolute;
+      top: 12px; right: 12px;
+      background: rgba(0,0,0,0.6); border: none;
+      color: #fff; font-size: 24px;
+      cursor: pointer; border-radius: 50%;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
       :root { --section-gap: 72px; --page: min(100%, calc(100% - 32px)); }
@@ -1249,6 +1426,8 @@
       /* Footer */
       .footer-grid { grid-template-columns: 1fr; }
       .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+      /* Extra bottom padding so footer clears sticky CTA */
+      .footer { padding-bottom: 72px; }
     }
     @media (max-width: 390px) {
       .hero h1 { font-size: 32px; }
@@ -1351,13 +1530,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           <div class="hero-actions">
             <a href="./signup.html" class="btn-primary btn-lg" data-i18n="hero.cta.primary">Analyze Your Swing Free →</a>
-            <a href="./how-it-works.html" class="btn-ghost btn-lg" data-i18n="hero.cta.secondary">See How It Works</a>
+            <button type="button" class="btn-ghost btn-lg" onclick="openDemoModal()" aria-label="Watch a 30-second demo video">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5,3 19,12 5,21"/></svg>
+              Watch 30s Demo
+            </button>
           </div>
 
           <p class="hero-note">
             <span class="green-dot" aria-hidden="true"></span>
             <span data-i18n="hero.note">No credit card · Results in 60 seconds</span>
           </p>
+
+          <!-- Inline email capture — lower friction than signup -->
+          <form class="hero-email-capture" id="heroEmailCapture" autocomplete="on" novalidate>
+            <input type="email" name="email" placeholder="Enter your email to get started" required autocomplete="email" aria-label="Email address">
+            <button type="submit" class="btn-primary">Get Free Analysis</button>
+            <div class="capture-ok" role="status" aria-live="polite">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              Check your inbox!
+            </div>
+          </form>
         </div>
 
         <!-- RIGHT: cinematic action shot + AI score overlay -->
@@ -1962,6 +2154,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </aside>
 
+  <!-- ── STICKY MOBILE CTA BAR ── -->
+  <div class="sticky-cta-bar" id="stickyCta" aria-label="Quick signup">
+    <span class="sticky-text">Free AI swing analysis</span>
+    <a href="./signup.html" class="btn-primary">Try Free →</a>
+  </div>
+
+  <!-- ── EXIT-INTENT POPUP ── -->
+  <div class="exit-popup-overlay" id="exitPopup" role="dialog" aria-modal="true" aria-label="Before you go">
+    <div class="exit-popup">
+      <button type="button" class="close-popup" onclick="closeExitPopup()" aria-label="Close">&times;</button>
+      <h3>Before you go...</h3>
+      <p>Get a free AI analysis of your tennis swing. Just drop your email and we'll send you a link to get started.</p>
+      <form class="exit-email-row" id="exitEmailForm" novalidate>
+        <input type="email" name="email" placeholder="your@email.com" required autocomplete="email" aria-label="Email address">
+        <button type="submit" class="btn-primary">Send My Link</button>
+      </form>
+      <p class="exit-ok" role="status" aria-live="polite">Done! Check your email.</p>
+    </div>
+  </div>
+
+  <!-- ── VIDEO DEMO MODAL ── -->
+  <div class="demo-modal-overlay" id="demoModal" role="dialog" aria-modal="true" aria-label="Product demo">
+    <div class="demo-modal">
+      <button type="button" class="close-demo" onclick="closeDemoModal()" aria-label="Close demo">&times;</button>
+      <iframe id="demoIframe" src="" allow="autoplay; encrypted-media" allowfullscreen title="SmartSwing AI demo video"></iframe>
+    </div>
+  </div>
+
   <!-- ── PRODUCTION SCRIPTS ── -->
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
@@ -2021,6 +2241,167 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.querySelectorAll('.stat-chip').forEach(function(el, i){
       el.style.animationDelay = (i * 0.15) + 's';
     });
+  })();
+  </script>
+
+  <!-- ── BOUNCE RATE REDUCTION ── -->
+  <script>
+  (function(){
+    'use strict';
+
+    // === Sticky mobile CTA bar ===
+    var stickyCta = document.getElementById('stickyCta');
+    var heroSection = document.querySelector('.hero');
+    if (stickyCta && heroSection) {
+      var stickyIO = new IntersectionObserver(function(entries){
+        // Show sticky bar once hero is scrolled out of view
+        stickyCta.classList.toggle('visible', !entries[0].isIntersecting);
+      }, { threshold: 0 });
+      stickyIO.observe(heroSection);
+
+      // Hide sticky bar when cookie banner or footer is visible
+      var cookieBanner = document.querySelector('.cookie-banner');
+      if (cookieBanner) {
+        var mo = new MutationObserver(function(){
+          if (!cookieBanner.hidden) stickyCta.style.bottom = '90px';
+          else stickyCta.style.bottom = '0';
+        });
+        mo.observe(cookieBanner, { attributes: true, attributeFilter: ['hidden'] });
+      }
+    }
+
+    // === Inline email capture (hero) ===
+    var heroForm = document.getElementById('heroEmailCapture');
+    if (heroForm) {
+      heroForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        var input = heroForm.querySelector('input[type="email"]');
+        var email = (input.value || '').trim();
+        if (!email || !email.includes('@')) { input.focus(); return; }
+
+        // Fire lead capture
+        captureLead(email, 'hero_inline');
+
+        // Show success
+        heroForm.querySelector('input').style.display = 'none';
+        heroForm.querySelector('button[type="submit"]').style.display = 'none';
+        heroForm.querySelector('.capture-ok').style.display = 'flex';
+
+        // Redirect to signup after short delay
+        setTimeout(function(){ window.location.href = './signup.html?email=' + encodeURIComponent(email); }, 1800);
+      });
+    }
+
+    // === Exit-intent popup (desktop only, once per session) ===
+    var exitShown = false;
+    function showExitPopup() {
+      if (exitShown) return;
+      if (sessionStorage.getItem('ss_exit_shown')) return;
+      var overlay = document.getElementById('exitPopup');
+      if (!overlay) return;
+      exitShown = true;
+      sessionStorage.setItem('ss_exit_shown', '1');
+      overlay.classList.add('active');
+    }
+
+    // Desktop: mouse leaves viewport toward top
+    if (window.matchMedia('(pointer: fine)').matches) {
+      document.addEventListener('mouseout', function(e) {
+        if (e.clientY < 5 && !e.relatedTarget) {
+          // Only show after 8s on page (don't annoy fast bouncers)
+          if (performance.now() > 8000) showExitPopup();
+        }
+      });
+    }
+
+    window.closeExitPopup = function(){
+      var overlay = document.getElementById('exitPopup');
+      if (overlay) overlay.classList.remove('active');
+    };
+    // Close on overlay click
+    var exitOverlay = document.getElementById('exitPopup');
+    if (exitOverlay) {
+      exitOverlay.addEventListener('click', function(e){
+        if (e.target === exitOverlay) closeExitPopup();
+      });
+    }
+
+    var exitForm = document.getElementById('exitEmailForm');
+    if (exitForm) {
+      exitForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        var input = exitForm.querySelector('input[type="email"]');
+        var email = (input.value || '').trim();
+        if (!email || !email.includes('@')) { input.focus(); return; }
+
+        captureLead(email, 'exit_intent');
+
+        exitForm.style.display = 'none';
+        exitForm.parentElement.querySelector('.exit-ok').style.display = 'block';
+        setTimeout(closeExitPopup, 2500);
+      });
+    }
+
+    // === Demo video modal ===
+    // Replace with your actual YouTube video ID
+    var DEMO_VIDEO_ID = 'dQw4w9WgXcQ'; // placeholder — replace with SmartSwing demo
+
+    window.openDemoModal = function(){
+      var overlay = document.getElementById('demoModal');
+      var iframe = document.getElementById('demoIframe');
+      if (!overlay || !iframe) return;
+      iframe.src = 'https://www.youtube.com/embed/' + DEMO_VIDEO_ID + '?autoplay=1&rel=0';
+      overlay.classList.add('active');
+      // Track engagement
+      if (typeof gtag === 'function') gtag('event', 'demo_video_play', { event_category: 'engagement' });
+    };
+
+    window.closeDemoModal = function(){
+      var overlay = document.getElementById('demoModal');
+      var iframe = document.getElementById('demoIframe');
+      if (overlay) overlay.classList.remove('active');
+      if (iframe) iframe.src = '';
+    };
+    var demoOverlay = document.getElementById('demoModal');
+    if (demoOverlay) {
+      demoOverlay.addEventListener('click', function(e){
+        if (e.target === demoOverlay) closeDemoModal();
+      });
+    }
+
+    // === Shared lead capture function ===
+    function captureLead(email, source) {
+      var payload = {
+        email: email,
+        source: source,
+        utm_source: getParam('utm_source'),
+        utm_medium: getParam('utm_medium'),
+        utm_campaign: getParam('utm_campaign'),
+        referrer: document.referrer || '',
+        landing_page: window.location.pathname,
+        page_url: window.location.href
+      };
+      // Fire-and-forget API call
+      fetch('/api/marketing/capture-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(function(){});
+    }
+
+    function getParam(name) {
+      var url = new URL(window.location.href);
+      return url.searchParams.get(name) || '';
+    }
+
+    // === Escape key closes modals ===
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') {
+        closeExitPopup();
+        closeDemoModal();
+      }
+    });
+
   })();
   </script>
 </body>

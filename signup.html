@@ -1204,6 +1204,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     bootstrapAuth();
 
+    /* ── Email pre-fill from URL param (hero capture flow) ── */
+    (function prefillEmail() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const email = (params.get('email') || '').trim();
+        if (email && email.includes('@')) {
+          const emailInput = document.getElementById('email');
+          if (emailInput) {
+            emailInput.value = email;
+            // Focus the next field (name) for smooth flow
+            const nameInput = document.getElementById('fullName');
+            if (nameInput) setTimeout(function(){ nameInput.focus(); }, 200);
+          }
+        }
+      } catch (_) {}
+    })();
+
     /* ── Referral capture ───────────────────────────────── */
     (function captureReferral() {
       try {

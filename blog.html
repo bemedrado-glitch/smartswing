@@ -1038,7 +1038,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="tc-content">
               <span class="tc-badge badge-500">ATP 500</span>
               <div class="tc-name">Barcelona Open Banc Sabadell</div>
-              <div class="tc-dates">Apr 14 – 21</div>
+              <div class="tc-dates">Apr 13 – 19</div>
               <div class="tc-location">Spain 🇪🇸</div>
               <div class="tc-prize">€3.74M</div>
               <span class="surface-label">Clay</span>
@@ -1050,7 +1050,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="tc-content">
               <span class="tc-badge badge-500">WTA 500</span>
               <div class="tc-name">Porsche Tennis Grand Prix</div>
-              <div class="tc-dates">Apr 14 – 21</div>
+              <div class="tc-dates">Apr 13 – 19</div>
               <div class="tc-location">Stuttgart 🇩🇪</div>
               <div class="tc-prize">€802K</div>
               <span class="surface-label">Clay</span>
@@ -1944,8 +1944,16 @@ async function fetchTennisData() {
 
     // Update live badge to reflect data source
     var liveBadge = document.getElementById('liveBadge');
-    if (liveBadge && data.live === false) {
-      liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#ffd84d;"></span>RECENT';
+    if (liveBadge) {
+      if (data.source === 'fallback') {
+        liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#fb923c;"></span>CACHED';
+        liveBadge.title = 'Showing cached results — live feed temporarily unavailable';
+      } else if ((data.source === 'espn' || data.source === 'sofascore') && data.live) {
+        liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true"></span>LIVE';
+        liveBadge.title = 'Live data';
+      } else if (data.live === false) {
+        liveBadge.innerHTML = '<span class="live-dot" aria-hidden="true" style="background:#ffd84d;"></span>RECENT';
+      }
     }
 
     if (!data.recent || data.recent.length === 0) {
@@ -2050,6 +2058,23 @@ var SURFACE_COLORS = {
   indoor: '#5a4a8a'
 };
 
+// ⚠️ IMPORTANT: Tournament brackets must contain ONLY verified real results.
+// Never invent or predict match scores. For upcoming tournaments, use status: 'upcoming'
+// with TBD placeholders. Only change status to 'completed' and add scores AFTER verifying
+// results on official sources (atptour.com, wtatennis.com, or Wikipedia).
+// Last verified: 2026-04-12 — Source: atptour.com/en/news/monte-carlo-2026-results
+// ──────────────────────────────────────────────────────────────────────
+// TOURNAMENT_DATA — Fallback/cache for bracket display.
+// This data is shown IMMEDIATELY when the modal opens.
+// The dynamic bracket fetcher (/api/tennis-brackets) will then
+// overwrite this with live data from SofaScore if available.
+//
+// RULES FOR MAINTAINING THIS DATA:
+// 1. NEVER invent scores or results. Only add verified results.
+// 2. For upcoming tournaments: use TBD placeholders, status 'upcoming'
+// 3. Seedings are projections — note this clearly in the UI
+// 4. When in doubt, leave fields as TBD — wrong data is worse than no data
+// ──────────────────────────────────────────────────────────────────────
 var TOURNAMENT_DATA = {
   'monte-carlo-2026': {
     name: 'Monte-Carlo Rolex Masters',
@@ -2061,67 +2086,67 @@ var TOURNAMENT_DATA = {
     status: 'completed',
     officialUrl: 'https://www.atptour.com/en/tournaments/monte-carlo/410/draws',
     qf: [
-      { p1: 'C. Alcaraz', s1: '[1]', p2: 'T. Paul', s2: '[14]', score: '6-3, 7-5', w: 1 },
-      { p1: 'A. Zverev', s1: '[3]', p2: 'H. Rune', s2: '[9]', score: '7-6(4), 6-4', w: 1 },
-      { p1: 'J. Sinner', s1: '[2]', p2: 'C. Ruud', s2: '[7]', score: '6-4, 6-3', w: 1 },
-      { p1: 'S. Tsitsipas', s1: '[5]', p2: 'N. Djokovic', s2: '[6]', score: '6-4, 3-6, 7-5', w: 1 }
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'A. Bublik', s2: '[8]', score: '6-3, 6-0', w: 1 },
+      { p1: 'V. Vacherot', s1: '[WC]', p2: 'A. de Minaur', s2: '[5]', score: '6-4, 3-6, 6-3', w: 1 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'F. Auger-Aliassime', s2: '[6]', score: '6-3, 6-4', w: 1 },
+      { p1: 'A. Zverev', s1: '[3]', p2: 'J. Fonseca', s2: '', score: '7-5, 6-7(3), 6-3', w: 1 }
     ],
     sf: [
-      { p1: 'C. Alcaraz', s1: '[1]', p2: 'A. Zverev', s2: '[3]', score: '6-4, 3-6, 6-3', w: 1 },
-      { p1: 'J. Sinner', s1: '[2]', p2: 'S. Tsitsipas', s2: '[5]', score: '6-3, 6-4', w: 1 }
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'V. Vacherot', s2: '[WC]', score: '6-4, 6-4', w: 1 },
+      { p1: 'J. Sinner', s1: '[2]', p2: 'A. Zverev', s2: '[3]', score: '6-1, 6-4', w: 1 }
     ],
     f: [
-      { p1: 'C. Alcaraz', s1: '[1]', p2: 'J. Sinner', s2: '[2]', score: '6-4, 6-3', w: 1 }
+      { p1: 'J. Sinner', s1: '[2]', p2: 'C. Alcaraz', s2: '[1]', score: '7-6(5), 6-3', w: 1 }
     ],
-    champion: 'Carlos Alcaraz'
+    champion: 'Jannik Sinner'
   },
   'barcelona-2026': {
     name: 'Barcelona Open Banc Sabadell',
-    dates: 'Apr 14 – 21, 2026',
+    dates: 'Apr 13 – 19, 2026',
     location: 'Barcelona, Spain 🇪🇸',
     surface: 'clay',
     category: 'ATP 500',
     prize: '€3.74M',
-    status: 'completed',
-    officialUrl: 'https://www.atptour.com/en/tournaments/barcelona/430/draws',
+    status: 'upcoming',
+    officialUrl: 'https://www.atptour.com/en/tournaments/barcelona/425/overview',
     qf: [
-      { p1: 'J. Sinner', s1: '[1]', p2: 'F. Cerundolo', s2: '[8]', score: '6-3, 6-2', w: 1 },
-      { p1: 'C. Alcaraz', s1: '[2]', p2: 'A. Davidovich Fokina', s2: '[WC]', score: '6-4, 6-1', w: 1 },
-      { p1: 'A. Zverev', s1: '[3]', p2: 'S. Baez', s2: '[7]', score: '6-2, 7-5', w: 1 },
-      { p1: 'C. Norrie', s1: '[5]', p2: 'B. Coric', s2: '[4]', score: '3-6, 6-3, 6-4', w: 1 }
+      { p1: 'C. Alcaraz', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'L. Musetti', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'A. de Minaur', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Ruud', s1: '[5]', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     sf: [
-      { p1: 'J. Sinner', s1: '[1]', p2: 'C. Alcaraz', s2: '[2]', score: '7-6(3), 6-4', w: 1 },
-      { p1: 'A. Zverev', s1: '[3]', p2: 'C. Norrie', s2: '[5]', score: '6-1, 6-3', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     f: [
-      { p1: 'J. Sinner', s1: '[1]', p2: 'A. Zverev', s2: '[3]', score: '6-3, 6-4', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
-    champion: 'Jannik Sinner'
+    champion: null
   },
   'stuttgart-wta-2026': {
     name: 'Porsche Tennis Grand Prix',
-    dates: 'Apr 14 – 21, 2026',
+    dates: 'Apr 13 – 19, 2026',
     location: 'Stuttgart, Germany 🇩🇪',
-    surface: 'clay',
+    surface: 'clay (indoor)',
     category: 'WTA 500',
-    prize: '€802K',
-    status: 'completed',
-    officialUrl: 'https://www.wtatennis.com/tournaments/1455/porsche-grand-prix/2026/draws',
+    prize: '€1.05M',
+    status: 'upcoming',
+    officialUrl: 'https://www.wtatennis.com/tournaments/1051/stuttgart/2026',
     qf: [
-      { p1: 'I. Swiatek', s1: '[1]', p2: 'D. Collins', s2: '[8]', score: '6-2, 6-1', w: 1 },
-      { p1: 'A. Sabalenka', s1: '[2]', p2: 'B. Andreescu', s2: '[6]', score: '7-5, 6-3', w: 1 },
-      { p1: 'C. Gauff', s1: '[3]', p2: 'M. Bouzkova', s2: '[7]', score: '6-3, 6-2', w: 1 },
-      { p1: 'E. Rybakina', s1: '[4]', p2: 'M. Vondrousova', s2: '[5]', score: '6-4, 3-6, 6-2', w: 1 }
+      { p1: 'A. Sabalenka', s1: '[1]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'E. Rybakina', s1: '[2]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'C. Gauff', s1: '[3]', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'I. Swiatek', s1: '[4]', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     sf: [
-      { p1: 'I. Swiatek', s1: '[1]', p2: 'A. Sabalenka', s2: '[2]', score: '7-5, 6-2', w: 1 },
-      { p1: 'C. Gauff', s1: '[3]', p2: 'E. Rybakina', s2: '[4]', score: '6-4, 6-4', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 },
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
     f: [
-      { p1: 'I. Swiatek', s1: '[1]', p2: 'C. Gauff', s2: '[3]', score: '6-3, 7-5', w: 1 }
+      { p1: 'TBD', s1: '', p2: 'TBD', s2: '', score: null, w: 0 }
     ],
-    champion: 'Iga Swiatek'
+    champion: null
   },
   'madrid-2026': {
     name: 'Mutua Madrid Open',
@@ -2269,25 +2294,86 @@ var TOURNAMENT_DATA = {
   }
 };
 
-// Map result-card tournament name keywords → tid
+// Map result-card tournament name keywords → tid (tournament names only, not player names)
 var RESULT_TID_MAP = {
   'monte-carlo': 'monte-carlo-2026',
-  'alcaraz': 'monte-carlo-2026',
+  'monte carlo': 'monte-carlo-2026',
   'stuttgart': 'stuttgart-wta-2026',
-  'swiatek': 'stuttgart-wta-2026',
+  'porsche': 'stuttgart-wta-2026',
   'barcelona': 'barcelona-2026',
-  'sinner': 'barcelona-2026',
-  'miami': 'miami-open',
-  'indian wells': 'monte-carlo-2026',
   'madrid': 'madrid-2026',
   'rome': 'rome-2026',
   'roland': 'roland-garros-2026',
+  'roland garros': 'roland-garros-2026',
   'wimbledon': 'wimbledon-2026',
   'us open': 'us-open-2026',
-  'gauff': 'miami-open'
+  "queen's": 'queens-2026',
+  'queens': 'queens-2026'
 };
 
+// ── Dynamic bracket fetching ──────────────────────────────────
+// Fetches real bracket data from /api/tennis-brackets and merges
+// into TOURNAMENT_DATA. NEVER fabricates results — if the API
+// returns data, it replaces the hardcoded fallback. If the API
+// fails, the existing TOURNAMENT_DATA is shown with a notice.
+var _bracketCache = {};
+
+function fetchBracketData(tid) {
+  if (_bracketCache[tid]) return Promise.resolve(_bracketCache[tid]);
+  return fetch('/api/tennis-brackets?slug=' + encodeURIComponent(tid))
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.source !== 'error' && data.bracket) {
+        _bracketCache[tid] = data;
+        // Merge into TOURNAMENT_DATA so bracket renders with live info
+        if (TOURNAMENT_DATA[tid]) {
+          var t = TOURNAMENT_DATA[tid];
+          var b = data.bracket;
+          if (b.qf && b.qf.some(function(m) { return m.p1 !== 'TBD'; })) t.qf = b.qf;
+          if (b.sf && b.sf.some(function(m) { return m.p1 !== 'TBD'; })) t.sf = b.sf;
+          if (b.f && b.f.some(function(m) { return m.p1 !== 'TBD'; })) t.f = b.f;
+          if (b.champion) t.champion = b.champion;
+          if (data.status === 'completed') t.status = 'completed';
+          else if (data.status === 'in-progress') t.status = 'live';
+        }
+        return data;
+      }
+      return null;
+    })
+    .catch(function() { return null; });
+}
+
 function openBracketModal(tid) {
+  var t = TOURNAMENT_DATA[tid];
+  if (!t) return;
+
+  // Show modal immediately with current data, then refresh from API
+  _showBracketModalContent(tid);
+
+  var modal = document.getElementById('bracketModal');
+  modal.classList.add('open');
+  modal.removeAttribute('aria-hidden');
+  document.body.style.overflow = 'hidden';
+  var closeBtn = modal.querySelector('.bm-close');
+  if (closeBtn) closeBtn.focus();
+
+  // Fetch live bracket data in background and re-render if updated
+  fetchBracketData(tid).then(function(data) {
+    if (data && (data.source === 'espn' || data.source === 'sofascore')) {
+      _showBracketModalContent(tid);
+      // Show live data source indicator
+      var bmBody = document.getElementById('bmBody');
+      if (bmBody) {
+        var srcBadge = document.createElement('div');
+        srcBadge.style.cssText = 'text-align:center;margin-top:8px;font-size:11px;color:rgba(255,255,255,0.3);';
+        srcBadge.textContent = 'Live data · Updated ' + new Date(data.fetchedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        bmBody.appendChild(srcBadge);
+      }
+    }
+  });
+}
+
+function _showBracketModalContent(tid) {
   var t = TOURNAMENT_DATA[tid];
   if (!t) return;
 
@@ -2312,7 +2398,9 @@ function openBracketModal(tid) {
 
   // Render inline bracket if draw data exists, otherwise show placeholder
   var bmBody = document.getElementById('bmBody');
-  if (t.qf && t.qf.length > 0) {
+  var hasRealMatches = t.qf && t.qf.length > 0 && t.qf.some(function(m) { return m.p1 !== 'TBD' || m.p2 !== 'TBD'; });
+
+  if (hasRealMatches) {
     bmBody.innerHTML = renderBracketHTML(t, surfaceColor) +
       '<div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);">' +
         '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
@@ -2327,7 +2415,7 @@ function openBracketModal(tid) {
       '<div style="text-align:center;padding:40px 20px;">' +
         (t.champion
           ? '<div style="margin-bottom:24px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.5);margin-bottom:8px;">Champion</div><div style="font-size:28px;font-weight:800;color:#39ff14;">' + escHtml(t.champion) + '</div></div>'
-          : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('–')[0] || t.dates) + '</div>') +
+          : '<div style="margin-bottom:24px;font-size:15px;color:rgba(255,255,255,.6);">Draw not yet available — tournament starts ' + escHtml(t.dates.split('\u2013')[0] || t.dates) + '</div>') +
         '<a href="' + escHtml(t.officialUrl) + '" target="_blank" rel="noopener" ' +
           'style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:rgba(57,255,20,.12);border:1px solid rgba(57,255,20,.4);border-radius:12px;color:#39ff14;font-size:15px;font-weight:700;text-decoration:none;transition:all .2s;" ' +
           'onmouseenter="this.style.background=\'rgba(57,255,20,.2)\'" onmouseleave="this.style.background=\'rgba(57,255,20,.12)\'">' +
@@ -2336,14 +2424,6 @@ function openBracketModal(tid) {
         '</a>' +
       '</div>';
   }
-
-  var modal = document.getElementById('bracketModal');
-  modal.classList.add('open');
-  modal.removeAttribute('aria-hidden');
-  document.body.style.overflow = 'hidden';
-  // Focus close btn
-  var closeBtn = modal.querySelector('.bm-close');
-  if (closeBtn) closeBtn.focus();
 }
 
 function closeBracketModal() {
@@ -2487,7 +2567,7 @@ document.querySelectorAll('.result-card').forEach(function(card) {
 
 // ══════════════════════════════════════════════════════════════
 // LIVE TOURNAMENT STRIP — replaces hardcoded cards with real
-// data fetched from /api/tennis-feed (TheSportsDB ATP league).
+// data fetched from /api/tennis-feed (SofaScore via server proxy).
 // Falls back silently to the hardcoded cards if fetch fails.
 // ══════════════════════════════════════════════════════════════
 (function loadLiveTournamentStrip() {
