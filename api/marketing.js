@@ -1150,18 +1150,21 @@ async function handleSendSms(req, res) {
     return res.status(500).json({ error: 'AWS credentials not configured. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in Vercel env vars.' });
   }
 
+  const originationNumber = process.env.AWS_SMS_ORIGINATION_NUMBER || '+18885429135';
+
   try {
     const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
     const client = new SNSClient({ region, credentials: { accessKeyId, secretAccessKey } });
-    const result = await client.send(new PublishCommand({
+    const params = {
       PhoneNumber: phone,
       Message: message,
       Subject: subject || undefined,
       MessageAttributes: {
-        'AWS.SNS.SMS.SenderID': { DataType: 'String', StringValue: 'SmartSwing' },
+        'AWS.MM.SMS.OriginationNumber': { DataType: 'String', StringValue: originationNumber },
         'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Promotional' }
       }
-    }));
+    };
+    const result = await client.send(new PublishCommand(params));
     return res.status(200).json({ success: true, messageId: result.MessageId });
   } catch (err) {
     console.error('[send-sms] Error:', err);
@@ -1192,6 +1195,8 @@ async function handleSendBulkSms(req, res) {
     const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
     const client = new SNSClient({ region, credentials: { accessKeyId, secretAccessKey } });
 
+    const originationNumber = process.env.AWS_SMS_ORIGINATION_NUMBER || '+18885429135';
+
     const results = await Promise.allSettled(
       recipients.map(({ phone, message, subject }) => {
         if (!phone || !message) {
@@ -1202,7 +1207,7 @@ async function handleSendBulkSms(req, res) {
           Message: message,
           Subject: subject || undefined,
           MessageAttributes: {
-            'AWS.SNS.SMS.SenderID': { DataType: 'String', StringValue: 'SmartSwing' },
+            'AWS.MM.SMS.OriginationNumber': { DataType: 'String', StringValue: originationNumber },
             'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Promotional' }
           }
         }));
