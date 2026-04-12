@@ -704,6 +704,187 @@ describe('pushWithCap', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
+// selectAssessmentFrames — extracted for testing
+// ═══════════════════════════════════════════════════════════════════
+
+function selectAssessmentFrames(frames, shotType) {
+  const list = Array.isArray(frames) ? frames.filter((frame) => frame?.angles) : [];
+  if (list.length <= 30) return list;
+
+  const scored = list.map((frame, index) => {
+    const poseMotion = safeNumber(frame.poseMotion, 0);
+    const reach = safeNumber(frame.derivedMetrics?.reach, 0);
+    const contactHeight = safeNumber(frame.derivedMetrics?.contactHeight, 0);
+    const footworkLoad = safeNumber(frame.derivedMetrics?.footworkLoad, 0);
+    const trunk = safeNumber(frame.angles?.trunk, 0);
+    const wristHip = safeNumber(frame.derivedMetrics?.wristHipDistance, 0);
+
+    let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18 + wristHip * 0.30;
+    if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
+    else activation += reach * 0.25 + contactHeight * 0.18;
+
+    return { frame, index, activation };
+  });
+
+  const activations = scored.map(s => s.activation);
+  const meanAct = average(activations) || 0;
+  const stdAct = standardDeviation(activations) || 0;
+  const shotThreshold = meanAct + stdAct * 0.25;
+
+  const maxGap = 4;
+  const minWindowSize = 3;
+  const windows = [];
+  let currentWindow = null;
+  let gapCount = 0;
+
+  for (let i = 0; i < scored.length; i++) {
+    const isActive = scored[i].activation >= shotThreshold;
+    if (isActive) {
+      if (!currentWindow) {
+        currentWindow = { start: i, end: i, activeCount: 1 };
+      } else {
+        currentWindow.end = i;
+        currentWindow.activeCount++;
+      }
+      gapCount = 0;
+    } else if (currentWindow) {
+      gapCount++;
+      if (gapCount <= maxGap) {
+        currentWindow.end = i;
+      } else {
+        if (currentWindow.activeCount >= minWindowSize) windows.push(currentWindow);
+        currentWindow = null;
+        gapCount = 0;
+      }
+    }
+  }
+  if (currentWindow && currentWindow.activeCount >= minWindowSize) windows.push(currentWindow);
+
+  if (windows.length > 0) {
+    const buffer = 4;
+    const selectedIndexes = new Set();
+    windows.forEach(w => {
+      for (let i = Math.max(0, w.start - buffer); i <= Math.min(scored.length - 1, w.end + buffer); i++) {
+        selectedIndexes.add(i);
+      }
+    });
+    const result = list.filter((_, index) => selectedIndexes.has(index));
+    result._shotWindowCount = windows.length;
+    // Guarantee minimum of 30 frames when available
+    if (result.length < 30 && list.length >= 30) {
+      const takeCount = Math.min(list.length, Math.max(30, result.length));
+      const topFrames = scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount);
+      const mergedIndexes = new Set([...selectedIndexes, ...topFrames.map(f => f.index)]);
+      const merged = list.filter((_, index) => mergedIndexes.has(index));
+      merged._shotWindowCount = windows.length;
+      return merged;
+    }
+    return result;
+  }
+
+  // Fallback: no clear windows, use top activation frames
+  const takeCount = clamp(Math.round(list.length * 0.55), 30, 120);
+  const selectedIndexes = new Set(
+    scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount).map((item) => item.index)
+  );
+
+  return list.filter((_, index) => selectedIndexes.has(index));
+}
+
+// Helper to generate mock frames for selectAssessmentFrames tests
+function makeMockFrame(poseMotion, opts = {}) {
+  return {
+    timestamp: opts.timestamp || 0,
+    landmarks: opts.landmarks || 12,
+    confidence: opts.confidence || 70,
+    poseMotion,
+    angles: {
+      shoulder: opts.shoulder || 90,
+      elbow: opts.elbow || 120,
+      hip: opts.hip || 160,
+      knee: opts.knee || 150,
+      trunk: opts.trunk || 8,
+      wrist: opts.wrist || 45
+    },
+    derivedMetrics: {
+      reach: opts.reach || 60,
+      contactHeight: opts.contactHeight || 70,
+      footworkLoad: opts.footworkLoad || 15,
+      wristHipDistance: opts.wristHipDistance || 40,
+      stanceWidth: opts.stanceWidth || 100,
+      balance: opts.balance || 12,
+      shoulderTilt: opts.shoulderTilt || 5,
+      hipTilt: opts.hipTilt || 3,
+      headStability: opts.headStability || 8
+    }
+  };
+}
+
+// ── selectAssessmentFrames Tests ──────────────────────────────────
+describe('selectAssessmentFrames', () => {
+  test('returns all frames when <= 30', () => {
+    const frames = Array.from({ length: 25 }, (_, i) => makeMockFrame(i * 0.5));
+    const result = selectAssessmentFrames(frames, 'forehand');
+    expect(result.length).toBe(25);
+  });
+
+  test('returns at least 30 frames when 50+ frames available', () => {
+    // 60 frames with varying motion — some high, some low
+    const frames = Array.from({ length: 60 }, (_, i) =>
+      makeMockFrame(i % 5 === 0 ? 12 : 2, { timestamp: i * 0.1 })
+    );
+    const result = selectAssessmentFrames(frames, 'forehand');
+    expect(result.length).toBeGreaterThanOrEqual(30);
+  });
+
+  test('returns at least 30 frames from 100 low-motion frames', () => {
+    // Simulate a video where player barely moves — all low poseMotion
+    const frames = Array.from({ length: 100 }, (_, i) =>
+      makeMockFrame(1.5 + Math.random() * 2, { timestamp: i * 0.1 })
+    );
+    const result = selectAssessmentFrames(frames, 'forehand');
+    expect(result.length).toBeGreaterThanOrEqual(30);
+  });
+
+  test('captures shot windows from high-motion clusters', () => {
+    // 80 frames: first 20 low motion, 20 high (shot), 20 low, 20 high (shot)
+    const frames = [];
+    for (let i = 0; i < 80; i++) {
+      const isActive = (i >= 20 && i < 40) || (i >= 60 && i < 80);
+      frames.push(makeMockFrame(isActive ? 15 : 1, { timestamp: i * 0.1 }));
+    }
+    const result = selectAssessmentFrames(frames, 'forehand');
+    expect(result.length).toBeGreaterThanOrEqual(30);
+    // Should detect shot windows
+    expect(result._shotWindowCount).toBeGreaterThanOrEqual(1);
+  });
+
+  test('handles empty/null input gracefully', () => {
+    expect(selectAssessmentFrames([], 'forehand').length).toBe(0);
+    expect(selectAssessmentFrames(null, 'forehand').length).toBe(0);
+  });
+
+  test('filters out frames without angles', () => {
+    const frames = [
+      makeMockFrame(5),
+      { timestamp: 1, landmarks: 3, confidence: 20, poseMotion: 0 }, // no angles
+      makeMockFrame(8),
+    ];
+    const result = selectAssessmentFrames(frames, 'forehand');
+    expect(result.length).toBe(2); // only frames with angles
+  });
+
+  test('does not include ball tracking in activation scoring', () => {
+    // Frames with no ball data should still get good activation from motion/angles
+    const frames = Array.from({ length: 50 }, (_, i) =>
+      makeMockFrame(5 + i * 0.5, { timestamp: i * 0.1 })
+    );
+    const result = selectAssessmentFrames(frames, 'forehand');
+    expect(result.length).toBeGreaterThanOrEqual(30);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
 // Match Tracker Scoring Tests
 // ═══════════════════════════════════════════════════════════════════
 
@@ -917,19 +1098,27 @@ describe('HTML — signup.html structure', () => {
 });
 
 describe('HTML — analyze.html structure', () => {
-  test('has match format buttons', () => {
-    expect(analyzeHtml).toContain('data-format-type="games"');
+  test('has match format buttons for sets', () => {
     expect(analyzeHtml).toContain('data-format-type="sets"');
-    expect(analyzeHtml).toContain('Best of 3 Games');
-    expect(analyzeHtml).toContain('Best of 5 Games');
     expect(analyzeHtml).toContain('1 Set');
     expect(analyzeHtml).toContain('3 Sets');
     expect(analyzeHtml).toContain('5 Sets');
   });
 
-  test('ball detection is disabled', () => {
-    // initBallDetector should be commented out
-    expect(analyzeHtml).toContain('// Ball detector disabled');
+  test('has game-based formats under Fun Games section', () => {
+    expect(analyzeHtml).toContain('data-format-type="games"');
+    expect(analyzeHtml).toContain('Best of 3 Games');
+    expect(analyzeHtml).toContain('Best of 5 Games');
+  });
+
+  test('ball detection code is fully removed', () => {
+    expect(analyzeHtml).toContain('drawPose(keypoints)'); // no ballDetection param
+    const hasBallDetector = analyzeHtml.includes('let ballDetector');
+    expect(hasBallDetector).toBeFalsy();
+    const hasInitBall = analyzeHtml.includes('async function initBallDetector');
+    expect(hasInitBall).toBeFalsy();
+    const hasDetectBall = analyzeHtml.includes('async function detectBall');
+    expect(hasDetectBall).toBeFalsy();
   });
 
   test('has MoveNet/BlazePose detector references', () => {

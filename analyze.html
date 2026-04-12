@@ -1412,11 +1412,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div class="stat-value" id="confidenceValue">0%</div>
             </div>
 
-            <div class="stat-card" id="ballTrackCard" style="display:none;">
-              <div class="stat-label" style="color:rgba(255,216,77,.8);">Ball Tracked</div>
-              <div class="stat-value" id="ballDetectCount" style="color:#ffd84d;">0</div>
-              <div style="font-size:11px;color:var(--gray);margin-top:4px;">detections via COCO-SSD</div>
-            </div>
 
             <div style="margin-top: 24px;">
               <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; color: var(--electric-cyan);">
@@ -1465,8 +1460,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="mt-panel" style="margin-bottom:16px;" id="mtFormatPanel">
             <div class="mt-label" style="margin-bottom:10px;">Match Format</div>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-              <button class="mt-pill-btn mt-format-btn" data-format="3" data-format-type="games" style="flex:1;min-width:90px;">Best of 3 Games</button>
-              <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="games" style="flex:1;min-width:90px;">Best of 5 Games</button>
               <button class="mt-pill-btn mt-format-btn" data-format="1" data-format-type="sets" style="flex:1;min-width:70px;">1 Set</button>
               <button class="mt-pill-btn mt-format-btn selected" data-format="3" data-format-type="sets" style="flex:1;min-width:70px;">3 Sets</button>
               <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="sets" style="flex:1;min-width:70px;">5 Sets</button>
@@ -1477,6 +1470,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               Fun Games / Drills
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px;">
+              <button class="mt-pill-btn mt-format-btn" data-format="3" data-format-type="games" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Best of 3 Games</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Short match</div>
+              </button>
+              <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="games" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
+                <div style="font-weight:800;">Best of 5 Games</div>
+                <div style="font-size:10px; opacity:.6; margin-top:2px;">Quick match</div>
+              </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="first-to-7" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">First to 7</div>
                 <div style="font-size:10px; opacity:.6; margin-top:2px;">Rally scoring</div>
@@ -1808,11 +1809,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       backendTimeoutMs: 20000,
       detectorTimeoutMs: 50000,
       metadataTimeoutMs: 20000,
-      poseFpsCap: 10,
-      fallbackPoseFpsCap: 12,
-      litePoseFpsCap: 10,
-      fullPoseFpsCap: 8,
-      cpuMoveNetFpsCap: 12,
+      poseFpsCap: 15,
+      fallbackPoseFpsCap: 15,
+      litePoseFpsCap: 14,
+      fullPoseFpsCap: 12,
+      cpuMoveNetFpsCap: 15,
       maxStoredFrames: 1800,
       uiRefreshMs: 90,
       angleUiRefreshMs: 110,
@@ -1820,8 +1821,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       minKeypointConfidence: 0.18,
       smoothingAlpha: 0.68,
       carryForwardDecay: 0.92,
-      analysisInputMaxSide: 288,
-      minPoseMotionPx: 3.5
+      analysisInputMaxSide: 288
     };
 
     const analysisData = {
@@ -1849,16 +1849,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         headStability: []
       },
       landmarks: [],
-      confidence: [],
-      ballDetections: []  // { timestamp, x, y, width, height, score }
+      confidence: []
     };
-
-    // ── Ball Detection (COCO-SSD) ──────────────────────────────────────
-    let ballDetector = null;
-    let ballDetectFrameCount = 0;
-    const BALL_DETECT_INTERVAL = 3; // run ball detection every N pose frames (balance perf vs accuracy)
-    let lastBallPos = null; // { x, y, timestamp } for velocity calc
-    let ballVelocity = 0;  // px/sec normalized
 
     function withTimeout(promise, timeoutMs, label) {
       return Promise.race([
@@ -2418,70 +2410,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return checkFn();
     }
 
-    // Load COCO-SSD for ball detection (non-blocking, optional)
-    async function initBallDetector() {
-      try {
-        // Only attempt if TF.js is already loaded
-        if (!window.tf) { console.log('[BallDetect] TF.js not loaded, skipping'); return; }
-        const hasCocoSsd = () => !!window.cocoSsd;
-        if (!hasCocoSsd()) {
-          await loadFromMirrorSafe([
-            'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js',
-            'https://unpkg.com/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js'
-          ], hasCocoSsd);
-        }
-        if (window.cocoSsd) {
-          ballDetector = await window.cocoSsd.load({ base: 'lite_mobilenet_v2' });
-          console.log('[BallDetect] COCO-SSD ball detector ready');
-        }
-      } catch (err) {
-        console.warn('[BallDetect] Ball detection unavailable (non-critical):', err.message);
-        ballDetector = null;
-      }
-    }
-
-    // Detect ball in current video frame (returns {x, y, width, height, score} or null)
-    async function detectBall(videoElement) {
-      if (!ballDetector) return null;
-      try {
-        const predictions = await ballDetector.detect(videoElement);
-        // COCO-SSD class "sports ball" = class index 37
-        const ballPreds = predictions.filter(p => p.class === 'sports ball' && p.score >= 0.25);
-        if (ballPreds.length === 0) return null;
-        // Pick highest confidence ball
-        const best = ballPreds.reduce((a, b) => a.score > b.score ? a : b);
-        const [bx, by, bw, bh] = best.bbox;
-        return {
-          x: bx + bw / 2,  // center x
-          y: by + bh / 2,  // center y
-          width: bw,
-          height: bh,
-          score: best.score,
-          rawClass: best.class
-        };
-      } catch (err) {
-        // Silent fail — ball detection is supplementary
-        return null;
-      }
-    }
-
-    // Calculate ball velocity between detections
-    function updateBallVelocity(ballPos, timestamp, videoWidth, videoHeight) {
-      if (!ballPos || !lastBallPos) {
-        lastBallPos = ballPos ? { ...ballPos, timestamp } : null;
-        ballVelocity = 0;
-        return 0;
-      }
-      const dt = Math.abs(timestamp - lastBallPos.timestamp);
-      if (dt < 0.01) return ballVelocity; // same frame
-      const dx = (ballPos.x - lastBallPos.x) / Math.max(1, videoWidth);
-      const dy = (ballPos.y - lastBallPos.y) / Math.max(1, videoHeight);
-      const dist = Math.sqrt(dx * dx + dy * dy); // normalized 0-1
-      ballVelocity = dist / dt; // normalized velocity per second
-      lastBallPos = { ...ballPos, timestamp };
-      return ballVelocity;
-    }
-
     async function ensurePoseLibraries() {
       const hasTf = () => !!window.tf;
       const hasMediaPipePose = () => !!window.Pose;
@@ -2611,11 +2539,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           aiInitStage = 'ready';
           setStatus(`AI Ready (${detectorLabel}, ${AI_SETTINGS.poseFpsCap} FPS cap)`, 'ready');
           playBtn.disabled = false;
-          // Ball detector disabled — COCO-SSD interferes with TF.js pose backend
-          // TODO: Re-enable when ball detection runs in a Web Worker or separate pipeline
-          // initBallDetector().then(() => {
-          //   if (ballDetector) setStatus(`AI Ready (${detectorLabel} + Ball Tracking)`, 'ready');
-          // }).catch(() => {});
           return true;
         } catch (error) {
           console.error('AI initialization failed:', error);
@@ -2868,7 +2791,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const FACE_KEYPOINT_INDICES = new Set([1, 2, 3, 4]); // l_eye, r_eye, l_ear, r_ear (nose is now tracked for head angle)
     const WRIST_KEYPOINT_INDICES = new Set([9, 10]);        // left_wrist, right_wrist
 
-    function drawPose(keypoints, ballDetection) {
+    function drawPose(keypoints) {
       const canvas = document.getElementById('poseCanvas');
       if (!canvas || !Array.isArray(keypoints)) return;
       const ctx = canvas.getContext('2d');
@@ -2928,32 +2851,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         ctx.fill();
       });
 
-      // ── Ball marker ──
-      if (ballDetection) {
-        const bx = ballDetection.x * canvas.width;
-        const by = ballDetection.y * canvas.height;
-        const br = Math.max(8, Math.round(canvas.width / 80));
-        // Outer glow
-        ctx.fillStyle = 'rgba(255, 216, 77, 0.25)';
-        ctx.beginPath();
-        ctx.arc(bx, by, br + 6, 0, 2 * Math.PI);
-        ctx.fill();
-        // Ball circle
-        ctx.fillStyle = 'rgba(255, 216, 77, 0.9)';
-        ctx.beginPath();
-        ctx.arc(bx, by, br, 0, 2 * Math.PI);
-        ctx.fill();
-        // Inner dot
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(bx, by, br * 0.35, 0, 2 * Math.PI);
-        ctx.fill();
-        // Label
-        ctx.font = `bold ${Math.max(10, Math.round(canvas.width / 60))}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillStyle = 'rgba(255, 216, 77, 0.9)';
-        ctx.textAlign = 'center';
-        ctx.fillText('BALL', bx, by - br - 4);
-      }
     }
 
     // Analysis Loop
@@ -3926,9 +3823,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     function selectAssessmentFrames(frames, shotType) {
       const list = Array.isArray(frames) ? frames.filter((frame) => frame?.angles) : [];
-      if (list.length <= 24) return list;
+      if (list.length <= 30) return list;
 
-      // Score each frame by biomechanical activation
+      // Score each frame by biomechanical activation (pose motion + body metrics)
       const scored = list.map((frame, index) => {
         const poseMotion = safeNumber(frame.poseMotion, 0);
         const reach = safeNumber(frame.derivedMetrics?.reach, 0);
@@ -3937,12 +3834,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const trunk = safeNumber(frame.angles?.trunk, 0);
         const wristHip = safeNumber(frame.derivedMetrics?.wristHipDistance, 0);
 
-        // Ball presence and velocity boost the activation score
-        const hasBall = frame.ballDetected ? 1 : 0;
-        const bVel = safeNumber(frame.ballPos?.velocity, 0);
-
         let activation = poseMotion * 1.15 + footworkLoad * 0.25 + trunk * 0.18 + wristHip * 0.30;
-        activation += hasBall * 0.40 + bVel * 0.35; // ball detected = likely active shot
         if (shotType === 'serve' || shotType === 'lob') activation += contactHeight * 0.45 + reach * 0.2;
         else activation += reach * 0.25 + contactHeight * 0.18;
 
@@ -3953,11 +3845,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const activations = scored.map(s => s.activation);
       const meanAct = average(activations) || 0;
       const stdAct = standardDeviation(activations) || 0;
-      const shotThreshold = meanAct + stdAct * 0.5; // frames above mean + 0.5 std are "active"
+      const shotThreshold = meanAct + stdAct * 0.25; // inclusive threshold — captures more motion
 
       // Find contiguous windows of active frames (with small gaps allowed)
-      const maxGap = 3; // allow up to 3 low-activity frames within a shot window
-      const minWindowSize = 5; // a valid shot window must have at least 5 active frames
+      const maxGap = 4; // allow up to 4 low-activity frames within a shot window
+      const minWindowSize = 3; // a valid shot window must have at least 3 active frames
       const windows = [];
       let currentWindow = null;
       let gapCount = 0;
@@ -3985,23 +3877,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       if (currentWindow && currentWindow.activeCount >= minWindowSize) windows.push(currentWindow);
 
-      // If we detected shot windows, use only those frames (plus a small buffer before/after)
+      // If we detected shot windows, use those frames (plus a buffer before/after)
       if (windows.length > 0) {
-        const buffer = 3; // include a few frames before and after each window for context
+        const buffer = 4; // include frames before and after each window for context
         const selectedIndexes = new Set();
         windows.forEach(w => {
           for (let i = Math.max(0, w.start - buffer); i <= Math.min(scored.length - 1, w.end + buffer); i++) {
             selectedIndexes.add(i);
           }
         });
-        // Store window count for reporting
         const result = list.filter((_, index) => selectedIndexes.has(index));
         result._shotWindowCount = windows.length;
+
+        // Guarantee minimum of 30 frames when available — backfill with top-activation frames
+        if (result.length < 30 && list.length >= 30) {
+          const takeCount = Math.min(list.length, Math.max(30, result.length));
+          const topFrames = scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount);
+          const mergedIndexes = new Set([...selectedIndexes, ...topFrames.map(f => f.index)]);
+          const merged = list.filter((_, index) => mergedIndexes.has(index));
+          merged._shotWindowCount = windows.length;
+          return merged;
+        }
         return result;
       }
 
-      // Fallback: no clear windows detected, use top activation frames (original behavior)
-      const takeCount = clamp(Math.round(list.length * 0.38), 18, 72);
+      // Fallback: no clear windows detected, use top 55% of activation frames (minimum 30)
+      const takeCount = clamp(Math.round(list.length * 0.55), 30, 120);
       const selectedIndexes = new Set(
         scored.sort((a, b) => b.activation - a.activation).slice(0, takeCount).map((item) => item.index)
       );
@@ -4836,17 +4737,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // Insufficient data detection
       const insufficientData = avgConfidence < 40 || avgLandmarks < 10 || focusFrames.length < 15;
 
-      // Ball tracking stats
-      const ballFrames = focusFrames.filter(f => f.ballDetected);
-      const ballTrackingRate = focusFrames.length > 0 ? Math.round(100 * ballFrames.length / focusFrames.length) : 0;
-      const totalBallDetections = analysisData.ballDetections.length;
-
       return {
         framesAnalyzed: analysisData.frames.length,
         focusFramesAnalyzed: focusFrames.length,
         shotWindowsDetected: focusFrames._shotWindowCount || 0,
-        ballDetections: totalBallDetections,
-        ballTrackingRate,
         avgLandmarks,
         avgConfidence,
         avgAngles,
@@ -5022,7 +4916,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="smartswing-score" style="color:${band.color};">${s.score}</div>
           <div class="grade-badge" style="background:${band.color}22; color:${band.color}; border-color:${band.color}44; font-size:16px; padding:8px 20px;">${band.label} · Grade ${s.grade}</div>
           <div style="font-size:13px; color:var(--gray); margin-top:10px;">${session.profile.level} · Age ${session.profile.age} · ${s.shotType} · ${new Date(session.timestamp).toLocaleDateString()}</div>
-          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}${s.ballDetections ? ' · ' + s.ballDetections + ' ball detections (' + s.ballTrackingRate + '%)' : ''}</div>
+          <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}</div>
         </div>
 
         <!-- Swing Story -->
@@ -6246,8 +6140,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
-      analysisData.ballDetections = [];
-      lastBallPos = null; ballVelocity = 0; ballDetectFrameCount = 0;
+
       lastPersistedSignature = null;
       cachedSession = null;
       cachedSessionFrameCount = 0;
@@ -6393,8 +6286,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
-      analysisData.ballDetections = [];
-      lastBallPos = null; ballVelocity = 0; ballDetectFrameCount = 0;
+
       lastPersistedSignature = null;
       cachedSession = null;
       cachedSessionFrameCount = 0;
@@ -6659,8 +6551,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       analysisData.landmarks = [];
       analysisData.confidence = [];
-      analysisData.ballDetections = [];
-      lastBallPos = null; ballVelocity = 0; ballDetectFrameCount = 0;
+
       lastPersistedSignature = null;
       cachedSession = null;
       cachedSessionFrameCount = 0;
