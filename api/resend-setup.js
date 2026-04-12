@@ -207,7 +207,7 @@ module.exports = async (req, res) => {
       const bcRes = await resendPost('/broadcasts', {
         audience_id: targetAudienceId,
         from:    process.env.RESEND_FROM_ADDRESS || `SmartSwing AI <noreply@mail.smartswingai.com>`,
-        reply_to: 'hello@smartswingai.com',
+        reply_to: 'contact@smartswingai.com',
         name:    bc.name,
         subject: bc.subject,
         html:    broadcastBase(bc.preheader, bc.body)
