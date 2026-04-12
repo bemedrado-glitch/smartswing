@@ -823,7 +823,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     <th>Type</th>
                     <th>Platform</th>
                     <th>Agent</th>
-                    <th>Created</th>
+                    <th>Scheduled For</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -3069,6 +3069,8 @@ async function runOrchestration() {
             agent: 'orchestration',
             content: item.copy_text || item.content || '',
             image_url: item.image_url || '',
+            scheduled_date: item.scheduled_date || '',
+            scheduled_time: item.scheduled_time || '',
             approval_status: 'pending',
             created_at: new Date().toLocaleString()
           });
@@ -3649,7 +3651,7 @@ function renderApprovals(filter) {
       '<td><span class="mkt-badge">' + (a.content_type || 'content') + '</span></td>' +
       '<td><span class="mkt-badge mkt-badge--' + (a.platform || 'email') + '">' + (a.platform || 'email') + '</span></td>' +
       '<td>' + (agentIcons[a.agent] || '🤖') + ' ' + (a.agent || '') + '</td>' +
-      '<td style="font-size:12px;color:var(--muted);">' + (a.created_at || '') + '</td>' +
+      '<td style="font-size:12px;color:var(--muted);">' + (a.scheduled_date ? a.scheduled_date + (a.scheduled_time ? ' ' + a.scheduled_time : '') : a.created_at || '') + '</td>' +
       '<td><span class="mkt-badge mkt-badge--' + statusCls + '">' + a.approval_status + '</span></td>' +
       '<td><div style="display:flex;gap:4px;">' +
         (a.approval_status === 'pending' ?
@@ -3699,7 +3701,8 @@ function approveItem(id) {
         platform: item.platform || 'email',
         type: item.content_type || 'post',
         status: 'scheduled',
-        scheduled_date: offsetDate(1),
+        scheduled_date: item.scheduled_date || offsetDate(2),
+        scheduled_time: item.scheduled_time || '',
         copy_text: item.content || '',
         image_url: item.image_url || ''
       });
