@@ -124,7 +124,23 @@
       "Bash(identify -format \"%wx%h\" assets/logos/icon.png)",
       "Bash(python -c \"from PIL import Image; img=Image.open\\('assets/logos/icon.png'\\); print\\(f'{img.width}x{img.height}'\\)\")",
       "Bash(node tests/syntax-check.js)",
-      "Bash(node tests/functional-tests.js)"
+      "Bash(node tests/functional-tests.js)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"sports SaaS dark mode signup auth mobile\" --design-system -p \"SmartSwing AI\")",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"sports SaaS dark mode signup auth mobile\" --design-system -p \"SmartSwing AI\")",
+      "Bash(python \"C:\\\\Users\\\\bmedrado\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"sports SaaS dark mode signup auth mobile\" --design-system -p \"SmartSwing AI\")",
+      "Bash(set PYTHONUTF8=1)",
+      "Bash(PYTHONUTF8=1 python \"C:\\\\Users\\\\bmedrado\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"sports SaaS dark mode signup auth mobile\" --design-system -p \"SmartSwing AI\")",
+      "Bash(PYTHONUTF8=1 python \"C:\\\\Users\\\\bmedrado\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\\\\search.py\" \"mobile touch accessibility form\" --domain ux)",
+      "WebFetch(domain:smartswing-ai.vercel.app)",
+      "WebFetch(domain:smartswing-7lrbh7uc5-smartswingai-team.vercel.app)",
+      "WebFetch(domain:smartswing-ai-git-claude-frosty-franklin-smartswingai-team.vercel.app)",
+      "WebFetch(domain:smartswing-phyrpe2ic-smartswingai-team.vercel.app)",
+      "WebSearch",
+      "WebFetch(domain:www.atptour.com)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.thesportsdb.com)",
+      "WebFetch(domain:api.sofascore.com)",
+      "WebFetch(domain:site.api.espn.com)"
     ]
   }
 }
