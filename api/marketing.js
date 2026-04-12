@@ -708,16 +708,30 @@ async function handleNextAction(req, res) {
 async function handleExportLeads(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const supabase_url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabase_key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const url = supabase_url || req.query.supabase_url;
-  const key = supabase_key || req.query.supabase_key;
+  // Use service role key to bypass RLS (anon key cannot SELECT from these tables)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || req.query.supabase_url;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || req.query.supabase_key;
   if (!url || !key) return res.status(500).json({ error: 'Supabase not configured' });
 
   const format = req.query.format || 'csv';
   const source = req.query.source;
   const since = req.query.since;
   const table = req.query.table || 'lead_captures';
+
+  // Define consistent column order matching the dashboard table display
+  const COLUMN_ORDER = {
+    lead_captures: [
+      'name', 'email', 'phone', 'persona', 'source',
+      'utm_source', 'utm_medium', 'utm_campaign',
+      'referrer_url', 'page_url', 'ip_country',
+      'notes', 'converted', 'converted_at', 'created_at'
+    ],
+    marketing_contacts: [
+      'name', 'email', 'phone', 'persona', 'stage',
+      'source', 'tags', 'notes',
+      'created_at', 'updated_at'
+    ]
+  };
 
   let endpoint = `${url}/rest/v1/${table}?order=created_at.desc&limit=10000`;
   if (source) endpoint += `&source=eq.${source}`;
@@ -732,16 +746,25 @@ async function handleExportLeads(req, res) {
 
     if (format === 'json') return res.status(200).json({ success: true, count: data.length, data });
 
+    // Use defined column order, falling back to keys from first row
+    const orderedCols = COLUMN_ORDER[table] || [];
+    const dataCols = data.length ? Object.keys(data[0]) : [];
+    // Start with ordered columns that exist in data, then append any extras
+    const cols = orderedCols.length
+      ? [...orderedCols.filter(c => !data.length || dataCols.includes(c)),
+         ...dataCols.filter(c => !orderedCols.includes(c) && c !== 'id' && c !== 'assigned_to')]
+      : dataCols;
+
     if (!data.length) {
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="${table}_export.csv"`);
-      return res.status(200).send('No data found');
+      // Return header row even when empty so the user sees the columns
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="smartswing_${table}_${new Date().toISOString().split('T')[0]}.csv"`);
+      return res.status(200).send('\uFEFF' + cols.join(','));
     }
 
-    const cols = Object.keys(data[0]);
     const escape = v => {
       if (v === null || v === undefined) return '';
-      const str = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      const str = Array.isArray(v) ? v.join('; ') : typeof v === 'object' ? JSON.stringify(v) : String(v);
       return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str.replace(/"/g, '""')}"` : str;
     };
     const csv = [cols.join(','), ...data.map(row => cols.map(c => escape(row[c])).join(','))].join('\r\n');

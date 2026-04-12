@@ -119,21 +119,47 @@
       line-height: 1.6;
       padding: 20px;
       min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      -webkit-tap-highlight-color: transparent;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--neon-green); outline-offset: 2px;
+    }
+
+    input, select, textarea {
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    button:active:not(:disabled) { transform: scale(0.98); }
     
     .container { max-width: 1600px; margin: 0 auto; }
     /* ── App top nav bar ── */
     .analyze-topnav { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 56px; background: rgba(5,5,5,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.08); position: sticky; top: 0; z-index: 100; margin-bottom: 16px; }
     .analyze-topnav a { display: flex; align-items: center; gap: 8px; color: rgba(245,245,247,0.7); text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 10px; transition: color .18s, background .18s; }
-    .analyze-topnav a:hover { color: #39ff14; background: rgba(57,255,20,0.08); }
+    @media (hover: hover) and (pointer: fine) { .analyze-topnav a:hover { color: #39ff14; background: rgba(57,255,20,0.08); } }
     .analyze-topnav .nav-links { display: flex; gap: 4px; }
     @media (max-width: 768px) { .analyze-topnav .nav-links { display: none; } .container { padding: 0 8px 80px; } .wizard-section { padding: 20px 16px; border-radius: 18px; } }
     /* ── Mobile bottom nav ── */
     .app-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(5,5,5,0.97); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); height: 64px; padding: 0 4px; }
-    .app-bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(245,245,247,0.45); text-decoration: none; font-size: 10px; font-weight: 700; padding: 4px 0; transition: color .18s; }
+    .app-bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(245,245,247,0.45); text-decoration: none; font-size: 12px; font-weight: 700; padding: 4px 0; transition: color .18s; }
     .app-bottom-nav a svg { opacity: .5; transition: opacity .18s; }
-    .app-bottom-nav a.active, .app-bottom-nav a:hover { color: #39ff14; }
-    .app-bottom-nav a.active svg, .app-bottom-nav a:hover svg { opacity: 1; }
+    .app-bottom-nav a.active { color: #39ff14; }
+    .app-bottom-nav a.active svg { opacity: 1; }
+    @media (hover: hover) and (pointer: fine) {
+    .app-bottom-nav a:hover { color: #39ff14; }
+    .app-bottom-nav a:hover svg { opacity: 1; }
+    }
     @media (max-width: 768px) { .app-bottom-nav { display: flex !important; } }
     
     .wizard-section {
@@ -295,10 +321,12 @@
       user-select: none;
     }
     
+    @media (hover: hover) and (pointer: fine) {
     .selection-card:hover {
       border-color: var(--neon-green);
       background: rgba(57, 255, 20, 0.05);
       transform: translateY(-4px);
+    }
     }
     
     .selection-card.selected {
@@ -318,7 +346,7 @@
       color: var(--silver); font-size: 12px; font-weight: 700;
       transition: all .2s ease; text-align: center; user-select: none;
     }
-    .session-goal-card:hover { border-color: rgba(57,255,20,.35); background: rgba(57,255,20,.04); transform: translateY(-2px); }
+    @media (hover: hover) and (pointer: fine) { .session-goal-card:hover { border-color: rgba(57,255,20,.35); background: rgba(57,255,20,.04); transform: translateY(-2px); } }
     .session-goal-card.selected { border-color: var(--neon-green); background: rgba(57,255,20,.1); color: var(--neon-green); box-shadow: 0 0 16px rgba(57,255,20,.2); }
     .session-goal-card.selected svg { stroke: var(--neon-green); }
 
@@ -351,9 +379,11 @@
       color: var(--void-black);
     }
     
+    @media (hover: hover) and (pointer: fine) {
     .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 10px 30px rgba(57, 255, 20, 0.4);
+    }
     }
     
     .btn-secondary {
@@ -388,9 +418,11 @@
       margin: 32px 0;
     }
 
+    @media (hover: hover) and (pointer: fine) {
     .upload-zone:hover {
       border-color: var(--neon-green);
       background: rgba(57, 255, 20, 0.05);
+    }
     }
 
     /* ── Camera Capture ── */
@@ -492,7 +524,7 @@
       .plan-strip { font-size: 12px; padding: 10px 12px; }
       .wizard-steps { gap: 6px; }
       .step-circle { width: 32px; height: 32px; font-size: 13px; }
-      .step-label { font-size: 10px; }
+      .step-label { font-size: 12px; }
     }
 
     @media (max-width: 480px) {
@@ -504,7 +536,7 @@
       .selection-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 20px 0; }
       .selection-card { padding: 14px 8px; border-radius: 10px; }
       .card-title { font-size: 14px; }
-      .card-subtitle { font-size: 11px; }
+      .card-subtitle { font-size: 12px; }
       .btn { padding: 12px 18px; font-size: 12px; border-radius: 10px; }
       .btn-group { gap: 8px; margin-top: 20px; flex-wrap: wrap; }
       .btn-group .btn { flex: 1; min-width: 120px; text-align: center; }
@@ -519,10 +551,10 @@
       .stats-panel { padding: 14px; border-radius: 14px; }
       .stat-card { padding: 14px; border-radius: 12px; }
       .stat-value { font-size: 24px; }
-      .stat-label { font-size: 10px; }
+      .stat-label { font-size: 12px; }
       .angles-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
       .angle-item { padding: 10px 8px; border-radius: 10px; }
-      .angle-name { font-size: 9px; }
+      .angle-name { font-size: 12px; }
       .angle-value { font-size: 13px; }
       .upload-zone { padding: 30px 14px; border-radius: 14px; margin: 16px 0; }
       .upload-zone div:first-child { font-size: 24px; }
@@ -534,8 +566,8 @@
       .wizard-steps { justify-content: center; }
       .wizard-step { min-width: auto; flex: 0 0 auto; }
       .step-circle { width: 28px; height: 28px; font-size: 12px; margin-bottom: 4px; }
-      .step-label { font-size: 9px; letter-spacing: 0; }
-      .plan-strip { font-size: 11px; padding: 8px 10px; border-radius: 10px; }
+      .step-label { font-size: 12px; letter-spacing: 0; }
+      .plan-strip { font-size: 12px; padding: 8px 10px; border-radius: 10px; }
       .info-box { padding: 12px; font-size: 13px; border-radius: 10px; }
       #upgradeModal > div { padding: 20px; border-radius: 18px; }
       #upgradeModal h2 { font-size: 18px !important; }
@@ -577,7 +609,7 @@
     }
     
     .stat-label {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--electric-cyan);
       text-transform: uppercase;
       margin-bottom: 8px;
@@ -608,7 +640,7 @@
     }
     
     .angle-name {
-      font-size: 10px;
+      font-size: 12px;
       color: var(--electric-cyan);
       text-transform: uppercase;
       margin-bottom: 6px;
@@ -750,6 +782,7 @@
       transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
+    @media (hover: hover) and (pointer: fine) {
     .selection-card:hover,
     .stat-card:hover,
     .angle-item:hover,
@@ -758,6 +791,7 @@
       transform: translateY(-3px);
       border-color: rgba(57, 255, 20, 0.32);
       box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+    }
     }
     
     @media print {
@@ -778,7 +812,7 @@
       backdrop-filter: blur(8px);
     }
     .mt-label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: .08em;
@@ -817,7 +851,7 @@
       white-space: nowrap;
     }
     .mt-serve-dot {
-      font-size: 10px;
+      font-size: 12px;
       color: var(--neon-green);
       flex-shrink: 0;
       transition: opacity .2s;
@@ -837,7 +871,7 @@
       gap: 2px;
     }
     .mt-set-label {
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       color: var(--muted);
@@ -882,7 +916,7 @@
     }
     .mt-game-score.leading { color: var(--neon-green); }
     .mt-game-label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: .1em;
@@ -910,7 +944,7 @@
     .mt-mini-game-btn:hover { border-color: rgba(0,188,212,.5); background: rgba(0,188,212,.08); }
     .mt-mini-game-btn.selected { background: rgba(0,188,212,.18); border-color: rgba(0,188,212,.5); color: var(--electric-cyan); }
     .mt-btn-group-label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
@@ -984,7 +1018,7 @@
     .mt-final-name { font-size: 16px; font-weight: 700; color: var(--silver); }
     .mt-final-score { font-family: 'Sora', sans-serif; font-size: 40px; font-weight: 900; color: var(--neon-green); }
     .mt-compare-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 320px; }
-    .mt-compare-table th { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .mt-compare-table th { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
     .mt-compare-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--silver); }
     .mt-compare-table td:nth-child(2), .mt-compare-table td:nth-child(3) { text-align: center; font-weight: 700; }
     .mt-compare-table tr:last-child td { border-bottom: none; }
@@ -1059,6 +1093,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a href="./settings.html" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="appNav.settings">Settings</span></a>
   </nav>
 
+  <main>
   <div class="container">
     <div class="wizard-section">
       <div class="header">
@@ -1215,7 +1250,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- Capture Readiness Checklist (integrated) -->
           <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(57,255,20,.1);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(57,255,20,.7);">Capture Readiness</span>
+              <span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(57,255,20,.7);">Capture Readiness</span>
               <span style="font-size:12px;font-weight:800;color:var(--electric-cyan,#00d4ff);">Score: <span id="setupScore">100</span>/100</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
@@ -1225,7 +1260,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div>
                   <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Full body visible</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Head to toe visible from split-step through follow-through</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.4;">Head to toe visible from split-step through follow-through</div>
                 </div>
                 <input type="checkbox" class="setup-check" checked style="display:none;">
               </div>
@@ -1235,7 +1270,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div>
                   <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Stable camera</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Tripod at waist height with clear movement chain view</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.4;">Tripod at waist height with clear movement chain view</div>
                 </div>
                 <input type="checkbox" class="setup-check" checked style="display:none;">
               </div>
@@ -1245,7 +1280,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div>
                   <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Good lighting</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Court lines, player shape, and lighting clean for AI detection</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.4;">Court lines, player shape, and lighting clean for AI detection</div>
                 </div>
                 <input type="checkbox" class="setup-check" checked style="display:none;">
               </div>
@@ -1255,7 +1290,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div>
                   <div style="font-size:12px;font-weight:700;color:#f5f5f7;">Single stroke focus</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;">Clip focuses on one main stroke instead of mixing patterns</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.4;">Clip focuses on one main stroke instead of mixing patterns</div>
                 </div>
                 <input type="checkbox" class="setup-check" checked style="display:none;">
               </div>
@@ -1274,7 +1309,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </button>
           <button type="button" class="capture-tab" id="tabCamera">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            <span data-i18n="analyzer.recording">Record Now</span> <span id="camRecommendedBadge" style="display:none;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.18);color:#39ff14;padding:2px 7px;border-radius:999px;margin-left:6px;">Recommended</span>
+            <span data-i18n="analyzer.recording">Record Now</span> <span id="camRecommendedBadge" style="display:none;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(57,255,20,.18);color:#39ff14;padding:2px 7px;border-radius:999px;margin-left:6px;">Recommended</span>
           </button>
         </div>
 
@@ -1404,7 +1439,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="stat-card">
               <div class="stat-label">Landmarks Detected</div>
               <div class="stat-value" id="landmarksCount">0</div>
-              <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">of 17 keypoints tracked</div>
+              <div style="font-size: 12px; color: var(--gray); margin-top: 4px;">of 17 keypoints tracked</div>
             </div>
 
             <div class="stat-card">
@@ -1445,7 +1480,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="mt-panel" style="padding:20px 24px 16px; margin-bottom:16px;">
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
               <div>
-                <div class="mt-label" style="font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--neon-green); font-weight:800; margin-bottom:4px;">Match Mode</div>
+                <div class="mt-label" style="font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--neon-green); font-weight:800; margin-bottom:4px;">Match Mode</div>
                 <div style="font-size:22px; font-weight:900; color:var(--silver);">Live Match Tracker</div>
               </div>
               <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -1472,35 +1507,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px;">
               <button class="mt-pill-btn mt-format-btn" data-format="3" data-format-type="games" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">Best of 3 Games</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Short match</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Short match</div>
               </button>
               <button class="mt-pill-btn mt-format-btn" data-format="5" data-format-type="games" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">Best of 5 Games</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Quick match</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Quick match</div>
               </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="first-to-7" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">First to 7</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Rally scoring</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Rally scoring</div>
               </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="king-of-court" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">King of Court</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Stay on to win</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Stay on to win</div>
               </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="21-tiebreak" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">21-Pt Tiebreak</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Win by 2</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Win by 2</div>
               </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="around-the-world" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">Around the World</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Rotate positions</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Rotate positions</div>
               </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="serve-volley" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">Serve &amp; Volley</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Net approach only</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Net approach only</div>
               </button>
               <button class="mt-pill-btn mt-mini-game-btn" data-game="target-practice" style="font-size:12px; padding:10px 8px; text-align:center; line-height:1.3;">
                 <div style="font-weight:800;">Target Practice</div>
-                <div style="font-size:10px; opacity:.6; margin-top:2px;">Hit zones for pts</div>
+                <div style="font-size:12px; opacity:.6; margin-top:2px;">Hit zones for pts</div>
               </button>
             </div>
           </div>
@@ -1539,7 +1574,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="mt-panel" style="margin-bottom:16px;" id="mtPointLogger">
             <div class="mt-label" style="margin-bottom:12px;">Log point won by <strong id="mtLogByName" style="color:var(--neon-green);">You</strong></div>
             <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; align-items:center;">
-              <button id="mtSwapServerBtn" class="mt-pill-btn" style="font-size:11px;">&#8646; Swap logger</button>
+              <button id="mtSwapServerBtn" class="mt-pill-btn" style="font-size:12px;">&#8646; Swap logger</button>
               <span style="font-size:12px; color:var(--muted);">— then pick what happened:</span>
             </div>
 
@@ -1644,7 +1679,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div class="mt-label" style="margin-bottom:10px;">Momentum Graph</div>
               <div style="background:rgba(0,0,0,.3); border-radius:12px; padding:12px; margin-bottom:20px; overflow:hidden;">
                 <svg id="mtMomentumSvg" width="100%" height="100" viewBox="0 0 600 100" preserveAspectRatio="xMidYMid meet" style="display:block;"></svg>
-                <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:var(--muted);">
+                <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:12px; color:var(--muted);">
                   <span id="mtMomentumLeftLabel">You</span>
                   <span style="opacity:.5;">← momentum →</span>
                   <span id="mtMomentumRightLabel">Opponent</span>
@@ -1668,7 +1703,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <!-- Share with coach card -->
         <div id="shareRow" style="display:none;margin-bottom:20px;background:rgba(22,22,26,.95);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px 24px;">
-          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#39ff14;margin-bottom:10px;">Share This Report</div>
+          <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#39ff14;margin-bottom:10px;">Share This Report</div>
           <p style="font-size:13px;color:rgba(255,255,255,.6);margin:0 0 16px 0;line-height:1.5;">Send a read-only version of this report to your coach — no login required on their end.</p>
 
           <!-- Copy link row -->
@@ -1681,7 +1716,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- Divider -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
             <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
-            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);">or email directly to your coach</span>
+            <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.38);">or email directly to your coach</span>
             <div style="flex:1;height:1px;background:rgba(255,255,255,.08);"></div>
           </div>
 
@@ -7823,6 +7858,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     })();
   </script>
 
+  </main>
 <!-- ── SITE FOOTER ── -->
 <style>
 .ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
@@ -7833,12 +7869,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 .ss-footer-col strong{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:16px;display:block}
 .ss-footer-links{display:flex;flex-direction:column;gap:10px}
 .ss-footer-links a{font-size:14px;color:rgba(255,255,255,.5);text-decoration:none;transition:color .2s}
-.ss-footer-links a:hover{color:#f5f5f7}
 .ss-footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:24px;border-top:1px solid rgba(255,255,255,.07)}
 .ss-footer-bottom p{font-size:13px;color:rgba(255,255,255,.3)}
 .ss-footer-bottom-links{display:flex;gap:20px}
 .ss-footer-bottom-links a{font-size:13px;color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
-.ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}
+@media(hover:hover) and (pointer:fine){.ss-footer-links a:hover{color:#f5f5f7}.ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}}
 @media(max-width:900px){.ss-footer-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.ss-footer-grid{grid-template-columns:1fr}.ss-footer-bottom{flex-direction:column;gap:12px;text-align:center}}
 </style>

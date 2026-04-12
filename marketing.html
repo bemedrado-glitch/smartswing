@@ -1847,14 +1847,13 @@ function renderContacts(contacts) {
 }
 
 async function exportContacts(type) {
-  const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
   const table = type === 'leads' ? 'lead_captures' : 'marketing_contacts';
-  const url = `/api/marketing/export-leads?format=csv&table=${table}&supabase_url=${encodeURIComponent(cfg.url||'')}&supabase_key=${encodeURIComponent(cfg.anonKey||'')}`;
+  const url = `/api/marketing/export-leads?format=csv&table=${table}`;
 
   showToast('Preparing export…', 'success');
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Export failed');
+    if (!res.ok) throw new Error('Export failed (' + res.status + ')');
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1862,6 +1861,7 @@ async function exportContacts(type) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
     showToast('✓ Export downloaded!', 'success');
   } catch(err) {
     showToast('Export failed: ' + err.message, 'error');
