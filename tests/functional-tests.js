@@ -1073,6 +1073,371 @@ describe('Match Tracker — server rotation', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
+// Kinetic Chain Analysis (improved)
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Compute angular velocity (frame-to-frame rate of change) for a metric.
+ * Returns an array one element shorter than input.
+ */
+function computeAngularVelocity(values) {
+  if (!values || values.length < 2) return [];
+  const velocities = [];
+  for (let i = 1; i < values.length; i++) {
+    velocities.push(Math.abs(values[i] - values[i - 1]));
+  }
+  return velocities;
+}
+
+/**
+ * Smooth an array with a simple moving average of given window size.
+ */
+function smoothArray(arr, windowSize = 3) {
+  if (!arr || arr.length < windowSize) return arr ? [...arr] : [];
+  const result = [];
+  const half = Math.floor(windowSize / 2);
+  for (let i = 0; i < arr.length; i++) {
+    const start = Math.max(0, i - half);
+    const end = Math.min(arr.length, i + half + 1);
+    const slice = arr.slice(start, end);
+    result.push(slice.reduce((a, b) => a + b, 0) / slice.length);
+  }
+  return result;
+}
+
+/**
+ * Detect the swing phase — the contiguous high-motion window within frames.
+ * Returns { startIdx, endIdx } representing the indices into the frames array.
+ */
+function detectSwingPhase(frames) {
+  const motions = frames.map(f => safeNumber(f.poseMotion, 0));
+  if (motions.length < 5) return { startIdx: 0, endIdx: motions.length - 1 };
+
+  const smoothed = smoothArray(motions, 5);
+  const mean = smoothed.reduce((a, b) => a + b, 0) / smoothed.length;
+  const threshold = mean * 0.6; // frames above 60% of mean motion = active phase
+
+  // Find the longest contiguous window above threshold
+  let bestStart = 0, bestEnd = smoothed.length - 1, bestLen = 0;
+  let curStart = -1;
+  for (let i = 0; i < smoothed.length; i++) {
+    if (smoothed[i] >= threshold) {
+      if (curStart === -1) curStart = i;
+      const len = i - curStart + 1;
+      if (len > bestLen) { bestStart = curStart; bestEnd = i; bestLen = len; }
+    } else {
+      curStart = -1;
+    }
+  }
+  // Add a small buffer (2 frames) on each side
+  bestStart = Math.max(0, bestStart - 2);
+  bestEnd = Math.min(smoothed.length - 1, bestEnd + 2);
+
+  return { startIdx: bestStart, endIdx: bestEnd };
+}
+
+/**
+ * Find the frame index where peak angular velocity occurs for a metric,
+ * within the swing phase window. Uses smoothed velocity to avoid noise spikes.
+ * For 'knee', finds the loading phase (fastest decrease = deepest bend).
+ */
+function findPeakVelocityIndex(frames, key, swingPhase) {
+  const { startIdx, endIdx } = swingPhase;
+  const phaseFrames = frames.slice(startIdx, endIdx + 1);
+
+  const values = phaseFrames.map(f => {
+    if (!f) return null;
+    if (f.angles && f.angles[key] != null) return safeNumber(f.angles[key], null);
+    if (f.derivedMetrics && f.derivedMetrics[key] != null) return safeNumber(f.derivedMetrics[key], null);
+    return null;
+  });
+
+  const valid = values.filter(v => v != null);
+  if (valid.length < 5) return null;
+
+  // Replace nulls with interpolation for smooth velocity calc
+  const filled = [];
+  let lastValid = values.find(v => v != null);
+  for (const v of values) {
+    if (v != null) { filled.push(v); lastValid = v; }
+    else { filled.push(lastValid); }
+  }
+
+  const velocity = computeAngularVelocity(filled);
+  const smoothedVel = smoothArray(velocity, 3);
+
+  if (smoothedVel.length === 0) return null;
+
+  let peakIdx = 0;
+  let peakVal = smoothedVel[0];
+  for (let i = 1; i < smoothedVel.length; i++) {
+    if (smoothedVel[i] > peakVal) {
+      peakVal = smoothedVel[i];
+      peakIdx = i;
+    }
+  }
+
+  // Return as percentage through the swing phase
+  const phaseLen = endIdx - startIdx;
+  return phaseLen > 0 ? Math.round((peakIdx / phaseLen) * 100) : 50;
+}
+
+/**
+ * Improved kinetic chain analysis.
+ * Uses angular velocity peaks within the detected swing phase.
+ */
+function analyzeKineticChainImproved(frames, shotType) {
+  if (!frames || frames.length < 15) return null;
+
+  const CHAIN_CONFIG = {
+    forehand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: [10,25,40,55,72,88] },
+    backhand:    { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: [10,25,38,52,70,86] },
+    serve:       { order: ['knee','hip','trunk','shoulder','elbow','wrist'], ideal: [8,22,38,55,74,90] },
+    volley:      { order: ['shoulder','elbow','wrist'],                      ideal: [25,52,78] },
+    'drop-shot': { order: ['knee','hip','shoulder','elbow','wrist'],          ideal: [12,28,48,66,84] },
+    lob:         { order: ['knee','hip','trunk','shoulder','wrist'],          ideal: [12,28,44,62,85] }
+  };
+
+  const config = CHAIN_CONFIG[shotType] || CHAIN_CONFIG.forehand;
+  const { order, ideal } = config;
+
+  // Step 1: Detect the swing phase
+  const swingPhase = detectSwingPhase(frames);
+
+  // Step 2: Find peak angular velocity for each chain link within the swing
+  const peakPcts = {};
+  for (const key of order) {
+    peakPcts[key] = findPeakVelocityIndex(frames, key, swingPhase);
+  }
+
+  // Step 3: Score each link — how close is the actual peak to the ideal timing?
+  const linkScores = {};
+  const chainBreaks = [];
+  let prevKey = null;
+
+  for (let i = 0; i < order.length; i++) {
+    const key = order[i];
+    const pct = peakPcts[key];
+
+    if (pct == null) { linkScores[key] = null; continue; }
+
+    // Score: how close is the actual peak% to the ideal peak%?
+    // Use a gentler curve: within 10% = great, within 25% = decent
+    const diff = Math.abs(pct - ideal[i]);
+    linkScores[key] = Math.max(0, Math.min(100, Math.round(100 - diff * 1.2)));
+
+    // Chain break: this link peaks BEFORE the previous one (wrong order)
+    if (prevKey && peakPcts[prevKey] != null && pct < peakPcts[prevKey] - 5) {
+      chainBreaks.push({ link: key, prevLink: prevKey, gap: peakPcts[prevKey] - pct });
+    }
+    prevKey = key;
+  }
+
+  // Step 4: Sequence order score — are the peaks in the right order?
+  const validPeaks = order.filter(k => peakPcts[k] != null).map(k => peakPcts[k]);
+  let orderScore = 100;
+  if (validPeaks.length >= 2) {
+    let inversions = 0;
+    for (let i = 1; i < validPeaks.length; i++) {
+      if (validPeaks[i] < validPeaks[i - 1]) inversions++;
+    }
+    orderScore = Math.round(100 * (1 - inversions / (validPeaks.length - 1)));
+  }
+
+  // Step 5: Compute overall score as weighted average
+  const validScores = Object.values(linkScores).filter(v => v != null);
+  const timingAvg = validScores.length ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length) : 0;
+  // Overall = 60% timing accuracy + 40% sequence order
+  const avgScore = Math.round(timingAvg * 0.6 + orderScore * 0.4);
+
+  return {
+    peakPcts,
+    linkScores,
+    chainBreaks,
+    avgScore,
+    orderScore,
+    timingScore: timingAvg,
+    primaryBreak: chainBreaks[0] || null,
+    isWellSequenced: chainBreaks.length === 0 && avgScore >= 60,
+    swingPhase: { start: swingPhase.startIdx, end: swingPhase.endIdx }
+  };
+}
+
+
+// ── Kinetic Chain Tests ──────────────────────────────────────────
+
+describe('computeAngularVelocity', () => {
+  test('computes absolute differences between consecutive values', () => {
+    const result = computeAngularVelocity([10, 15, 12, 20]);
+    expect(result).toEqual([5, 3, 8]);
+  });
+
+  test('returns empty for single value', () => {
+    expect(computeAngularVelocity([10])).toEqual([]);
+  });
+
+  test('returns empty for null/empty', () => {
+    expect(computeAngularVelocity(null)).toEqual([]);
+    expect(computeAngularVelocity([])).toEqual([]);
+  });
+});
+
+describe('smoothArray', () => {
+  test('smooths values with moving average', () => {
+    const result = smoothArray([0, 0, 10, 0, 0], 3);
+    // Middle value (10) smoothed with neighbors: (0+10+0)/3 ≈ 3.33
+    expect(result[2]).toBeCloseTo(3.33, 1);
+  });
+
+  test('preserves array length', () => {
+    const input = [1, 2, 3, 4, 5];
+    expect(smoothArray(input, 3).length).toBe(5);
+  });
+
+  test('handles array shorter than window', () => {
+    expect(smoothArray([5, 10], 5)).toEqual([5, 10]);
+  });
+});
+
+describe('detectSwingPhase', () => {
+  test('identifies high-motion window', () => {
+    // 30 frames: first 10 low motion, 10 high motion, 10 low motion
+    const frames = [];
+    for (let i = 0; i < 30; i++) {
+      const motion = (i >= 10 && i < 20) ? 15 : 1;
+      frames.push({ poseMotion: motion, angles: {}, derivedMetrics: {} });
+    }
+    const phase = detectSwingPhase(frames);
+    expect(phase.startIdx).toBeLessThanOrEqual(10);
+    expect(phase.endIdx).toBeGreaterThanOrEqual(18);
+  });
+
+  test('handles all-low-motion frames', () => {
+    const frames = Array.from({ length: 20 }, () => ({
+      poseMotion: 2, angles: {}, derivedMetrics: {}
+    }));
+    const phase = detectSwingPhase(frames);
+    // Should still return a valid range
+    expect(phase.startIdx).toBeGreaterThanOrEqual(0);
+    expect(phase.endIdx).toBeGreaterThan(phase.startIdx);
+  });
+});
+
+describe('analyzeKineticChainImproved', () => {
+  // Helper: create frames simulating a forehand swing with proper kinetic chain
+  function makeChainFrames(count, peakOrder) {
+    // peakOrder: { knee: 0.15, hip: 0.30, trunk: 0.45, shoulder: 0.60, elbow: 0.75, wrist: 0.90 }
+    // Each metric ramps up to a peak at the given percentage and then decreases
+    const frames = [];
+    for (let i = 0; i < count; i++) {
+      const pct = i / count;
+      const motion = (pct > 0.1 && pct < 0.9) ? 12 : 2; // swing phase 10-90%
+
+      const angles = {};
+      const derivedMetrics = {};
+      for (const [key, peakPct] of Object.entries(peakOrder)) {
+        // Bell curve around peakPct
+        const dist = Math.abs(pct - peakPct);
+        const value = 90 + 60 * Math.exp(-dist * dist * 80);
+        // Add slight noise
+        angles[key] = value + (Math.sin(i * 7.3) * 0.5);
+      }
+
+      frames.push({
+        timestamp: i * 0.033,
+        poseMotion: motion,
+        landmarks: 14,
+        confidence: 75,
+        angles,
+        derivedMetrics
+      });
+    }
+    return frames;
+  }
+
+  test('returns null for insufficient frames', () => {
+    expect(analyzeKineticChainImproved([], 'forehand')).toBeNull();
+    expect(analyzeKineticChainImproved(Array(10).fill({}), 'forehand')).toBeNull();
+  });
+
+  test('well-sequenced chain scores high', () => {
+    // Perfect sequence: knee→hip→trunk→shoulder→elbow→wrist
+    const frames = makeChainFrames(60, {
+      knee: 0.15, hip: 0.28, trunk: 0.42, shoulder: 0.58, elbow: 0.73, wrist: 0.88
+    });
+    const result = analyzeKineticChainImproved(frames, 'forehand');
+    expect(result).toBeTruthy();
+    expect(result.avgScore).toBeGreaterThanOrEqual(55);
+    expect(result.chainBreaks.length).toBe(0);
+    expect(result.isWellSequenced).toBe(true);
+  });
+
+  test('reversed chain detects breaks and scores low', () => {
+    // Reversed: wrist fires first, knee fires last (wrong order)
+    const frames = makeChainFrames(60, {
+      knee: 0.85, hip: 0.70, trunk: 0.55, shoulder: 0.40, elbow: 0.25, wrist: 0.12
+    });
+    const result = analyzeKineticChainImproved(frames, 'forehand');
+    expect(result).toBeTruthy();
+    expect(result.chainBreaks.length).toBeGreaterThan(0);
+    expect(result.orderScore).toBeLessThan(50);
+  });
+
+  test('returns linkScores for each chain segment', () => {
+    const frames = makeChainFrames(60, {
+      knee: 0.15, hip: 0.30, trunk: 0.45, shoulder: 0.60, elbow: 0.75, wrist: 0.90
+    });
+    const result = analyzeKineticChainImproved(frames, 'forehand');
+    expect(Object.keys(result.linkScores).length).toBe(6);
+    for (const key of ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist']) {
+      const score = result.linkScores[key];
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    }
+  });
+
+  test('volley uses short chain (shoulder→elbow→wrist)', () => {
+    const frames = makeChainFrames(40, {
+      shoulder: 0.30, elbow: 0.55, wrist: 0.78
+    });
+    const result = analyzeKineticChainImproved(frames, 'volley');
+    expect(result).toBeTruthy();
+    expect(Object.keys(result.linkScores).length).toBe(3);
+  });
+
+  test('serve chain scores correctly', () => {
+    const frames = makeChainFrames(50, {
+      knee: 0.12, hip: 0.25, trunk: 0.40, shoulder: 0.55, elbow: 0.75, wrist: 0.90
+    });
+    const result = analyzeKineticChainImproved(frames, 'serve');
+    expect(result).toBeTruthy();
+    expect(result.avgScore).toBeGreaterThanOrEqual(50);
+  });
+
+  test('partial break with one inversion detected', () => {
+    // Hip and trunk swapped — one inversion
+    const frames = makeChainFrames(60, {
+      knee: 0.15, hip: 0.45, trunk: 0.28, shoulder: 0.58, elbow: 0.73, wrist: 0.88
+    });
+    const result = analyzeKineticChainImproved(frames, 'forehand');
+    expect(result).toBeTruthy();
+    expect(result.chainBreaks.length).toBeGreaterThanOrEqual(1);
+    expect(result.orderScore).toBeLessThan(100);
+  });
+
+  test('swingPhase is returned', () => {
+    const frames = makeChainFrames(60, {
+      knee: 0.15, hip: 0.30, trunk: 0.45, shoulder: 0.60, elbow: 0.75, wrist: 0.90
+    });
+    const result = analyzeKineticChainImproved(frames, 'forehand');
+    expect(result.swingPhase).toBeTruthy();
+    expect(result.swingPhase.start).toBeGreaterThanOrEqual(0);
+    expect(result.swingPhase.end).toBeGreaterThan(result.swingPhase.start);
+  });
+});
+
+
+// ═══════════════════════════════════════════════════════════════════
 // HTML structure validation
 // ═══════════════════════════════════════════════════════════════════
 
