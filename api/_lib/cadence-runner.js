@@ -27,12 +27,6 @@ const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MINUTES = 30;
 const BATCH_SIZE = 50;
 
-function json(res, status, payload) {
-  res.statusCode = status;
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.end(JSON.stringify(payload));
-}
-
 function supaHeaders() {
   const key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
   if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured.');
@@ -170,17 +164,7 @@ async function markFailedOrRetry(step, err) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-module.exports = async (req, res) => {
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    res.setHeader('Allow', 'GET, POST');
-    return json(res, 405, { error: 'Method not allowed.' });
-  }
-  const cronSecret = String(process.env.CRON_SECRET || '').trim();
-  if (cronSecret) {
-    const auth = String(req.headers['authorization'] || '').trim();
-    if (auth !== `Bearer ${cronSecret}`) return json(res, 401, { error: 'Unauthorized.' });
-  }
-
+async function runCadenceBatch() {
   const results = { processed: 0, sent: 0, skipped: 0, retried: 0, failed: 0, advanced: 0, errors: [] };
   const nowIso = new Date().toISOString();
 
@@ -270,10 +254,13 @@ module.exports = async (req, res) => {
       }
     }
   } catch (err) {
-    console.error('[cron-cadence-runner] fatal:', err);
-    return json(res, 500, { error: err.message, results });
+    console.error('[cadence-runner] fatal:', err);
+    results.errors.push({ fatal: err?.message || String(err) });
+    return results;
   }
 
-  console.log('[cron-cadence-runner] done:', results);
-  return json(res, 200, { ok: true, results });
-};
+  console.log('[cadence-runner] done:', results);
+  return results;
+}
+
+module.exports = { runCadenceBatch };

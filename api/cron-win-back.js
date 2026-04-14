@@ -19,6 +19,7 @@
  */
 
 const { renderTemplate } = require('./_lib/email-templates');
+const { runCadenceBatch } = require('./_lib/cadence-runner');
 
 const RESEND_API = 'https://api.resend.com/emails';
 
@@ -205,6 +206,15 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('[cron-win-back] Fatal error:', err?.message || err);
     return json(res, 500, { error: err?.message || 'Cron job failed.', results });
+  }
+
+  // Also drive the cadence step runner in the same invocation (Hobby plan
+  // caps us to daily crons + 12 functions, so we piggy-back on this one).
+  try {
+    results.cadence = await runCadenceBatch();
+  } catch (err) {
+    console.error('[cron-win-back] Cadence runner error:', err?.message || err);
+    results.cadence = { error: err?.message || String(err) };
   }
 
   console.log('[cron-win-back] Completed:', results);

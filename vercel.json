@@ -4,10 +4,6 @@
     {
       "path": "/api/cron-win-back",
       "schedule": "0 10 * * *"
-    },
-    {
-      "path": "/api/cron-cadence-runner",
-      "schedule": "10 10 * * *"
     }
   ],
   "redirects": [
