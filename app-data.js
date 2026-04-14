@@ -2982,7 +2982,7 @@
       payload: event.payload || {},
       created_at: event.createdAt
     }, { onConflict: 'external_id' });
-    if (error) return;
+    if (error) { console.error('[sync-progress-event] upsert failed:', error.message, error); return; }
     const events = getProgressEvents();
     const idx = events.findIndex((item) => item.externalId === event.externalId);
     if (idx >= 0) {
@@ -3007,7 +3007,7 @@
       due_date: goal.dueDate,
       updated_at: nowIso()
     }, { onConflict: 'external_id' }).select('id, external_id').single();
-    if (error) return;
+    if (error) { console.error('[sync-goal] upsert failed:', error.message, error); return; }
     const goals = getGoals();
     const idx = goals.findIndex((item) => item.externalId === goal.externalId);
     if (idx >= 0) {
@@ -3037,7 +3037,7 @@
       completed_at: drill.completedAt,
       due_date: drill.dueDate || null
     }, { onConflict: 'external_id' }).select('id, external_id').single();
-    if (error) return;
+    if (error) { console.error('[sync-drill-assignment] upsert failed:', error.message, error); return; }
     const drills = getDrillAssignments();
     const idx = drills.findIndex((item) => item.externalId === drill.externalId);
     if (idx >= 0) {
@@ -3087,7 +3087,7 @@
       competitor_name: assessment.competitorName || null,
       analyzed_at: assessment.analyzedAt
     }, { onConflict: 'external_id' }).select('id, external_id').single();
-    if (error) return;
+    if (error) { console.error('[sync-assessment] upsert failed:', error.message, error, { externalId: assessment.externalId, userId: assessment.userId }); return; }
     const all = getAssessments();
     const idx = all.findIndex((item) => item.externalId === assessment.externalId);
     if (idx >= 0) {
@@ -3111,7 +3111,7 @@
       status: session.status,
       booked_at: session.bookedAt
     }, { onConflict: 'external_id' }).select('id, external_id').single();
-    if (error) return;
+    if (error) { console.error('[sync-coach-session] upsert failed:', error.message, error); return; }
     const all = getCoachSessions();
     const idx = all.findIndex((item) => item.externalId === session.externalId);
     if (idx >= 0) {
@@ -3135,7 +3135,7 @@
       channel: message.channel || 'dashboard',
       created_at: message.createdAt || nowIso()
     }, { onConflict: 'external_id' }).select('id, external_id').single();
-    if (error) return;
+    if (error) { console.error('[sync-message] upsert failed:', error.message, error); return; }
     const messages = getMessages();
     const idx = messages.findIndex((item) => item.externalId === message.externalId);
     if (idx >= 0) {
