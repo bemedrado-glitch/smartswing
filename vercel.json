@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron-cadence-runner",
-      "schedule": "15 * * * *"
+      "schedule": "10 10 * * *"
     }
   ],
   "redirects": [
