@@ -131,6 +131,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <span class="mkt-nav-item__icon">👥</span> Contacts
           <span class="mkt-nav-item__badge" id="contactsBadge">0</span>
         </button>
+        <button class="mkt-nav-item" data-tab="leads" onclick="switchTab('leads', this); loadLeads()">
+          <span class="mkt-nav-item__icon">🎯</span> Leads
+          <span class="mkt-nav-item__badge" id="leadsBadge">0</span>
+        </button>
         <button class="mkt-nav-item" data-tab="campaigns" onclick="switchTab('campaigns', this)">
           <span class="mkt-nav-item__icon">📢</span> Campaigns
         </button>
@@ -461,6 +465,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
       </div><!-- /tab-contacts -->
+
+      <!-- ─────────────── TAB: LEADS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-leads">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+          <div>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Leads · Cadence Enrollments</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Contacts currently enrolled in a cadence or campaign. Click any row to view the step-by-step timeline and delivery status.</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input class="mkt-input" id="leadSearch" placeholder="Search leads…" oninput="filterLeads()" style="min-width:200px;">
+            <select class="mkt-select" id="leadStatusFilter" onchange="filterLeads()">
+              <option value="">All statuses</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadLeads()">⟳ Refresh</button>
+          </div>
+        </div>
+
+        <div class="mkt-table-wrap">
+          <table class="mkt-table" id="leadsTable">
+            <thead>
+              <tr>
+                <th>Lead</th>
+                <th>Cadence</th>
+                <th>Step</th>
+                <th>Last status</th>
+                <th>Next step at</th>
+                <th>Enrolled</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="leadsTbody">
+              <tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">🎯</div><div class="mkt-empty__title">Loading leads…</div></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /tab-leads -->
+
+      <!-- ─────────────── LEAD TIMELINE DRAWER ─────────────── -->
+      <div class="mkt-modal-overlay" id="leadTimelineModal" style="display:none;">
+        <div class="mkt-modal mkt-modal--wide" style="max-width:720px;">
+          <div class="mkt-modal__header">
+            <div class="mkt-modal__title" id="leadTimelineTitle">Enrollment timeline</div>
+            <button class="mkt-modal__close" onclick="closeModal('leadTimelineModal')">✕</button>
+          </div>
+          <div class="mkt-modal__body" id="leadTimelineBody" style="max-height:70vh;overflow:auto;">
+            <div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading…</div></div>
+          </div>
+          <div class="mkt-modal__footer" id="leadTimelineFooter"></div>
+        </div>
+      </div>
 
       <!-- ─────────────── TAB: CADENCES ─────────────── -->
       <div class="mkt-tab-panel" id="tab-cadences">
@@ -1932,16 +1989,21 @@ async function loadContacts() {
   }
 
   try {
+    // Pull up to 1000 contacts. Leads (stage='lead') have their own tab so
+    // we exclude them from the Contacts list to keep things clean.
     const { data, error } = await MarketingStore.supabase
       .from('marketing_contacts')
       .select('*')
+      .neq('stage', 'lead')
       .order('created_at', { ascending: false })
-      .limit(200);
+      .limit(1000);
 
     if (error) throw error;
     MarketingStore.contacts = (data || []).map(c => ({ ...c, name: c.name || c.email }));
     renderContacts(MarketingStore.contacts);
     updateKPIs();
+    // Refresh leads badge in parallel
+    if (typeof loadLeadsCount === 'function') loadLeadsCount();
   } catch (e) {
     showToast('Could not load contacts from database. Showing demo data.', '');
     loadContacts_demo();
@@ -2452,9 +2514,9 @@ function confirmAssignCadence() {
   const contactId = document.getElementById('assignCadenceContact').value;
   const cadenceId = document.getElementById('assignCadenceId').value;
   if (!contactId) { showToast('Select a contact first', 'error'); return; }
-  showToast('Contact enrolled in cadence!', 'success');
+  if (!cadenceId) { showToast('Select a cadence first', 'error'); return; }
   closeModal('assignCadenceModal');
-  // Enroll via API
+  showToast('Enrolling contact…', '');
   const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
   fetch('/api/marketing/enroll-cadence', {
     method: 'POST',
@@ -2466,8 +2528,267 @@ function confirmAssignCadence() {
       supabase_key: cfg.anonKey || ''
     })
   }).then(r => r.json()).then(d => {
-    if (d.success) showToast(`✓ Enrolled — ${d.steps_scheduled} steps scheduled!`, 'success');
-  }).catch(() => {});
+    if (!d || d.error) {
+      showToast('Enrollment failed: ' + (d?.error || 'unknown error'), 'error');
+      return;
+    }
+    if (d.already_enrolled) {
+      showToast('Already enrolled in this cadence', 'error');
+      return;
+    }
+    const name = d.cadence_name || 'cadence';
+    const nextWhen = d.next_step_at ? new Date(d.next_step_at).toLocaleString() : 'now';
+    showToast(`✓ Enrolled in "${name}" (${d.steps_scheduled} steps, first send ${nextWhen}). Moved to Leads tab.`, 'success');
+    // Contact stage just flipped to 'lead' — refresh both tabs
+    if (typeof loadContacts === 'function') loadContacts();
+    if (typeof loadLeads === 'function') loadLeads();
+  }).catch((err) => {
+    showToast('Enrollment error: ' + (err?.message || err), 'error');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LEADS TAB — view cadence enrollments, step timeline, delivery status
+   ═══════════════════════════════════════════════════════════════════════ */
+(function initLeadsModule(){
+  window.MarketingLeads = { rows: [], raw: [] };
+})();
+
+async function loadLeadsCount() {
+  if (!MarketingStore.supabase) return;
+  try {
+    const { count } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .select('id', { count: 'exact', head: true })
+      .eq('stage', 'lead');
+    const badge = document.getElementById('leadsBadge');
+    if (badge && count != null) badge.textContent = String(count);
+  } catch (e) { /* non-fatal */ }
+}
+
+async function loadLeads() {
+  const tbody = document.getElementById('leadsTbody');
+  if (!tbody) return;
+  if (!MarketingStore.supabase) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">🔌</div><div class="mkt-empty__title">Supabase not connected</div><div class="mkt-empty__text">Leads require a live database connection.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading leads…</div></div></td></tr>`;
+  try {
+    // Fetch active enrollments with embedded contact + cadence
+    const { data: enrollments, error } = await MarketingStore.supabase
+      .from('contact_cadence_enrollments')
+      .select('id,contact_id,cadence_id,status,current_step,next_step_at,enrolled_at,completed_at,marketing_contacts(id,name,email,phone,stage,persona),email_cadences(id,name,target_persona)')
+      .order('enrolled_at', { ascending: false })
+      .limit(1000);
+    if (error) throw error;
+
+    // For each enrollment, pull the latest step execution for status display
+    const enrollmentIds = (enrollments || []).map(e => e.id);
+    let lastSteps = {};
+    if (enrollmentIds.length) {
+      const { data: steps } = await MarketingStore.supabase
+        .from('cadence_step_executions')
+        .select('enrollment_id,step_num,step_type,status,sent_at,delivered_at,opened_at,clicked_at,failed_at,failure_reason,scheduled_at')
+        .in('enrollment_id', enrollmentIds)
+        .order('step_num', { ascending: true });
+      // Take the latest non-pending step per enrollment (highest step_num that isn't pending),
+      // or the next pending one if none sent yet.
+      (steps || []).forEach(s => {
+        const cur = lastSteps[s.enrollment_id];
+        const rank = (st) => ({ delivered: 6, clicked: 7, opened: 6, sent: 5, failed: 4, skipped: 3, pending: 2, cancelled: 1 })[st] || 0;
+        if (!cur || s.step_num > cur.step_num || rank(s.status) > rank(cur.status)) {
+          lastSteps[s.enrollment_id] = s;
+        }
+      });
+    }
+
+    MarketingLeads.raw = (enrollments || []).map(e => ({
+      ...e,
+      contact: e.marketing_contacts || {},
+      cadence: e.email_cadences || {},
+      lastStep: lastSteps[e.id] || null
+    }));
+    filterLeads();
+    const badge = document.getElementById('leadsBadge');
+    if (badge) badge.textContent = String(MarketingLeads.raw.length);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">⚠️</div><div class="mkt-empty__title">Could not load leads</div><div class="mkt-empty__text">${escHtml(err.message || String(err))}</div></div></td></tr>`;
+  }
+}
+
+function filterLeads() {
+  const q = (document.getElementById('leadSearch')?.value || '').toLowerCase();
+  const statusFilter = document.getElementById('leadStatusFilter')?.value || '';
+  const filtered = MarketingLeads.raw.filter(r => {
+    const matchQ = !q || (r.contact.name || '').toLowerCase().includes(q) ||
+                          (r.contact.email || '').toLowerCase().includes(q) ||
+                          (r.cadence.name || '').toLowerCase().includes(q);
+    const matchStatus = !statusFilter || r.status === statusFilter;
+    return matchQ && matchStatus;
+  });
+  renderLeads(filtered);
+}
+
+function statusBadge(status, reason) {
+  const palette = {
+    pending:   { bg:'#f1f5f9', fg:'#475569', label:'⏳ Pending'   },
+    sent:      { bg:'#dbeafe', fg:'#1d4ed8', label:'📧 Sent'      },
+    delivered: { bg:'#dcfce7', fg:'#15803d', label:'✓ Delivered'  },
+    opened:    { bg:'#d1fae5', fg:'#047857', label:'👁 Opened'     },
+    clicked:   { bg:'#ccfbf1', fg:'#0f766e', label:'🖱 Clicked'    },
+    failed:    { bg:'#fee2e2', fg:'#b91c1c', label:'❌ Failed'     },
+    skipped:   { bg:'#fef3c7', fg:'#92400e', label:'⏭ Skipped'    },
+    cancelled: { bg:'#e5e7eb', fg:'#374151', label:'◼ Cancelled'  }
+  };
+  const p = palette[status] || { bg:'#e5e7eb', fg:'#374151', label: status || '—' };
+  const title = reason ? ` title="${escHtml(reason)}"` : '';
+  return `<span style="font-size:11px;padding:3px 8px;border-radius:999px;background:${p.bg};color:${p.fg};white-space:nowrap;"${title}>${p.label}</span>`;
+}
+
+function renderLeads(rows) {
+  const tbody = document.getElementById('leadsTbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">🎯</div><div class="mkt-empty__title">No leads yet</div><div class="mkt-empty__text">Assign a contact to a cadence to create your first lead.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const name = r.contact.name || r.contact.email || '(unknown)';
+    const cadName = r.cadence.name || '(unknown cadence)';
+    const stepLabel = r.lastStep
+      ? `Step ${r.lastStep.step_num}` + (r.lastStep.step_type ? ` · ${r.lastStep.step_type}` : '')
+      : `Step ${r.current_step || 1}`;
+    const statusHtml = r.lastStep
+      ? statusBadge(r.lastStep.status, r.lastStep.failure_reason)
+      : statusBadge('pending');
+    const nextWhen = r.next_step_at ? new Date(r.next_step_at).toLocaleString() : '—';
+    const enrolledWhen = r.enrolled_at ? new Date(r.enrolled_at).toLocaleDateString() : '—';
+    return `<tr>
+      <td>
+        <div class="mkt-table__name">${escHtml(name)}</div>
+        <div class="mkt-table__sub">${escHtml(r.contact.email || '')}</div>
+      </td>
+      <td>${escHtml(cadName)}<div class="mkt-table__sub">${escHtml(r.cadence.target_persona || '')}</div></td>
+      <td>${escHtml(stepLabel)}</td>
+      <td>${statusHtml}</td>
+      <td><span style="font-size:12px;">${escHtml(nextWhen)}</span></td>
+      <td><span style="font-size:12px;color:var(--muted);">${escHtml(enrolledWhen)}</span></td>
+      <td>
+        <div class="mkt-table__actions">
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openLeadTimeline('${r.id}', ${JSON.stringify(name).replace(/"/g,'&quot;')}, ${JSON.stringify(cadName).replace(/"/g,'&quot;')})">View</button>
+          ${r.status === 'active' ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="unenrollLead('${r.id}')" title="Pause this enrollment">⏸</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function openLeadTimeline(enrollmentId, leadName, cadName) {
+  document.getElementById('leadTimelineTitle').textContent = `${leadName} · ${cadName}`;
+  const body = document.getElementById('leadTimelineBody');
+  const footer = document.getElementById('leadTimelineFooter');
+  body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading timeline…</div></div>`;
+  footer.innerHTML = '';
+  openModal('leadTimelineModal');
+  if (!MarketingStore.supabase) {
+    body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__title">Supabase not connected</div></div>`;
+    return;
+  }
+  try {
+    const { data: steps, error } = await MarketingStore.supabase
+      .from('cadence_step_executions')
+      .select('*')
+      .eq('enrollment_id', enrollmentId)
+      .order('step_num', { ascending: true });
+    if (error) throw error;
+    if (!steps || !steps.length) {
+      body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__title">No steps scheduled</div></div>`;
+      return;
+    }
+    body.innerHTML = steps.map(s => {
+      const when = s.sent_at ? new Date(s.sent_at).toLocaleString()
+                 : s.scheduled_at ? new Date(s.scheduled_at).toLocaleString()
+                 : '—';
+      const preview = (s.subject || s.message || '').slice(0, 120);
+      const bodyPreview = (s.body || '').replace(/<[^>]+>/g, ' ').slice(0, 180);
+      const events = [
+        s.sent_at       ? `Sent: ${new Date(s.sent_at).toLocaleString()}`           : null,
+        s.delivered_at  ? `Delivered: ${new Date(s.delivered_at).toLocaleString()}` : null,
+        s.opened_at     ? `Opened: ${new Date(s.opened_at).toLocaleString()}`       : null,
+        s.clicked_at    ? `Clicked: ${new Date(s.clicked_at).toLocaleString()}`     : null,
+        s.failed_at     ? `Failed: ${s.failure_reason || ''}`                       : null,
+        s.skipped_reason ? `Skipped: ${s.skipped_reason}`                           : null
+      ].filter(Boolean);
+      const editable = s.status === 'pending';
+      return `<div style="padding:12px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;">Step ${s.step_num} · ${s.step_type}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">${escHtml(when)}${s.attempt_count ? ' · attempts: ' + s.attempt_count : ''}</div>
+            ${preview ? `<div style="margin-top:6px;font-size:13px;">${escHtml(preview)}</div>` : ''}
+            ${bodyPreview ? `<div style="margin-top:4px;font-size:12px;color:var(--muted);">${escHtml(bodyPreview)}…</div>` : ''}
+            ${events.length ? `<div style="margin-top:6px;font-size:11px;color:var(--muted);">${events.map(e => escHtml(e)).join(' · ')}</div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+            ${statusBadge(s.status, s.failure_reason || s.skipped_reason)}
+            ${editable ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="editLeadStep('${s.id}')">Edit</button>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__title">Error</div><div class="mkt-empty__text">${escHtml(err.message || String(err))}</div></div>`;
+  }
+}
+
+async function editLeadStep(stepId) {
+  const newSubject = prompt('New subject (leave blank to keep current):');
+  const newSchedule = prompt('Reschedule to (YYYY-MM-DDTHH:mm, leave blank to keep):');
+  const patch = {};
+  if (newSubject && newSubject.trim()) patch.subject = newSubject.trim();
+  if (newSchedule && newSchedule.trim()) {
+    const d = new Date(newSchedule.trim());
+    if (isNaN(d.getTime())) { showToast('Invalid date format', 'error'); return; }
+    patch.scheduled_at = d.toISOString();
+  }
+  if (!Object.keys(patch).length) { showToast('No changes', ''); return; }
+  const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  try {
+    const r = await fetch('/api/marketing/update-step', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ step_id: stepId, patch, supabase_url: cfg.url || '', supabase_key: cfg.anonKey || '' })
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) { showToast('Update failed: ' + (d.error || r.status), 'error'); return; }
+    showToast('✓ Step updated', 'success');
+    // Re-render drawer
+    const titleEl = document.getElementById('leadTimelineTitle');
+    const parts = (titleEl?.textContent || '').split(' · ');
+    // We don't have enrollment_id cleanly here; simplest: just reload leads.
+    loadLeads();
+    closeModal('leadTimelineModal');
+  } catch (err) {
+    showToast('Update error: ' + err.message, 'error');
+  }
+}
+
+async function unenrollLead(enrollmentId) {
+  if (!confirm('Pause this enrollment? All pending steps will be skipped.')) return;
+  const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  try {
+    const r = await fetch('/api/marketing/unenroll-cadence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enrollment_id: enrollmentId, reason: 'manual_unenroll', supabase_url: cfg.url || '', supabase_key: cfg.anonKey || '' })
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) { showToast('Unenroll failed: ' + (d.error || r.status), 'error'); return; }
+    showToast('✓ Enrollment paused', 'success');
+    loadLeads();
+  } catch (err) {
+    showToast('Unenroll error: ' + err.message, 'error');
+  }
 }
 
 function editCadenceWithAI(idx) {

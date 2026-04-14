@@ -117,6 +117,32 @@ module.exports = async (req, res) => {
       }
     }
 
+    // Also mark the matching cadence_step_executions row if we can link
+    // it via the Resend email_id. This gives the Leads tab real delivery /
+    // open / click status — not just "we called the API".
+    try {
+      const resendEmailId = event?.data?.email_id || null;
+      if (resendEmailId) {
+        const stepPatch = {};
+        if (type === 'email.delivered') { stepPatch.delivered_at = new Date().toISOString(); stepPatch.status = 'delivered'; }
+        else if (type === 'email.opened') { stepPatch.opened_at = new Date().toISOString(); }
+        else if (type === 'email.clicked') { stepPatch.clicked_at = new Date().toISOString(); }
+        else if (type === 'email.bounced') { stepPatch.failed_at = new Date().toISOString(); stepPatch.status = 'failed'; stepPatch.failure_reason = 'bounced'; }
+        else if (type === 'email.complained') { stepPatch.failed_at = new Date().toISOString(); stepPatch.status = 'failed'; stepPatch.failure_reason = 'complained'; }
+        if (Object.keys(stepPatch).length) {
+          const url = `${supabaseBase()}/rest/v1/cadence_step_executions?resend_email_id=eq.${encodeURIComponent(resendEmailId)}`;
+          await fetch(url, {
+            method: 'PATCH',
+            headers: { ...supabaseHeaders(), Prefer: 'return=minimal' },
+            body: JSON.stringify(stepPatch)
+          });
+          console.log(`[resend-webhook] Updated step execution(s) for ${resendEmailId} -> ${type}`);
+        }
+      }
+    } catch (stepErr) {
+      console.warn('[resend-webhook] step execution update failed (non-fatal):', stepErr?.message || stepErr);
+    }
+
     // Store delivery/open/click events for marketing dashboard analytics
     const TRACKED_EVENTS = new Set(['email.delivered', 'email.opened', 'email.clicked']);
     if (TRACKED_EVENTS.has(type)) {

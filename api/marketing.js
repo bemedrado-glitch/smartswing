@@ -660,59 +660,214 @@ async function handleEnrollCadence(req, res) {
   const now = new Date().toISOString();
 
   try {
+    // Resolve cadence name from either new `cadences` table or legacy `email_cadences`
     let cadenceName = cadence_id;
     try {
-      const cadences = await supabaseGet(`${supabase_url}/rest/v1/cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
-      if (cadences && cadences.length > 0) cadenceName = cadences[0].name || cadence_id;
-    } catch (err) { console.warn('Cadence metadata lookup failed (non-fatal):', err.message); }
+      let cadences = await supabaseGet(`${supabase_url}/rest/v1/email_cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
+      if (!cadences?.length) {
+        cadences = await supabaseGet(`${supabase_url}/rest/v1/cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
+      }
+      if (cadences?.length) cadenceName = cadences[0].name || cadence_id;
+    } catch (err) { console.warn('[enroll-cadence] cadence metadata lookup failed (non-fatal):', err.message); }
 
-    const emailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key);
-    const smsSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key);
-
-    const enrollmentId = generateUUID();
-    const enrollment = await supabaseInsert(supabase_url, supabase_key, 'contact_cadence_enrollments', {
-      id: enrollmentId, contact_id, cadence_id, status: 'active',
-      current_step: 1, next_step_at: now, enrolled_at: now, created_at: now
-    });
-
-    const executions = [];
-    for (const step of (emailSteps || [])) {
-      executions.push({
-        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
-        step_id: step.id || null, sequence_num: step.sequence_num, type: 'email',
-        subject: step.subject || null, body: step.body || step.html_body || null,
-        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0), created_at: now
+    // Guard: already enrolled in this cadence?
+    const existing = await supabaseGet(
+      `${supabase_url}/rest/v1/contact_cadence_enrollments?contact_id=eq.${contact_id}&cadence_id=eq.${cadence_id}&status=eq.active&select=id&limit=1`,
+      supabase_key
+    );
+    if (existing?.length) {
+      return res.status(200).json({
+        success: true, already_enrolled: true, enrollment_id: existing[0].id,
+        contact_id, cadence_id, cadence_name: cadenceName,
+        message: 'Contact is already actively enrolled in this cadence.'
       });
     }
-    for (const step of (smsSteps || [])) {
+
+    const emailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+    const smsSteps   = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+
+    const enrollmentId = generateUUID();
+    // Compute the first step's scheduled_at so next_step_at on the enrollment matches it
+    const firstEmail = emailSteps[0];
+    const firstSms = smsSteps[0];
+    const firstDelayDays = Math.min(
+      firstEmail ? (firstEmail.delay_days || 0) : Number.MAX_SAFE_INTEGER,
+      firstSms   ? (firstSms.delay_days   || 0) : Number.MAX_SAFE_INTEGER
+    );
+    const firstNextAt = isFinite(firstDelayDays) ? addDays(now, firstDelayDays) : now;
+
+    const enrollment = await supabaseInsert(supabase_url, supabase_key, 'contact_cadence_enrollments', {
+      id: enrollmentId, contact_id, cadence_id, status: 'active',
+      current_step: 1, next_step_at: firstNextAt, enrolled_at: now, created_at: now
+    });
+
+    // Build step executions. DB columns: step_type, step_num (NOT type/sequence_num).
+    const executions = [];
+    for (const step of emailSteps) {
       executions.push({
         id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
-        step_id: step.id || null, sequence_num: step.sequence_num, type: 'sms',
-        subject: null, body: step.message || step.body || null,
-        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0), created_at: now
+        step_type: 'email', step_num: step.sequence_num,
+        subject: step.subject || null,
+        body: step.body_html || step.body_text || null,
+        message: null,
+        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
+        attempt_count: 0, created_at: now
+      });
+    }
+    for (const step of smsSteps) {
+      executions.push({
+        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
+        step_type: 'sms', step_num: step.sequence_num,
+        subject: null, body: null,
+        message: step.message || null,
+        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
+        attempt_count: 0, created_at: now
       });
     }
     executions.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
 
-    let insertedExecutions = [];
     if (executions.length > 0) {
-      insertedExecutions = await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_step_executions', executions);
+      await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_step_executions', executions);
     }
 
-    const nextStepAt = executions.length > 0 ? executions[0].scheduled_at : now;
-    const schedule = executions.map((exec, idx) => ({
-      step: idx + 1, type: exec.type, subject: exec.subject || null,
-      body_preview: exec.body ? exec.body.substring(0, 100) : null, scheduled_at: exec.scheduled_at
+    // Promote contact: stage = 'lead' so they move from Contacts tab → Leads tab.
+    // Done with fetch (PATCH) since supabaseInsert is POST-only.
+    try {
+      await fetch(`${supabase_url}/rest/v1/marketing_contacts?id=eq.${contact_id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabase_key, Authorization: `Bearer ${supabase_key}`,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ stage: 'lead', updated_at: now })
+      });
+    } catch (err) {
+      console.warn('[enroll-cadence] stage promotion failed (non-fatal):', err.message);
+    }
+
+    // Log journey entry (non-fatal)
+    try {
+      await supabaseInsert(supabase_url, supabase_key, 'contact_journeys', {
+        contact_id, stage: 'lead', entered_at: now, cadence_id,
+        notes: `Enrolled in ${cadenceName} (${executions.length} steps)`
+      });
+    } catch (err) { /* contact_journeys may not exist in all envs */ }
+
+    const schedule = executions.map((exec) => ({
+      step: exec.step_num, type: exec.step_type,
+      subject: exec.subject,
+      preview: (exec.body || exec.message || '').substring(0, 120),
+      scheduled_at: exec.scheduled_at, status: 'pending'
     }));
 
     return res.status(200).json({
       success: true, enrollment_id: enrollment?.id || enrollmentId,
       contact_id, cadence_id, cadence_name: cadenceName,
-      steps_scheduled: executions.length, next_step_at: nextStepAt, schedule
+      stage: 'lead',
+      steps_scheduled: executions.length,
+      next_step_at: firstNextAt,
+      current_step: 1, total_steps: executions.length,
+      schedule
     });
   } catch (err) {
-    console.error('Enroll-cadence handler error:', err);
+    console.error('[enroll-cadence] handler error:', err);
     return res.status(500).json({ error: 'Internal server error', message: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: enrollment-timeline — returns full step history for one enrollment
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleEnrollmentTimeline(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const enrollment_id = String(req.query?.enrollment_id || '').trim();
+  const supabase_url = String(req.query?.supabase_url || '').trim();
+  const supabase_key = String(req.query?.supabase_key || '').trim();
+  if (!enrollment_id) return res.status(400).json({ error: 'enrollment_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  try {
+    const enrollments = await supabaseGet(
+      `${supabase_url}/rest/v1/contact_cadence_enrollments?id=eq.${enrollment_id}&select=*&limit=1`,
+      supabase_key
+    );
+    const steps = await supabaseGet(
+      `${supabase_url}/rest/v1/cadence_step_executions?enrollment_id=eq.${enrollment_id}&order=scheduled_at.asc`,
+      supabase_key
+    );
+    return res.status(200).json({
+      enrollment: enrollments?.[0] || null,
+      steps: steps || []
+    });
+  } catch (err) {
+    console.error('[enrollment-timeline] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: unenroll-cadence — pause/complete an enrollment, restore contact stage
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleUnenrollCadence(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { enrollment_id, supabase_url, supabase_key, reason } = req.body || {};
+  if (!enrollment_id) return res.status(400).json({ error: 'enrollment_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  const now = new Date().toISOString();
+  try {
+    // Mark enrollment cancelled
+    await fetch(`${supabase_url}/rest/v1/contact_cadence_enrollments?id=eq.${enrollment_id}`, {
+      method: 'PATCH',
+      headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'cancelled', completed_at: now })
+    });
+    // Skip any pending steps
+    await fetch(`${supabase_url}/rest/v1/cadence_step_executions?enrollment_id=eq.${enrollment_id}&status=eq.pending`, {
+      method: 'PATCH',
+      headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'skipped', skipped_reason: reason || 'unenrolled' })
+    });
+    return res.status(200).json({ success: true, enrollment_id, status: 'cancelled' });
+  } catch (err) {
+    console.error('[unenroll-cadence] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: update-step — edit a single pending step execution (subject/body/time)
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleUpdateStep(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { step_id, supabase_url, supabase_key, patch } = req.body || {};
+  if (!step_id) return res.status(400).json({ error: 'step_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  if (!patch || typeof patch !== 'object') return res.status(400).json({ error: 'patch object is required' });
+
+  // Allow only safe fields
+  const allowed = ['subject', 'body', 'message', 'scheduled_at', 'status'];
+  const safe = {};
+  for (const k of allowed) if (k in patch) safe[k] = patch[k];
+  if (safe.status && !['pending', 'skipped', 'cancelled'].includes(safe.status)) {
+    return res.status(400).json({ error: 'status must be pending, skipped, or cancelled' });
+  }
+  if (!Object.keys(safe).length) return res.status(400).json({ error: 'no valid fields in patch' });
+
+  try {
+    const resp = await fetch(`${supabase_url}/rest/v1/cadence_step_executions?id=eq.${step_id}&status=eq.pending`, {
+      method: 'PATCH',
+      headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(safe)
+    });
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      return res.status(resp.status).json({ error: 'Supabase PATCH failed', detail: text.slice(0, 300) });
+    }
+    const rows = await resp.json();
+    if (!rows.length) return res.status(409).json({ error: 'Step is not pending (may have already sent or been skipped).' });
+    return res.status(200).json({ success: true, step: rows[0] });
+  } catch (err) {
+    console.error('[update-step] error:', err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -3346,7 +3501,10 @@ async function handleEnrichEmails(req, res) {
 const ROUTES = {
   'agent':           handleAgent,
   'orchestrate':     handleOrchestrate,
-  'enroll-cadence':  handleEnrollCadence,
+  'enroll-cadence':      handleEnrollCadence,
+  'unenroll-cadence':    handleUnenrollCadence,
+  'enrollment-timeline': handleEnrollmentTimeline,
+  'update-step':         handleUpdateStep,
   'capture-lead':    handleCaptureLead,
   'next-action':     handleNextAction,
   'export-leads':    handleExportLeads,
