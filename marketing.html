@@ -1901,8 +1901,67 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="connectSocial('youtube')">Connect</button>
                 </div>
               </div>
-              <div style="margin-top:16px;padding:12px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5;">
-                <strong>Setup note:</strong> Instagram and Facebook use Meta Business Suite (Graph API). TikTok requires TikTok for Business. YouTube uses Google OAuth. Save your API keys/tokens below after connecting.
+              <div style="margin-top:16px;padding:12px;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#78350f;line-height:1.6;">
+                <strong>⚠️ Setup required:</strong> Instagram and Facebook publishing require a permanent Page Access Token added to your Vercel environment variables. Follow the step-by-step guide below.
+              </div>
+            </div>
+          </div>
+
+          <!-- Meta Token Setup Guide -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header" style="cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'':'none'">
+              <div class="mkt-panel__title">🔑 Meta Token Setup — Facebook & Instagram Publishing</div>
+              <span style="font-size:11px;color:var(--muted);">Click to expand step-by-step guide</span>
+            </div>
+            <div class="mkt-panel__body" style="display:none;">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">To activate Facebook and Instagram posting, you need 3 values added to Vercel. Here's exactly how to get them:</p>
+
+              <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">
+
+                <div style="padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+                  <div style="font-weight:700;color:#15803d;margin-bottom:6px;">Step 1 — Create a Meta App</div>
+                  <ol style="margin:0;padding-left:18px;color:var(--ink);line-height:1.8;">
+                    <li>Go to <a href="https://developers.facebook.com/apps" target="_blank" style="color:#2563eb;">developers.facebook.com/apps</a></li>
+                    <li>Click <strong>Create App</strong> → choose <strong>"Business"</strong> type</li>
+                    <li>Name it "SmartSwing Publisher" → select your Business account</li>
+                    <li>Add product: <strong>Facebook Login</strong> + <strong>Instagram Graph API</strong></li>
+                  </ol>
+                </div>
+
+                <div style="padding:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+                  <div style="font-weight:700;color:#1d4ed8;margin-bottom:6px;">Step 2 — Get a Never-Expiring Page Access Token</div>
+                  <ol style="margin:0;padding-left:18px;color:var(--ink);line-height:1.8;">
+                    <li>Go to <a href="https://business.facebook.com/settings/system-users" target="_blank" style="color:#2563eb;">Business Settings → System Users</a></li>
+                    <li>Click <strong>Add</strong> → name it "SmartSwing Publisher" → role: <strong>Admin</strong></li>
+                    <li>Click <strong>Add Assets</strong> → select your Facebook Page → toggle <strong>Full Control</strong></li>
+                    <li>Click <strong>Generate New Token</strong> → select your App → set expiry to <strong>Never</strong></li>
+                    <li>Enable permissions: <code>pages_manage_posts</code>, <code>pages_read_engagement</code>, <code>instagram_basic</code>, <code>instagram_content_publish</code></li>
+                    <li>Copy the token → this is your <strong>META_PAGE_ACCESS_TOKEN</strong></li>
+                  </ol>
+                </div>
+
+                <div style="padding:14px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;">
+                  <div style="font-weight:700;color:#7c3aed;margin-bottom:6px;">Step 3 — Find Your Page ID & Instagram Account ID</div>
+                  <ol style="margin:0;padding-left:18px;color:var(--ink);line-height:1.8;">
+                    <li><strong>Page ID:</strong> Go to your Facebook Page → click <strong>About</strong> → scroll to bottom for Page ID, OR visit <code>graph.facebook.com/me/accounts?access_token=YOUR_TOKEN</code></li>
+                    <li><strong>Instagram Account ID:</strong> In Graph API Explorer, call <code>/me/accounts</code> → find the page → call <code>/{page-id}?fields=instagram_business_account</code> → the <code>id</code> field is your <strong>META_IG_ACCOUNT_ID</strong></li>
+                  </ol>
+                </div>
+
+                <div style="padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;">
+                  <div style="font-weight:700;color:#c2410c;margin-bottom:6px;">Step 4 — Add to Vercel Environment Variables</div>
+                  <p style="margin:0 0 8px;color:var(--ink);">Go to <a href="https://vercel.com/smartswingai-team/smartswing-ai/settings/environment-variables" target="_blank" style="color:#2563eb;">Vercel → SmartSwing AI → Settings → Environment Variables</a> and add:</p>
+                  <div style="font-family:monospace;font-size:12px;background:#1e1e2e;color:#cdd6f4;padding:12px;border-radius:6px;line-height:1.8;">
+                    META_PAGE_ACCESS_TOKEN = <span style="color:#a6e3a1;">YOUR_NEVER_EXPIRING_TOKEN</span><br>
+                    META_PAGE_ID = <span style="color:#a6e3a1;">YOUR_FACEBOOK_PAGE_ID</span><br>
+                    META_IG_ACCOUNT_ID = <span style="color:#a6e3a1;">YOUR_INSTAGRAM_ACCOUNT_ID</span>
+                  </div>
+                  <p style="margin:8px 0 0;font-size:12px;color:var(--muted);">After adding, click <strong>Save</strong> then <strong>Redeploy</strong> the project for the variables to take effect.</p>
+                </div>
+
+                <div style="padding:12px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);">
+                  💡 <strong>Graph API Explorer</strong>: Use <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:#2563eb;">developers.facebook.com/tools/explorer</a> to test your token and find IDs before adding to Vercel.
+                </div>
               </div>
             </div>
           </div>
