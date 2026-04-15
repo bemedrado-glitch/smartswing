@@ -30,7 +30,7 @@
 'use strict';
 
 const { brandImagePrompt, brandCopyPrompt, BRAND_STYLE } = require('./_lib/brand-style');
-const { persistGeneratedImage } = require('./_lib/media-storage');
+const { persistGeneratedImage, uploadFromUrl } = require('./_lib/media-storage');
 const { runPublishBatch, publishSingleItem } = require('./_lib/publish-runner');
 const { runLeadScoringBatch, scoreContact } = require('./_lib/lead-scoring');
 const { runMetricsFetch, topPerformers } = require('./_lib/content-metrics');
@@ -4006,12 +4006,66 @@ async function handlePublishRun(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: backfill-media — rescue content_calendar items whose image_url still
+// points at an ephemeral DALL-E CDN (Azure Blob Storage). Re-downloads + uploads
+// into marketing-media bucket and patches the row. Called manually by admins
+// and automatically after every agent run when a visual is generated.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleBackfillMedia(req, res) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const limit = Math.min(parseInt((req.body && req.body.limit) || req.query?.limit || 20, 10) || 20, 50);
+  try {
+    // Find items whose image_url is an ephemeral DALL-E / Azure Blob URL
+    const query = `${supabaseUrl}/rest/v1/content_calendar?image_url=like.*oaidalleapi*&select=id,image_url,title,created_at&order=created_at.desc&limit=${limit}`;
+    const rows = await supabaseGet(query, supabaseKey);
+    if (!rows || rows.length === 0) {
+      return res.status(200).json({ ok: true, checked: 0, rescued: 0, expired: 0, message: 'No ephemeral URLs found — all media already persistent' });
+    }
+
+    let rescued = 0, expired = 0, failed = 0;
+    const details = [];
+    for (const item of rows) {
+      const permanent = await uploadFromUrl(item.image_url, {
+        prefix: 'content',
+        filename: `ci_${item.id}`,
+        contentType: 'image/png'
+      });
+      if (!permanent) {
+        // Most likely the DALL-E URL already expired (60min TTL)
+        expired++;
+        details.push({ id: item.id, title: item.title, status: 'expired' });
+        continue;
+      }
+      // Patch the row
+      const patch = await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${item.id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ image_url: permanent })
+      });
+      if (patch.ok) { rescued++; details.push({ id: item.id, title: item.title, status: 'rescued', new_url: permanent }); }
+      else { failed++; details.push({ id: item.id, title: item.title, status: 'patch_failed' }); }
+    }
+    return res.status(200).json({ ok: true, checked: rows.length, rescued, expired, failed, details });
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
 const ROUTES = {
   'agent':             handleAgent,
   'regenerate-visual': handleRegenerateVisual,
   'save-draft':        handleSaveDraft,
   'publish-now':       handlePublishNow,
   'publish-run':       handlePublishRun,
+  'backfill-media':    handleBackfillMedia,
   'score-leads':       handleScoreLeads,
   'suggest-time':      handleSuggestTime,
   'generate-video':    handleGenerateVideo,

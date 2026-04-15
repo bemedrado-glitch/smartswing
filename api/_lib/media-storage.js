@@ -45,33 +45,61 @@ async function uploadFromUrl(sourceUrl, opts = {}) {
   const path = `${prefix}/${filename}.${ext}`;
 
   try {
-    const fetchRes = await fetch(sourceUrl);
+    // Download from source (DALL-E blob CDN sometimes 403s without a UA)
+    const dlController = new AbortController();
+    const dlTimeout = setTimeout(() => dlController.abort(), 20000);
+    let fetchRes;
+    try {
+      fetchRes = await fetch(sourceUrl, {
+        signal: dlController.signal,
+        headers: {
+          'User-Agent': 'SmartSwing-AI/1.0 (media-mirror; +https://smartswingai.com)',
+          'Accept': 'image/*,video/*,*/*'
+        }
+      });
+    } finally { clearTimeout(dlTimeout); }
+
     if (!fetchRes.ok) {
-      console.warn(`[media-storage] Source fetch failed (${fetchRes.status}):`, sourceUrl);
+      const body = await fetchRes.text().catch(() => '');
+      console.warn(`[media-storage] Source fetch failed (${fetchRes.status}) for ${sourceUrl.slice(0,80)}…:`, body.slice(0, 200));
       return null;
     }
     const bytes = Buffer.from(await fetchRes.arrayBuffer());
+    if (!bytes.length) {
+      console.warn('[media-storage] Source returned 0 bytes:', sourceUrl.slice(0, 80));
+      return null;
+    }
 
-    const uploadRes = await fetch(`${supaBase()}/storage/v1/object/${BUCKET}/${path}`, {
-      method: 'POST',
-      headers: {
-        ...supaHeaders(),
-        'Content-Type': opts.contentType || 'image/png',
-        'x-upsert': 'true'
-      },
-      body: bytes
-    });
+    const upController = new AbortController();
+    const upTimeout = setTimeout(() => upController.abort(), 15000);
+    let uploadRes;
+    try {
+      uploadRes = await fetch(`${supaBase()}/storage/v1/object/${BUCKET}/${path}`, {
+        method: 'POST',
+        signal: upController.signal,
+        headers: {
+          ...supaHeaders(),
+          'Content-Type': opts.contentType || 'image/png',
+          'x-upsert': 'true',
+          'Cache-Control': 'public, max-age=31536000, immutable'
+        },
+        body: bytes
+      });
+    } finally { clearTimeout(upTimeout); }
 
     if (!uploadRes.ok) {
       const txt = await uploadRes.text().catch(() => '');
-      console.warn(`[media-storage] Upload failed (${uploadRes.status}):`, txt.slice(0, 200));
+      console.warn(`[media-storage] Upload failed (${uploadRes.status}) path=${path} size=${bytes.length}:`, txt.slice(0, 300));
       return null;
     }
 
     // Public URL — bucket is public so no signing needed
-    return `${supaBase()}/storage/v1/object/public/${BUCKET}/${path}`;
+    const publicUrl = `${supaBase()}/storage/v1/object/public/${BUCKET}/${path}`;
+    console.log(`[media-storage] ✓ Persisted ${bytes.length} bytes → ${publicUrl}`);
+    return publicUrl;
   } catch (err) {
-    console.warn('[media-storage] uploadFromUrl error:', err?.message || err);
+    const msg = err?.name === 'AbortError' ? 'timeout' : (err?.message || String(err));
+    console.warn(`[media-storage] uploadFromUrl error (${msg}) source=${String(sourceUrl).slice(0,80)}`);
     return null;
   }
 }

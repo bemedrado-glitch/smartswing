@@ -563,6 +563,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
             <span style="color:var(--muted);" id="calSumRange"></span>
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runPublisherNow()" title="Drain all due scheduled posts now">🚀 Run publisher</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="rescueImagesNow()" title="Re-persist any expiring DALL-E image URLs to Supabase Storage">🖼️ Rescue images</button>
           </span>
         </div>
 
@@ -4050,6 +4051,29 @@ async function runPublisherNow() {
     const msg = 'Checked ' + (data.checked || 0) + ' · Published ' + (data.published || 0) +
       ' · Skipped ' + (data.skipped || 0) + ' · Failed ' + (data.failed || 0);
     showToast(msg, data.failed ? 'warning' : 'success');
+    if (typeof loadContentItems === 'function') loadContentItems();
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+// Phase G: re-persist any content_calendar rows whose image_url still points
+// at an ephemeral DALL-E CDN (Azure blob). Must run within ~60min of
+// generation before the URL expires. Safe to re-run anytime.
+async function rescueImagesNow() {
+  if (!confirm('Rescue recently-generated images?\n\nAny content_calendar item whose image URL still points at the ephemeral DALL-E CDN will be re-downloaded and uploaded to permanent Supabase Storage.\n\nOnly works for images < 1 hour old (after that, the source URL has expired).')) return;
+  try {
+    showToast('Rescuing images…', 'info');
+    const res = await fetch('/api/marketing/backfill-media', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 30 })
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast('Rescue failed: ' + (data.error || res.status), 'error'); return; }
+    const msg = 'Checked ' + (data.checked || 0) + ' · Rescued ' + (data.rescued || 0) +
+      ' · Expired ' + (data.expired || 0) + ' · Failed ' + (data.failed || 0);
+    showToast(msg, (data.rescued > 0) ? 'success' : (data.expired > 0 ? 'warning' : 'info'));
     if (typeof loadContentItems === 'function') loadContentItems();
   } catch (e) {
     showToast('Network error: ' + e.message, 'error');
