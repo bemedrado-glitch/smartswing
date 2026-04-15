@@ -2725,7 +2725,9 @@ async function handleProspectClubs(req, res) {
               rating: place.rating || null,
               review_count: place.userRatingCount || 0,
               persona: 'club',
-              stage: 'lead',
+              // Only mark as 'lead' if contactable (has phone). Email is almost never
+              // provided by Google Places — enrichment promotes 'prospect' → 'lead'.
+              stage: (place.internationalPhoneNumber || place.nationalPhoneNumber) ? 'lead' : 'prospect',
               source: 'google_places',
               enrichment_source: 'google_places',
               enrichment_batch: batchId,
@@ -3247,7 +3249,9 @@ async function handleProspectPlayers(req, res) {
           name: player.name,
           email: emailPlaceholder,
           persona: 'player',
-          stage: 'lead',
+          // Federation records never include contact info — stay as 'prospect' until
+          // enrichment attaches a real email or phone, which promotes to 'lead'.
+          stage: 'prospect',
           player_type: 'player',
           data_source: `${federation}_ranking`,
           consent_status: 'public_record',
@@ -3375,8 +3379,13 @@ async function handleEnrichEmails(req, res) {
   const fetchLimit = Math.min(maxLimit || 20, 50); // cap at 50 per run
 
   try {
-    // Fetch contacts with placeholder emails but real websites
-    const query = `${supabaseUrl}/rest/v1/marketing_contacts?email=like.*pending-enrichment*&website=neq.&website=not.is.null&select=id,name,email,website,city,country&limit=${fetchLimit}&order=created_at.desc`;
+    // Fetch contacts that have a website but no real email yet. Matches:
+    //   - placeholder @pending-enrichment addresses (legacy)
+    //   - empty-string emails (Google Places clubs with no email returned)
+    //   - NULL emails (imported records)
+    // Must also have a non-empty website to scrape.
+    const orFilter = `email.is.null,email.eq.,email.like.*@pending-enrichment*`;
+    const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&website=not.is.null&website=neq.&select=id,name,email,phone,website,city,country,stage&limit=${fetchLimit}&order=created_at.desc`;
     const contacts = await supabaseGet(query, supabaseKey);
 
     if (!contacts || contacts.length === 0) {
@@ -3464,6 +3473,8 @@ async function handleEnrichEmails(req, res) {
             },
             body: JSON.stringify({
               email: bestEmail,
+              // Promote to 'lead' — we now have a contactable email.
+              stage: 'lead',
               enrichment_source: 'website_scrape',
               enrichment_batch: batch_id || `enrich_${new Date().toISOString().split('T')[0]}`,
               updated_at: new Date().toISOString()

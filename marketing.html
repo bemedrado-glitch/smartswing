@@ -827,7 +827,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="mkt-kpi-card">
             <div class="mkt-kpi-card__icon">👥</div>
-            <div class="mkt-kpi-card__label">FB Page Likes</div>
+            <div class="mkt-kpi-card__label">FB Followers</div>
             <div class="mkt-kpi-card__value" id="anlFbLikes">—</div>
             <div class="mkt-kpi-card__delta" id="anlFbDelta"></div>
           </div>
@@ -1323,7 +1323,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   <input type="number" class="mkt-input" id="settYtSubs" placeholder="e.g. 890">
                 </div>
                 <div class="mkt-form-group">
-                  <label class="mkt-label">Facebook Page Likes</label>
+                  <label class="mkt-label">Facebook Followers</label>
                   <input type="number" class="mkt-input" id="settFbLikes" placeholder="e.g. 620">
                 </div>
               </div>
@@ -1989,14 +1989,14 @@ async function loadContacts() {
   }
 
   try {
-    // Pull up to 1000 contacts. Leads (stage='lead') have their own tab so
+    // Pull up to 2000 contacts. Leads (stage='lead') have their own tab so
     // we exclude them from the Contacts list to keep things clean.
     const { data, error } = await MarketingStore.supabase
       .from('marketing_contacts')
       .select('*')
       .neq('stage', 'lead')
       .order('created_at', { ascending: false })
-      .limit(1000);
+      .limit(2000);
 
     if (error) throw error;
     MarketingStore.contacts = (data || []).map(c => ({ ...c, name: c.name || c.email }));
@@ -2554,13 +2554,29 @@ function confirmAssignCadence() {
   window.MarketingLeads = { rows: [], raw: [] };
 })();
 
+// A "lead" is a contact worth reaching out to: stage='lead' AND has a real
+// email or phone (not placeholder, not federation-record). This is the
+// single source of truth used by both the badge count and the table.
+function _leadsContactableFilter(q) {
+  return q
+    .eq('stage', 'lead')
+    .not('email', 'like', '%@pending-enrichment%')
+    .not('email', 'like', '%@federation-record%');
+}
+
 async function loadLeadsCount() {
   if (!MarketingStore.supabase) return;
   try {
-    const { count } = await MarketingStore.supabase
+    // Two queries OR'd: (real email) OR (phone not empty). Supabase .or()
+    // handles this cleanly.
+    let q = MarketingStore.supabase
       .from('marketing_contacts')
       .select('id', { count: 'exact', head: true })
-      .eq('stage', 'lead');
+      .eq('stage', 'lead')
+      .not('email', 'like', '%@pending-enrichment%')
+      .not('email', 'like', '%@federation-record%')
+      .or('email.not.is.null,phone.not.is.null');
+    const { count } = await q;
     const badge = document.getElementById('leadsBadge');
     if (badge && count != null) badge.textContent = String(count);
   } catch (e) { /* non-fatal */ }
@@ -2575,16 +2591,36 @@ async function loadLeads() {
   }
   tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading leads…</div></div></td></tr>`;
   try {
-    // Fetch active enrollments with embedded contact + cadence
-    const { data: enrollments, error } = await MarketingStore.supabase
-      .from('contact_cadence_enrollments')
-      .select('id,contact_id,cadence_id,status,current_step,next_step_at,enrolled_at,completed_at,marketing_contacts(id,name,email,phone,stage,persona),email_cadences(id,name,target_persona)')
-      .order('enrolled_at', { ascending: false })
-      .limit(1000);
-    if (error) throw error;
+    // 1) Contactable leads (the single source of truth)
+    const { data: leadContacts, error: leadErr } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .select('id,name,email,phone,stage,persona,player_type,country,nationality,source,data_source,enrichment_source,club_affiliation_name,ranking_position,tags,created_at')
+      .eq('stage', 'lead')
+      .not('email', 'like', '%@pending-enrichment%')
+      .not('email', 'like', '%@federation-record%')
+      .or('email.not.is.null,phone.not.is.null')
+      .order('created_at', { ascending: false })
+      .limit(2000);
+    if (leadErr) throw leadErr;
 
-    // For each enrollment, pull the latest step execution for status display
-    const enrollmentIds = (enrollments || []).map(e => e.id);
+    const contactIds = (leadContacts || []).map(c => c.id);
+
+    // 2) Pull active enrollments for those contacts (if any)
+    let enrollByContact = {};
+    if (contactIds.length) {
+      const { data: enrollments } = await MarketingStore.supabase
+        .from('contact_cadence_enrollments')
+        .select('id,contact_id,cadence_id,status,current_step,next_step_at,enrolled_at,completed_at,email_cadences(id,name,target_persona)')
+        .in('contact_id', contactIds)
+        .order('enrolled_at', { ascending: false });
+      (enrollments || []).forEach(e => {
+        // Keep only the most recent enrollment per contact (first one wins because ordered desc)
+        if (!enrollByContact[e.contact_id]) enrollByContact[e.contact_id] = e;
+      });
+    }
+
+    // 3) Pull latest step for each enrollment
+    const enrollmentIds = Object.values(enrollByContact).map(e => e.id);
     let lastSteps = {};
     if (enrollmentIds.length) {
       const { data: steps } = await MarketingStore.supabase
@@ -2592,8 +2628,6 @@ async function loadLeads() {
         .select('enrollment_id,step_num,step_type,status,sent_at,delivered_at,opened_at,clicked_at,failed_at,failure_reason,scheduled_at')
         .in('enrollment_id', enrollmentIds)
         .order('step_num', { ascending: true });
-      // Take the latest non-pending step per enrollment (highest step_num that isn't pending),
-      // or the next pending one if none sent yet.
       (steps || []).forEach(s => {
         const cur = lastSteps[s.enrollment_id];
         const rank = (st) => ({ delivered: 6, clicked: 7, opened: 6, sent: 5, failed: 4, skipped: 3, pending: 2, cancelled: 1 })[st] || 0;
@@ -2603,12 +2637,24 @@ async function loadLeads() {
       });
     }
 
-    MarketingLeads.raw = (enrollments || []).map(e => ({
-      ...e,
-      contact: e.marketing_contacts || {},
-      cadence: e.email_cadences || {},
-      lastStep: lastSteps[e.id] || null
-    }));
+    // 4) Compose rows: one per contactable lead, with enrollment info if present
+    MarketingLeads.raw = (leadContacts || []).map(c => {
+      const enr = enrollByContact[c.id] || null;
+      return {
+        id: enr ? enr.id : ('contact_' + c.id),
+        contact_id: c.id,
+        contact: c,
+        cadence: enr?.email_cadences || {},
+        status: enr ? enr.status : 'not_enrolled',
+        current_step: enr?.current_step || null,
+        next_step_at: enr?.next_step_at || null,
+        enrolled_at: enr?.enrolled_at || null,
+        completed_at: enr?.completed_at || null,
+        cadence_id: enr?.cadence_id || null,
+        lastStep: enr ? (lastSteps[enr.id] || null) : null,
+        _isEnrollment: !!enr
+      };
+    });
     filterLeads();
     const badge = document.getElementById('leadsBadge');
     if (badge) badge.textContent = String(MarketingLeads.raw.length);
@@ -2654,29 +2700,42 @@ function renderLeads(rows) {
   }
   tbody.innerHTML = rows.map(r => {
     const name = r.contact.name || r.contact.email || '(unknown)';
-    const cadName = r.cadence.name || '(unknown cadence)';
-    const stepLabel = r.lastStep
-      ? `Step ${r.lastStep.step_num}` + (r.lastStep.step_type ? ` · ${r.lastStep.step_type}` : '')
-      : `Step ${r.current_step || 1}`;
-    const statusHtml = r.lastStep
-      ? statusBadge(r.lastStep.status, r.lastStep.failure_reason)
-      : statusBadge('pending');
-    const nextWhen = r.next_step_at ? new Date(r.next_step_at).toLocaleString() : '—';
-    const enrolledWhen = r.enrolled_at ? new Date(r.enrolled_at).toLocaleDateString() : '—';
+    const notEnrolled = !r._isEnrollment;
+    const cadName = notEnrolled ? '—' : (r.cadence.name || '(unknown cadence)');
+    const stepLabel = notEnrolled
+      ? '—'
+      : (r.lastStep
+          ? `Step ${r.lastStep.step_num}` + (r.lastStep.step_type ? ` · ${r.lastStep.step_type}` : '')
+          : `Step ${r.current_step || 1}`);
+    const statusHtml = notEnrolled
+      ? `<span style="font-size:11px;padding:3px 8px;border-radius:999px;background:#fef3c7;color:#92400e;white-space:nowrap;">🎯 Not enrolled</span>`
+      : (r.lastStep
+          ? statusBadge(r.lastStep.status, r.lastStep.failure_reason)
+          : statusBadge('pending'));
+    const nextWhen = notEnrolled ? '—' : (r.next_step_at ? new Date(r.next_step_at).toLocaleString() : '—');
+    const enrolledWhen = notEnrolled
+      ? (r.contact.created_at ? new Date(r.contact.created_at).toLocaleDateString() : '—')
+      : (r.enrolled_at ? new Date(r.enrolled_at).toLocaleDateString() : '—');
+    const contactMeta = [
+      r.contact.email,
+      r.contact.phone ? '📞 ' + r.contact.phone : ''
+    ].filter(Boolean).join(' · ');
     return `<tr>
       <td>
         <div class="mkt-table__name">${escHtml(name)}</div>
-        <div class="mkt-table__sub">${escHtml(r.contact.email || '')}</div>
+        <div class="mkt-table__sub">${escHtml(contactMeta)}</div>
       </td>
-      <td>${escHtml(cadName)}<div class="mkt-table__sub">${escHtml(r.cadence.target_persona || '')}</div></td>
+      <td>${escHtml(cadName)}${notEnrolled ? '' : `<div class="mkt-table__sub">${escHtml(r.cadence.target_persona || '')}</div>`}</td>
       <td>${escHtml(stepLabel)}</td>
       <td>${statusHtml}</td>
       <td><span style="font-size:12px;">${escHtml(nextWhen)}</span></td>
       <td><span style="font-size:12px;color:var(--muted);">${escHtml(enrolledWhen)}</span></td>
       <td>
         <div class="mkt-table__actions">
-          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openLeadTimeline('${r.id}', ${JSON.stringify(name).replace(/"/g,'&quot;')}, ${JSON.stringify(cadName).replace(/"/g,'&quot;')})">View</button>
-          ${r.status === 'active' ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="unenrollLead('${r.id}')" title="Pause this enrollment">⏸</button>` : ''}
+          ${notEnrolled
+            ? `<button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openAssignCadenceModal('${r.contact_id}', ${JSON.stringify(name).replace(/"/g,'&quot;')})">Enroll</button>`
+            : `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openLeadTimeline('${r.id}', ${JSON.stringify(name).replace(/"/g,'&quot;')}, ${JSON.stringify(cadName).replace(/"/g,'&quot;')})">View</button>
+               ${r.status === 'active' ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="unenrollLead('${r.id}')" title="Pause this enrollment">⏸</button>` : ''}`}
         </div>
       </td>
     </tr>`;
