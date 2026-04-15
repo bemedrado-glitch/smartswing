@@ -2671,7 +2671,7 @@ async function loadLeads() {
     // 1) Contactable leads (the single source of truth)
     const { data: leadContacts, error: leadErr } = await MarketingStore.supabase
       .from('marketing_contacts')
-      .select('id,name,email,phone,stage,persona,player_type,country,nationality,source,data_source,enrichment_source,club_affiliation_name,ranking_position,tags,created_at')
+      .select('id,name,email,phone,stage,persona,player_type,country,nationality,source,data_source,enrichment_source,club_affiliation_name,ranking_position,tags,created_at,lead_score')
       .eq('stage', 'lead')
       .not('email', 'like', '%@pending-enrichment%')
       .not('email', 'like', '%@federation-record%')
@@ -2797,9 +2797,10 @@ function renderLeads(rows) {
       r.contact.email,
       r.contact.phone ? '📞 ' + r.contact.phone : ''
     ].filter(Boolean).join(' · ');
+    const nameJson = JSON.stringify(name).replace(/"/g,'&quot;');
     return `<tr>
       <td>
-        <div class="mkt-table__name">${escHtml(name)}</div>
+        <div class="mkt-table__name"><a href="#" onclick="event.preventDefault();openContactCard('${r.contact_id}', ${nameJson});return false;" style="color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--line);cursor:pointer;">${escHtml(name)}</a>${r.contact.lead_score ? `<span style="margin-left:8px;padding:2px 6px;background:#D8FF00;color:#0B1220;border-radius:8px;font-size:10px;font-weight:700;">★ ${r.contact.lead_score}</span>` : ''}</div>
         <div class="mkt-table__sub">${escHtml(contactMeta)}</div>
       </td>
       <td>${escHtml(cadName)}${notEnrolled ? '' : `<div class="mkt-table__sub">${escHtml(r.cadence.target_persona || '')}</div>`}</td>
@@ -2809,14 +2810,109 @@ function renderLeads(rows) {
       <td><span style="font-size:12px;color:var(--muted);">${escHtml(enrolledWhen)}</span></td>
       <td>
         <div class="mkt-table__actions">
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openContactCard('${r.contact_id}', ${nameJson})" title="Show contact details">👤</button>
           ${notEnrolled
-            ? `<button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openAssignCadenceModal('${r.contact_id}', ${JSON.stringify(name).replace(/"/g,'&quot;')})">Enroll</button>`
-            : `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openLeadTimeline('${r.id}', ${JSON.stringify(name).replace(/"/g,'&quot;')}, ${JSON.stringify(cadName).replace(/"/g,'&quot;')})">View</button>
+            ? `<button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openAssignCadenceModal('${r.contact_id}', ${nameJson})">Enroll</button>`
+            : `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openLeadTimeline('${r.id}', ${nameJson}, ${JSON.stringify(cadName).replace(/"/g,'&quot;')})">View</button>
                ${r.status === 'active' ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="unenrollLead('${r.id}')" title="Pause this enrollment">⏸</button>` : ''}`}
         </div>
       </td>
     </tr>`;
   }).join('');
+}
+
+// Phase G: contact detail card — reuses the leadTimeline modal shell so
+// clicking any lead name (enrolled or not) opens a full 360° view:
+// profile, score, UTM, enrollments, campaigns, recent cadence steps.
+async function openContactCard(contactId, leadName) {
+  document.getElementById('leadTimelineTitle').textContent = `${leadName || 'Contact'} · Details`;
+  const body = document.getElementById('leadTimelineBody');
+  const footer = document.getElementById('leadTimelineFooter');
+  body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading contact…</div></div>`;
+  if (footer) footer.innerHTML = '';
+  openModal('leadTimelineModal');
+  if (!MarketingStore.supabase) {
+    body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__title">Supabase not connected</div></div>`;
+    return;
+  }
+  try {
+    const safe = (p) => p.then(r => r).catch(() => ({ data: null }));
+    const [contactRes, enrollRes] = await Promise.all([
+      safe(MarketingStore.supabase.from('marketing_contacts').select('*').eq('id', contactId).single()),
+      safe(MarketingStore.supabase.from('contact_cadence_enrollments').select('id,cadence_id,status,current_step,enrolled_at,email_cadences(name,target_persona)').eq('contact_id', contactId).order('enrolled_at', { ascending: false }))
+    ]);
+    const c = contactRes.data || {};
+    const enrollments = enrollRes.data || [];
+    const campaigns = [];
+
+    const fact = (label, value) => value == null || value === '' ? '' :
+      `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px;">
+        <div style="min-width:130px;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.04em;">${escHtml(label)}</div>
+        <div style="flex:1;word-break:break-word;">${escHtml(String(value))}</div>
+      </div>`;
+
+    const scoreBadge = c.lead_score ?
+      `<span style="padding:4px 10px;background:#D8FF00;color:#0B1220;border-radius:10px;font-weight:700;font-size:12px;">★ Score ${c.lead_score}/100</span>` : '';
+
+    const enrollList = enrollments.length
+      ? enrollments.map(e => `<div style="padding:8px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-size:13px;">
+          <div style="font-weight:600;">${escHtml(e.email_cadences?.name || 'Cadence')}</div>
+          <div style="font-size:11px;color:var(--muted);">Step ${e.current_step || 0} · ${e.status} · enrolled ${e.enrolled_at ? new Date(e.enrolled_at).toLocaleDateString() : '—'}</div>
+        </div>`).join('')
+      : `<div style="font-size:12px;color:var(--muted);padding:8px 0;">Not enrolled in any cadence yet.</div>`;
+
+    const campaignList = campaigns.length
+      ? campaigns.map(cp => `<div style="padding:6px 10px;background:#f8fafc;border-radius:6px;margin-bottom:4px;font-size:12px;">
+          <strong>${escHtml(cp.campaigns?.name || 'Campaign')}</strong> <span style="color:var(--muted);">· ${cp.campaigns?.status || ''}</span>
+        </div>`).join('')
+      : `<div style="font-size:12px;color:var(--muted);padding:6px 0;">Not in any campaign.</div>`;
+
+    body.innerHTML = `
+      <div style="padding:16px 20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="font-size:18px;font-weight:700;">${escHtml(c.name || leadName || '—')}</div>
+          ${scoreBadge}
+          ${c.persona ? `<span style="padding:3px 8px;border:1px solid var(--line);border-radius:8px;font-size:11px;text-transform:uppercase;">${escHtml(c.persona)}</span>` : ''}
+          ${c.stage ? `<span style="padding:3px 8px;background:#e0f2fe;color:#075985;border-radius:8px;font-size:11px;text-transform:uppercase;">${escHtml(c.stage)}</span>` : ''}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr;gap:0;margin-bottom:20px;">
+          ${fact('Email', c.email)}
+          ${fact('Phone', c.phone)}
+          ${fact('Website', c.website)}
+          ${fact('City', [c.city, c.state_region, c.country].filter(Boolean).join(', '))}
+          ${fact('Club', c.club_affiliation_name)}
+          ${fact('Ranking', c.ranking_position ? '#' + c.ranking_position : '')}
+          ${fact('Source', c.source)}
+          ${fact('Data source', c.data_source || c.enrichment_source)}
+          ${fact('UTM', [c.utm_source, c.utm_medium, c.utm_campaign].filter(Boolean).join(' / '))}
+          ${fact('Tags', Array.isArray(c.tags) ? c.tags.join(', ') : c.tags)}
+          ${fact('Created', c.created_at ? new Date(c.created_at).toLocaleString() : '')}
+          ${fact('Last contacted', c.last_contacted_at ? new Date(c.last_contacted_at).toLocaleString() : '')}
+          ${fact('Replied', c.replied_at ? new Date(c.replied_at).toLocaleString() : '')}
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:8px;">📬 Cadence enrollments</div>
+          ${enrollList}
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:700;font-size:14px;margin-bottom:8px;">🎯 Campaigns</div>
+          ${campaignList}
+        </div>
+
+        ${c.notes ? `<div style="margin-top:12px;padding:10px;background:#fff7ed;border-radius:8px;font-size:12px;white-space:pre-wrap;">${escHtml(c.notes)}</div>` : ''}
+      </div>`;
+
+    if (footer) {
+      footer.innerHTML = `
+        <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openAssignCadenceModal('${contactId}', ${JSON.stringify(c.name || leadName || '').replace(/"/g,'&quot;')})">Enroll in cadence</button>
+        <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="closeModal('leadTimelineModal')">Close</button>`;
+    }
+  } catch (err) {
+    body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__title">Could not load contact</div><div class="mkt-empty__text">${escHtml(err.message || String(err))}</div></div>`;
+  }
 }
 
 async function openLeadTimeline(enrollmentId, leadName, cadName) {
