@@ -519,6 +519,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
 
+      <!-- ─────────────── MODAL: CAMPAIGN POSTS DRILL-DOWN ─────────────── -->
+      <div class="mkt-modal-overlay" id="campaignPostsModal" style="display:none;">
+        <div class="mkt-modal mkt-modal--wide" style="max-width:960px;">
+          <div class="mkt-modal__header">
+            <div class="mkt-modal__title" id="campaignPostsTitle">Campaign posts</div>
+            <button class="mkt-modal__close" onclick="closeModal('campaignPostsModal')">✕</button>
+          </div>
+          <div class="mkt-modal__body" id="campaignPostsBody" style="max-height:75vh;overflow:auto;">
+            <div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading…</div></div>
+          </div>
+          <div class="mkt-modal__footer" id="campaignPostsFooter"></div>
+        </div>
+      </div>
+
       <!-- ─────────────── TAB: CADENCES ─────────────── -->
       <div class="mkt-tab-panel" id="tab-cadences">
 
@@ -820,6 +834,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <!-- ─────────────── TAB: ANALYTICS ─────────────── -->
       <div class="mkt-tab-panel" id="tab-analytics">
+
+        <!-- Live freshness control strip -->
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;margin-bottom:16px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;font-size:12px;">
+          <span style="color:var(--muted);">📊 Analytics freshness:</span>
+          <span id="analyticsFreshness" style="font-weight:600;">—</span>
+          <span id="analyticsLiveDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#94a3b8;" title="Gray: not loaded · Green: fresh (<30min) · Amber: stale (>30min) · Red: >24h"></span>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="refreshAnalyticsLive()" style="margin-left:auto;" title="Pull fresh insights from Facebook/Instagram + recompute KPIs">🔄 Refresh live</button>
+        </div>
 
         <!-- Row 1: Core engagement KPIs (dynamic) -->
         <div class="mkt-kpi-grid" style="margin-bottom:24px;">
@@ -3108,13 +3130,122 @@ function _campaignRollup(c) {
   return { contacts, scheduled, published, drafts, total: items.length };
 }
 
-// Phase E: cross-link — jump to calendar filtered by campaign
-function viewCampaignContent(campaignId, campaignName) {
-  switchTab('calendar', document.querySelector('[data-tab=calendar]'));
-  showToast('Showing calendar posts tagged to "' + campaignName + '"', 'info');
-  // Apply a lightweight filter via calFilters (platform filter already exists; campaign filter is ad-hoc here)
-  MarketingStore._campaignContentFilter = { id: campaignId, name: campaignName };
-  if (typeof renderCalendar === 'function') renderCalendar();
+// Phase G3: per-campaign drill-down modal — shows every content_calendar item
+// grouped by ISO week, with preview + status chips + thumbnail + persistence warning.
+async function viewCampaignContent(campaignId, campaignName) {
+  openModal('campaignPostsModal');
+  document.getElementById('campaignPostsTitle').textContent = 'Posts — ' + campaignName;
+  var body = document.getElementById('campaignPostsBody');
+  var footer = document.getElementById('campaignPostsFooter');
+  body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading posts…</div></div>';
+  footer.innerHTML = '';
+
+  // Fetch latest items directly from Supabase (freshness matters), fall back to in-memory store.
+  var items = [];
+  try {
+    var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+    if (cfg.url && cfg.anonKey && campaignId && !String(campaignId).startsWith('local_')) {
+      var q = cfg.url + '/rest/v1/content_calendar?select=*&or=(campaign_id.eq.' + encodeURIComponent(campaignId) + ',campaign.eq.' + encodeURIComponent(campaignName) + ')&order=scheduled_date.asc.nullslast,created_at.desc';
+      var res = await fetch(q, { headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey } });
+      if (res.ok) items = await res.json();
+    }
+  } catch (e) { console.warn('viewCampaignContent: live fetch failed, using store', e); }
+  if (!items.length) {
+    var cname = (campaignName || '').toLowerCase().trim();
+    items = (MarketingStore.contentItems || []).filter(function(i) {
+      if (!i) return false;
+      if (i.campaign_id && campaignId && String(i.campaign_id) === String(campaignId)) return true;
+      var tag = String(i.campaign || i.campaign_name || '').toLowerCase().trim();
+      return tag && cname && tag === cname;
+    });
+  }
+
+  if (!items.length) {
+    body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">📭</div><div class="mkt-empty__title">No posts yet</div><div class="mkt-empty__text">Generate content for this campaign from the Calendar tab or launch the AI orchestration.</div></div>';
+    footer.innerHTML = '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'campaignPostsModal\')">Close</button>';
+    return;
+  }
+
+  // Bucket by ISO week
+  function weekKey(d) {
+    if (!d) return 'Unscheduled';
+    var dt = new Date(d);
+    if (isNaN(dt)) return 'Unscheduled';
+    var onejan = new Date(dt.getFullYear(), 0, 1);
+    var wk = Math.ceil((((dt - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+    return dt.getFullYear() + ' · Week ' + wk;
+  }
+  var buckets = {};
+  items.forEach(function(i) {
+    var k = weekKey(i.scheduled_date || i.scheduled_at);
+    (buckets[k] = buckets[k] || []).push(i);
+  });
+
+  // Summary counts
+  var counts = items.reduce(function(acc, i) {
+    var s = i.status || 'draft';
+    acc[s] = (acc[s] || 0) + 1;
+    acc._total++;
+    if (i.image_persisted === false) acc._unsaved++;
+    return acc;
+  }, { _total: 0, _unsaved: 0 });
+
+  var summary = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;font-size:12px;">' +
+    '<span><strong>' + counts._total + '</strong> total</span>' +
+    (counts.scheduled ? '<span style="color:#d97706;">📅 ' + counts.scheduled + ' scheduled</span>' : '') +
+    (counts.published ? '<span style="color:#16a34a;">✓ ' + counts.published + ' published</span>' : '') +
+    (counts.draft ? '<span style="color:#2563eb;">✎ ' + counts.draft + ' drafts</span>' : '') +
+    (counts.failed ? '<span style="color:#dc2626;">⚠ ' + counts.failed + ' failed</span>' : '') +
+    (counts._unsaved ? '<span style="color:#d97706;margin-left:auto;">⚠ ' + counts._unsaved + ' with ephemeral images</span>' : '') +
+    '</div>';
+
+  var html = summary;
+  var keys = Object.keys(buckets).sort(function(a, b) {
+    if (a === 'Unscheduled') return 1;
+    if (b === 'Unscheduled') return -1;
+    return a.localeCompare(b);
+  });
+  keys.forEach(function(k) {
+    html += '<div style="margin-bottom:20px;">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);">' + k + ' · ' + buckets[k].length + '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">';
+    buckets[k].forEach(function(item) {
+      var dateFmt = item.scheduled_date
+        ? new Date(item.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })
+        : '—';
+      var platformIcon = ({
+        instagram: '📷', facebook: '📘', twitter: '🐦', linkedin: '💼',
+        tiktok: '🎵', youtube: '▶️', email: '✉️', sms: '📱'
+      })[String(item.platform || '').toLowerCase()] || '🌐';
+      var statusColor = ({ scheduled: '#d97706', published: '#16a34a', draft: '#2563eb', idea: '#64748b', failed: '#dc2626' })[item.status] || '#64748b';
+      var thumb = item.image_url
+        ? '<div style="position:relative;width:100%;aspect-ratio:16/9;background:#f1f5f9;border-radius:6px;overflow:hidden;margin-bottom:8px;">' +
+            '<img src="' + escHtml(item.image_url) + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.parentNode.innerHTML=\'<div style=&quot;display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:11px;&quot;>image expired</div>\'">' +
+            (item.image_persisted === false
+              ? '<span title="Ephemeral — URL expires ~60min. Use 🖼️ Rescue images in calendar." style="position:absolute;top:4px;right:4px;background:#fbbf24;color:#0B1220;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">⚠ ephemeral</span>'
+              : '')
+          + '</div>'
+        : '';
+      var preview = (item.content_text || item.hook || item.title || '').slice(0, 160);
+      html += '<div style="border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;cursor:pointer;" onclick="closeModal(\'campaignPostsModal\');openContentDetail(\'' + item.id + '\')">' +
+        thumb +
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:11px;">' +
+          '<span>' + platformIcon + '</span>' +
+          '<span style="background:' + statusColor + '15;color:' + statusColor + ';padding:2px 6px;border-radius:4px;font-weight:600;">' + (item.status || 'draft') + '</span>' +
+          '<span style="color:var(--muted);margin-left:auto;">' + dateFmt + '</span>' +
+        '</div>' +
+        (item.title ? '<div style="font-size:13px;font-weight:600;color:#0B1220;margin-bottom:4px;line-height:1.3;">' + escHtml(item.title) + '</div>' : '') +
+        (preview ? '<div style="font-size:12px;color:var(--ink-2);line-height:1.4;">' + escHtml(preview) + (preview.length >= 160 ? '…' : '') + '</div>' : '') +
+      '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  body.innerHTML = html;
+  footer.innerHTML =
+    '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'campaignPostsModal\')">Close</button>' +
+    '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'campaignPostsModal\');MarketingStore._campaignContentFilter={id:\'' + campaignId + '\',name:\'' + escHtml(campaignName).replace(/\x27/g,"\\\x27") + '\'};switchTab(\'calendar\',document.querySelector(\'[data-tab=calendar]\'));if(typeof renderCalendar===\'function\')renderCalendar();">📅 Open in calendar</button>' +
+    (counts._unsaved ? '<button class="mkt-btn mkt-btn--primary" onclick="rescueImagesNow()">🖼️ Rescue ' + counts._unsaved + ' ephemeral image' + (counts._unsaved === 1 ? '' : 's') + '</button>' : '');
 }
 
 function viewCampaignContacts(campaignId, campaignName) {
@@ -3616,7 +3747,12 @@ function openDayDetailModal(dateStr) {
           : '');
 
       var thumb = item.image_url
-        ? '<img src="' + item.image_url + '" class="mkt-cal-day-list-item__thumb" alt="" loading="lazy">'
+        ? '<div style="position:relative;flex:0 0 auto;">' +
+            '<img src="' + item.image_url + '" class="mkt-cal-day-list-item__thumb" alt="" loading="lazy">' +
+            (item.image_persisted === false
+              ? '<span title="Image not yet persisted — URL expires in ~60min. Click 🖼️ Rescue images in the calendar header." style="position:absolute;top:2px;right:2px;background:#fbbf24;color:#0B1220;font-size:10px;padding:2px 4px;border-radius:4px;font-weight:700;">⚠</span>'
+              : '') +
+          '</div>'
         : '<div class="mkt-cal-day-list-item__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;">' + (platformIcons[item.platform] || '?') + '</div>';
 
       var copy = (item.copy_text || item.title || '').slice(0, 220);
@@ -4627,7 +4763,69 @@ function launchCampaignOrchestration(id, name) {
 MarketingStore.analytics = { loaded: false };
 MarketingStore.approvalQueue = [];
 
+// Phase G: real-time analytics freshness
+// The daily cron refreshes social-media insights (FB/IG) once per day. When
+// the user opens Analytics we (a) show when the insights were last pulled,
+// (b) auto-refresh silently if the data is >30min old, and (c) expose a
+// manual "Refresh live" button.
+var _analyticsLastRefresh = 0;
+function _setFreshnessPill(ts, state) {
+  const el = document.getElementById('analyticsFreshness');
+  const dot = document.getElementById('analyticsLiveDot');
+  if (!el) return;
+  const colors = { fresh:'#16a34a', stale:'#d97706', cold:'#dc2626', loading:'#2563eb', unknown:'#94a3b8' };
+  if (!ts) { el.textContent = 'Never refreshed'; if (dot) dot.style.background = colors.unknown; return; }
+  const ageMs = Date.now() - ts;
+  const mins = Math.round(ageMs / 60000);
+  const s = state || (mins < 30 ? 'fresh' : mins < 60 * 24 ? 'stale' : 'cold');
+  let label;
+  if (s === 'loading') label = 'Refreshing…';
+  else if (mins < 1) label = 'Just now';
+  else if (mins < 60) label = mins + ' min ago';
+  else if (mins < 60 * 24) label = Math.round(mins / 60) + 'h ago';
+  else label = Math.round(mins / 1440) + 'd ago';
+  el.textContent = label;
+  if (dot) dot.style.background = colors[s] || colors.unknown;
+}
+
+async function refreshAnalyticsLive(silent) {
+  _setFreshnessPill(Date.now(), 'loading');
+  try {
+    const r = await fetch('/api/marketing/metrics-fetch', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit: 30 })
+    });
+    const data = await r.json().catch(() => ({}));
+    _analyticsLastRefresh = Date.now();
+    try { localStorage.setItem('mkt_analytics_refresh', String(_analyticsLastRefresh)); } catch(_) {}
+    _setFreshnessPill(_analyticsLastRefresh, 'fresh');
+    if (!silent) (window.mktToast || showToast)('Insights refreshed · ' + (data.fetched || 0) + ' posts updated', 'success');
+    // Reload the KPIs with the fresh data
+    if (typeof loadAnalytics === 'function') loadAnalytics();
+  } catch (e) {
+    _setFreshnessPill(_analyticsLastRefresh || null, _analyticsLastRefresh ? 'stale' : 'unknown');
+    if (!silent) (window.mktToast || showToast)('Refresh failed: ' + e.message, 'error');
+  }
+}
+
 async function loadAnalytics() {
+  // Restore last-refresh timestamp from localStorage on first call
+  if (!_analyticsLastRefresh) {
+    try {
+      const cached = parseInt(localStorage.getItem('mkt_analytics_refresh') || '0', 10);
+      if (cached) _analyticsLastRefresh = cached;
+    } catch (_) {}
+  }
+  _setFreshnessPill(_analyticsLastRefresh || null);
+
+  // Auto-refresh silently if data is stale (>30min old or never loaded)
+  const stale = !_analyticsLastRefresh || (Date.now() - _analyticsLastRefresh) > 30 * 60 * 1000;
+  if (stale) {
+    // Fire-and-forget — don't block the UI. The second loadAnalytics call
+    // triggered from refreshAnalyticsLive will paint the new numbers.
+    refreshAnalyticsLive(true).catch(() => {});
+  }
+
   const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
   if (!cfg.url || !cfg.anonKey) { loadAnalyticsFallback(); return; }
   const headers = { 'apikey': cfg.anonKey, 'Authorization': 'Bearer ' + cfg.anonKey };

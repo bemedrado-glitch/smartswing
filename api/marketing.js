@@ -473,13 +473,17 @@ async function persistAgentOutput(ctx) {
       if (detail?.url) {
         out.image_url = detail.url;
         out.media_asset_id = detail.assetId;
+        // detail.assetId is only set when persistGeneratedImage successfully
+        // uploaded to marketing-media. If null, the URL is ephemeral.
+        const persisted = !!detail.assetId;
+        out.image_persisted = persisted;
         await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
           method: 'PATCH',
           headers: {
             apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
             'Content-Type': 'application/json', Prefer: 'return=minimal'
           },
-          body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId })
+          body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId, image_persisted: persisted })
         });
       }
     } catch (err) {
@@ -523,13 +527,14 @@ async function handleRegenerateVisual(req, res) {
     if (!detail?.url) return res.status(502).json({ error: 'Image generation failed' });
 
     // Update the content_calendar row
+    const persisted = !!detail.assetId;
     await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${content_item_id}`, {
       method: 'PATCH',
       headers: {
         apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
         'Content-Type': 'application/json', Prefer: 'return=minimal'
       },
-      body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId })
+      body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId, image_persisted: persisted })
     });
 
     return res.status(200).json({
@@ -4048,7 +4053,7 @@ async function handleBackfillMedia(req, res) {
           apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
           'Content-Type': 'application/json', Prefer: 'return=minimal'
         },
-        body: JSON.stringify({ image_url: permanent })
+        body: JSON.stringify({ image_url: permanent, image_persisted: true })
       });
       if (patch.ok) { rescued++; details.push({ id: item.id, title: item.title, status: 'rescued', new_url: permanent }); }
       else { failed++; details.push({ id: item.id, title: item.title, status: 'patch_failed' }); }
