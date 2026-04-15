@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">SmartSwing AI — Post</title>
+  <meta id="metaDesc" name="description" content="SmartSwing AI — biomechanics intelligence for every swing.">
+  <meta id="ogTitle" property="og:title" content="SmartSwing AI">
+  <meta id="ogDesc" property="og:description" content="Biomechanics intelligence for every swing.">
+  <meta id="ogImage" property="og:image" content="/assets/logo.png">
+  <meta id="ogUrl" property="og:url" content="https://smartswingai.com/">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta id="twTitle" name="twitter:title" content="SmartSwing AI">
+  <meta id="twDesc" name="twitter:description" content="Biomechanics intelligence for every swing.">
+  <meta id="twImage" name="twitter:image" content="/assets/logo.png">
+  <link rel="icon" href="/assets/favicon.ico">
+  <script src="public-app-config.js"></script>
+  <style>
+    :root { --ink:#0B1220; --accent:#D8FF00; --surface:#F5F5F7; --muted:#6b7280; --line:#e5e7eb; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--surface); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 48px; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 12px 0 24px; font-weight: 600; font-size: 15px; }
+    .brand a { color: inherit; text-decoration: none; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    .hero { width: 100%; height: auto; display: block; background: var(--surface); aspect-ratio: 1/1; object-fit: cover; }
+    .content { padding: 28px 24px 24px; }
+    .meta { display: flex; gap: 12px; font-size: 12px; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+    h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 14px; line-height: 1.25; }
+    .copy { font-size: 15px; white-space: pre-wrap; color: #1f2937; }
+    .cta { margin-top: 28px; padding: 24px; background: var(--ink); color: #fff; border-radius: 14px; text-align: center; }
+    .cta h2 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+    .cta p { font-size: 13px; color: rgba(255,255,255,.7); margin-bottom: 16px; }
+    .cta a { display: inline-block; background: var(--accent); color: var(--ink); font-weight: 600; padding: 10px 22px; border-radius: 999px; text-decoration: none; font-size: 14px; }
+    .footer { margin-top: 32px; text-align: center; font-size: 12px; color: var(--muted); }
+    .footer a { color: inherit; text-decoration: underline; }
+    .loading { padding: 60px 24px; text-align: center; color: var(--muted); }
+    .error { padding: 60px 24px; text-align: center; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand"><a href="/">SmartSwing AI</a></div>
+    <div id="root" class="card">
+      <div class="loading">Loading…</div>
+    </div>
+    <div class="footer">
+      <a href="/">smartswingai.com</a> · Biomechanics intelligence for every swing.
+    </div>
+  </div>
+
+  <script>
+    (async function() {
+      var params = new URLSearchParams(location.search);
+      var slug = params.get('slug') || location.pathname.replace(/^\/p\//, '').replace(/\/$/, '');
+      var root = document.getElementById('root');
+
+      function esc(s) { return String(s || '').replace(/[&<>"]/g, function(c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]); }); }
+
+      var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+      if (!cfg.url || !cfg.anonKey) {
+        root.innerHTML = '<div class="error">Share cards are temporarily unavailable.</div>';
+        return;
+      }
+      if (!slug) {
+        root.innerHTML = '<div class="error">No post specified.</div>';
+        return;
+      }
+
+      try {
+        var url = cfg.url + '/rest/v1/content_calendar?slug=eq.' + encodeURIComponent(slug) +
+          '&status=eq.published&select=title,copy_text,image_url,platform,published_at,posted_url&limit=1';
+        var res = await fetch(url, {
+          headers: { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey }
+        });
+        if (!res.ok) throw new Error('Lookup failed');
+        var rows = await res.json();
+        var post = rows[0];
+        if (!post) {
+          root.innerHTML = '<div class="error">This post is no longer available.</div>';
+          return;
+        }
+
+        // Meta tags
+        document.getElementById('pageTitle').textContent = post.title + ' — SmartSwing AI';
+        var short = (post.copy_text || '').slice(0, 160).replace(/\n+/g, ' ');
+        document.getElementById('metaDesc').setAttribute('content', short);
+        document.getElementById('ogTitle').setAttribute('content', post.title);
+        document.getElementById('ogDesc').setAttribute('content', short);
+        if (post.image_url) document.getElementById('ogImage').setAttribute('content', post.image_url);
+        document.getElementById('ogUrl').setAttribute('content', location.href);
+        document.getElementById('twTitle').setAttribute('content', post.title);
+        document.getElementById('twDesc').setAttribute('content', short);
+        if (post.image_url) document.getElementById('twImage').setAttribute('content', post.image_url);
+
+        var pubDate = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+        root.innerHTML =
+          (post.image_url ? '<img class="hero" src="' + esc(post.image_url) + '" alt="">' : '') +
+          '<div class="content">' +
+            '<div class="meta">' + esc(post.platform || '') + (pubDate ? ' · ' + pubDate : '') + '</div>' +
+            '<h1>' + esc(post.title) + '</h1>' +
+            '<div class="copy">' + esc(post.copy_text || '') + '</div>' +
+            '<div class="cta">' +
+              '<h2>Upload a swing. Get AI feedback in 60 seconds.</h2>' +
+              '<p>Free analysis. No credit card.</p>' +
+              '<a href="/signup.html">Try SmartSwing AI</a>' +
+            '</div>' +
+          '</div>';
+      } catch (err) {
+        root.innerHTML = '<div class="error">Something went wrong loading this post.</div>';
+      }
+    })();
+  </script>
+</body>
+</html>

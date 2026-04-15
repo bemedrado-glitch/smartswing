@@ -32,6 +32,11 @@
 const { brandImagePrompt, brandCopyPrompt, BRAND_STYLE } = require('./_lib/brand-style');
 const { persistGeneratedImage } = require('./_lib/media-storage');
 const { runPublishBatch, publishSingleItem } = require('./_lib/publish-runner');
+const { runLeadScoringBatch, scoreContact } = require('./_lib/lead-scoring');
+const { runMetricsFetch, topPerformers } = require('./_lib/content-metrics');
+const { runWeeklyDigest, buildSummary } = require('./_lib/cmo-digest');
+const { runVariantRotation, getTopHooks } = require('./_lib/ab-rotator');
+const { generateVideo } = require('./_lib/video-gen');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SHARED HELPERS
@@ -242,7 +247,9 @@ async function handleAgent(req, res) {
     auto_visual = false,
     platform = 'instagram',
     content_type = 'post',
-    campaign_id = null
+    campaign_id = null,
+    // Phase F #8: generate multiple hook variants for A/B testing
+    hook_count = 1
   } = req.body || {};
   if (!agent_type || !task) return res.status(400).json({ error: 'agent_type and task are required' });
 
@@ -255,12 +262,29 @@ async function handleAgent(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
 
   // Brand voice: every copy-producing agent gets the Nike × Apple × Tennis prefix.
-  // System prompt already sets role; we prepend brand voice as an additional directive.
-  const brandedSystem = brandCopyPrompt(systemPrompt);
+  let brandedSystem = brandCopyPrompt(systemPrompt);
+
+  // Phase F #3 + #8: inject past winning hooks + top performers so the agent learns
+  try {
+    const [pastHooks, topPosts] = await Promise.all([getTopHooks(3), topPerformers(3)]);
+    if (pastHooks.length) {
+      brandedSystem += `\n\nPast winning hooks (your previous posts that over-performed — write in this voice):\n` +
+        pastHooks.map((h, i) => `${i + 1}. ${h}`).join('\n');
+    }
+    if (topPosts.length) {
+      const er = topPosts.map(p => `${Math.round((p.engagement_rate || 0))}%`).join(', ');
+      brandedSystem += `\n\nRecent post engagement rates you've hit: ${er}. Beat them.`;
+    }
+  } catch (_) { /* non-fatal */ }
 
   let userMessage = task;
   if (context) userMessage += `\n\nAdditional context: ${context}`;
   if (contact_data) userMessage += `\n\nContact data: ${JSON.stringify(contact_data, null, 2)}`;
+
+  // Phase F #8: if multi-hook requested, ask the agent for JSON with variants
+  if (hook_count > 1) {
+    userMessage += `\n\nReturn your response as JSON with this exact shape:\n{"hook_variants": ["hook 1 (strongest)", "hook 2", "hook 3"], "body": "the full post copy, using hook 1 at the top"}\nGenerate ${hook_count} distinct hooks — different angles, not rephrasings.`;
+  }
 
   const task_id = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -302,9 +326,11 @@ async function handleAgent(req, res) {
         }
         const fallbackData = await fallbackResponse.json();
         const fbText = fallbackData.content?.[0]?.text || '';
+        const fbParsed = extractHookVariants(fbText, hook_count);
         const fbExtras = await persistAgentOutput({
-          responseText: fbText, agent_type, task, task_id,
+          responseText: fbParsed.body, agent_type, task, task_id,
           auto_draft, auto_visual, platform, content_type, campaign_id,
+          hook_variants: fbParsed.variants,
           model: 'claude-3-5-sonnet-20241022'
         });
         return res.status(200).json({
@@ -318,9 +344,11 @@ async function handleAgent(req, res) {
 
     const data = await response.json();
     const text = data.content?.[0]?.text || '';
+    const parsed = extractHookVariants(text, hook_count);
     const extras = await persistAgentOutput({
-      responseText: text, agent_type, task, task_id,
+      responseText: parsed.body, agent_type, task, task_id,
       auto_draft, auto_visual, platform, content_type, campaign_id,
+      hook_variants: parsed.variants,
       model: 'claude-opus-4-5'
     });
     return res.status(200).json({
@@ -342,6 +370,24 @@ async function handleAgent(req, res) {
  *
  * All steps are best-effort; failures are logged but don't break the agent call.
  */
+/**
+ * Phase F #8: pull hook variants out of the agent's JSON-shaped response.
+ * Falls back to { variants:[], body: raw } if parsing fails.
+ */
+function extractHookVariants(text, requestedCount) {
+  if (!requestedCount || requestedCount <= 1) return { variants: null, body: text };
+  try {
+    // Find first {...} block
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) return { variants: null, body: text };
+    const obj = JSON.parse(m[0]);
+    if (Array.isArray(obj.hook_variants) && obj.hook_variants.length > 1) {
+      return { variants: obj.hook_variants.slice(0, 5), body: obj.body || text };
+    }
+  } catch (_) {}
+  return { variants: null, body: text };
+}
+
 async function persistAgentOutput(ctx) {
   const out = { agent_task_id: null, content_item_id: null, image_url: null, media_asset_id: null };
   const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -381,6 +427,10 @@ async function persistAgentOutput(ctx) {
   // 2. Insert content_calendar draft row
   try {
     const firstLine = (ctx.responseText.split('\n').find(l => l.trim().length > 5) || 'Untitled draft').slice(0, 140);
+    // Phase F #9: generate a URL-safe slug for public share cards
+    const slug = firstLine.replace(/^[#*\s-]+/, '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) +
+      '-' + Math.random().toString(36).slice(2, 7);
     const draftRow = {
       title: firstLine.replace(/^[#*\s-]+/, ''),
       type: ctx.content_type || 'post',
@@ -390,7 +440,9 @@ async function persistAgentOutput(ctx) {
       campaign_id: ctx.campaign_id || null,
       assigned_agent: ctx.agent_type,
       agent_task_id: out.agent_task_id,
-      brand_version: 'v1'
+      brand_version: 'v1',
+      slug,
+      hook_variants: ctx.hook_variants || null
     };
     const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar`, {
       method: 'POST',
@@ -1220,21 +1272,33 @@ async function handleCaptureLead(req, res) {
           serviceKey
         );
         if (!existing || existing.length === 0) {
-          await supabaseInsert(supabase_url, serviceKey, 'marketing_contacts', {
+          // Phase F #5: web → app bridge — always capture UTMs and score immediately.
+          // Every website contact defaults to 'player' (not 'club') unless explicitly told otherwise.
+          const inferredPersona = persona || player_type || 'player';
+          const contactRow = {
             email,
             name: name || email.split('@')[0],
             phone: phone || '',
-            persona: persona || 'player',
+            persona: inferredPersona,
             stage: 'lead',
-            player_type: player_type || 'player',
+            player_type: inferredPersona === 'club' ? 'club' : 'player',
             data_source: 'organic_signup',
             consent_status: 'opt_in',
             source: source || 'website',
-            tags: `{organic,${utm_source || 'direct'},${persona || 'player'}}`,
+            utm_source: utm_source || null,
+            utm_medium: utm_medium || null,
+            utm_campaign: utm_campaign || null,
+            tags: `{organic,${utm_source || 'direct'},${inferredPersona}}`,
             notes: `Organic lead capture from ${page_url || 'unknown page'}. UTM: ${utm_source || '-'}/${utm_medium || '-'}/${utm_campaign || '-'}`,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          });
+          };
+          // Compute initial lead score
+          try {
+            contactRow.lead_score = scoreContact(contactRow, {});
+            contactRow.last_scored_at = new Date().toISOString();
+          } catch (_) {}
+          await supabaseInsert(supabase_url, serviceKey, 'marketing_contacts', contactRow);
         }
       } catch (syncErr) {
         // Non-blocking — lead was already captured in lead_captures
@@ -3801,6 +3865,125 @@ async function handleEnrichEmails(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHASE F ROUTES (Growth Engine expansion)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleScoreLeads(req, res) {
+  try {
+    const result = await runLeadScoringBatch(500);
+    return res.status(200).json(result);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleSuggestTime(req, res) {
+  const platform = (req.query.platform || req.body?.platform || 'instagram').toLowerCase();
+  const index = parseInt(req.query.index || req.body?.index || '0', 10);
+  const slot = getOptimalPostSlot(platform, index);
+  return res.status(200).json({ platform, ...slot });
+}
+
+async function handleGenerateVideo(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { prompt, content_item_id } = req.body || {};
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+  try {
+    const result = await generateVideo(prompt, { contentItemId: content_item_id });
+    return res.status(result.ok ? 200 : 422).json(result);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleMetricsFetch(req, res) {
+  try {
+    const result = await runMetricsFetch(30);
+    return res.status(200).json(result);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleTopPerformers(req, res) {
+  try {
+    const rows = await topPerformers(5);
+    return res.status(200).json({ top: rows });
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleWeeklyDigest(req, res) {
+  try {
+    const target = req.query.email || req.body?.email || process.env.DIGEST_EMAIL || '';
+    const summary = target ? await runWeeklyDigest(target) : await buildSummary();
+    return res.status(200).json(summary);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleMetaWebhook(req, res) {
+  // Meta sends GET with hub.challenge for verify handshake
+  if (req.method === 'GET') {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+    if (mode === 'subscribe' && token === (process.env.META_WEBHOOK_VERIFY_TOKEN || 'smartswing-verify')) {
+      res.setHeader('Content-Type', 'text/plain');
+      return res.status(200).send(String(challenge));
+    }
+    return res.status(403).json({ error: 'verify token mismatch' });
+  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const body = req.body || {};
+  const entries = body.entry || [];
+  const supaUrl = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const out = { inbox_rows: 0 };
+
+  for (const entry of entries) {
+    const changes = entry.changes || [];
+    const messaging = entry.messaging || [];
+    // Page comments
+    for (const ch of changes) {
+      if (ch.field === 'feed' && ch.value && (ch.value.verb === 'add' || ch.value.item === 'comment')) {
+        if (key && supaUrl) {
+          try {
+            await fetch(`${supaUrl}/rest/v1/inbox_messages`, {
+              method: 'POST',
+              headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                sender_name: ch.value.sender_name || 'Facebook user',
+                body: (ch.value.message || '').slice(0, 2000),
+                source_platform: 'facebook',
+                source_provider_id: ch.value.post_id || ch.value.comment_id || null,
+                subject: 'Facebook comment on your post'
+              })
+            });
+            out.inbox_rows++;
+          } catch (_) {}
+        }
+      }
+    }
+    // Instagram / Messenger DMs
+    for (const m of messaging) {
+      if (m.message && m.message.text) {
+        if (key && supaUrl) {
+          try {
+            await fetch(`${supaUrl}/rest/v1/inbox_messages`, {
+              method: 'POST',
+              headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                sender_name: m.sender?.id ? `User ${m.sender.id}` : 'Unknown',
+                body: String(m.message.text).slice(0, 2000),
+                source_platform: 'instagram',
+                source_provider_id: m.message.mid || null,
+                subject: 'Instagram DM'
+              })
+            });
+            out.inbox_rows++;
+          } catch (_) {}
+        }
+      }
+    }
+  }
+  return res.status(200).json({ ok: true, ...out });
+}
+
 async function handlePublishNow(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const { content_item_id } = req.body || {};
@@ -3829,6 +4012,13 @@ const ROUTES = {
   'save-draft':        handleSaveDraft,
   'publish-now':       handlePublishNow,
   'publish-run':       handlePublishRun,
+  'score-leads':       handleScoreLeads,
+  'suggest-time':      handleSuggestTime,
+  'generate-video':    handleGenerateVideo,
+  'metrics-fetch':     handleMetricsFetch,
+  'top-performers':    handleTopPerformers,
+  'weekly-digest':     handleWeeklyDigest,
+  'meta-webhook':      handleMetaWebhook,
   'orchestrate':     handleOrchestrate,
   'enroll-cadence':      handleEnrollCadence,
   'unenroll-cadence':    handleUnenrollCadence,

@@ -21,6 +21,10 @@
 const { renderTemplate } = require('./_lib/email-templates');
 const { runCadenceBatch } = require('./_lib/cadence-runner');
 const { runPublishBatch } = require('./_lib/publish-runner');
+const { runLeadScoringBatch } = require('./_lib/lead-scoring');
+const { runMetricsFetch } = require('./_lib/content-metrics');
+const { runVariantRotation } = require('./_lib/ab-rotator');
+const { runWeeklyDigest } = require('./_lib/cmo-digest');
 
 const RESEND_API = 'https://api.resend.com/emails';
 
@@ -225,6 +229,27 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('[cron-win-back] Publish runner error:', err?.message || err);
     results.publish = { error: err?.message || String(err) };
+  }
+
+  // Phase F: growth engine — runs every day
+  try { results.lead_scoring = await runLeadScoringBatch(500); }
+  catch (err) { results.lead_scoring = { error: err?.message || String(err) }; }
+
+  try { results.metrics = await runMetricsFetch(30); }
+  catch (err) { results.metrics = { error: err?.message || String(err) }; }
+
+  try { results.ab_rotation = await runVariantRotation(); }
+  catch (err) { results.ab_rotation = { error: err?.message || String(err) }; }
+
+  // Weekly digest — only on Mondays (UTC)
+  const todayDow = new Date().getUTCDay();
+  if (todayDow === 1) {
+    try {
+      const digestEmail = process.env.DIGEST_EMAIL || '';
+      results.weekly_digest = await runWeeklyDigest(digestEmail);
+    } catch (err) {
+      results.weekly_digest = { error: err?.message || String(err) };
+    }
   }
 
   console.log('[cron-win-back] Completed:', results);

@@ -717,6 +717,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <option value="email">Email</option>
                 <option value="ad">Ad</option>
               </select>
+              <span style="color:var(--muted);">Hooks:</span>
+              <select id="agentHookCount" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;" title="Generate multiple hook variants for A/B testing">
+                <option value="1">1</option>
+                <option value="3">3 (A/B)</option>
+                <option value="5">5 (A/B)</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2119,7 +2125,7 @@ function renderContacts(contacts) {
 
     return `<tr>
       <td>
-        <div class="mkt-table__name">${escHtml(c.name || '')}${rankBadge}</div>
+        <div class="mkt-table__name">${escHtml(c.name || '')}${rankBadge}${c.lead_score ? `<span style="margin-left:8px;padding:2px 6px;background:#D8FF00;color:#0B1220;border-radius:8px;font-size:10px;font-weight:700;">★ ${c.lead_score}</span>` : ''}</div>
         ${clubLink}
       </td>
       <td>${emailDisplay}</td>
@@ -3522,6 +3528,10 @@ function openDayDetailModal(dateStr) {
         ? '<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" style="flex:0 0 auto;" ' +
           'onclick="event.stopPropagation(); publishContentNow(\'' + item.id + '\');">🚀 Publish now</button>'
         : '';
+      var shareLinkBtn = (item.status === 'published' && item.slug)
+        ? '<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" style="flex:0 0 auto;" ' +
+          'onclick="event.stopPropagation(); navigator.clipboard.writeText(\'https://smartswingai.com/p/' + item.slug + '\'); (window.mktToast||showToast)(\'Share link copied\',\'success\');">🔗 Copy share link</button>'
+        : '';
       var failureChip = item.failure_reason
         ? '<div style="font-size:11px;color:#b91c1c;margin-top:4px;">⚠ ' + escHtml(String(item.failure_reason).slice(0, 140)) + '</div>'
         : '';
@@ -3541,7 +3551,7 @@ function openDayDetailModal(dateStr) {
           '<div class="mkt-cal-day-list-item__copy">' + escHtml(copy) + '</div>' +
           failureChip + ' ' + postedChip +
         '</div>' +
-        publishBtn +
+        publishBtn + shareLinkBtn +
       '</div>';
     }).join('');
   }
@@ -3690,6 +3700,7 @@ async function runAgent() {
         agent_type: effectiveAgent,
         task,
         auto_draft: autoDraft,
+        hook_count: parseInt(document.getElementById('agentHookCount')?.value || '1', 10),
         auto_visual: autoVisual,
         platform: draftPlatform,
         content_type: draftType

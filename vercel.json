@@ -117,6 +117,10 @@
     {
       "source": "/api/marketing/:_route",
       "destination": "/api/marketing?_route=:_route"
+    },
+    {
+      "source": "/p/:slug",
+      "destination": "/post.html?slug=:slug"
     }
   ],
   "routes": [
