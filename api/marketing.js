@@ -4966,10 +4966,6 @@ const ROUTES = {
   'go':                handleGoRedirect
 };
 
-// Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
-// Orchestration with 4 Claude calls + DALL-E needs the full window.
-module.exports.maxDuration = 60;
-
 module.exports = async function handler(req, res) {
   // The _route param is injected by Vercel rewrite:
   //   /api/marketing/:_route → /api/marketing?_route=:_route
@@ -4992,3 +4988,8 @@ module.exports = async function handler(req, res) {
 
   return handlerFn(req, res);
 };
+
+// Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
+// Orchestration with 4 Claude calls + DALL-E needs the full window.
+// IMPORTANT: maxDuration must be set AFTER module.exports is assigned to take effect.
+module.exports.maxDuration = 60;

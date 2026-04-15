@@ -5300,7 +5300,7 @@ async function openDraftScheduler(contentItemId) {
         scheduled_date: date,
         scheduled_time: time,
         status: 'scheduled',
-        approval_status: 'pending_approval'
+        approval_status: 'pending'
       })
     });
     const data = await res.json();
@@ -5968,7 +5968,14 @@ async function runOrchestration() {
         context: { platform, additional: context_text }
       })
     });
-    const data = await res.json();
+    // Guard against non-JSON responses (e.g. Vercel 504 timeout plain-text)
+    const rawText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (_) {
+      throw new Error(res.status === 504 ? 'Pipeline timed out — try a shorter workflow type' : (rawText.slice(0, 120) || `Server error ${res.status}`));
+    }
 
     if (!data.success) throw new Error(data.error || 'Pipeline failed');
 
