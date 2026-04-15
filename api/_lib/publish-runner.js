@@ -9,7 +9,7 @@
  *
  * For each eligible item:
  *   1. Route to the platform-specific publisher (Facebook / Instagram today;
- *      LinkedIn / X / YouTube / TikTok wired when their tokens land).
+ *      X / YouTube / TikTok / Reddit wired when their tokens land).
  *   2. On success: PATCH status='published', posted_url, provider_post_id,
  *      published_at = now().
  *   3. On failure: PATCH failure_reason. Keep status='scheduled' so the next
@@ -22,6 +22,8 @@
  * Env:
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  *   META_PAGE_ACCESS_TOKEN, META_PAGE_ID, META_IG_ACCOUNT_ID  (optional)
+ *
+ * Supported platforms: facebook, instagram, tiktok, youtube, x/twitter, reddit
  */
 
 'use strict';
@@ -130,43 +132,6 @@ async function publishInstagram(item) {
   return { ok: true, providerId: p.id, url: `https://instagram.com/p/${p.id}` };
 }
 
-// LinkedIn — org/person token + /ugcPosts (Ticket #10).
-async function publishLinkedIn(item) {
-  const token = process.env.LINKEDIN_ACCESS_TOKEN;
-  const authorUrn = process.env.LINKEDIN_AUTHOR_URN; // e.g. 'urn:li:organization:12345'
-  if (!token || !authorUrn) return { ok: false, error: 'LINKEDIN_ACCESS_TOKEN / LINKEDIN_AUTHOR_URN not configured', skip: true };
-
-  const { caption } = buildCaption('linkedin', item);
-  const media = item.image_url ? [{
-    status: 'READY',
-    description: { text: (item.title || '').slice(0, 200) },
-    media: 'urn:li:digitalmediaAsset:placeholder', // requires register-upload flow; left as TODO
-    title: { text: (item.title || '').slice(0, 200) }
-  }] : [];
-
-  const body = {
-    author: authorUrn,
-    lifecycleState: 'PUBLISHED',
-    specificContent: {
-      'com.linkedin.ugc.ShareContent': {
-        shareCommentary: { text: caption },
-        shareMediaCategory: media.length ? 'IMAGE' : 'NONE',
-        media
-      }
-    },
-    visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
-  };
-
-  const r = await fetch('https://api.linkedin.com/v2/ugcPosts', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Restli-Protocol-Version': '2.0.0' },
-    body: JSON.stringify(body)
-  });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) return { ok: false, error: d?.message || `LinkedIn error ${r.status}` };
-  return { ok: true, providerId: d.id, url: `https://linkedin.com/feed/update/${d.id}` };
-}
-
 // Placeholder publishers — wired when tokens land
 async function publishNotImplemented(platform) {
   return { ok: false, error: `${platform} publisher not yet configured`, skip: true };
@@ -175,11 +140,11 @@ async function publishNotImplemented(platform) {
 const PUBLISHERS = {
   facebook:  publishFacebook,
   instagram: publishInstagram,
-  linkedin:  publishLinkedIn,
   tiktok:    (it) => publishNotImplemented('tiktok'),
   youtube:   (it) => publishNotImplemented('youtube'),
   x:         (it) => publishNotImplemented('x'),
-  twitter:   (it) => publishNotImplemented('twitter'),
+  twitter:   (it) => publishNotImplemented('x'),
+  reddit:    (it) => publishNotImplemented('reddit'),
   blog:      (it) => publishNotImplemented('blog'),
   email:     (it) => publishNotImplemented('email')
 };

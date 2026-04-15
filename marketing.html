@@ -590,7 +590,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <button class="mkt-cal-filter" data-platform="tiktok" onclick="toggleCalFilter('platform','tiktok')">♫ TikTok</button>
           <button class="mkt-cal-filter" data-platform="youtube" onclick="toggleCalFilter('platform','youtube')">▶ YouTube</button>
           <button class="mkt-cal-filter" data-platform="facebook" onclick="toggleCalFilter('platform','facebook')">👥 Facebook</button>
-          <button class="mkt-cal-filter" data-platform="linkedin" onclick="toggleCalFilter('platform','linkedin')">💼 LinkedIn</button>
+          <button class="mkt-cal-filter" data-platform="x" onclick="toggleCalFilter('platform','x')">✖ X</button>
+          <button class="mkt-cal-filter" data-platform="reddit" onclick="toggleCalFilter('platform','reddit')">🤿 Reddit</button>
           <button class="mkt-cal-filter" data-platform="blog" onclick="toggleCalFilter('platform','blog')">📝 Blog</button>
           <button class="mkt-cal-filter" data-platform="email" onclick="toggleCalFilter('platform','email')">✉ Email</button>
           <span style="color:var(--line);margin:0 4px;">|</span>
@@ -720,7 +721,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <option value="tiktok">TikTok</option>
                 <option value="youtube">YouTube</option>
                 <option value="facebook">Facebook</option>
-                <option value="linkedin">LinkedIn</option>
+                <option value="x">X / Twitter</option>
+                <option value="reddit">Reddit</option>
                 <option value="blog">Blog</option>
                 <option value="email">Email</option>
               </select>
@@ -802,7 +804,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   <option value="tiktok">TikTok</option>
                   <option value="youtube">YouTube</option>
                   <option value="facebook">Facebook</option>
-                  <option value="linkedin">LinkedIn</option>
+                  <option value="x">X / Twitter</option>
+                  <option value="reddit">Reddit</option>
                   <option value="blog">Blog</option>
                   <option value="email">Email</option>
                 </select>
@@ -1579,9 +1582,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="instagram">Instagram</option>
             <option value="youtube">YouTube</option>
             <option value="facebook">Facebook</option>
+            <option value="x">X / Twitter</option>
+            <option value="reddit">Reddit</option>
             <option value="blog">Blog</option>
             <option value="email">Email</option>
-            <option value="linkedin">LinkedIn</option>
           </select>
         </div>
         <div class="mkt-form-group">
@@ -3215,8 +3219,8 @@ async function viewCampaignContent(campaignId, campaignName) {
         ? new Date(item.scheduled_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })
         : '—';
       var platformIcon = ({
-        instagram: '📷', facebook: '📘', twitter: '🐦', linkedin: '💼',
-        tiktok: '🎵', youtube: '▶️', email: '✉️', sms: '📱'
+        instagram: '📷', facebook: '📘', twitter: '🐦', x: '✖',
+        tiktok: '🎵', youtube: '▶️', reddit: '🤿', email: '✉️', sms: '📱'
       })[String(item.platform || '').toLowerCase()] || '🌐';
       var statusColor = ({ scheduled: '#d97706', published: '#16a34a', draft: '#2563eb', idea: '#64748b', failed: '#dc2626' })[item.status] || '#64748b';
       var thumb = item.image_url
@@ -3538,7 +3542,8 @@ function renderCalendar() {
 
   var platformIcons = {
     tiktok: '\u266B', instagram: '\uD83D\uDCF7', youtube: '\u25B6',
-    facebook: '\uD83D\uDC65', blog: '\uD83D\uDCDD', email: '\u2709', linkedin: '\uD83D\uDCBC'
+    facebook: '\uD83D\uDC65', x: '\u2716', twitter: '\uD83D\uDC26', reddit: '\uD83E\uDD3F',
+    blog: '\uD83D\uDCDD', email: '\u2709'
   };
 
   var html = dayNames.map(function(d) { return '<div class="mkt-cal-day-header">' + d + '</div>'; }).join('');
@@ -3715,7 +3720,7 @@ function openDayDetailModal(dateStr) {
 
   var platformIcons = {
     tiktok: '♫', instagram: '📷', youtube: '▶', facebook: '👥',
-    blog: '📝', email: '✉', linkedin: '💼'
+    x: '✖', twitter: '🐦', reddit: '🤿', blog: '📝', email: '✉'
   };
 
   var body;
@@ -4162,7 +4167,7 @@ function loadContent() {
  */
 async function publishContentNow(contentItemId) {
   if (!contentItemId) return;
-  if (!confirm('Publish this post to its platform right now?\n\nFacebook and Instagram will post immediately. LinkedIn / TikTok / YouTube / X are not wired yet.')) return;
+  if (!confirm('Publish this post to its platform right now?\n\nFacebook and Instagram will post immediately. TikTok / YouTube / X / Reddit tokens can be added in Vercel env vars to activate those publishers.')) return;
   try {
     showToast('Publishing…', 'info');
     const res = await fetch('/api/marketing/publish-now', {
@@ -4300,7 +4305,7 @@ function openContentDetail(id) {
   const item = MarketingStore.contentItems.find(i => i.id === id);
   if (!item) return;
   _previewDirty = false;
-  const platformEmojis = { tiktok: '&#127925;', instagram: '&#128248;', youtube: '&#9654;&#65039;', facebook: '&#128101;', blog: '&#128221;', email: '&#128231;', linkedin: '&#128188;' };
+  const platformEmojis = { tiktok: '&#127925;', instagram: '&#128248;', youtube: '&#9654;&#65039;', facebook: '&#128101;', x: '&#10006;', twitter: '&#128038;', reddit: '&#129343;', blog: '&#128221;', email: '&#128231;' };
   const typeLabels = { post: 'Post', reel: 'Reel', story: 'Story', video: 'Video', blog: 'Blog Post', email: 'Email', ad: 'Ad', script: 'Script', social_post: 'Social Post', content: 'Content' };
 
   document.getElementById('cdTitle').textContent = item.title;
@@ -4350,7 +4355,7 @@ function openContentDetail(id) {
   var frame = document.getElementById('cdPhoneFrame');
   frame.className = 'cd-phone-frame';
   if (item.platform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
-  else if (item.platform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
+  else if (item.platform === 'tiktok') frame.classList.add('cd-phone-frame--tiktok');
   // Activate matching platform button; gray out unconnected platforms
   var _configured = JSON.parse(localStorage.getItem('mkt_platform_keys') || '{}');
   document.querySelectorAll('.cd-plat-btn').forEach(function(b) {
@@ -4441,7 +4446,7 @@ function switchPreviewPlatform(platform, btn) {
   var frame = document.getElementById('cdPhoneFrame');
   frame.className = 'cd-phone-frame';
   if (platform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
-  else if (platform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
+  else if (platform === 'tiktok') frame.classList.add('cd-phone-frame--tiktok');
 }
 
 function showSaveBar() {
@@ -5453,7 +5458,7 @@ function viewApprovalDetail(id) {
     '<span class="mkt-badge mkt-badge--' + statusBadgeClass + '">' + item.approval_status + '</span>';
 
   // Phone mockup preview — show only for social platforms
-  var socialPlatforms = ['instagram', 'facebook', 'linkedin', 'tiktok', 'youtube'];
+  var socialPlatforms = ['instagram', 'facebook', 'tiktok', 'youtube', 'x', 'twitter', 'reddit'];
   var phoneCol = document.querySelector('.cd-preview-phone-col');
   var itemPlatform = (item.platform || '').toLowerCase();
   if (socialPlatforms.indexOf(itemPlatform) !== -1) {
@@ -5473,7 +5478,7 @@ function viewApprovalDetail(id) {
     var frame = document.getElementById('cdPhoneFrame');
     frame.className = 'cd-phone-frame';
     if (itemPlatform === 'facebook') frame.classList.add('cd-phone-frame--facebook');
-    else if (itemPlatform === 'linkedin') frame.classList.add('cd-phone-frame--linkedin');
+    else if (itemPlatform === 'tiktok') frame.classList.add('cd-phone-frame--tiktok');
     // Show only the item's platform button as active, disable others
     var configured = JSON.parse(localStorage.getItem('mkt_platform_keys') || '{}');
     document.querySelectorAll('.cd-plat-btn').forEach(function(b) {
@@ -5924,7 +5929,8 @@ setTimeout(function() {
           <div class="cd-platform-switcher">
             <button class="cd-plat-btn cd-plat-btn--active" data-plat="instagram" onclick="switchPreviewPlatform('instagram',this)">Instagram</button>
             <button class="cd-plat-btn" data-plat="facebook" onclick="switchPreviewPlatform('facebook',this)">Facebook</button>
-            <button class="cd-plat-btn" data-plat="linkedin" onclick="switchPreviewPlatform('linkedin',this)">LinkedIn</button>
+            <button class="cd-plat-btn" data-plat="tiktok" onclick="switchPreviewPlatform('tiktok',this)">TikTok</button>
+            <button class="cd-plat-btn" data-plat="x" onclick="switchPreviewPlatform('x',this)">X</button>
           </div>
         </div>
 

@@ -154,8 +154,8 @@ Platform specs you follow strictly:
 - Instagram Reels (9:16 video, ≤30s) or carousel (≤10 slides, hook → problem → 3–5 steps → CTA). Caption ≤ 150 words + relevant hashtags.
 - YouTube: Shorts (9:16, ≤60s) or long-form (hook → payoff in first 30s, chapter markers).
 - Facebook: native photo or video + ≤120 words. No external link in body (reach killer).
-- LinkedIn: 1,200–1,500 characters, hook in line 1 (before the "see more" fold), short paragraphs, link in comments.
 - X/Twitter: single tweet ≤180 chars OR thread (hook tweet → 4–7 beats → CTA tweet).
+- Reddit: conversational self-post, no hashtags, value-first, link is fine. Target r/tennis or r/pickleball subreddit.
 Always output: {platform, format, hook, body, cta, hashtags_or_none, best_post_time_local}.`,
 
   content_creator: `You are SmartSwing AI's scriptwriter. Produce scripts and briefs adapted to each platform's algorithm.
@@ -811,13 +811,15 @@ function mapWorkflowTypeToCalendarType(workflowType) {
 // Optimal posting times by platform (based on social media engagement research)
 // Times in 24h format (EST/EDT). Multiple slots per platform for variety.
 const OPTIMAL_POST_TIMES = {
-  tiktok:    ['09:00', '12:00', '19:00'],     // Morning, lunch, evening
-  instagram: ['08:00', '11:00', '14:00', '19:00'], // Pre-work, mid-morning, afternoon, evening
-  youtube:   ['14:00', '16:00'],               // Afternoon for max first-24h views
-  facebook:  ['09:00', '13:00', '16:00'],      // Morning, lunch, afternoon
-  linkedin:  ['07:30', '10:00', '12:00'],      // Pre-work, mid-morning, lunch
-  blog:      ['10:00', '14:00'],               // Mid-morning, afternoon
-  email:     ['06:00', '10:00', '14:00']       // Early morning, mid-morning, afternoon
+  tiktok:    ['09:00', '12:00', '19:00'],           // Morning, lunch, evening
+  instagram: ['08:00', '11:00', '14:00', '19:00'],  // Pre-work, mid-morning, afternoon, evening
+  youtube:   ['14:00', '16:00'],                    // Afternoon for max first-24h views
+  facebook:  ['09:00', '13:00', '16:00'],           // Morning, lunch, afternoon
+  x:         ['09:00', '12:00', '17:00'],           // Pre-work, lunch, end-of-day
+  twitter:   ['09:00', '12:00', '17:00'],
+  reddit:    ['14:00', '17:00'],                    // r/tennis & r/pickleball peak
+  blog:      ['10:00', '14:00'],
+  email:     ['06:00', '10:00', '14:00']
 };
 
 // Optimal posting days by platform (0=Sun, 1=Mon, ... 6=Sat)
@@ -826,9 +828,11 @@ const OPTIMAL_POST_DAYS = {
   instagram: [1, 3, 5],        // Mon, Wed, Fri
   youtube:   [4, 6],           // Thu, Sat
   facebook:  [1, 3, 5],        // Mon, Wed, Fri
-  linkedin:  [2, 3, 4],        // Tue, Wed, Thu
-  blog:      [2, 4],           // Tue, Thu
-  email:     [2, 4]            // Tue, Thu
+  x:         [1, 2, 3, 4, 5], // Weekdays
+  twitter:   [1, 2, 3, 4, 5],
+  reddit:    [1, 3, 5],        // Mon, Wed, Fri
+  blog:      [2, 4],
+  email:     [2, 4]
 };
 
 /**
@@ -1616,7 +1620,7 @@ async function handlePublishWebhook(req, res) {
   if (!action || !['publish', 'schedule'].includes(action)) return res.status(400).json({ error: 'action must be "publish" or "schedule"' });
   if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
 
-  const validPlatforms = ['instagram', 'tiktok', 'youtube', 'facebook', 'linkedin'];
+  const validPlatforms = ['instagram', 'tiktok', 'youtube', 'facebook', 'x', 'twitter', 'reddit'];
   if (!validPlatforms.includes(platform)) {
     return res.status(400).json({ error: `Invalid platform. Must be one of: ${validPlatforms.join(', ')}` });
   }
@@ -3216,7 +3220,7 @@ async function handleProspectClubs(req, res) {
       cities_searched: regionConfig.cities.length,
       queries_used: searchQueries,
       next_steps: [
-        'Enrich leads with email addresses (check websites, LinkedIn)',
+        'Enrich leads with email addresses (check websites, social profiles)',
         'Run cadence enrollment for outreach',
         'Assign to campaigns for targeted marketing'
       ]
@@ -3923,7 +3927,7 @@ async function handleEnrichEmails(req, res) {
       results,
       next_steps: enriched > 0
         ? ['Run cadence enrollment for newly enriched contacts', 'Review emails in marketing dashboard']
-        : ['Manually add emails for contacts without website', 'Try enriching from LinkedIn or social profiles']
+        : ['Manually add emails for contacts without website', 'Try enriching from social profiles or club websites']
     });
   } catch (err) {
     console.error('[enrich-emails] Error:', err);

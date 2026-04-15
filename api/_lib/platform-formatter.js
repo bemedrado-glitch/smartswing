@@ -17,31 +17,30 @@
 'use strict';
 
 // Optimal posting windows (local time HH:MM) by platform — used for auto-schedule.
-// Sourced from the social-content skill's "best times" table + our own analytics
-// where available. Cron fires daily at 10:00 UTC; publish-runner gates by time.
+// Platforms: facebook, instagram, x/twitter, tiktok, youtube, reddit.
 const PLATFORM_WINDOWS = {
-  linkedin:  { weekday: '07:30', weekend: null     },  // B2B: skip weekends
   facebook:  { weekday: '13:00', weekend: '11:00'  },
   instagram: { weekday: '11:30', weekend: '10:00'  },
   twitter:   { weekday: '09:00', weekend: '10:30'  },
   x:         { weekday: '09:00', weekend: '10:30'  },
   tiktok:    { weekday: '19:30', weekend: '11:00'  },
   youtube:   { weekday: '16:00', weekend: '10:00'  },
+  reddit:    { weekday: '14:00', weekend: '10:00'  },  // r/tennis & r/pickleball peak
   email:     { weekday: '08:30', weekend: null     },
   sms:       { weekday: '12:00', weekend: null     }
 };
 
 // Platform limits and behaviors.
 const PLATFORM_RULES = {
-  facebook:  { maxChars: 2200, hashtags: 'few',   linkInBody: false, aspect: '1:1 or 4:5' },
-  instagram: { maxChars: 2200, hashtags: 'many',  linkInBody: false, aspect: '1:1 or 4:5 or 9:16' },
-  twitter:   { maxChars: 280,  hashtags: 'none',  linkInBody: true,  aspect: '16:9 or 1:1' },
-  x:         { maxChars: 280,  hashtags: 'none',  linkInBody: true,  aspect: '16:9 or 1:1' },
-  linkedin:  { maxChars: 1500, hashtags: 'few',   linkInBody: false, aspect: '1.91:1 or 1:1' },
-  tiktok:    { maxChars: 2200, hashtags: 'few',   linkInBody: false, aspect: '9:16' },
-  youtube:   { maxChars: 5000, hashtags: 'few',   linkInBody: true,  aspect: '16:9 (1:1 for Shorts)' },
-  email:     { maxChars: 10000,hashtags: 'none',  linkInBody: true,  aspect: null },
-  sms:       { maxChars: 160,  hashtags: 'none',  linkInBody: true,  aspect: null }
+  facebook:  { maxChars: 2200,  hashtags: 'few',   linkInBody: false, aspect: '1:1 or 4:5' },
+  instagram: { maxChars: 2200,  hashtags: 'many',  linkInBody: false, aspect: '1:1 or 4:5 or 9:16' },
+  twitter:   { maxChars: 280,   hashtags: 'none',  linkInBody: true,  aspect: '16:9 or 1:1' },
+  x:         { maxChars: 280,   hashtags: 'none',  linkInBody: true,  aspect: '16:9 or 1:1' },
+  tiktok:    { maxChars: 2200,  hashtags: 'few',   linkInBody: false, aspect: '9:16' },
+  youtube:   { maxChars: 5000,  hashtags: 'few',   linkInBody: true,  aspect: '16:9 (1:1 for Shorts)' },
+  reddit:    { maxChars: 10000, hashtags: 'none',  linkInBody: true,  aspect: '16:9 or 1:1' },
+  email:     { maxChars: 10000, hashtags: 'none',  linkInBody: true,  aspect: null },
+  sms:       { maxChars: 160,   hashtags: 'none',  linkInBody: true,  aspect: null }
 };
 
 // Default tennis/pickleball hashtag bank by persona.
@@ -85,7 +84,7 @@ function smartTrim(text, maxChars) {
 
 /**
  * Strip bare URLs from the body for platforms where links in body hurt reach
- * (LinkedIn, Facebook, Instagram). Returns {stripped, firstUrl}.
+ * (Facebook, Instagram). Returns {stripped, firstUrl}.
  */
 function extractUrls(text) {
   const urls = String(text || '').match(/https?:\/\/[^\s)]+/g) || [];
@@ -99,7 +98,7 @@ function stripUrls(text) {
 /**
  * Build the payload sent to each platform publisher.
  *
- * @param {string} platform - 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'x' | 'tiktok' | 'youtube' | 'email' | 'sms'
+ * @param {string} platform - 'instagram' | 'facebook' | 'twitter' | 'x' | 'tiktok' | 'youtube' | 'reddit' | 'email' | 'sms'
  * @param {object} item    - content_calendar row
  * @returns {{caption:string, hashtags:string[], link:string|null, warnings:string[], aspect:string|null}}
  */
@@ -118,13 +117,7 @@ function formatForPlatform(platform, item) {
 
   // 2) Compose hook + body per platform
   let caption;
-  if (key === 'linkedin') {
-    // Hook on first line, then blank line, then body. Encourage <1500.
-    const hook = title || body.split(/[.!?]\s/)[0] || body.slice(0, 120);
-    const rest = body.startsWith(hook) ? body.slice(hook.length).trim() : body;
-    caption = hook.trim() + '\n\n' + rest;
-    if (linkInBody) warnings.push('Link stripped from LinkedIn body — post in the first comment for reach.');
-  } else if (key === 'twitter' || key === 'x') {
+  if (key === 'twitter' || key === 'x') {
     // Prefer the hook/title if body is too long
     const candidate = (title && title.length <= rules.maxChars) ? title : body;
     caption = smartTrim(candidate, rules.maxChars);
@@ -139,6 +132,10 @@ function formatForPlatform(platform, item) {
   } else if (key === 'youtube') {
     // YouTube description — keep link, keep full body
     caption = (title ? title.trim() + '\n\n' : '') + body;
+  } else if (key === 'reddit') {
+    // Reddit post body — conversational, no hashtags, link is fine, hook as title
+    caption = body;
+    // Reddit "title" is separate (handled by publisher); body is self-post text
   } else {
     caption = body;
   }
