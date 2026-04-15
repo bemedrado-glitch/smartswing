@@ -2757,6 +2757,9 @@ async function openAssignCadenceModal(contactId, contactName, preselectCadenceId
   cadSel.innerHTML  = '<option value="">⏳ Loading…</option>';
   campSel.innerHTML = '<option value="">⏳ Loading…</option>';
 
+  // Close any open lead/contact detail modals so they don't stack
+  closeModal('leadTimelineModal');
+  closeModal('contactCardModal');
   openModal('assignCadenceModal');
 
   if (MarketingStore.supabase) {
@@ -2827,7 +2830,9 @@ async function confirmAssignCadence() {
       const cadName = d.cadence_name || 'cadence';
       const nextWhen = d.next_step_at ? new Date(d.next_step_at).toLocaleString() : 'now';
       const campNote = campaignId ? ' + campaign' : '';
-      showToast(`✓ Enrolled in "${cadName}"${campNote} (${d.steps_scheduled || 0} steps, first send ${nextWhen}). Moved to Leads.`, 'success');
+      const skipNote = d.skipped_channels && d.skipped_channels.length
+        ? ` ⚠ Skipped: ${d.skipped_channels.join(', ')}.` : '';
+      showToast(`✓ Enrolled in "${cadName}"${campNote} (${d.steps_scheduled || 0} steps, first send ${nextWhen}). Moved to Leads.${skipNote}`, 'success');
 
     } else if (campaignId && MarketingStore.supabase) {
       // Campaign-only path — promote stage + log journey via Supabase client directly
@@ -5797,7 +5802,11 @@ function deleteApprovalItem(id) {
 
 function viewApprovalDetail(id) {
   var item = MarketingStore.approvalQueue.find(function(a) { return a.id === id; });
-  if (!item) return;
+  // Fall back to contentItems if not found in approvalQueue
+  if (!item && Array.isArray(MarketingStore.contentItems)) {
+    item = MarketingStore.contentItems.find(function(a) { return a.id === id; });
+  }
+  if (!item) { showToast('Content item not found — try refreshing', 'error'); return; }
 
   // Title & meta badges
   document.getElementById('cdTitle').textContent = item.title || 'Content Detail';
@@ -5823,7 +5832,7 @@ function viewApprovalDetail(id) {
       phoneImg.style.display = 'none';
       phoneEmpty.style.display = 'flex';
     }
-    var captionText = (item.content || item.title || '').replace(/\*\*/g, '').replace(/^Caption:\s*/i, '').trim();
+    var captionText = (item.copy_text || item.content || item.title || '').replace(/\*\*/g, '').replace(/^Caption:\s*/i, '').trim();
     document.getElementById('cdPhoneCaptionText').textContent = captionText.length > 140 ? captionText.substring(0, 140) + '...' : captionText;
     var frame = document.getElementById('cdPhoneFrame');
     frame.className = 'cd-phone-frame';
@@ -5861,9 +5870,10 @@ function viewApprovalDetail(id) {
   // Editable copy text
   var copyEl = document.getElementById('cdCopy');
   var copyBox = document.getElementById('cdCopyText');
-  if (item.content) {
+  var copyContent = item.copy_text || item.content || '';
+  if (copyContent) {
     copyEl.style.display = 'block';
-    copyBox.textContent = item.content;
+    copyBox.textContent = copyContent;
     copyBox.setAttribute('contenteditable', 'true');
     copyBox.oninput = function() {
       _previewDirty = true;

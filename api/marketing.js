@@ -1097,8 +1097,30 @@ async function handleEnrollCadence(req, res) {
       });
     }
 
-    const emailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
-    const smsSteps   = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+    // Fetch contact record to determine available channels
+    let contactRecord = null;
+    try {
+      const contactRows = await supabaseGet(
+        `${supabase_url}/rest/v1/marketing_contacts?id=eq.${contact_id}&select=email,phone,stage&limit=1`,
+        supabase_key
+      );
+      contactRecord = contactRows?.[0] || null;
+    } catch (err) { console.warn('[enroll-cadence] contact lookup failed (non-fatal):', err.message); }
+
+    const isFederationEmail = contactRecord?.email && contactRecord.email.includes('@federation-record.');
+    const hasRealEmail = contactRecord?.email && !isFederationEmail;
+    const hasPhone = !!(contactRecord?.phone && String(contactRecord.phone).trim().length > 4);
+
+    const allEmailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+    const allSmsSteps   = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+
+    // Only include steps the contact can actually receive
+    const emailSteps = hasRealEmail ? allEmailSteps : [];
+    const smsSteps   = hasPhone     ? allSmsSteps   : [];
+
+    const skippedChannels = [];
+    if (!hasRealEmail && allEmailSteps.length > 0) skippedChannels.push(`email (${allEmailSteps.length} steps skipped — no valid email)`);
+    if (!hasPhone     && allSmsSteps.length > 0)   skippedChannels.push(`SMS (${allSmsSteps.length} steps skipped — no phone number)`);
 
     const enrollmentId = generateUUID();
     // Compute the first step's scheduled_at so next_step_at on the enrollment matches it
@@ -1182,6 +1204,7 @@ async function handleEnrollCadence(req, res) {
       campaign_id: campaign_id || null,
       stage: 'lead',
       steps_scheduled: executions.length,
+      skipped_channels: skippedChannels,
       next_step_at: firstNextAt,
       current_step: 1, total_steps: executions.length,
       schedule
@@ -2991,6 +3014,10 @@ async function handleAutoPublish(req, res) {
       try {
         let publishResult = {};
 
+        let actuallyPublished = false;
+        let publishedUrl = null;
+        let failureReason = null;
+
         if (platform === 'facebook' || platform === 'both') {
           const fbPayload = { message, access_token: accessToken };
           const fbRes = await fetch('https://graph.facebook.com/v21.0/' + pageId + '/feed', {
@@ -2999,6 +3026,12 @@ async function handleAutoPublish(req, res) {
             body: JSON.stringify(fbPayload)
           }).then(r => r.json());
           publishResult.facebook = fbRes;
+          if (fbRes.id) {
+            actuallyPublished = true;
+            publishedUrl = 'https://facebook.com/' + fbRes.id;
+          } else {
+            failureReason = (fbRes.error && fbRes.error.message) ? fbRes.error.message : 'Facebook publish failed';
+          }
         }
 
         if ((platform === 'instagram' || platform === 'both') && item.image_url) {
@@ -3015,17 +3048,39 @@ async function handleAutoPublish(req, res) {
               body: JSON.stringify({ creation_id: containerRes.id, access_token: accessToken })
             }).then(r => r.json());
             publishResult.instagram = pubRes;
+            if (pubRes.id) {
+              actuallyPublished = true;
+              publishedUrl = publishedUrl || ('https://instagram.com/p/' + pubRes.id);
+            } else {
+              failureReason = failureReason || ((pubRes.error && pubRes.error.message) ? pubRes.error.message : 'Instagram publish failed');
+            }
           } else {
             publishResult.instagram = { error: 'Container creation failed', details: containerRes };
+            failureReason = failureReason || 'Instagram container creation failed';
           }
         }
 
-        // Update status to published
-        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
-          status: 'published', published_date: today
-        });
+        // For non-Meta platforms (tiktok, youtube, x, reddit, etc.) — do NOT mark as published.
+        // They are not yet implemented and should remain 'scheduled'.
+        const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'both';
+        if (!isMetaPlatform) {
+          results.push({ id: item.id, title: item.title, platform, status: 'skipped', reason: 'Platform not yet configured for auto-publish' });
+          continue;
+        }
 
-        results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'published' });
+        // Only mark as published if the API call actually returned a valid post ID
+        if (actuallyPublished) {
+          await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
+            status: 'published', published_date: today, posted_url: publishedUrl
+          });
+          results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'published', url: publishedUrl });
+        } else {
+          // Keep status='scheduled' so it retries next run; record the failure reason
+          await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
+            failure_reason: (failureReason || 'Publish failed — no post ID returned').slice(0, 500)
+          });
+          results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'failed', reason: failureReason });
+        }
       } catch (pubErr) {
         console.error('[auto-publish] Failed to publish item ' + item.id + ':', pubErr.message);
         results.push({ id: item.id, title: item.title, platform, error: pubErr.message, status: 'failed' });
