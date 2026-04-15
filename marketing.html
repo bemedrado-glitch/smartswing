@@ -563,6 +563,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
 
+      <!-- ─────────────── MODAL: CAMPAIGN LEADS DRILL-DOWN ─────────────── -->
+      <div class="mkt-modal-overlay" id="campaignLeadsModal" style="display:none;">
+        <div class="mkt-modal mkt-modal--wide" style="max-width:960px;">
+          <div class="mkt-modal__header">
+            <div class="mkt-modal__title" id="campaignLeadsTitle">Enrolled Leads</div>
+            <button class="mkt-modal__close" onclick="closeModal('campaignLeadsModal')">✕</button>
+          </div>
+          <div class="mkt-modal__body" id="campaignLeadsBody" style="max-height:75vh;overflow:auto;">
+            <div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading…</div></div>
+          </div>
+          <div class="mkt-modal__footer" id="campaignLeadsFooter"></div>
+        </div>
+      </div>
+
       <!-- ─────────────── TAB: CADENCES ─────────────── -->
       <div class="mkt-tab-panel" id="tab-cadences">
 
@@ -3498,6 +3512,35 @@ async function confirmAssignCadence() {
     if (typeof loadLeads === 'function') loadLeads();
     if (typeof loadLeadsCount === 'function') loadLeadsCount();
 
+    // ── Auto-navigate: campaign chosen → Campaigns tab (highlight card)
+    //                  cadence-only   → Leads tab
+    if (campaignId) {
+      await loadCampaigns();
+      renderCampaigns();
+      switchTab('campaigns', document.querySelector('[data-tab=campaigns]'));
+      // Highlight the relevant campaign card
+      setTimeout(function() {
+        const camp = (MarketingStore.campaigns || []).find(c => c.id === campaignId);
+        if (camp) {
+          const cards = document.querySelectorAll('.mkt-campaign-card');
+          cards.forEach(function(card) {
+            const nameEl = card.querySelector('.mkt-campaign-card__name');
+            if (nameEl && nameEl.textContent.trim() === camp.name) {
+              card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              card.style.transition = 'box-shadow 0.3s, outline 0.3s';
+              card.style.outline    = '2px solid #D8FF00';
+              card.style.boxShadow  = '0 0 0 5px rgba(216,255,0,0.18)';
+              setTimeout(function() { card.style.outline = ''; card.style.boxShadow = ''; }, 2500);
+            }
+          });
+        }
+      }, 250);
+    } else {
+      // Cadence-only path → drop the user into Leads so they can see the new row
+      switchTab('leads', document.querySelector('[data-tab=leads]'));
+      if (typeof loadLeads === 'function') loadLeads();
+    }
+
   } catch (err) {
     showToast('Enrollment error: ' + (err?.message || String(err)), 'error');
   }
@@ -3948,7 +3991,7 @@ function renderCampaigns() {
     // Phase E: roll-up stats from in-memory stores
     const rollup = _campaignRollup(c);
     return `
-      <div class="mkt-campaign-card" onclick="toggleCampaignExpand(this)">
+      <div class="mkt-campaign-card" data-campaign-id="${escHtml(c.id)}" onclick="toggleCampaignExpand(this)">
         <div class="mkt-campaign-card__top">
           <div>
             <div class="mkt-campaign-card__name">${escHtml(c.name)}</div>
@@ -3957,11 +4000,12 @@ function renderCampaigns() {
           <span class="mkt-badge mkt-badge--${c.status}">${c.status}</span>
         </div>
         ${c.description ? `<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">${escHtml(c.description)}</p>` : ''}
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;font-size:12px;text-align:center;">
-          <div><div style="font-size:18px;font-weight:600;color:#0B1220;">${rollup.contacts}</div><div style="color:var(--muted);">contacts</div></div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;font-size:12px;text-align:center;">
+          <div style="cursor:pointer;" onclick="event.stopPropagation();viewCampaignContacts('${c.id}','${escHtml(c.name)}')"><div style="font-size:18px;font-weight:600;color:#8b5cf6;" id="campLeadCount_${escHtml(c.id)}">${rollup.contacts}</div><div style="color:var(--muted);">leads</div></div>
           <div><div style="font-size:18px;font-weight:600;color:#d97706;">${rollup.scheduled}</div><div style="color:var(--muted);">scheduled</div></div>
           <div><div style="font-size:18px;font-weight:600;color:#16a34a;">${rollup.published}</div><div style="color:var(--muted);">published</div></div>
           <div><div style="font-size:18px;font-weight:600;color:#2563eb;">${rollup.drafts}</div><div style="color:var(--muted);">drafts</div></div>
+          <div><div style="font-size:18px;font-weight:600;color:#0B1220;">${c.progress||0}%</div><div style="color:var(--muted);">done</div></div>
         </div>
         <div class="mkt-progress">
           <div class="mkt-progress__bar" style="width:${progress}%;"></div>
@@ -3974,7 +4018,7 @@ function renderCampaigns() {
         <div class="mkt-campaign-card__actions">
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();briefCampaignWithAI('${escHtml(c.name)}', '${c.target_persona}', '${c.type}')">🤖 Generate Brief</button>
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();viewCampaignContent('${c.id}','${escHtml(c.name)}')">📅 View Posts</button>
-          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();viewCampaignContacts('${c.id}','${escHtml(c.name)}')">👥 View Contacts</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();viewCampaignContacts('${c.id}','${escHtml(c.name)}')">🎯 Enrolled Leads</button>
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();deleteCampaign('${c.id}')">Remove</button>
         </div>
         <div class="mkt-campaign-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
@@ -4126,11 +4170,118 @@ async function viewCampaignContent(campaignId, campaignName) {
     (counts._unsaved ? '<button class="mkt-btn mkt-btn--primary" onclick="rescueImagesNow()">🖼️ Rescue ' + counts._unsaved + ' ephemeral image' + (counts._unsaved === 1 ? '' : 's') + '</button>' : '');
 }
 
-function viewCampaignContacts(campaignId, campaignName) {
-  switchTab('contacts', document.querySelector('[data-tab=contacts]'));
-  showToast('Showing contacts enrolled in "' + campaignName + '"', 'info');
-  MarketingStore._campaignContactFilter = { id: campaignId, name: campaignName };
-  if (typeof renderContacts === 'function') renderContacts();
+async function viewCampaignContacts(campaignId, campaignName) {
+  openModal('campaignLeadsModal');
+  document.getElementById('campaignLeadsTitle').textContent = 'Enrolled Leads — ' + campaignName;
+  const body   = document.getElementById('campaignLeadsBody');
+  const footer = document.getElementById('campaignLeadsFooter');
+  body.innerHTML   = '<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading leads…</div></div>';
+  footer.innerHTML = `<button class="mkt-btn mkt-btn--ghost" onclick="closeModal('campaignLeadsModal')">Close</button>`;
+
+  if (!MarketingStore.supabase) {
+    body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">🔌</div><div class="mkt-empty__title">Supabase not connected</div></div>';
+    return;
+  }
+
+  try {
+    // Enrollments with cadence steps linked to this campaign
+    const [enrollRes, journeyRes] = await Promise.all([
+      MarketingStore.supabase
+        .from('contact_cadence_enrollments')
+        .select('id,contact_id,status,current_step,enrolled_at,next_step_at,email_cadences(id,name),marketing_contacts(id,name,email,phone,lead_score)')
+        .eq('campaign_id', campaignId)
+        .order('enrolled_at', { ascending: false }),
+      MarketingStore.supabase
+        .from('contact_journeys')
+        .select('contact_id,stage,entered_at,marketing_contacts(id,name,email,phone)')
+        .eq('campaign_id', campaignId)
+        .order('entered_at', { ascending: false })
+    ]);
+
+    const enrollments = enrollRes.data || [];
+    const journeys    = journeyRes.data  || [];
+
+    // Campaign-only leads (journey entry without a cadence enrollment row)
+    const enrolledIds = new Set(enrollments.map(e => e.contact_id));
+    const campaignOnlyLeads = journeys.filter(j => !enrolledIds.has(j.contact_id));
+
+    if (!enrollments.length && !campaignOnlyLeads.length) {
+      body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">🎯</div><div class="mkt-empty__title">No leads enrolled yet</div><div class="mkt-empty__text">Enroll contacts from the Contacts or Leads tab.</div></div>';
+      footer.innerHTML = `
+        <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('campaignLeadsModal')">Close</button>
+        <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="closeModal('campaignLeadsModal');switchTab('contacts',document.querySelector('[data-tab=contacts]'));">+ Enroll a Contact</button>`;
+      return;
+    }
+
+    const allRows = [
+      ...enrollments.map(e => ({
+        contact: e.marketing_contacts,
+        cadence: e.email_cadences,
+        step:    `Step ${e.current_step || 1}`,
+        status:  e.status,
+        enrolled: e.enrolled_at,
+        next:     e.next_step_at,
+        enrollId: e.id,
+        type: 'cadence'
+      })),
+      ...campaignOnlyLeads.map(j => ({
+        contact: j.marketing_contacts,
+        cadence: null,
+        step:    '—',
+        status:  j.stage || 'lead',
+        enrolled: j.entered_at,
+        next:     null,
+        enrollId: null,
+        type: 'campaign'
+      }))
+    ];
+
+    const statusColor = { active:'#16a34a', completed:'#2563eb', paused:'#d97706', cancelled:'#dc2626', lead:'#8b5cf6', pending:'#94a3b8' };
+
+    body.innerHTML = `
+      <div style="margin-bottom:12px;font-size:13px;color:var(--muted);">${allRows.length} lead${allRows.length !== 1 ? 's' : ''} enrolled in this campaign.</div>
+      <div class="mkt-table-wrap">
+        <table class="mkt-table">
+          <thead><tr>
+            <th>Contact</th><th>Cadence</th><th>Step</th><th>Status</th><th>Enrolled</th><th>Next Step</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${allRows.map(r => {
+              const name     = r.contact?.name || r.contact?.email || '(unknown)';
+              const email    = r.contact?.email || '';
+              const cadName  = r.cadence?.name || (r.type === 'campaign' ? '<em style="color:var(--muted)">Campaign only</em>' : '—');
+              const sc       = statusColor[r.status] || '#64748b';
+              const enrolled = r.enrolled ? new Date(r.enrolled).toLocaleDateString() : '—';
+              const nextAt   = r.next ? new Date(r.next).toLocaleString() : '—';
+              const cid      = r.contact?.id || '';
+              const nameJson = JSON.stringify(name).replace(/"/g, '&quot;');
+              const viewBtn  = r.enrollId
+                ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="closeModal('campaignLeadsModal');openLeadTimeline('${r.enrollId}',${nameJson},${JSON.stringify(r.cadence?.name||'').replace(/"/g,'&quot;')})">Timeline</button>`
+                : '';
+              return `<tr>
+                <td>
+                  <div class="mkt-table__name"><a href="#" onclick="event.preventDefault();closeModal('campaignLeadsModal');openContactCard('${cid}',${nameJson});return false;" style="color:var(--ink);border-bottom:1px dashed var(--line);cursor:pointer;">${escHtml(name)}</a>${r.contact?.lead_score ? `<span style="margin-left:6px;padding:1px 5px;background:#D8FF00;color:#0B1220;border-radius:6px;font-size:10px;font-weight:700;">★${r.contact.lead_score}</span>` : ''}</div>
+                  <div class="mkt-table__sub">${escHtml(email)}</div>
+                </td>
+                <td style="font-size:13px;">${cadName}</td>
+                <td><span style="font-size:12px;font-weight:600;color:var(--ink);">${escHtml(r.step)}</span></td>
+                <td><span style="font-size:11px;padding:3px 8px;border-radius:999px;background:${sc}20;color:${sc};font-weight:600;">${r.status||'—'}</span></td>
+                <td style="font-size:12px;color:var(--muted);">${enrolled}</td>
+                <td style="font-size:12px;">${nextAt}</td>
+                <td>${viewBtn}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    footer.innerHTML = `
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('campaignLeadsModal')">Close</button>
+      <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('campaignLeadsModal');switchTab('leads',document.querySelector('[data-tab=leads]'));loadLeads();">Open Leads Tab →</button>`;
+
+  } catch (err) {
+    body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__icon">⚠️</div><div class="mkt-empty__title">Could not load leads</div><div class="mkt-empty__text">${escHtml(err.message||String(err))}</div></div>`;
+  }
 }
 
 async function saveCampaign() {
