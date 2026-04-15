@@ -124,7 +124,7 @@
     },
     {
       "source": "/go/:code",
-      "destination": "/api/go?code=:code"
+      "destination": "/api/marketing?_route=go&code=:code"
     }
   ],
   "routes": [

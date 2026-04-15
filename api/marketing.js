@@ -4183,6 +4183,64 @@ async function handleUnifiedMap(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: go — short-link redirector (Ticket #9)
+// Folded into marketing.js to stay within Vercel Hobby 12-function cap.
+// vercel.json rewrite: /go/:code → /api/marketing?_route=go&code=:code
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleGoRedirect(req, res) {
+  const supabaseUrl = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const hdrs = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json' };
+
+  const code = (req.query?.code || '').slice(0, 16);
+  const utmSource   = req.query?.utm_source   || null;
+  const utmCampaign = req.query?.utm_campaign || null;
+  const utmContent  = req.query?.utm_content  || null;
+
+  if (!code || !/^[a-z0-9]{3,16}$/i.test(code)) {
+    res.status(404).end('Not Found');
+    return;
+  }
+
+  let target = 'https://smartswingai.com/';
+  try {
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/short_links?code=eq.${encodeURIComponent(code)}&select=target_url&limit=1`,
+      { headers: hdrs }
+    );
+    if (r.ok) {
+      const rows = await r.json().catch(() => []);
+      if (rows[0]?.target_url) target = rows[0].target_url;
+    }
+  } catch (_) {}
+
+  // Log click (fire-and-forget — non-fatal)
+  fetch(`${supabaseUrl}/rest/v1/short_link_clicks`, {
+    method: 'POST',
+    headers: { ...hdrs, Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      code,
+      clicked_at: new Date().toISOString(),
+      user_agent: (req.headers['user-agent'] || '').slice(0, 500),
+      referrer:   (req.headers.referer    || '').slice(0, 500),
+      utm_source: utmSource, utm_campaign: utmCampaign, utm_content: utmContent
+    })
+  }).catch(() => {});
+
+  if (utmContent) {
+    fetch(`${supabaseUrl}/rest/v1/rpc/increment_content_clicks`, {
+      method: 'POST',
+      headers: { ...hdrs, Prefer: 'return=minimal' },
+      body: JSON.stringify({ item_id: utmContent })
+    }).catch(() => {});
+  }
+
+  res.setHeader('Location', target);
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(302).end();
+}
+
 const ROUTES = {
   'agent':               handleAgent,
   'regenerate-visual':   handleRegenerateVisual,
@@ -4227,7 +4285,8 @@ const ROUTES = {
   'auto-publish':      handleAutoPublish,
   'prospect-clubs':    handleProspectClubs,
   'prospect-players':  handleProspectPlayers,
-  'enrich-emails':     handleEnrichEmails
+  'enrich-emails':     handleEnrichEmails,
+  'go':                handleGoRedirect
 };
 
 // Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
