@@ -3309,6 +3309,30 @@ const FEDERATION_CONFIGS = {
       'doubles': { path: '/rankings/doubles', label: 'Doubles' },
       'race':    { path: '/rankings/race-singles', label: 'Race to Finals' }
     }
+  },
+  sofascore: {
+    name: 'Sofascore Rankings (Real-time)',
+    categories: {
+      'atp-singles':   { sofascoreType: 'ATP Singles',    label: "ATP Men's Singles" },
+      'wta-singles':   { sofascoreType: 'WTA Singles',    label: "WTA Women's Singles" },
+      'itf-men':       { sofascoreType: 'ITF Men',        label: 'ITF Men' },
+      'itf-women':     { sofascoreType: 'ITF Women',      label: 'ITF Women' },
+      'juniors-boys':  { sofascoreType: 'Juniors Boys',   label: 'ITF Juniors Boys' },
+      'juniors-girls': { sofascoreType: 'Juniors Girls',  label: 'ITF Juniors Girls' },
+      'atp-doubles':   { sofascoreType: 'ATP Doubles',    label: 'ATP Doubles' },
+      'wta-doubles':   { sofascoreType: 'WTA Doubles',    label: 'WTA Doubles' }
+    }
+  },
+  utr: {
+    name: 'UTR Amateur Players (All Levels)',
+    categories: {
+      'all-players':   { label: 'All Players (by UTR)',  searchQuery: 'tennis' },
+      'us-players':    { label: 'US Players',            searchQuery: 'tennis US' },
+      'uk-players':    { label: 'UK Players',            searchQuery: 'tennis UK' },
+      'eu-players':    { label: 'EU Players',            searchQuery: 'tennis Europe' },
+      'junior':        { label: 'Junior Players',        searchQuery: 'tennis junior' },
+      'adult-amateur': { label: 'Adult Amateur',         searchQuery: 'tennis adult amateur' }
+    }
   }
 };
 
@@ -3318,6 +3342,124 @@ function classifyRankingTier(position) {
   if (position <= 1000) return 'top1000';
   if (position <= 5000) return 'national';
   return 'regional';
+}
+
+/**
+ * Fetch real player rankings from Sofascore's public API.
+ * Returns actual player names, nationalities, ranking positions.
+ * On error: logs warning and returns empty array — never generates fake placeholders.
+ */
+async function fetchSofascoreRankings(sofascoreType, startRank, endRank) {
+  const players = [];
+  try {
+    const encodedType = encodeURIComponent(sofascoreType);
+    const url = `https://api.sofascore.com/api/v1/sport/tennis/ranking/${encodedType}`;
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'SmartSwingAI/1.0',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!resp.ok) {
+      console.warn(`[prospect-players] Sofascore API returned ${resp.status} for ${sofascoreType}`);
+      return [];
+    }
+
+    const data = await resp.json();
+    const rankings = data.rankings || [];
+
+    for (const item of rankings) {
+      const rank = parseInt(item.rowName, 10);
+      if (isNaN(rank) || rank < startRank || rank > endRank) continue;
+
+      const playerName = item.team?.name || '';
+      const nationality = item.team?.country?.alpha2 || '';
+      const sofascoreId = item.team?.id || '';
+      const nameSlug = playerName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+      players.push({
+        name: playerName,
+        nationality: nationality,
+        ranking_position: rank,
+        ranking_tier: classifyRankingTier(rank),
+        federation_id: `sofascore-${sofascoreType.replace(/\s+/g, '-').toLowerCase()}-${sofascoreId || rank}`,
+        federation_profile_url: sofascoreId
+          ? `https://www.sofascore.com/player/${nameSlug}/${sofascoreId}`
+          : `https://www.sofascore.com`,
+        category: sofascoreType,
+        _needs_enrichment: false
+      });
+    }
+  } catch (err) {
+    console.warn(`[prospect-players] Sofascore fetch error for ${sofascoreType}:`, err.message);
+  }
+  return players;
+}
+
+/**
+ * Convert UTR rating number to ranking tier label.
+ */
+function utrToTier(utr) {
+  if (!utr || isNaN(utr)) return 'amateur';
+  if (utr >= 12) return 'top100';
+  if (utr >= 10) return 'top500';
+  if (utr >= 8) return 'national';
+  if (utr >= 5) return 'regional';
+  return 'amateur';
+}
+
+/**
+ * Fetch amateur player data from UTR (Universal Tennis Rating) public search API.
+ * On error: returns empty array, never throws.
+ */
+async function fetchUTRPlayers(searchQuery, count) {
+  const players = [];
+  try {
+    const url = `https://api.utrsports.net/v2/search/players?query=${encodeURIComponent(searchQuery)}&sportTypeId=2&count=${count}&pageNum=0`;
+    const resp = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'SmartSwingAI/1.0'
+      }
+    });
+
+    if (!resp.ok) {
+      console.warn(`[prospect-players] UTR API returned ${resp.status} for query "${searchQuery}"`);
+      return [];
+    }
+
+    const data = await resp.json();
+    const rawPlayers = data.players || data.hits || [];
+
+    for (const p of rawPlayers) {
+      const source = p.source || p;
+      const displayName = source.displayName || source.name || '';
+      if (!displayName) continue;
+
+      const utrId = source.utrId || source.id || '';
+      const singlesUtr = parseFloat(source.singlesUtr || source.singlesUtrDisplay || 0) || 0;
+      const location = source.location || {};
+      const club = source.club || {};
+
+      players.push({
+        name: displayName,
+        nationality: location.countryCode || '',
+        ranking_position: null,
+        ranking_tier: utrToTier(singlesUtr),
+        federation_id: `utr-${utrId}`,
+        federation_profile_url: utrId ? `https://myutr.com/profiles/${utrId}` : '',
+        rating: singlesUtr,
+        club_affiliation_name: club.name || '',
+        city: location.cityName || '',
+        country: location.countryName || '',
+        _needs_enrichment: false
+      });
+    }
+  } catch (err) {
+    console.warn(`[prospect-players] UTR fetch error:`, err.message);
+  }
+  return players;
 }
 
 /**
@@ -3602,16 +3744,61 @@ async function handleProspectPlayers(req, res) {
     // Fetch players from the appropriate federation
     let players = [];
 
-    if (federation === 'itf') {
-      players = await fetchITFRankings(category, rangeStart, rangeEnd);
-    } else if (federation === 'atp' || federation === 'wta') {
-      players = await fetchATPWTARankings(federation, category, rangeStart, rangeEnd);
+    if (federation === 'sofascore') {
+      const sofascoreType = fedConfig.categories[category]?.sofascoreType;
+      if (sofascoreType) {
+        players = await fetchSofascoreRankings(sofascoreType, rangeStart, rangeEnd);
+      }
+    } else if (federation === 'utr') {
+      const searchQuery = fedConfig.categories[category]?.searchQuery || 'tennis';
+      const count = Math.min(rangeEnd - rangeStart + 1, 200);
+      players = await fetchUTRPlayers(searchQuery, count);
+    } else if (federation === 'itf') {
+      // Route ITF through Sofascore as the reliable backend
+      const sofascoreMap = {
+        'mens-singles':   'ITF Men',
+        'womens-singles': 'ITF Women',
+        'juniors-boys':   'Juniors Boys',
+        'juniors-girls':  'Juniors Girls'
+      };
+      const sfType = sofascoreMap[category];
+      if (sfType) {
+        players = await fetchSofascoreRankings(sfType, rangeStart, rangeEnd);
+      } else {
+        // categories like seniors/wheelchair: no Sofascore equivalent, return empty with explanation
+        players = [];
+      }
+    } else if (federation === 'atp') {
+      // Route ATP through Sofascore as the reliable backend
+      const sofascoreMap = {
+        'singles': 'ATP Singles',
+        'doubles': 'ATP Doubles'
+      };
+      const sfType = sofascoreMap[category];
+      if (sfType) {
+        players = await fetchSofascoreRankings(sfType, rangeStart, rangeEnd);
+      } else {
+        players = [];
+      }
+    } else if (federation === 'wta') {
+      // Route WTA through Sofascore as the reliable backend
+      const sofascoreMap = {
+        'singles': 'WTA Singles',
+        'doubles': 'WTA Doubles'
+      };
+      const sfType = sofascoreMap[category];
+      if (sfType) {
+        players = await fetchSofascoreRankings(sfType, rangeStart, rangeEnd);
+      } else {
+        players = [];
+      }
     } else if (federation === 'usta') {
-      // USTA doesn't have a public API — generate structured target list
-      // These can be enriched manually from tournament results
+      // USTA NTRP: no public API for real player names.
+      // Generate target profiles based on NTRP level — these are useful for campaign
+      // targeting even without real names. Clearly labeled as campaign targets, not real records.
       for (let i = rangeStart; i <= rangeEnd; i++) {
         players.push({
-          name: `USTA ${fedConfig.categories[category]?.label || category} Player #${i}`,
+          name: `USTA ${fedConfig.categories[category]?.label || category} — Target #${i}`,
           nationality: 'US',
           ranking_position: i,
           ranking_tier: classifyRankingTier(i),
@@ -3621,6 +3808,16 @@ async function handleProspectPlayers(req, res) {
           _needs_enrichment: true
         });
       }
+    }
+
+    if (players.length === 0 && federation !== 'usta') {
+      return res.status(200).json({
+        success: true,
+        inserted: 0,
+        message: `Source unavailable or no players found for ${federation}/${category} in range ${rangeStart}-${rangeEnd}. Try again later.`,
+        federation: fedConfig.name,
+        category: fedConfig.categories[category]?.label || category
+      });
     }
 
     // Match players to clubs in our database
@@ -3787,6 +3984,51 @@ function extractEmailsFromHtml(html) {
   });
 }
 
+/**
+ * Extract emails from href="mailto:..." attributes — more reliable than body-text regex
+ * since most club and player websites use mailto links for contact.
+ */
+function extractEmailsFromMailto(html) {
+  if (!html || typeof html !== 'string') return [];
+  const mailtoRegex = /href=["']mailto:([^"'?]+)/gi;
+  const emails = [];
+  let m;
+  while ((m = mailtoRegex.exec(html)) !== null) {
+    const email = m[1].trim().toLowerCase();
+    if (email && email.includes('@') && !emails.includes(email)) {
+      const domain = email.split('@')[1];
+      if (domain && !EXCLUDE_EMAIL_DOMAINS.has(domain)) emails.push(email);
+    }
+  }
+  return emails;
+}
+
+/**
+ * Try multiple contact-style pages on a domain, returning emails as soon as found.
+ * Stops at the first page that yields at least one email.
+ */
+async function scrapeEmailsFromSite(baseUrl) {
+  const contactPaths = ['/contact', '/contact-us', '/about', '/about-us', '/team', '/staff', '/our-team', '/contact.html'];
+  for (const path of contactPaths) {
+    try {
+      const url = new URL(path, baseUrl).href;
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const emails = [
+        ...extractEmailsFromMailto(html),
+        ...extractEmailsFromHtml(html)
+      ];
+      const deduped = [...new Set(emails)];
+      if (deduped.length > 0) return deduped;
+    } catch (_) {}
+  }
+  return [];
+}
+
 function scoreEmail(email, clubName) {
   // Rank emails by likelihood of being the right contact
   const lower = email.toLowerCase();
@@ -3801,6 +4043,9 @@ function scoreEmail(email, clubName) {
   const domain = lower.split('@')[1].split('.')[0];
   const nameWords = name.split(/[\s\-_]+/).filter(w => w.length > 3);
   if (nameWords.some(w => domain.includes(w))) score += 5;
+  // Bonus if club name words appear in the email local part or domain
+  const clubWords = name.split(/\s+/).filter(w => w.length > 3);
+  if (clubWords.some(w => lower.includes(w))) score += 4;
 
   return score;
 }
@@ -3812,18 +4057,32 @@ async function handleEnrichEmails(req, res) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
 
-  const { limit: maxLimit, dry_run, batch_id } = req.body || {};
+  const { limit: maxLimit, dry_run, batch_id, mode } = req.body || {};
   const fetchLimit = Math.min(maxLimit || 20, 50); // cap at 50 per run
 
   try {
-    // Fetch contacts that have a website but no real email yet. Matches:
+    // Fetch contacts that have no real email yet. Matches:
     //   - placeholder @pending-enrichment addresses (legacy)
+    //   - placeholder @federation-record addresses (from federation prospecting)
     //   - empty-string emails (Google Places clubs with no email returned)
     //   - NULL emails (imported records)
-    // Must also have a non-empty website to scrape.
-    const orFilter = `email.is.null,email.eq.,email.like.*@pending-enrichment*`;
-    const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&website=not.is.null&website=neq.&select=id,name,email,phone,website,city,country,stage&limit=${fetchLimit}&order=created_at.desc`;
-    const contacts = await supabaseGet(query, supabaseKey);
+    const orFilter = `email.is.null,email.eq.,email.like.*@pending-enrichment*,email.like.*@federation-record*`;
+
+    let contacts = [];
+
+    if (mode === 'players') {
+      // Players: enriched via federation_profile_url or UTR search — no website required
+      const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&persona=eq.player&select=id,name,email,phone,website,city,country,stage,persona,federation_profile_url&limit=${fetchLimit}&order=created_at.desc`;
+      contacts = await supabaseGet(query, supabaseKey);
+    } else if (mode === 'all') {
+      // All contacts: clubs with website first, then players
+      const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&select=id,name,email,phone,website,city,country,stage,persona,federation_profile_url&limit=${fetchLimit}&order=created_at.desc`;
+      contacts = await supabaseGet(query, supabaseKey);
+    } else {
+      // Default (clubs): require a website to scrape
+      const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&website=not.is.null&website=neq.&select=id,name,email,phone,website,city,country,stage,persona,federation_profile_url&limit=${fetchLimit}&order=created_at.desc`;
+      contacts = await supabaseGet(query, supabaseKey);
+    }
 
     if (!contacts || contacts.length === 0) {
       return res.status(200).json({
@@ -3842,44 +4101,92 @@ async function handleEnrichEmails(req, res) {
       const result = { id: contact.id, name: contact.name, website: contact.website };
 
       try {
-        // Fetch the website with a timeout
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
+        let emails = [];
+        const isPlayer = contact.persona === 'player';
 
-        const webRes = await fetch(contact.website, {
-          signal: controller.signal,
-          headers: {
-            'User-Agent': 'SmartSwing-AI/1.0 (contact enrichment; +https://smartswingai.com)',
-            'Accept': 'text/html'
+        if (isPlayer && (!contact.website || contact.website === '')) {
+          // Player without website: try federation_profile_url then UTR search
+          if (contact.federation_profile_url) {
+            try {
+              const profRes = await fetch(contact.federation_profile_url, {
+                signal: AbortSignal.timeout(8000),
+                headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+              });
+              if (profRes.ok) {
+                const profHtml = await profRes.text();
+                emails = [
+                  ...extractEmailsFromMailto(profHtml),
+                  ...extractEmailsFromHtml(profHtml)
+                ];
+              }
+            } catch (_) {}
           }
-        });
-        clearTimeout(timeout);
 
-        if (!webRes.ok) {
-          result.status = 'http_error';
-          result.http_code = webRes.status;
-          failed++;
-          results.push(result);
-          continue;
-        }
+          if (emails.length === 0 && contact.name) {
+            // Try UTR search as fallback
+            try {
+              const utrUrl = `https://api.utrsports.net/v2/search/players?query=${encodeURIComponent(contact.name)}&sportTypeId=2&count=5`;
+              const utrRes = await fetch(utrUrl, {
+                signal: AbortSignal.timeout(6000),
+                headers: { 'Accept': 'application/json', 'User-Agent': 'SmartSwingAI/1.0' }
+              });
+              if (utrRes.ok) {
+                const utrData = await utrRes.json();
+                const players = utrData.players || utrData.hits || [];
+                for (const p of players) {
+                  const src = p.source || p;
+                  if (src.email) emails.push(src.email.toLowerCase());
+                }
+              }
+            } catch (_) {}
+          }
 
-        const html = await webRes.text();
-        const emails = extractEmailsFromHtml(html);
-
-        if (emails.length === 0) {
-          // Try /contact page as fallback
+          result.enrichment_method = 'player_profile';
+        } else {
+          // Club (or player with website): fetch homepage first, then try contact pages
           try {
-            const contactUrl = new URL('/contact', contact.website).href;
-            const contactRes = await fetch(contactUrl, {
-              signal: AbortSignal.timeout(6000),
-              headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 8000);
+            const webRes = await fetch(contact.website, {
+              signal: controller.signal,
+              headers: {
+                'User-Agent': 'SmartSwing-AI/1.0 (contact enrichment; +https://smartswingai.com)',
+                'Accept': 'text/html'
+              }
             });
-            if (contactRes.ok) {
-              const contactHtml = await contactRes.text();
-              emails.push(...extractEmailsFromHtml(contactHtml));
+            clearTimeout(timeout);
+
+            if (webRes.ok) {
+              const html = await webRes.text();
+              emails = [
+                ...extractEmailsFromMailto(html),
+                ...extractEmailsFromHtml(html)
+              ];
+            } else {
+              result.status = 'http_error';
+              result.http_code = webRes.status;
+              failed++;
+              results.push(result);
+              continue;
             }
-          } catch (_) {}
+          } catch (fetchErr) {
+            result.status = 'fetch_error';
+            result.error = fetchErr.message;
+            failed++;
+            results.push(result);
+            continue;
+          }
+
+          // If no emails found on homepage, try additional contact pages
+          if (emails.length === 0) {
+            emails = await scrapeEmailsFromSite(contact.website);
+          }
+
+          result.enrichment_method = 'website_scrape';
         }
+
+        // Deduplicate
+        emails = [...new Set(emails)];
 
         if (emails.length === 0) {
           result.status = 'no_email_found';
@@ -3899,7 +4206,7 @@ async function handleEnrichEmails(req, res) {
         result.score = scored[0].score;
 
         if (!dry_run) {
-          // Update the contact's email
+          // Update the contact's email and promote to 'lead'
           await fetch(`${supabaseUrl}/rest/v1/marketing_contacts?id=eq.${contact.id}`, {
             method: 'PATCH',
             headers: {
@@ -3912,7 +4219,7 @@ async function handleEnrichEmails(req, res) {
               email: bestEmail,
               // Promote to 'lead' — we now have a contactable email.
               stage: 'lead',
-              enrichment_source: 'website_scrape',
+              enrichment_source: result.enrichment_method || 'website_scrape',
               enrichment_batch: batch_id || `enrich_${new Date().toISOString().split('T')[0]}`,
               updated_at: new Date().toISOString()
             })

@@ -407,17 +407,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <!-- Player Prospecting -->
             <div id="prospectPlayersPanel" style="display:none;">
               <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
-                Fetch publicly ranked tennis players from federation databases. Only public record data is collected (name, nationality, ranking). No private information.
+                Fetch real, publicly ranked tennis players from live federation data sources (Sofascore) or UTR amateur search. Only public record data is collected (name, nationality, ranking). No private information.
                 <span style="display:inline-block;background:#10b98120;color:#10b981;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:6px;">GDPR Safe — Public Record</span>
               </p>
               <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
                 <div>
-                  <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Federation</label>
-                  <select class="mkt-filter-select" id="prospectFederation" style="min-width:160px;" onchange="updateFederationCategories()">
-                    <option value="itf">ITF (International)</option>
-                    <option value="atp">ATP (Men's Pro)</option>
-                    <option value="wta">WTA (Women's Pro)</option>
-                    <option value="usta">USTA (US National)</option>
+                  <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Source</label>
+                  <select class="mkt-filter-select" id="prospectFederation" style="min-width:200px;" onchange="updateFederationCategories()">
+                    <optgroup label="Real-Time Rankings">
+                      <option value="sofascore">All Rankings (Sofascore)</option>
+                      <option value="atp">ATP Men's Pro</option>
+                      <option value="wta">WTA Women's Pro</option>
+                      <option value="itf">ITF International</option>
+                    </optgroup>
+                    <optgroup label="Amateur &amp; Club Level">
+                      <option value="utr">UTR Rated Players (Amateur)</option>
+                      <option value="usta">USTA / NTRP Levels</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div>
@@ -460,11 +466,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
               <div>
                 <h4 style="font-size:15px;font-weight:700;color:var(--black);margin:0;">Email Enrichment</h4>
-                <p style="font-size:12px;color:var(--muted);margin-top:2px;">Scrape club websites to find contact emails for leads with placeholder addresses.</p>
+                <p style="font-size:12px;color:var(--muted);margin-top:2px;">Scrape club websites or federation profiles to find contact emails for leads with placeholder addresses.</p>
               </div>
-              <div style="display:flex;gap:8px;">
-                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runEnrichment(true)">Preview</button>
-                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="runEnrichment(false)">Enrich Emails</button>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <label style="font-size:12px;font-weight:600;white-space:nowrap;">Enrich:</label>
+                  <select class="mkt-filter-select" id="enrichMode" style="min-width:160px;">
+                    <option value="clubs">Clubs (websites)</option>
+                    <option value="players">Players (federation profiles)</option>
+                    <option value="all">All contacts</option>
+                  </select>
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runEnrichment(true)">Preview</button>
+                  <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="runEnrichment(false)">Enrich Emails</button>
+                </div>
               </div>
             </div>
             <div id="enrichResults" style="margin-top:12px;"></div>
@@ -2311,32 +2327,48 @@ function filterContacts() {
 // ── PROSPECTING UI ──
 
 const FEDERATION_CATEGORIES = {
+  sofascore: [
+    { id: 'atp-singles',   label: "ATP Men's Singles" },
+    { id: 'wta-singles',   label: "WTA Women's Singles" },
+    { id: 'itf-men',       label: 'ITF Men' },
+    { id: 'itf-women',     label: 'ITF Women' },
+    { id: 'juniors-boys',  label: 'ITF Juniors Boys' },
+    { id: 'juniors-girls', label: 'ITF Juniors Girls' },
+    { id: 'atp-doubles',   label: 'ATP Doubles' },
+    { id: 'wta-doubles',   label: 'WTA Doubles' }
+  ],
   itf: [
-    { id: 'mens-singles', label: "Men's Singles" },
+    { id: 'mens-singles',   label: "Men's Singles" },
     { id: 'womens-singles', label: "Women's Singles" },
-    { id: 'juniors-boys', label: 'Juniors Boys' },
-    { id: 'juniors-girls', label: 'Juniors Girls' },
-    { id: 'seniors', label: 'Seniors' },
-    { id: 'wheelchair', label: 'Wheelchair' }
+    { id: 'juniors-boys',   label: 'Juniors Boys' },
+    { id: 'juniors-girls',  label: 'Juniors Girls' },
+    { id: 'seniors',        label: 'Seniors' },
+    { id: 'wheelchair',     label: 'Wheelchair' }
   ],
   atp: [
     { id: 'singles', label: 'Singles' },
-    { id: 'doubles', label: 'Doubles' },
-    { id: 'race', label: 'Race to Turin' }
+    { id: 'doubles', label: 'Doubles' }
   ],
   wta: [
     { id: 'singles', label: 'Singles' },
-    { id: 'doubles', label: 'Doubles' },
-    { id: 'race', label: 'Race to Finals' }
+    { id: 'doubles', label: 'Doubles' }
+  ],
+  utr: [
+    { id: 'all-players',   label: 'All Players (by UTR)' },
+    { id: 'us-players',    label: 'US Players' },
+    { id: 'uk-players',    label: 'UK Players' },
+    { id: 'eu-players',    label: 'EU Players' },
+    { id: 'junior',        label: 'Junior Players' },
+    { id: 'adult-amateur', label: 'Adult Amateur' }
   ],
   usta: [
-    { id: 'ntrp-3.0', label: 'NTRP 3.0 (Beginner-Intermediate)' },
-    { id: 'ntrp-3.5', label: 'NTRP 3.5 (Intermediate)' },
-    { id: 'ntrp-4.0', label: 'NTRP 4.0 (Advanced-Intermediate)' },
-    { id: 'ntrp-4.5', label: 'NTRP 4.5 (Advanced)' },
-    { id: 'ntrp-5.0', label: 'NTRP 5.0 (Tournament)' },
-    { id: 'open', label: 'Open / Ranked' },
-    { id: 'junior', label: 'Junior Rankings' },
+    { id: 'ntrp-3.0',  label: 'NTRP 3.0 (Beginner-Intermediate)' },
+    { id: 'ntrp-3.5',  label: 'NTRP 3.5 (Intermediate)' },
+    { id: 'ntrp-4.0',  label: 'NTRP 4.0 (Advanced-Intermediate)' },
+    { id: 'ntrp-4.5',  label: 'NTRP 4.5 (Advanced)' },
+    { id: 'ntrp-5.0',  label: 'NTRP 5.0 (Tournament)' },
+    { id: 'open',      label: 'Open / Ranked' },
+    { id: 'junior',    label: 'Junior Rankings' },
     { id: 'collegiate', label: 'Collegiate' }
   ]
 };
@@ -2488,13 +2520,15 @@ async function runProspecting(type, dryRun) {
 
 async function runEnrichment(dryRun) {
   var resultsEl = document.getElementById('enrichResults');
-  resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);"><div class="mkt-spin" style="width:20px;height:20px;border:3px solid #333;border-top-color:#c8ff00;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px;"></div>Scanning club websites for emails…</div>';
+  var enrichMode = (document.getElementById('enrichMode') || {}).value || 'clubs';
+  var modeLabel = enrichMode === 'players' ? 'federation profiles' : enrichMode === 'all' ? 'all contacts' : 'club websites';
+  resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);"><div class="mkt-spin" style="width:20px;height:20px;border:3px solid #333;border-top-color:#c8ff00;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px;"></div>Scanning ' + modeLabel + ' for emails…</div>';
 
   try {
     var resp = await fetch('/api/marketing/enrich-emails', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 20, dry_run: dryRun })
+      body: JSON.stringify({ limit: 20, dry_run: dryRun, mode: enrichMode })
     });
     var data = await resp.json();
 
