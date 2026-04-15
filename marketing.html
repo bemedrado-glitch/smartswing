@@ -1730,26 +1730,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- Assign to Contact Modal -->
+<!-- Enroll as Lead Modal -->
 <div class="mkt-modal-overlay" id="assignCadenceModal">
   <div class="mkt-modal">
     <div class="mkt-modal__header">
-      <div class="mkt-modal__title" id="assignCadenceTitle">Assign Cadence</div>
+      <div class="mkt-modal__title" id="assignCadenceTitle">Enroll as Lead</div>
       <button class="mkt-modal__close" onclick="closeModal('assignCadenceModal')">✕</button>
     </div>
     <div class="mkt-modal__body">
-      <p style="font-size:13.5px;color:var(--mid);margin-bottom:16px;">Select a contact to enroll in this cadence:</p>
+      <p id="assignCadenceSubtitle" style="font-size:13px;color:var(--muted);margin-bottom:16px;"></p>
+      <input type="hidden" id="assignCadenceContactId">
       <div class="mkt-form-group">
-        <label class="mkt-label">Contact</label>
-        <select class="mkt-select" id="assignCadenceContact">
-          <option value="">— Select a contact —</option>
+        <label class="mkt-label">Cadence <span style="color:var(--muted);font-weight:400;font-size:11px;">(optional if campaign selected)</span></label>
+        <select class="mkt-select" id="assignCadencePicker">
+          <option value="">⏳ Loading cadences…</option>
         </select>
       </div>
-      <input type="hidden" id="assignCadenceId">
+      <div class="mkt-form-group" style="margin-top:12px;">
+        <label class="mkt-label">Campaign <span style="color:var(--muted);font-weight:400;font-size:11px;">(optional if cadence selected)</span></label>
+        <select class="mkt-select" id="assignCampaignPicker">
+          <option value="">⏳ Loading campaigns…</option>
+        </select>
+      </div>
+      <div style="margin-top:14px;padding:10px 12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#166534;line-height:1.5;">
+        ✅ Enrolling will promote this contact to <strong>Lead</strong> status and move them to the Leads tab.
+      </div>
     </div>
     <div class="mkt-modal__footer">
       <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('assignCadenceModal')">Cancel</button>
-      <button class="mkt-btn mkt-btn--primary" onclick="confirmAssignCadence()">Assign</button>
+      <button class="mkt-btn mkt-btn--primary" onclick="confirmAssignCadence()">Enroll as Lead</button>
     </div>
   </div>
 </div>
@@ -2180,7 +2189,7 @@ function renderContacts(contacts) {
       <td>${(c.tags || []).slice(0,3).map(t => `<span style="font-size:11px;background:var(--bg-soft);padding:2px 7px;border-radius:999px;margin-right:3px;">${escHtml(t)}</span>`).join('')}</td>
       <td>
         <div class="mkt-table__actions">
-          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openAssignCadenceModal('${cid}', '${escHtml(c.name || c.email)}')">Cadence</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openAssignCadenceModal('${cid}', '${escHtml(c.name || c.email)}')">→ Enroll</button>
           ${c.federation_profile_url ? '<a class="mkt-btn mkt-btn--ghost mkt-btn--sm" href="' + c.federation_profile_url + '" target="_blank" title="Federation Profile">↗</a>' : ''}
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm mkt-btn--icon" onclick="deleteContact('${cid}')" title="Remove">✕</button>
         </div>
@@ -2691,57 +2700,121 @@ function copyEmailToAgent() {
   switchTab('agents', document.querySelector('[data-tab=agents]'));
 }
 
+// Called from the Cadences tab "Enroll Contact" button — opens modal pre-loaded for that cadence
 function openAssignCadenceByIdx(idx) {
-  const cadence = window.MARKETING_CADENCES[idx];
+  const cadence = window.MARKETING_CADENCES ? window.MARKETING_CADENCES[idx] : null;
   if (!cadence) return;
-  openAssignCadenceModal(null, null, cadence.id, cadence.name);
+  // Open the modal without a pre-selected contact; user picks from contacts list
+  // (this path is used from the Cadences tab where we know the cadence but not the contact)
+  openAssignCadenceModal(null, null, cadence.id);
 }
 
-function openAssignCadenceModal(contactId, contactName, cadenceId, cadenceName) {
-  document.getElementById('assignCadenceTitle').textContent = cadenceName ? `Assign "${cadenceName}"` : 'Assign to Cadence';
-  document.getElementById('assignCadenceId').value = cadenceId || '';
-  // Populate contacts
-  const sel = document.getElementById('assignCadenceContact');
-  sel.innerHTML = '<option value="">— Select a contact —</option>' +
-    MarketingStore.contacts.map(c => `<option value="${c.id}"${contactId === c.id ? ' selected' : ''}>${escHtml(c.name || c.email)}</option>`).join('');
+async function openAssignCadenceModal(contactId, contactName, preselectCadenceId) {
+  const nameLabel = contactName ? `"${contactName}"` : 'Contact';
+  document.getElementById('assignCadenceTitle').textContent = `Enroll ${nameLabel} as Lead`;
+  document.getElementById('assignCadenceSubtitle').textContent =
+    contactName
+      ? `Move ${contactName} into the Leads pipeline by assigning them to a cadence and/or campaign.`
+      : 'Select a contact to move into the Leads pipeline.';
+  document.getElementById('assignCadenceContactId').value = contactId || '';
+
+  const cadSel  = document.getElementById('assignCadencePicker');
+  const campSel = document.getElementById('assignCampaignPicker');
+  cadSel.innerHTML  = '<option value="">⏳ Loading…</option>';
+  campSel.innerHTML = '<option value="">⏳ Loading…</option>';
+
   openModal('assignCadenceModal');
+
+  if (MarketingStore.supabase) {
+    const [cadRes, campRes] = await Promise.all([
+      MarketingStore.supabase.from('email_cadences').select('id,name,target_persona,status').order('name'),
+      MarketingStore.supabase.from('marketing_campaigns').select('id,name,type,status').eq('status', 'active').order('name')
+    ]);
+
+    const cadences  = cadRes.data  || [];
+    const campaigns = campRes.data || [];
+
+    cadSel.innerHTML = '<option value="">— No cadence —</option>' +
+      cadences.map(c =>
+        `<option value="${escHtml(c.id)}"${preselectCadenceId === c.id ? ' selected' : ''}>` +
+        `${escHtml(c.name)}${c.target_persona ? ' · ' + escHtml(c.target_persona) : ''}` +
+        `</option>`
+      ).join('');
+    if (!cadences.length) cadSel.innerHTML = '<option value="">No cadences yet — create one in the Cadences tab</option>';
+
+    campSel.innerHTML = '<option value="">— No campaign —</option>' +
+      campaigns.map(c => {
+        const icon = { email:'📧', social:'📱', paid:'💰', content:'📝', event:'📅', outreach:'🎯' }[c.type] || '🎯';
+        return `<option value="${escHtml(c.id)}">${icon} ${escHtml(c.name)}</option>`;
+      }).join('');
+    if (!campaigns.length) campSel.innerHTML = '<option value="">No active campaigns</option>';
+  } else {
+    // Demo mode fallback
+    cadSel.innerHTML = `
+      <option value="">— No cadence —</option>
+      <option value="demo-players">New Lead — Tennis Players</option>
+      <option value="demo-coaches">New Lead — Coaches</option>
+      <option value="demo-trial">Trial to Paid</option>
+    `;
+    campSel.innerHTML = '<option value="">— No active campaigns —</option>';
+  }
 }
 
-function confirmAssignCadence() {
-  const contactId = document.getElementById('assignCadenceContact').value;
-  const cadenceId = document.getElementById('assignCadenceId').value;
-  if (!contactId) { showToast('Select a contact first', 'error'); return; }
-  if (!cadenceId) { showToast('Select a cadence first', 'error'); return; }
+async function confirmAssignCadence() {
+  const contactId  = document.getElementById('assignCadenceContactId').value;
+  const cadenceId  = document.getElementById('assignCadencePicker').value;
+  const campaignId = document.getElementById('assignCampaignPicker').value;
+
+  if (!contactId) { showToast('No contact selected', 'error'); return; }
+  if (!cadenceId && !campaignId) { showToast('Select at least a cadence or a campaign', 'error'); return; }
+
   closeModal('assignCadenceModal');
-  showToast('Enrolling contact…', '');
+  showToast('Enrolling as lead…', '');
+
   const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
-  fetch('/api/marketing/enroll-cadence', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      contact_id: contactId,
-      cadence_id: cadenceId,
-      supabase_url: cfg.url || '',
-      supabase_key: cfg.anonKey || ''
-    })
-  }).then(r => r.json()).then(d => {
-    if (!d || d.error) {
-      showToast('Enrollment failed: ' + (d?.error || 'unknown error'), 'error');
-      return;
+
+  try {
+    if (cadenceId) {
+      // Cadence path (+ optionally campaign) — use the API which schedules steps
+      const res = await fetch('/api/marketing/enroll-cadence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_id: contactId,
+          cadence_id: cadenceId,
+          campaign_id: campaignId || null,
+          supabase_url: cfg.url || '',
+          supabase_key: cfg.anonKey || ''
+        })
+      });
+      const d = await res.json();
+      if (!d || d.error) throw new Error(d?.error || 'Enrollment failed');
+      if (d.already_enrolled) { showToast('Already enrolled in this cadence', 'error'); return; }
+      const cadName = d.cadence_name || 'cadence';
+      const nextWhen = d.next_step_at ? new Date(d.next_step_at).toLocaleString() : 'now';
+      const campNote = campaignId ? ' + campaign' : '';
+      showToast(`✓ Enrolled in "${cadName}"${campNote} (${d.steps_scheduled || 0} steps, first send ${nextWhen}). Moved to Leads.`, 'success');
+
+    } else if (campaignId && MarketingStore.supabase) {
+      // Campaign-only path — promote stage + log journey via Supabase client directly
+      const now = new Date().toISOString();
+      await Promise.all([
+        MarketingStore.supabase.from('marketing_contacts')
+          .update({ stage: 'lead', updated_at: now }).eq('id', contactId),
+        MarketingStore.supabase.from('contact_journeys')
+          .insert({ contact_id: contactId, stage: 'lead', entered_at: now, campaign_id: campaignId, notes: 'Manually assigned to campaign' })
+      ]);
+      showToast('✓ Contact promoted to Lead and added to campaign.', 'success');
     }
-    if (d.already_enrolled) {
-      showToast('Already enrolled in this cadence', 'error');
-      return;
-    }
-    const name = d.cadence_name || 'cadence';
-    const nextWhen = d.next_step_at ? new Date(d.next_step_at).toLocaleString() : 'now';
-    showToast(`✓ Enrolled in "${name}" (${d.steps_scheduled} steps, first send ${nextWhen}). Moved to Leads tab.`, 'success');
-    // Contact stage just flipped to 'lead' — refresh both tabs
+
+    // Refresh contacts, leads, and KPIs
     if (typeof loadContacts === 'function') loadContacts();
     if (typeof loadLeads === 'function') loadLeads();
-  }).catch((err) => {
-    showToast('Enrollment error: ' + (err?.message || err), 'error');
-  });
+    if (typeof loadLeadsCount === 'function') loadLeadsCount();
+
+  } catch (err) {
+    showToast('Enrollment error: ' + (err?.message || String(err)), 'error');
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

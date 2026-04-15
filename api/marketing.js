@@ -1066,7 +1066,7 @@ async function handleOrchestrate(req, res) {
 async function handleEnrollCadence(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { contact_id, cadence_id, supabase_url, supabase_key } = req.body || {};
+  const { contact_id, cadence_id, campaign_id, supabase_url, supabase_key } = req.body || {};
   if (!contact_id) return res.status(400).json({ error: 'contact_id is required' });
   if (!cadence_id) return res.status(400).json({ error: 'cadence_id is required' });
   if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
@@ -1159,12 +1159,14 @@ async function handleEnrollCadence(req, res) {
       console.warn('[enroll-cadence] stage promotion failed (non-fatal):', err.message);
     }
 
-    // Log journey entry (non-fatal)
+    // Log journey entry — include campaign_id if one was passed alongside the cadence
     try {
-      await supabaseInsert(supabase_url, supabase_key, 'contact_journeys', {
+      const journeyRow = {
         contact_id, stage: 'lead', entered_at: now, cadence_id,
         notes: `Enrolled in ${cadenceName} (${executions.length} steps)`
-      });
+      };
+      if (campaign_id) journeyRow.campaign_id = campaign_id;
+      await supabaseInsert(supabase_url, supabase_key, 'contact_journeys', journeyRow);
     } catch (err) { /* contact_journeys may not exist in all envs */ }
 
     const schedule = executions.map((exec) => ({
@@ -1177,6 +1179,7 @@ async function handleEnrollCadence(req, res) {
     return res.status(200).json({
       success: true, enrollment_id: enrollment?.id || enrollmentId,
       contact_id, cadence_id, cadence_name: cadenceName,
+      campaign_id: campaign_id || null,
       stage: 'lead',
       steps_scheduled: executions.length,
       next_step_at: firstNextAt,
