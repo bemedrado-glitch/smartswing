@@ -1842,7 +1842,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadContentItems().then(function() { renderCalendar(); renderMiniCalendar(); });
   loadTaskHistory();
   loadApprovals();
-  renderCadences();
+  loadCadencesFromDB();
   loadNextActions();
   loadContacts();
   updateKPIs();
@@ -2683,9 +2683,38 @@ function deleteContact(id) {
 }
 
 /* ── CADENCES ── */
+async function loadCadencesFromDB() {
+  if (!MarketingStore.supabase) { renderCadences(); return; }
+  try {
+    const [cadRes, emailRes, smsRes] = await Promise.all([
+      MarketingStore.supabase.from('email_cadences').select('*').eq('is_active', true).order('name'),
+      MarketingStore.supabase.from('cadence_emails').select('*').order('delay_days'),
+      MarketingStore.supabase.from('cadence_sms').select('*').order('delay_days')
+    ]);
+    const cadences = cadRes.data || [];
+    const emails   = emailRes.data || [];
+    const sms      = smsRes.data || [];
+    // Attach steps to each cadence
+    window.MARKETING_CADENCES = cadences.map(c => ({
+      ...c,
+      emails: emails.filter(e => e.cadence_id === c.id),
+      sms:    sms.filter(s => s.cadence_id === c.id)
+    }));
+  } catch(err) {
+    console.warn('[cadences] DB load failed:', err.message);
+    window.MARKETING_CADENCES = window.MARKETING_CADENCES || [];
+  }
+  renderCadences();
+}
+
 function renderCadences() {
   const grid = document.getElementById('cadenceGrid');
-  grid.innerHTML = (window.MARKETING_CADENCES || []).map((c, idx) => {
+  const cads = window.MARKETING_CADENCES || [];
+  if (!cads.length) {
+    grid.innerHTML = '<div class="mkt-empty" style="padding:40px;"><div class="mkt-empty__icon">📭</div><div class="mkt-empty__title">No cadences loaded</div><div class="mkt-empty__text">Cadences are loading from the database…</div></div>';
+    return;
+  }
+  grid.innerHTML = cads.map((c, idx) => {
     const emailCount = (c.emails || []).length;
     const smsCount = (c.sms || []).length;
     const personaBadge = c.target_persona ? `<span class="mkt-badge mkt-badge--${c.target_persona}">${c.target_persona}</span>` : '';
