@@ -26,6 +26,9 @@
 
 'use strict';
 
+const { formatForPlatform } = require('./platform-formatter');
+const { wrapLinksWithUtm } = (() => { try { return require('./link-shortener'); } catch (_) { return { wrapLinksWithUtm: (s) => s }; } })();
+
 function supaBase() {
   return String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 }
@@ -41,18 +44,41 @@ function nowHHMM() { return new Date().toTimeString().slice(0, 5); }
 
 // ── Platform publishers ─────────────────────────────────────────────────────
 
+// Finalize the caption that gets sent to each platform. Combines platform rules,
+// persona-aware hashtags, UTM link-wrap, and the item's copy_text/title.
+function buildCaption(platform, item) {
+  const formatted = formatForPlatform(platform, item);
+  let caption = formatted.caption || '';
+  if (formatted.hashtags?.length) caption += (caption.endsWith('\n') ? '' : '\n\n') + formatted.hashtags.join(' ');
+  caption = wrapLinksWithUtm(caption, { platform, item });
+  return { caption, formatted };
+}
+
 async function publishFacebook(item) {
   const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
   const pageId = process.env.META_PAGE_ID || '724180587440946';
   if (!accessToken) return { ok: false, error: 'META_PAGE_ACCESS_TOKEN not configured' };
 
-  const payload = { message: item.copy_text || item.title || '', access_token: accessToken };
-  if (item.image_url) payload.link = item.image_url;  // FB attaches as link preview
+  const { caption } = buildCaption('facebook', item);
 
+  // Native photo post beats link-preview for reach.
+  if (item.image_url) {
+    const r = await fetch(`https://graph.facebook.com/v21.0/${pageId}/photos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: item.image_url, caption, access_token: accessToken })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !(data.post_id || data.id)) return { ok: false, error: data?.error?.message || `FB photo error ${r.status}` };
+    const postId = data.post_id || data.id;
+    return { ok: true, providerId: postId, url: `https://facebook.com/${postId}` };
+  }
+
+  // Text-only fallback
   const r = await fetch(`https://graph.facebook.com/v21.0/${pageId}/feed`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ message: caption, access_token: accessToken })
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok || !data.id) return { ok: false, error: data?.error?.message || `FB error ${r.status}` };
@@ -63,22 +89,37 @@ async function publishInstagram(item) {
   const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
   const igId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
   if (!accessToken) return { ok: false, error: 'META_PAGE_ACCESS_TOKEN not configured' };
-  if (!item.image_url) return { ok: false, error: 'Instagram requires image_url' };
+  if (!item.image_url && !item.video_url) return { ok: false, error: 'Instagram requires image_url or video_url' };
+
+  const { caption } = buildCaption('instagram', item);
+
+  // Reels branch if video_url present
+  const isReel = !!item.video_url;
+  const mediaBody = isReel
+    ? { media_type: 'REELS', video_url: item.video_url, caption, access_token: accessToken }
+    : { image_url: item.image_url, caption, access_token: accessToken };
 
   // 1) Create media container
   const cRes = await fetch(`https://graph.facebook.com/v21.0/${igId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      image_url: item.image_url,
-      caption: item.copy_text || item.title || '',
-      access_token: accessToken
-    })
+    body: JSON.stringify(mediaBody)
   });
   const c = await cRes.json().catch(() => ({}));
   if (!c.id) return { ok: false, error: c?.error?.message || 'IG container failed' };
 
-  // 2) Publish it
+  // 2) For Reels, poll container until FINISHED (max ~30s)
+  if (isReel) {
+    for (let i = 0; i < 10; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      const s = await fetch(`https://graph.facebook.com/v21.0/${c.id}?fields=status_code&access_token=${encodeURIComponent(accessToken)}`);
+      const sd = await s.json().catch(() => ({}));
+      if (sd.status_code === 'FINISHED') break;
+      if (sd.status_code === 'ERROR') return { ok: false, error: 'IG Reel encoding failed' };
+    }
+  }
+
+  // 3) Publish it
   const pRes = await fetch(`https://graph.facebook.com/v21.0/${igId}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -89,6 +130,43 @@ async function publishInstagram(item) {
   return { ok: true, providerId: p.id, url: `https://instagram.com/p/${p.id}` };
 }
 
+// LinkedIn — org/person token + /ugcPosts (Ticket #10).
+async function publishLinkedIn(item) {
+  const token = process.env.LINKEDIN_ACCESS_TOKEN;
+  const authorUrn = process.env.LINKEDIN_AUTHOR_URN; // e.g. 'urn:li:organization:12345'
+  if (!token || !authorUrn) return { ok: false, error: 'LINKEDIN_ACCESS_TOKEN / LINKEDIN_AUTHOR_URN not configured', skip: true };
+
+  const { caption } = buildCaption('linkedin', item);
+  const media = item.image_url ? [{
+    status: 'READY',
+    description: { text: (item.title || '').slice(0, 200) },
+    media: 'urn:li:digitalmediaAsset:placeholder', // requires register-upload flow; left as TODO
+    title: { text: (item.title || '').slice(0, 200) }
+  }] : [];
+
+  const body = {
+    author: authorUrn,
+    lifecycleState: 'PUBLISHED',
+    specificContent: {
+      'com.linkedin.ugc.ShareContent': {
+        shareCommentary: { text: caption },
+        shareMediaCategory: media.length ? 'IMAGE' : 'NONE',
+        media
+      }
+    },
+    visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+  };
+
+  const r = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Restli-Protocol-Version': '2.0.0' },
+    body: JSON.stringify(body)
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) return { ok: false, error: d?.message || `LinkedIn error ${r.status}` };
+  return { ok: true, providerId: d.id, url: `https://linkedin.com/feed/update/${d.id}` };
+}
+
 // Placeholder publishers — wired when tokens land
 async function publishNotImplemented(platform) {
   return { ok: false, error: `${platform} publisher not yet configured`, skip: true };
@@ -97,7 +175,7 @@ async function publishNotImplemented(platform) {
 const PUBLISHERS = {
   facebook:  publishFacebook,
   instagram: publishInstagram,
-  linkedin:  (it) => publishNotImplemented('linkedin'),
+  linkedin:  publishLinkedIn,
   tiktok:    (it) => publishNotImplemented('tiktok'),
   youtube:   (it) => publishNotImplemented('youtube'),
   x:         (it) => publishNotImplemented('x'),

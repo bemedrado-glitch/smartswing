@@ -578,6 +578,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span style="color:var(--muted);" id="calSumRange"></span>
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runPublisherNow()" title="Drain all due scheduled posts now">🚀 Run publisher</button>
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="rescueImagesNow()" title="Re-persist any expiring DALL-E image URLs to Supabase Storage">🖼️ Rescue images</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openUnifiedMap()" title="Cross-channel outbound view — social posts + cadence steps side-by-side">🌐 Unified map</button>
           </span>
         </div>
 
@@ -3768,6 +3769,16 @@ function openDayDetailModal(dateStr) {
       var failureChip = item.failure_reason
         ? '<div style="font-size:11px;color:#b91c1c;margin-top:4px;">⚠ ' + escHtml(String(item.failure_reason).slice(0, 140)) + '</div>'
         : '';
+      // Ticket #12: show image generation errors with a retry affordance
+      var imageErrorChip = item.image_error
+        ? '<div style="font-size:11px;color:#b45309;margin-top:4px;background:#fef3c7;padding:4px 6px;border-radius:4px;">🖼 Image gen failed: ' + escHtml(String(item.image_error).slice(0, 120)) +
+          ' <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" style="margin-left:6px;padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();regenerateVisual(\'' + item.id + '\');">Retry</button></div>'
+        : '';
+      // Ticket #13: approval action buttons for pending items
+      var approvalActions = (item.approval_status === 'pending' || item.approval_status === 'pending_approval')
+        ? '<button class="mkt-btn mkt-btn--primary mkt-btn--sm" style="flex:0 0 auto;" onclick="event.stopPropagation();approveItem(\'' + item.id + '\', true);">✓ Approve</button>' +
+          '<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" style="flex:0 0 auto;" onclick="event.stopPropagation();approveItem(\'' + item.id + '\', false);">✕</button>'
+        : '';
       var postedChip = item.posted_url
         ? '<a href="' + item.posted_url + '" target="_blank" rel="noopener" style="font-size:11px;color:#16a34a;" onclick="event.stopPropagation();">→ View post</a>'
         : '';
@@ -3782,9 +3793,9 @@ function openDayDetailModal(dateStr) {
           '</div>' +
           '<div class="mkt-cal-day-list-item__title">' + escHtml(item.title) + '</div>' +
           '<div class="mkt-cal-day-list-item__copy">' + escHtml(copy) + '</div>' +
-          failureChip + ' ' + postedChip +
+          failureChip + ' ' + postedChip + imageErrorChip +
         '</div>' +
-        publishBtn + shareLinkBtn +
+        approvalActions + publishBtn + shareLinkBtn +
       '</div>';
     }).join('');
   }
@@ -4213,6 +4224,72 @@ async function rescueImagesNow() {
     if (typeof loadContentItems === 'function') loadContentItems();
   } catch (e) {
     showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+// Ticket #13: one-click approve/reject from calendar and drill-down
+async function approveItem(id, approved) {
+  try {
+    const res = await fetch('/api/marketing/approve-item', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, approved: approved !== false })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { showToast('Approve failed: ' + (data.error || res.status), 'error'); return; }
+    showToast(approved ? 'Approved · will publish at scheduled time' : 'Rejected', approved ? 'success' : 'info');
+    // Update in-memory + re-render
+    var row = MarketingStore.contentItems.find(function(i) { return i.id === id; });
+    if (row) row.approval_status = approved ? 'approved' : 'rejected';
+    if (typeof renderCalendar === 'function') renderCalendar();
+  } catch (e) { showToast('Network error: ' + e.message, 'error'); }
+}
+
+// Ticket #11: Unified Outbound Map — cross-channel 30-day view
+async function openUnifiedMap() {
+  openModal('campaignPostsModal');
+  document.getElementById('campaignPostsTitle').textContent = 'Unified outbound map — next 30 days';
+  var body = document.getElementById('campaignPostsBody');
+  var footer = document.getElementById('campaignPostsFooter');
+  body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading outbound map…</div></div>';
+  footer.innerHTML = '';
+  try {
+    var r = await fetch('/api/marketing/unified-map?days=30');
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || r.status);
+    var byDay = {};
+    (data.social || []).forEach(function(it) {
+      var d = it.scheduled_date || 'Unscheduled';
+      (byDay[d] = byDay[d] || { social: [], cadence: [] }).social.push(it);
+    });
+    (data.cadence || []).forEach(function(it) {
+      var d = (it.next_step_at || '').slice(0, 10) || 'Unscheduled';
+      (byDay[d] = byDay[d] || { social: [], cadence: [] }).cadence.push(it);
+    });
+    var days = Object.keys(byDay).sort();
+    if (!days.length) { body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">📭</div><div class="mkt-empty__title">Nothing scheduled in the next 30 days</div></div>'; return; }
+    var html = '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Social posts + cadence steps in one timeline. Both channels in sync = faster pipeline velocity.</div>';
+    days.forEach(function(d) {
+      var b = byDay[d];
+      html += '<div style="border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:10px;">' +
+        '<div style="font-size:12px;font-weight:700;margin-bottom:8px;">' + escHtml(d) + '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+          '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">📱 Social (' + b.social.length + ')</div>' +
+            (b.social.length
+              ? b.social.map(function(s) { return '<div style="font-size:12px;margin-bottom:3px;">' + escHtml(s.platform || '') + ' · ' + escHtml((s.title || '').slice(0, 50)) + ' <span style="color:#64748b;">[' + s.status + ']</span></div>'; }).join('')
+              : '<div style="font-size:11px;color:var(--muted);">—</div>') +
+          '</div>' +
+          '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">✉️ Cadence (' + b.cadence.length + ')</div>' +
+            (b.cadence.length
+              ? b.cadence.map(function(c) { return '<div style="font-size:12px;margin-bottom:3px;">step ' + (c.current_step || 0) + ' · ' + escHtml(c.cadence_id || '').slice(0, 30) + '</div>'; }).join('')
+              : '<div style="font-size:11px;color:var(--muted);">—</div>') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    body.innerHTML = html;
+    footer.innerHTML = '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'campaignPostsModal\')">Close</button>';
+  } catch (e) {
+    body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">⚠</div><div class="mkt-empty__title">Failed to load</div><div class="mkt-empty__text">' + escHtml(e.message) + '</div></div>';
   }
 }
 
@@ -4791,7 +4868,9 @@ function _setFreshnessPill(ts, state) {
 async function refreshAnalyticsLive(silent) {
   _setFreshnessPill(Date.now(), 'loading');
   try {
-    const r = await fetch('/api/marketing/metrics-fetch', {
+    // Ticket #15: dedicated refresh-metrics-live route pulls fresh Graph data
+    // on demand instead of waiting for the daily cron.
+    const r = await fetch('/api/marketing/refresh-metrics-live', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ limit: 30 })
     });

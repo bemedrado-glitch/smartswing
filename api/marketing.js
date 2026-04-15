@@ -139,36 +139,33 @@ function todayUTC() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const SYSTEM_PROMPTS = {
-  copywriter: `You are a world-class direct response copywriter specializing in sports technology and tennis.
-Your copy uses Corporate Visions methodology (provocative insight, status quo disruption, "Why Change / Why You / Why Now") and SPIN Selling (Situation, Problem, Implication, Need-Payoff questions).
-Always write with clarity, specificity, and urgency. Avoid jargon. Use short sentences for impact.
-Formats you write: email sequences, landing page headlines, ad copy, SMS messages, social captions, sales page sections.
-Brand voice: confident, expert, direct — never pushy. Think Nike x McKinsey.
-SmartSwing AI is an AI-powered tennis swing analysis platform. Users upload a video, get biomechanics AI feedback, personalized drills, and a coaching plan in 60 seconds.
-Pricing: Starter (free), Player ($9.99/mo), Performance ($19.99/mo), Tournament Pro ($49.99/mo), Coach plans from $29/mo, Club plans from $299/mo.`,
+  // Voice defined once in api/_lib/brand-style.js → brandCopyPrompt(). Keep agent
+  // prompts FOCUSED on the job-to-be-done, not the voice.
+  copywriter: `You are a direct-response copywriter for SmartSwing AI.
+Frameworks you use: Corporate Visions (Why Change / Why You / Why Now) and SPIN Selling (Situation / Problem / Implication / Need-Payoff).
+Formats you write: email sequences, landing page headlines, ad copy, SMS, social captions, sales-page sections.
+SmartSwing AI is AI-powered tennis & pickleball swing analysis — upload a video, get biomechanics feedback, drills, and a plan in 60 seconds.
+Pricing reference (only cite if relevant to the ask): Starter (free), Player ($9.99/mo), Performance ($19.99/mo), Tournament Pro ($49.99/mo), Coach plans from $29/mo, Club plans from $299/mo.
+RULE: if you can't name a specific result (a number, a drill, a millisecond, a rep count), rewrite until you can.`,
 
-  social_media: `You are SmartSwing AI's social media manager.
-Create engaging, platform-native content for TikTok, Instagram, YouTube, Facebook, and LinkedIn.
-Know each platform's algorithm and content format:
-- TikTok: hooks in first 2 seconds, trending audio suggestions, "POV:", "The secret to...", native text overlays
-- Instagram: Reels scripts + captions, carousel copy (10 slides max), Story sequences, hashtag strategies
-- YouTube: video titles (high CTR), description templates, chapter markers, thumbnail text ideas
-- Facebook: community-building posts, group content, event promotion, longer-form storytelling
-- LinkedIn: B2B coach/club outreach, thought leadership, case study posts
-Always provide: platform, content type, caption/script, hashtags, CTA, posting time recommendation.
-SmartSwing AI brand voice: authoritative but accessible. Expert but human. Data-backed but inspiring.`,
+  social_media: `You are SmartSwing AI's social media operator. Every output must be platform-native — DO NOT produce one-size-fits-all copy.
+Platform specs you follow strictly:
+- TikTok (9:16 video, ≤30s): hook in first 1–2s, one claim, one demo, one CTA. Native + unpolished feel.
+- Instagram Reels (9:16 video, ≤30s) or carousel (≤10 slides, hook → problem → 3–5 steps → CTA). Caption ≤ 150 words + relevant hashtags.
+- YouTube: Shorts (9:16, ≤60s) or long-form (hook → payoff in first 30s, chapter markers).
+- Facebook: native photo or video + ≤120 words. No external link in body (reach killer).
+- LinkedIn: 1,200–1,500 characters, hook in line 1 (before the "see more" fold), short paragraphs, link in comments.
+- X/Twitter: single tweet ≤180 chars OR thread (hook tweet → 4–7 beats → CTA tweet).
+Always output: {platform, format, hook, body, cta, hashtags_or_none, best_post_time_local}.`,
 
-  content_creator: `You are SmartSwing AI's content strategist and scriptwriter.
-Create scripts, captions, storyboards, and content briefs adapted to each platform's algorithm.
-Deliverables you produce:
-- TikTok/Instagram Reel scripts: Hook + Problem + Solution + CTA (60-90 sec format)
-- YouTube scripts: Full structured scripts with intro hook, chapters, CTAs, b-roll notes
-- Blog post outlines and full drafts (SEO-optimized)
-- Email newsletter content
-- Podcast episode outlines
-- Content series concepts with 4-12 piece arc
-Tone: Expert sports performance meets accessible tech. Aspirational but grounded in data.
-Always include: target persona, content goal, success metric, distribution plan.`,
+  content_creator: `You are SmartSwing AI's scriptwriter. Produce scripts and briefs adapted to each platform's algorithm.
+Deliverables:
+- Reels/TikTok scripts: 3-sec hook (on-screen text + voiceover), 1 visual beat, payoff, CTA (≤30s total).
+- YouTube scripts: cold open (≤15s), chapter markers every 20–30s, one call-out per chapter, end screen CTA.
+- Carousel outlines: slide 1 hook, slides 2–8 one beat each (12–18 words max), slide 9–10 CTA.
+- Blog outlines: H1, 3–5 H2s with evidence points, 1 primary keyword, meta description ≤155 chars.
+- Email + newsletter drafts.
+Every deliverable includes: {target_persona, content_goal, success_metric, distribution_plan, time_to_produce}.`,
 
   ux_designer: `You are a senior UI/UX designer and conversion rate optimization specialist.
 Create detailed design briefs, wireframe descriptions, A/B test hypotheses, and CRO recommendations.
@@ -264,9 +261,31 @@ async function handleAgent(req, res) {
   // Brand voice: every copy-producing agent gets the Nike × Apple × Tennis prefix.
   let brandedSystem = brandCopyPrompt(systemPrompt);
 
-  // Phase F #3 + #8: inject past winning hooks + top performers so the agent learns
+  // Persona rails (Ticket #7) — different proof points, CTAs, and lexicon
+  // for each audience segment. Keeps coach/club B2B content from sounding
+  // like parent-facing emotion, and vice versa.
+  const personaRails = {
+    player: `Audience: recreational player (3.0–4.5 NTRP). Speak technical: contact point, racket-head speed (mph), timing (ms), footwork names. Proof = numbers and drills. CTA = save, try, comment a video.`,
+    coach: `Audience: USPTA/PTR-certified coach. Speak craft-professional: cue language, player development, progression design. Proof = student results, session formats. CTA = comment perspective, share with another coach, DM for framework.`,
+    club: `Audience: club director / academy owner. Speak B2B: retention, programming, LTV, instructor utilization. Proof = % changes, member counts, revenue deltas. CTA = DM for benchmark, reply for template, book call.`,
+    parent: `Audience: tennis/pickleball parent. Speak supportive-empirical: age-appropriate milestones, safety, progress visibility, coach-approved. Proof = junior outcomes, checklists. CTA = save for later, share with another parent.`
+  };
+  const personaKey = (context && typeof context === 'string' && context.match(/persona[:=\s]+(player|coach|club|parent)/i)?.[1]?.toLowerCase())
+                   || req.body?.persona
+                   || null;
+  if (personaKey && personaRails[personaKey]) {
+    brandedSystem += `\n\nPersona rails: ${personaRails[personaKey]}`;
+  }
+  if (platform) {
+    brandedSystem += `\n\nTarget platform: ${platform}. Honor the platform's native format (length, hooks, CTA placement).`;
+  }
+
+  // Feedback loop (Tickets #4 + #14): past winning hooks + performance baseline
   try {
-    const [pastHooks, topPosts] = await Promise.all([getTopHooks(3), topPerformers(3)]);
+    const [pastHooks, topPosts] = await Promise.all([
+      getTopHooks(3, platform, personaKey),
+      topPerformers(3)
+    ]);
     if (pastHooks.length) {
       brandedSystem += `\n\nPast winning hooks (your previous posts that over-performed — write in this voice):\n` +
         pastHooks.map((h, i) => `${i + 1}. ${h}`).join('\n');
@@ -274,6 +293,16 @@ async function handleAgent(req, res) {
     if (topPosts.length) {
       const er = topPosts.map(p => `${Math.round((p.engagement_rate || 0))}%`).join(', ');
       brandedSystem += `\n\nRecent post engagement rates you've hit: ${er}. Beat them.`;
+    }
+  } catch (_) { /* non-fatal */ }
+
+  // Template library (Ticket #6): seed the prompt with 3 matching proven templates
+  try {
+    const { getTemplates } = require('./_lib/ab-rotator');
+    const templates = await getTemplates({ platform, persona: personaKey, limit: 3 });
+    if (templates.length) {
+      brandedSystem += `\n\nProven template patterns to adapt (do not copy verbatim — write fresh copy in their structure):\n` +
+        templates.map((t, i) => `${i + 1}. [${t.format}] Hook: "${t.hook}"\n   Structure: ${t.body_structure || 'n/a'}\n   CTA: ${t.cta || 'n/a'}`).join('\n');
     }
   } catch (_) { /* non-fatal */ }
 
@@ -424,23 +453,39 @@ async function persistAgentOutput(ctx) {
     console.warn('[persistAgentOutput] agent_tasks insert failed:', err.message);
   }
 
-  // 2. Insert content_calendar draft row
+  // 2. Insert content_calendar draft row (+ auto-schedule to optimal platform slot)
   try {
     const firstLine = (ctx.responseText.split('\n').find(l => l.trim().length > 5) || 'Untitled draft').slice(0, 140);
     // Phase F #9: generate a URL-safe slug for public share cards
     const slug = firstLine.replace(/^[#*\s-]+/, '').toLowerCase()
       .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) +
       '-' + Math.random().toString(36).slice(2, 7);
+    const platform = ctx.platform || 'instagram';
+
+    // Sprint 1 #5: auto-schedule into the next optimal window for this platform
+    let schedule = { date: null, time: null };
+    try {
+      const { resolveOptimalSlot } = require('./_lib/platform-formatter');
+      schedule = resolveOptimalSlot(platform);
+    } catch (_) { /* formatter missing — fall back to unscheduled */ }
+
     const draftRow = {
       title: firstLine.replace(/^[#*\s-]+/, ''),
       type: ctx.content_type || 'post',
-      platform: ctx.platform || 'instagram',
-      status: 'draft',
+      platform,
+      // If the caller explicitly passed auto_schedule=false we drop to 'draft',
+      // otherwise the AI output goes straight into 'scheduled' so the publish
+      // runner can pick it up on the next cron tick.
+      status: (ctx.auto_schedule === false) ? 'draft' : 'scheduled',
+      scheduled_date: (ctx.auto_schedule === false) ? null : schedule.date,
+      scheduled_time: (ctx.auto_schedule === false) ? null : schedule.time,
+      approval_status: 'pending',     // #13: require approval by default
       copy_text: ctx.responseText,
       campaign_id: ctx.campaign_id || null,
+      target_persona: ctx.persona || null,
       assigned_agent: ctx.agent_type,
       agent_task_id: out.agent_task_id,
-      brand_version: 'v1',
+      brand_version: 'v2',             // voice unified in Sprint 1
       slug,
       hook_variants: ctx.hook_variants || null
     };
@@ -473,8 +518,6 @@ async function persistAgentOutput(ctx) {
       if (detail?.url) {
         out.image_url = detail.url;
         out.media_asset_id = detail.assetId;
-        // detail.assetId is only set when persistGeneratedImage successfully
-        // uploaded to marketing-media. If null, the URL is ephemeral.
         const persisted = !!detail.assetId;
         out.image_persisted = persisted;
         await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
@@ -483,11 +526,29 @@ async function persistAgentOutput(ctx) {
             apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
             'Content-Type': 'application/json', Prefer: 'return=minimal'
           },
-          body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId, image_persisted: persisted })
+          body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId, image_persisted: persisted, image_error: null })
+        });
+      } else {
+        // Ticket #12: surface the failure so the UI shows a retry affordance
+        const reason = detail?.error || 'image generation returned no URL';
+        out.image_error = reason;
+        await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
+          method: 'PATCH',
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ image_error: reason })
         });
       }
     } catch (err) {
-      console.warn('[persistAgentOutput] auto_visual failed:', err.message);
+      const reason = err?.message || String(err);
+      console.warn('[persistAgentOutput] auto_visual failed:', reason);
+      out.image_error = reason;
+      try {
+        await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
+          method: 'PATCH',
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ image_error: reason })
+        });
+      } catch (_) {}
     }
   }
 
@@ -4064,13 +4125,74 @@ async function handleBackfillMedia(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: refresh-metrics-live — on-demand Graph API pull (Ticket #15)
+// Triggered by the "🔄 Refresh live" button on the analytics tab so users
+// don't have to wait for the daily cron.
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleRefreshMetricsLive(req, res) {
+  try {
+    const { runMetricsFetch } = require('./_lib/content-metrics');
+    const result = await runMetricsFetch(20);
+    return res.status(200).json({ ok: true, ...result, refreshed_at: new Date().toISOString() });
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: approve-item — flip approval_status on a content_calendar row (Ticket #13)
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleApproveItem(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { id, approved } = req.body || {};
+  if (!id) return res.status(400).json({ error: 'id required' });
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+  const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify({ approval_status: approved === false ? 'rejected' : 'approved', approved_at: new Date().toISOString() })
+  });
+  const rows = r.ok ? await r.json().catch(() => []) : [];
+  return res.status(r.ok ? 200 : 500).json({ ok: r.ok, row: rows?.[0] || null });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: unified-map — combined outbound view (Ticket #11)
+// Returns cadence steps + content_calendar items side-by-side for a date range.
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleUnifiedMap(req, res) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+  const days = Math.min(parseInt(req.query?.days || 30, 10) || 30, 90);
+  const start = new Date().toISOString().slice(0, 10);
+  const end = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+  try {
+    const [socialRes, cadenceRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/content_calendar?scheduled_date=gte.${start}&scheduled_date=lte.${end}&select=id,title,platform,status,scheduled_date,scheduled_time,approval_status,campaign_id,image_url,image_persisted&order=scheduled_date.asc`, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }),
+      fetch(`${supabaseUrl}/rest/v1/cadence_enrollments?select=id,cadence_id,contact_id,next_step_at,current_step,status&next_step_at=gte.${start}&next_step_at=lte.${end}&order=next_step_at.asc`, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } })
+    ]);
+    const social = socialRes.ok ? await socialRes.json() : [];
+    const cadence = cadenceRes.ok ? await cadenceRes.json() : [];
+    return res.status(200).json({ ok: true, start, end, social, cadence });
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
 const ROUTES = {
-  'agent':             handleAgent,
-  'regenerate-visual': handleRegenerateVisual,
-  'save-draft':        handleSaveDraft,
-  'publish-now':       handlePublishNow,
-  'publish-run':       handlePublishRun,
-  'backfill-media':    handleBackfillMedia,
+  'agent':               handleAgent,
+  'regenerate-visual':   handleRegenerateVisual,
+  'save-draft':          handleSaveDraft,
+  'publish-now':         handlePublishNow,
+  'publish-run':         handlePublishRun,
+  'backfill-media':      handleBackfillMedia,
+  'refresh-metrics-live': handleRefreshMetricsLive,
+  'approve-item':        handleApproveItem,
+  'unified-map':         handleUnifiedMap,
   'score-leads':       handleScoreLeads,
   'suggest-time':      handleSuggestTime,
   'generate-video':    handleGenerateVideo,

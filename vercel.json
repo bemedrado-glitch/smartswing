@@ -121,6 +121,10 @@
     {
       "source": "/p/:slug",
       "destination": "/post.html?slug=:slug"
+    },
+    {
+      "source": "/go/:code",
+      "destination": "/api/go?code=:code"
     }
   ],
   "routes": [
