@@ -20,6 +20,7 @@
 
 const { renderTemplate } = require('./_lib/email-templates');
 const { runCadenceBatch } = require('./_lib/cadence-runner');
+const { runPublishBatch } = require('./_lib/publish-runner');
 
 const RESEND_API = 'https://api.resend.com/emails';
 
@@ -215,6 +216,15 @@ module.exports = async (req, res) => {
   } catch (err) {
     console.error('[cron-win-back] Cadence runner error:', err?.message || err);
     results.cadence = { error: err?.message || String(err) };
+  }
+
+  // Phase D: drain scheduled content_calendar items (facebook + instagram
+  // wired today; other platforms skip gracefully until tokens land).
+  try {
+    results.publish = await runPublishBatch();
+  } catch (err) {
+    console.error('[cron-win-back] Publish runner error:', err?.message || err);
+    results.publish = { error: err?.message || String(err) };
   }
 
   console.log('[cron-win-back] Completed:', results);

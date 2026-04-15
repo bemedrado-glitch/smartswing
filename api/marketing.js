@@ -31,6 +31,7 @@
 
 const { brandImagePrompt, brandCopyPrompt, BRAND_STYLE } = require('./_lib/brand-style');
 const { persistGeneratedImage } = require('./_lib/media-storage');
+const { runPublishBatch, publishSingleItem } = require('./_lib/publish-runner');
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SHARED HELPERS
@@ -3800,10 +3801,34 @@ async function handleEnrichEmails(req, res) {
   }
 }
 
+async function handlePublishNow(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { content_item_id } = req.body || {};
+  if (!content_item_id) return res.status(400).json({ error: 'content_item_id required' });
+  try {
+    const result = await publishSingleItem(content_item_id);
+    return res.status(result.ok ? 200 : 422).json(result);
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err?.message || String(err) });
+  }
+}
+
+async function handlePublishRun(req, res) {
+  // Manual drain trigger (admin) — same logic the cron uses
+  try {
+    const result = await runPublishBatch();
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
 const ROUTES = {
   'agent':             handleAgent,
   'regenerate-visual': handleRegenerateVisual,
   'save-draft':        handleSaveDraft,
+  'publish-now':       handlePublishNow,
+  'publish-run':       handlePublishRun,
   'orchestrate':     handleOrchestrate,
   'enroll-cadence':      handleEnrollCadence,
   'unenroll-cadence':    handleUnenrollCadence,

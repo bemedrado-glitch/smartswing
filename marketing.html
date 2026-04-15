@@ -560,7 +560,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <span><strong id="calSumPublished">0</strong> published</span>
           <span style="color:var(--muted);">·</span>
           <span><strong id="calSumApprovalNeeded">0</strong> awaiting approval</span>
-          <span style="margin-left:auto;color:var(--muted);" id="calSumRange"></span>
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+            <span style="color:var(--muted);" id="calSumRange"></span>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runPublisherNow()" title="Drain all due scheduled posts now">🚀 Run publisher</button>
+          </span>
         </div>
 
         <!-- Filter pills -->
@@ -2938,6 +2941,9 @@ function renderCampaigns() {
     const progress = c.progress || 0;
     const startFmt = c.start_date ? new Date(c.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
     const endFmt = c.end_date ? new Date(c.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+
+    // Phase E: roll-up stats from in-memory stores
+    const rollup = _campaignRollup(c);
     return `
       <div class="mkt-campaign-card" onclick="toggleCampaignExpand(this)">
         <div class="mkt-campaign-card__top">
@@ -2948,6 +2954,12 @@ function renderCampaigns() {
           <span class="mkt-badge mkt-badge--${c.status}">${c.status}</span>
         </div>
         ${c.description ? `<p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">${escHtml(c.description)}</p>` : ''}
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;font-size:12px;text-align:center;">
+          <div><div style="font-size:18px;font-weight:600;color:#0B1220;">${rollup.contacts}</div><div style="color:var(--muted);">contacts</div></div>
+          <div><div style="font-size:18px;font-weight:600;color:#d97706;">${rollup.scheduled}</div><div style="color:var(--muted);">scheduled</div></div>
+          <div><div style="font-size:18px;font-weight:600;color:#16a34a;">${rollup.published}</div><div style="color:var(--muted);">published</div></div>
+          <div><div style="font-size:18px;font-weight:600;color:#2563eb;">${rollup.drafts}</div><div style="color:var(--muted);">drafts</div></div>
+        </div>
         <div class="mkt-progress">
           <div class="mkt-progress__bar" style="width:${progress}%;"></div>
         </div>
@@ -2958,6 +2970,8 @@ function renderCampaigns() {
         ${c.budget ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">Budget: $${c.budget.toLocaleString()}</div>` : ''}
         <div class="mkt-campaign-card__actions">
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();briefCampaignWithAI('${escHtml(c.name)}', '${c.target_persona}', '${c.type}')">🤖 Generate Brief</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();viewCampaignContent('${c.id}','${escHtml(c.name)}')">📅 View Posts</button>
+          <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();viewCampaignContacts('${c.id}','${escHtml(c.name)}')">👥 View Contacts</button>
           <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="event.stopPropagation();deleteCampaign('${c.id}')">Remove</button>
         </div>
         <div class="mkt-campaign-detail" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
@@ -2970,6 +2984,41 @@ function renderCampaigns() {
       </div>
     `;
   }).join('');
+}
+
+// Phase E: roll up contacts + content_calendar items for a campaign card
+function _campaignRollup(c) {
+  const cid = c.id;
+  const cname = (c.name || '').toLowerCase().trim();
+  const matchesCampaign = (obj) => {
+    if (!obj) return false;
+    if (obj.campaign_id && cid && String(obj.campaign_id) === String(cid)) return true;
+    const tag = String(obj.campaign || obj.campaign_name || '').toLowerCase().trim();
+    return tag && cname && tag === cname;
+  };
+
+  const contacts = (MarketingStore.contacts || []).filter(matchesCampaign).length;
+  const items = (MarketingStore.contentItems || []).filter(matchesCampaign);
+  const scheduled = items.filter(i => i.status === 'scheduled').length;
+  const published = items.filter(i => i.status === 'published').length;
+  const drafts = items.filter(i => i.status === 'draft' || i.status === 'idea').length;
+  return { contacts, scheduled, published, drafts, total: items.length };
+}
+
+// Phase E: cross-link — jump to calendar filtered by campaign
+function viewCampaignContent(campaignId, campaignName) {
+  switchTab('calendar', document.querySelector('[data-tab=calendar]'));
+  showToast('Showing calendar posts tagged to "' + campaignName + '"', 'info');
+  // Apply a lightweight filter via calFilters (platform filter already exists; campaign filter is ad-hoc here)
+  MarketingStore._campaignContentFilter = { id: campaignId, name: campaignName };
+  if (typeof renderCalendar === 'function') renderCalendar();
+}
+
+function viewCampaignContacts(campaignId, campaignName) {
+  switchTab('contacts', document.querySelector('[data-tab=contacts]'));
+  showToast('Showing contacts enrolled in "' + campaignName + '"', 'info');
+  MarketingStore._campaignContactFilter = { id: campaignId, name: campaignName };
+  if (typeof renderContacts === 'function') renderContacts();
 }
 
 async function saveCampaign() {
@@ -3469,6 +3518,17 @@ function openDayDetailModal(dateStr) {
 
       var copy = (item.copy_text || item.title || '').slice(0, 220);
 
+      var publishBtn = (item.status === 'scheduled' || item.status === 'draft' || item.status === 'approved')
+        ? '<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" style="flex:0 0 auto;" ' +
+          'onclick="event.stopPropagation(); publishContentNow(\'' + item.id + '\');">🚀 Publish now</button>'
+        : '';
+      var failureChip = item.failure_reason
+        ? '<div style="font-size:11px;color:#b91c1c;margin-top:4px;">⚠ ' + escHtml(String(item.failure_reason).slice(0, 140)) + '</div>'
+        : '';
+      var postedChip = item.posted_url
+        ? '<a href="' + item.posted_url + '" target="_blank" rel="noopener" style="font-size:11px;color:#16a34a;" onclick="event.stopPropagation();">→ View post</a>'
+        : '';
+
       return '<div class="mkt-cal-day-list-item" onclick="closeModal(\'calDayModal\'); openContentDetail(\'' + item.id + '\');">' +
         thumb +
         '<div class="mkt-cal-day-list-item__body">' +
@@ -3479,7 +3539,9 @@ function openDayDetailModal(dateStr) {
           '</div>' +
           '<div class="mkt-cal-day-list-item__title">' + escHtml(item.title) + '</div>' +
           '<div class="mkt-cal-day-list-item__copy">' + escHtml(copy) + '</div>' +
+          failureChip + ' ' + postedChip +
         '</div>' +
+        publishBtn +
       '</div>';
     }).join('');
   }
@@ -3836,6 +3898,55 @@ async function openDraftScheduler(contentItemId) {
  */
 function loadContent() {
   if (typeof loadContentItems === 'function') loadContentItems();
+}
+
+/**
+ * Phase D: Manually publish a single content item right now.
+ * Hits /api/marketing/publish-now which routes to Facebook / Instagram today;
+ * other platforms are wired as their tokens land.
+ */
+async function publishContentNow(contentItemId) {
+  if (!contentItemId) return;
+  if (!confirm('Publish this post to its platform right now?\n\nFacebook and Instagram will post immediately. LinkedIn / TikTok / YouTube / X are not wired yet.')) return;
+  try {
+    showToast('Publishing…', 'info');
+    const res = await fetch('/api/marketing/publish-now', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content_item_id: contentItemId })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('Published. ' + (data.url ? 'View: ' + data.url : ''), 'success');
+    } else if (data.skip) {
+      showToast('Skipped: ' + (data.error || 'provider not configured'), 'warning');
+    } else {
+      showToast('Publish failed: ' + (data.error || 'unknown'), 'error');
+    }
+    if (typeof loadContentItems === 'function') loadContentItems();
+    closeModal('calDayModal');
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+/**
+ * Phase D: Admin drain trigger — publishes every due item in one batch.
+ * Same logic the daily cron uses.
+ */
+async function runPublisherNow() {
+  if (!confirm('Run the publisher for ALL scheduled content that is due now?\n\nThis posts to Facebook / Instagram immediately.')) return;
+  try {
+    showToast('Draining publish queue…', 'info');
+    const res = await fetch('/api/marketing/publish-run', { method: 'POST' });
+    const data = await res.json();
+    const msg = 'Checked ' + (data.checked || 0) + ' · Published ' + (data.published || 0) +
+      ' · Skipped ' + (data.skipped || 0) + ' · Failed ' + (data.failed || 0);
+    showToast(msg, data.failed ? 'warning' : 'success');
+    if (typeof loadContentItems === 'function') loadContentItems();
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
 }
 
 /* ── CONTENT DETAIL ── */
