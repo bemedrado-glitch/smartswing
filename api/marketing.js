@@ -29,6 +29,9 @@
 
 'use strict';
 
+const { brandImagePrompt, brandCopyPrompt, BRAND_STYLE } = require('./_lib/brand-style');
+const { persistGeneratedImage } = require('./_lib/media-storage');
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SHARED HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -230,7 +233,16 @@ async function callClaude(systemPrompt, userMessage, apiKey, preferredModel) {
 async function handleAgent(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { agent_type, task, context = '', contact_data = null } = req.body || {};
+  const {
+    agent_type, task, context = '', contact_data = null,
+    // Phase B: when true, auto-create a content_calendar draft from the output
+    // and (optionally) also generate a branded visual for it.
+    auto_draft = false,
+    auto_visual = false,
+    platform = 'instagram',
+    content_type = 'post',
+    campaign_id = null
+  } = req.body || {};
   if (!agent_type || !task) return res.status(400).json({ error: 'agent_type and task are required' });
 
   const systemPrompt = SYSTEM_PROMPTS[agent_type];
@@ -240,6 +252,10 @@ async function handleAgent(req, res) {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+
+  // Brand voice: every copy-producing agent gets the Nike × Apple × Tennis prefix.
+  // System prompt already sets role; we prepend brand voice as an additional directive.
+  const brandedSystem = brandCopyPrompt(systemPrompt);
 
   let userMessage = task;
   if (context) userMessage += `\n\nAdditional context: ${context}`;
@@ -258,7 +274,7 @@ async function handleAgent(req, res) {
       body: JSON.stringify({
         model: 'claude-opus-4-5',
         max_tokens: 4096,
-        system: systemPrompt,
+        system: brandedSystem,
         messages: [{ role: 'user', content: userMessage }]
       })
     });
@@ -284,22 +300,259 @@ async function handleAgent(req, res) {
           return res.status(502).json({ error: 'AI service error', details: await fallbackResponse.text() });
         }
         const fallbackData = await fallbackResponse.json();
+        const fbText = fallbackData.content?.[0]?.text || '';
+        const fbExtras = await persistAgentOutput({
+          responseText: fbText, agent_type, task, task_id,
+          auto_draft, auto_visual, platform, content_type, campaign_id,
+          model: 'claude-3-5-sonnet-20241022'
+        });
         return res.status(200).json({
-          success: true, response: fallbackData.content?.[0]?.text || '',
-          agent_type, task_id, model: 'claude-3-5-sonnet-20241022'
+          success: true, response: fbText,
+          agent_type, task_id, model: 'claude-3-5-sonnet-20241022',
+          ...fbExtras
         });
       }
       return res.status(502).json({ error: 'AI service error', details: errorData });
     }
 
     const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const extras = await persistAgentOutput({
+      responseText: text, agent_type, task, task_id,
+      auto_draft, auto_visual, platform, content_type, campaign_id,
+      model: 'claude-opus-4-5'
+    });
     return res.status(200).json({
-      success: true, response: data.content?.[0]?.text || '',
-      agent_type, task_id, model: 'claude-opus-4-5', usage: data.usage || {}
+      success: true, response: text,
+      agent_type, task_id, model: 'claude-opus-4-5', usage: data.usage || {},
+      ...extras
     });
   } catch (err) {
     console.error('Agent handler error:', err);
     return res.status(500).json({ error: 'Internal server error', message: err.message });
+  }
+}
+
+/**
+ * Phase B: after an agent produces text, optionally:
+ *  - log an agent_tasks row for provenance
+ *  - insert a content_calendar draft with the copy text
+ *  - generate a branded DALL-E image and attach it to the draft
+ *
+ * All steps are best-effort; failures are logged but don't break the agent call.
+ */
+async function persistAgentOutput(ctx) {
+  const out = { agent_task_id: null, content_item_id: null, image_url: null, media_asset_id: null };
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return out;
+
+  const COPY_AGENTS = new Set(['copywriter', 'social_media', 'content_creator']);
+  const shouldDraft = ctx.auto_draft && COPY_AGENTS.has(ctx.agent_type) && ctx.responseText;
+  if (!shouldDraft) return out;
+
+  // 1. Log agent_tasks row (provenance)
+  try {
+    const agentTaskRow = {
+      agent_type: ctx.agent_type,
+      task: (ctx.task || '').slice(0, 2000),
+      status: 'completed',
+      input_data: { task: ctx.task, platform: ctx.platform, content_type: ctx.content_type },
+      output_data: { text: ctx.responseText, model: ctx.model, task_id: ctx.task_id },
+      completed_at: new Date().toISOString()
+    };
+    const r = await fetch(`${supabaseUrl}/rest/v1/agent_tasks`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify(agentTaskRow)
+    });
+    if (r.ok) {
+      const rows = await r.json().catch(() => []);
+      out.agent_task_id = Array.isArray(rows) ? (rows[0]?.id || null) : (rows?.id || null);
+    }
+  } catch (err) {
+    console.warn('[persistAgentOutput] agent_tasks insert failed:', err.message);
+  }
+
+  // 2. Insert content_calendar draft row
+  try {
+    const firstLine = (ctx.responseText.split('\n').find(l => l.trim().length > 5) || 'Untitled draft').slice(0, 140);
+    const draftRow = {
+      title: firstLine.replace(/^[#*\s-]+/, ''),
+      type: ctx.content_type || 'post',
+      platform: ctx.platform || 'instagram',
+      status: 'draft',
+      copy_text: ctx.responseText,
+      campaign_id: ctx.campaign_id || null,
+      assigned_agent: ctx.agent_type,
+      agent_task_id: out.agent_task_id,
+      brand_version: 'v1'
+    };
+    const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify(draftRow)
+    });
+    if (r.ok) {
+      const rows = await r.json().catch(() => []);
+      out.content_item_id = Array.isArray(rows) ? (rows[0]?.id || null) : (rows?.id || null);
+    } else {
+      console.warn('[persistAgentOutput] content_calendar insert failed:', r.status, (await r.text()).slice(0, 200));
+    }
+  } catch (err) {
+    console.warn('[persistAgentOutput] content_calendar insert error:', err.message);
+  }
+
+  // 3. Optionally generate + attach a branded visual
+  if (ctx.auto_visual && out.content_item_id) {
+    try {
+      const visualPrompt = `Scene for a tennis/pickleball social post. Copy: "${ctx.responseText.slice(0, 500)}"`;
+      const size = (ctx.platform === 'instagram' || ctx.content_type === 'post') ? '1024x1024' : '1024x1792';
+      const detail = await generateImage(visualPrompt, size, {
+        returnDetail: true, contentItemId: out.content_item_id
+      });
+      if (detail?.url) {
+        out.image_url = detail.url;
+        out.media_asset_id = detail.assetId;
+        await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json', Prefer: 'return=minimal'
+          },
+          body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId })
+        });
+      }
+    } catch (err) {
+      console.warn('[persistAgentOutput] auto_visual failed:', err.message);
+    }
+  }
+
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: regenerate-visual  — regenerate the image for an existing draft
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleRegenerateVisual(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { content_item_id, prompt_override, size } = req.body || {};
+  if (!content_item_id) return res.status(400).json({ error: 'content_item_id is required' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    // Fetch the draft to get its copy as context
+    const fetched = await supabaseGet(
+      `${supabaseUrl}/rest/v1/content_calendar?id=eq.${content_item_id}&select=id,title,copy_text,platform,type&limit=1`,
+      supabaseKey
+    );
+    const item = fetched?.[0];
+    if (!item) return res.status(404).json({ error: 'Content item not found' });
+
+    const basePrompt = String(prompt_override || '').trim() ||
+      `Scene for a ${item.platform || 'instagram'} ${item.type || 'post'}. Copy: "${(item.copy_text || item.title || '').slice(0, 500)}"`;
+    const imgSize = size || ((item.platform === 'instagram' || item.type === 'post') ? '1024x1024' : '1024x1792');
+
+    const detail = await generateImage(basePrompt, imgSize, {
+      returnDetail: true, contentItemId: content_item_id
+    });
+    if (!detail?.url) return res.status(502).json({ error: 'Image generation failed' });
+
+    // Update the content_calendar row
+    await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${content_item_id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId })
+    });
+
+    return res.status(200).json({
+      success: true,
+      content_item_id,
+      image_url: detail.url,
+      media_asset_id: detail.assetId,
+      prompt_used: detail.promptUsed
+    });
+  } catch (err) {
+    console.error('[regenerate-visual] Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: save-draft  — create or update a content_calendar draft from the UI
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSaveDraft(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const {
+    id, title, type, platform, status, scheduled_date, scheduled_time,
+    copy_text, image_url, campaign_id, approval_status
+  } = req.body || {};
+
+  const payload = {};
+  if (title !== undefined) payload.title = title;
+  if (type !== undefined) payload.type = type;
+  if (platform !== undefined) payload.platform = platform;
+  if (status !== undefined) payload.status = status;
+  if (scheduled_date !== undefined) payload.scheduled_date = scheduled_date;
+  if (scheduled_time !== undefined) payload.scheduled_time = scheduled_time;
+  if (copy_text !== undefined) payload.copy_text = copy_text;
+  if (image_url !== undefined) payload.image_url = image_url;
+  if (campaign_id !== undefined) payload.campaign_id = campaign_id;
+  if (approval_status !== undefined) payload.approval_status = approval_status;
+
+  try {
+    if (id) {
+      const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json', Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) return res.status(r.status).json({ error: (await r.text()).slice(0, 200) });
+      const rows = await r.json().catch(() => []);
+      return res.status(200).json({ success: true, item: Array.isArray(rows) ? rows[0] : rows });
+    }
+    // Insert new
+    if (!payload.title) payload.title = 'Untitled draft';
+    if (!payload.type) payload.type = 'post';
+    if (!payload.platform) payload.platform = 'instagram';
+    if (!payload.status) payload.status = 'draft';
+    const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) return res.status(r.status).json({ error: (await r.text()).slice(0, 200) });
+    const rows = await r.json().catch(() => []);
+    return res.status(201).json({ success: true, item: Array.isArray(rows) ? rows[0] : rows });
+  } catch (err) {
+    console.error('[save-draft] Error:', err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -375,24 +628,54 @@ function mapDeliverableToWorkflowType(type = '') {
   return 'social_post';
 }
 
-async function generateImage(prompt, size) {
+/**
+ * Generate an image via DALL-E 3 and immediately mirror the bytes to Supabase
+ * Storage so the URL is permanent (DALL-E's CDN URLs expire in ~60min).
+ *
+ * Returns either:
+ *   - a permanent public URL string (back-compat with existing callers), or
+ *   - null on failure.
+ *
+ * Pass `opts.returnDetail = true` to get `{ url, assetId, promptUsed }`.
+ */
+async function generateImage(prompt, size, opts = {}) {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) return opts.returnDetail ? { url: null, assetId: null } : null;
   size = size || '1024x1024';
+  const brandedPrompt = brandImagePrompt(prompt);
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000); // 25s max for image gen
     const res = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'dall-e-3', prompt: prompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
+      body: JSON.stringify({ model: 'dall-e-3', prompt: brandedPrompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
       signal: controller.signal
     });
     clearTimeout(timeout);
-    if (!res.ok) { console.warn('[generateImage] DALL-E error:', res.status); return null; }
+    if (!res.ok) {
+      console.warn('[generateImage] DALL-E error:', res.status);
+      return opts.returnDetail ? { url: null, assetId: null } : null;
+    }
     const data = await res.json();
-    return data.data?.[0]?.url || null;
-  } catch (err) { console.warn('[generateImage] Error:', err.message); return null; }
+    const ephemeralUrl = data.data?.[0]?.url || null;
+    if (!ephemeralUrl) return opts.returnDetail ? { url: null, assetId: null } : null;
+
+    // Persist to Supabase Storage so it survives beyond DALL-E's 60min TTL.
+    const persisted = await persistGeneratedImage(ephemeralUrl, {
+      prompt: brandedPrompt,
+      model: 'dall-e-3',
+      contentItemId: opts.contentItemId || null
+    });
+
+    const finalUrl = persisted.url || ephemeralUrl;  // Fall back to ephemeral if storage fails
+    return opts.returnDetail
+      ? { url: finalUrl, assetId: persisted.assetId, promptUsed: brandedPrompt }
+      : finalUrl;
+  } catch (err) {
+    console.warn('[generateImage] Error:', err.message);
+    return opts.returnDetail ? { url: null, assetId: null } : null;
+  }
 }
 
 function mapWorkflowTypeToCalendarType(workflowType) {
@@ -3510,7 +3793,9 @@ async function handleEnrichEmails(req, res) {
 }
 
 const ROUTES = {
-  'agent':           handleAgent,
+  'agent':             handleAgent,
+  'regenerate-visual': handleRegenerateVisual,
+  'save-draft':        handleSaveDraft,
   'orchestrate':     handleOrchestrate,
   'enroll-cadence':      handleEnrollCadence,
   'unenroll-cadence':    handleUnenrollCadence,
