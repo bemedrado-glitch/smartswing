@@ -2002,10 +2002,15 @@ function closeSidebar() {
 
 /* ── MODALS ── */
 function openModal(id) {
-  document.getElementById(id).classList.add('is-open');
+  var el = document.getElementById(id);
+  if (!el) { console.warn('[openModal] element not found:', id); return; }
+  el.style.display = '';       // clear any inline display:none
+  el.classList.add('is-open');
 }
 function closeModal(id) {
-  document.getElementById(id).classList.remove('is-open');
+  var el = document.getElementById(id);
+  if (!el) return;             // safe — non-existent IDs are silently skipped
+  el.classList.remove('is-open');
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
@@ -2759,7 +2764,6 @@ async function openAssignCadenceModal(contactId, contactName, preselectCadenceId
 
   // Close any open lead/contact detail modals so they don't stack
   closeModal('leadTimelineModal');
-  closeModal('contactCardModal');
   openModal('assignCadenceModal');
 
   if (MarketingStore.supabase) {

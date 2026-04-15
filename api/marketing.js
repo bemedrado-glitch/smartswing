@@ -1066,10 +1066,13 @@ async function handleOrchestrate(req, res) {
 async function handleEnrollCadence(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { contact_id, cadence_id, campaign_id, supabase_url, supabase_key } = req.body || {};
+  const { contact_id, cadence_id, campaign_id, supabase_url: clientUrl, supabase_key: clientKey } = req.body || {};
   if (!contact_id) return res.status(400).json({ error: 'contact_id is required' });
   if (!cadence_id) return res.status(400).json({ error: 'cadence_id is required' });
-  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  // Prefer server-side env vars (service role = full write access); fall back to client-passed anon key
+  const supabase_url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || clientUrl;
+  const supabase_key = process.env.SUPABASE_SERVICE_ROLE_KEY || clientKey;
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'Supabase not configured — missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' });
 
   const now = new Date().toISOString();
 
