@@ -1062,6 +1062,70 @@ async function handleOrchestrate(req, res) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROUTE: bulk-delete-contacts
 // Accepts { ids: string[] } — deletes in chunks of 200 using the service role key
+// ═══════════════════════════════════════════════════════════════════════════════
+// GENERATE AI AD COPY — powered by Claude
+// POST /api/marketing/generate-ai-copy
+// Body: { prompt: string, type: string }
+// Returns: { response: string }
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleGenerateAiCopy(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { prompt, type = 'ad_copy' } = req.body || {};
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+
+  const systemPrompt = `You are an elite performance marketing copywriter for SmartSwing AI — an AI-powered tennis and pickleball swing analysis platform. Brand aesthetic: "Nike meets Apple for tennis" — bold, premium, aspirational. Every word earns its place. No filler. No generic phrases. Return only valid JSON.`;
+
+  const payload = {
+    model: 'claude-opus-4-5',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: prompt }],
+    system: systemPrompt
+  };
+
+  try {
+    let response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok && (response.status === 404 || response.status === 400)) {
+      payload.model = 'claude-3-5-sonnet-20241022';
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: err.error?.message || 'Claude API error' });
+    }
+
+    const data = await response.json();
+    const content = data.content?.[0]?.text || '';
+    return res.status(200).json({ response: content, type });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || 'Internal error' });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BULK DELETE CONTACTS
 // to bypass RLS. Returns { deleted, failed, errors[] }.
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -4870,6 +4934,7 @@ const ROUTES = {
   'weekly-digest':     handleWeeklyDigest,
   'meta-webhook':      handleMetaWebhook,
   'orchestrate':     handleOrchestrate,
+  'generate-ai-copy':    handleGenerateAiCopy,
   'bulk-delete-contacts': handleBulkDeleteContacts,
   'enroll-cadence':      handleEnrollCadence,
   'unenroll-cadence':    handleUnenrollCadence,
