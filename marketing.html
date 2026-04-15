@@ -2870,9 +2870,10 @@ async function openContactCard(contactId, leadName) {
   try {
     // Fetch contact directly — single() throws if not found so we handle it
     const safe = (p) => p.then(r => r).catch(e => ({ data: null, error: e }));
-    const [contactRes, enrollRes] = await Promise.all([
+    const [contactRes, enrollRes, journeyRes] = await Promise.all([
       safe(MarketingStore.supabase.from('marketing_contacts').select('*').eq('id', contactId).maybeSingle()),
-      safe(MarketingStore.supabase.from('contact_cadence_enrollments').select('id,cadence_id,status,current_step,enrolled_at,email_cadences(name,target_persona)').eq('contact_id', contactId).order('enrolled_at', { ascending: false }))
+      safe(MarketingStore.supabase.from('contact_cadence_enrollments').select('id,cadence_id,status,current_step,enrolled_at,email_cadences(name,target_persona)').eq('contact_id', contactId).order('enrolled_at', { ascending: false })),
+      safe(MarketingStore.supabase.from('contact_journeys').select('campaign_id,entered_at,marketing_campaigns(id,name,status,type)').eq('contact_id', contactId).not('campaign_id', 'is', null).order('entered_at', { ascending: false }))
     ]);
     if (contactRes.error && !contactRes.data) {
       body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__icon">⚠️</div><div class="mkt-empty__title">Could not load contact</div><div class="mkt-empty__text">${escHtml(contactRes.error?.message || String(contactRes.error))}</div></div>`;
@@ -2880,7 +2881,13 @@ async function openContactCard(contactId, leadName) {
     }
     const c = contactRes.data || {};
     const enrollments = enrollRes.data || [];
-    const campaigns = [];
+    // Deduplicate by campaign_id — keep latest journey entry per campaign
+    const seenCamp = new Set();
+    const campaigns = (journeyRes.data || []).filter(j => {
+      if (!j.campaign_id || seenCamp.has(j.campaign_id)) return false;
+      seenCamp.add(j.campaign_id);
+      return true;
+    });
 
     const fact = (label, value) => value == null || value === '' ? '' :
       `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px;">
@@ -2899,9 +2906,19 @@ async function openContactCard(contactId, leadName) {
       : `<div style="font-size:12px;color:var(--muted);padding:8px 0;">Not enrolled in any cadence yet.</div>`;
 
     const campaignList = campaigns.length
-      ? campaigns.map(cp => `<div style="padding:6px 10px;background:#f8fafc;border-radius:6px;margin-bottom:4px;font-size:12px;">
-          <strong>${escHtml(cp.campaigns?.name || 'Campaign')}</strong> <span style="color:var(--muted);">· ${cp.campaigns?.status || ''}</span>
-        </div>`).join('')
+      ? campaigns.map(cp => {
+          const mc = cp.marketing_campaigns || {};
+          const typeIcon = { email:'📧', social:'📱', paid:'💰', content:'📝', event:'📅', outreach:'🎯' }[mc.type] || '🎯';
+          const statusColor = mc.status === 'active' ? '#16a34a' : mc.status === 'paused' ? '#d97706' : '#6b7280';
+          return `<div style="padding:8px 10px;background:#f8fafc;border-radius:8px;margin-bottom:6px;font-size:13px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);">
+            <span>${typeIcon}</span>
+            <div style="flex:1;">
+              <strong>${escHtml(mc.name || 'Campaign')}</strong>
+              ${mc.type ? `<span style="margin-left:6px;font-size:11px;color:var(--muted);text-transform:uppercase;">${escHtml(mc.type)}</span>` : ''}
+            </div>
+            <span style="font-size:11px;font-weight:600;color:${statusColor};text-transform:uppercase;">${escHtml(mc.status || 'unknown')}</span>
+          </div>`;
+        }).join('')
       : `<div style="font-size:12px;color:var(--muted);padding:6px 0;">Not in any campaign.</div>`;
 
     body.innerHTML = `
