@@ -551,24 +551,59 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
 
-        <!-- Platform & Status Legend -->
-        <div class="mkt-cal-legend">
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--tiktok"></span>TikTok</span>
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--instagram"></span>Instagram</span>
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--youtube"></span>YouTube</span>
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--facebook"></span>Facebook</span>
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--linkedin"></span>LinkedIn</span>
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--blog"></span>Blog</span>
-          <span class="mkt-cal-legend__item"><span class="mkt-cal-legend__dot mkt-cal-legend__dot--email"></span>Email</span>
-          <span class="mkt-cal-legend__sep"></span>
-          <span class="mkt-cal-legend__status">&#9998; Draft</span>
-          <span class="mkt-cal-legend__status">&#10003; Approved</span>
-          <span class="mkt-cal-legend__status">&#128337; Scheduled</span>
-          <span class="mkt-cal-legend__status">&#9679; Published</span>
+        <!-- Month summary strip -->
+        <div id="calSummary" style="display:flex;flex-wrap:wrap;gap:16px;padding:12px 16px;background:#fafbfc;border:1px solid var(--line);border-radius:8px;margin-bottom:12px;font-size:13px;">
+          <span><strong id="calSumScheduled">0</strong> scheduled</span>
+          <span style="color:var(--muted);">·</span>
+          <span><strong id="calSumDraft">0</strong> drafts</span>
+          <span style="color:var(--muted);">·</span>
+          <span><strong id="calSumPublished">0</strong> published</span>
+          <span style="color:var(--muted);">·</span>
+          <span><strong id="calSumApprovalNeeded">0</strong> awaiting approval</span>
+          <span style="margin-left:auto;color:var(--muted);" id="calSumRange"></span>
+        </div>
+
+        <!-- Filter pills -->
+        <div id="calFilters" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;">
+          <span style="font-size:12px;color:var(--muted);margin-right:4px;">Platform:</span>
+          <button class="mkt-cal-filter is-active" data-platform="all" onclick="toggleCalFilter('platform','all')">All</button>
+          <button class="mkt-cal-filter" data-platform="instagram" onclick="toggleCalFilter('platform','instagram')">📷 Instagram</button>
+          <button class="mkt-cal-filter" data-platform="tiktok" onclick="toggleCalFilter('platform','tiktok')">♫ TikTok</button>
+          <button class="mkt-cal-filter" data-platform="youtube" onclick="toggleCalFilter('platform','youtube')">▶ YouTube</button>
+          <button class="mkt-cal-filter" data-platform="facebook" onclick="toggleCalFilter('platform','facebook')">👥 Facebook</button>
+          <button class="mkt-cal-filter" data-platform="linkedin" onclick="toggleCalFilter('platform','linkedin')">💼 LinkedIn</button>
+          <button class="mkt-cal-filter" data-platform="blog" onclick="toggleCalFilter('platform','blog')">📝 Blog</button>
+          <button class="mkt-cal-filter" data-platform="email" onclick="toggleCalFilter('platform','email')">✉ Email</button>
+          <span style="color:var(--line);margin:0 4px;">|</span>
+          <span style="font-size:12px;color:var(--muted);margin-right:4px;">Status:</span>
+          <button class="mkt-cal-filter is-active" data-status="all" onclick="toggleCalFilter('status','all')">All</button>
+          <button class="mkt-cal-filter" data-status="draft" onclick="toggleCalFilter('status','draft')">✎ Draft</button>
+          <button class="mkt-cal-filter" data-status="scheduled" onclick="toggleCalFilter('status','scheduled')">🕐 Scheduled</button>
+          <button class="mkt-cal-filter" data-status="published" onclick="toggleCalFilter('status','published')">● Published</button>
+        </div>
+
+        <!-- Legend -->
+        <div class="mkt-cal-legend" style="font-size:11px;">
+          <span style="color:var(--muted);">Tip: drag posts between days to reschedule · click a day to see all posts for that day</span>
         </div>
 
         <div class="mkt-cal-grid" id="calGrid">
           <!-- Populated by JS -->
+        </div>
+
+        <!-- Day detail modal -->
+        <div class="mkt-modal" id="calDayModal" onclick="if(event.target===this) closeModal('calDayModal')">
+          <div class="mkt-modal__content" style="max-width:720px;">
+            <div class="mkt-modal__header">
+              <div class="mkt-modal__title" id="calDayModalTitle">—</div>
+              <button class="mkt-modal__close" onclick="closeModal('calDayModal')">&times;</button>
+            </div>
+            <div class="mkt-modal__body" id="calDayModalBody" style="max-height:70vh;overflow-y:auto;"></div>
+            <div class="mkt-modal__footer">
+              <button class="mkt-btn mkt-btn--primary" onclick="openModal('addContentModal'); document.getElementById('ctDate').value=window._calDayModalDate||''; closeModal('calDayModal');">+ Add Content for this Day</button>
+              <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('calDayModal')">Close</button>
+            </div>
+          </div>
         </div>
 
       </div><!-- /tab-calendar -->
@@ -3155,6 +3190,25 @@ function getCalendarMonth(offset) {
   return { year: year, month: month };
 }
 
+// Phase C: filter state (persisted in-memory only — resets on reload)
+if (!MarketingStore.calFilters) MarketingStore.calFilters = { platform: 'all', status: 'all' };
+
+function toggleCalFilter(kind, value) {
+  MarketingStore.calFilters[kind] = value;
+  // Toggle active class on sibling buttons with matching data-kind
+  document.querySelectorAll('.mkt-cal-filter[data-' + kind + ']').forEach(function(btn) {
+    btn.classList.toggle('is-active', btn.getAttribute('data-' + kind) === value);
+  });
+  renderCalendar();
+}
+
+function _calItemMatchesFilters(item) {
+  var f = MarketingStore.calFilters || { platform: 'all', status: 'all' };
+  if (f.platform !== 'all' && item.platform !== f.platform) return false;
+  if (f.status !== 'all' && item.status !== f.status) return false;
+  return true;
+}
+
 function renderCalendar() {
   var cal = getCalendarMonth(MarketingStore.calOffset);
   var year = cal.year;
@@ -3205,15 +3259,31 @@ function renderCalendar() {
 
   var html = dayNames.map(function(d) { return '<div class="mkt-cal-day-header">' + d + '</div>'; }).join('');
 
+  // Summary counters for items visible in this month view
+  var sumScheduled = 0, sumDraft = 0, sumPublished = 0, sumApproval = 0;
+
   html += cells.map(function(cell) {
     var d = cell.date;
     var isToday = (!cell.outside && d.getTime() === today.getTime());
     var dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    var dayItems = MarketingStore.contentItems.filter(function(c) { return c.scheduled_date === dateStr; });
+    var allDayItems = MarketingStore.contentItems.filter(function(c) { return c.scheduled_date === dateStr; });
+    var dayItems = allDayItems.filter(_calItemMatchesFilters);
     var outsideClass = cell.outside ? ' mkt-cal-day--outside' : '';
     var todayClass = isToday ? ' mkt-cal-day--today' : '';
 
-    var itemsHtml = dayItems.map(function(item) {
+    // Accumulate month totals (only when cell is inside current month)
+    if (!cell.outside) {
+      allDayItems.forEach(function(it) {
+        if (it.status === 'scheduled') sumScheduled++;
+        else if (it.status === 'draft') sumDraft++;
+        else if (it.status === 'published') sumPublished++;
+        if (it.approval_status === 'pending_approval') sumApproval++;
+      });
+    }
+
+    // Show at most 3 items inline; the rest are accessible via day modal
+    var visibleCount = Math.min(dayItems.length, 3);
+    var itemsHtml = dayItems.slice(0, visibleCount).map(function(item) {
       var timeLabel = '';
       if (item.scheduled_time) {
         var parts = item.scheduled_time.split(':');
@@ -3226,19 +3296,195 @@ function renderCalendar() {
       var statusIcon = '<span class="mkt-cal-status-icon"></span>';
       var icon = platformIcons[item.platform] || '';
       var titleTrunc = escHtml(item.title.substring(0, 18)) + (item.title.length > 18 ? '\u2026' : '');
-      return '<div class="mkt-cal-item mkt-cal-item--' + item.platform + ' mkt-cal-item--' + item.status + '" title="' + escHtml(item.title) + '" onclick="event.stopPropagation(); openContentDetail(\'' + item.id + '\');">' +
-        (item.image_url ? '<img src="' + item.image_url + '" class="mkt-cal-item-thumb" alt="">' : '') +
+      // Draggable item — drag handler moves it to a new day
+      return '<div class="mkt-cal-item mkt-cal-item--' + item.platform + ' mkt-cal-item--' + item.status + '"' +
+        ' draggable="true"' +
+        ' data-item-id="' + item.id + '"' +
+        ' title="' + escHtml(item.title) + ' — drag to reschedule"' +
+        ' ondragstart="handleCalItemDragStart(event, \'' + item.id + '\')"' +
+        ' ondragend="handleCalItemDragEnd(event)"' +
+        ' onclick="event.stopPropagation(); openContentDetail(\'' + item.id + '\');">' +
+        (item.image_url ? '<img src="' + item.image_url + '" class="mkt-cal-item-thumb" alt="" loading="lazy">' : '') +
         statusIcon + timeLabel + '<span>' + icon + ' ' + titleTrunc + '</span>' +
       '</div>';
     }).join('');
 
-    return '<div class="mkt-cal-day' + outsideClass + todayClass + '" onclick="openModal(\'addContentModal\'); document.getElementById(\'ctDate\').value=\'' + dateStr + '\'">' +
+    if (dayItems.length > 3) {
+      itemsHtml += '<div class="mkt-cal-item" style="background:#f5f5f7;color:var(--mid);font-size:11px;justify-content:center;text-align:center;cursor:pointer;"' +
+        ' onclick="event.stopPropagation(); openDayDetailModal(\'' + dateStr + '\');">+' + (dayItems.length - 3) + ' more</div>';
+    }
+
+    // Small count badge when items exist
+    var countBadge = allDayItems.length > 0
+      ? '<span class="mkt-cal-day__count">' + allDayItems.length + '</span>'
+      : '';
+
+    return '<div class="mkt-cal-day' + outsideClass + todayClass + '"' +
+      ' data-date="' + dateStr + '"' +
+      ' ondragover="handleCalDayDragOver(event)"' +
+      ' ondragleave="handleCalDayDragLeave(event)"' +
+      ' ondrop="handleCalDayDrop(event, \'' + dateStr + '\')"' +
+      ' onclick="openDayDetailModal(\'' + dateStr + '\');">' +
+      countBadge +
       '<div class="mkt-cal-day__num">' + d.getDate() + '</div>' +
       itemsHtml +
     '</div>';
   }).join('');
 
   grid.innerHTML = html;
+
+  // Update summary strip
+  var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('calSumScheduled', sumScheduled);
+  setText('calSumDraft', sumDraft);
+  setText('calSumPublished', sumPublished);
+  setText('calSumApprovalNeeded', sumApproval);
+  setText('calSumRange', monthNames[month] + ' ' + year);
+}
+
+/* ── Phase C: Drag-drop reschedule ─────────────────────────────────────── */
+
+function handleCalItemDragStart(ev, itemId) {
+  if (!ev.dataTransfer) return;
+  ev.dataTransfer.effectAllowed = 'move';
+  ev.dataTransfer.setData('text/plain', itemId);
+  ev.currentTarget.classList.add('is-dragging');
+  window._calDragItemId = itemId;
+}
+
+function handleCalItemDragEnd(ev) {
+  if (ev.currentTarget && ev.currentTarget.classList) {
+    ev.currentTarget.classList.remove('is-dragging');
+  }
+  document.querySelectorAll('.mkt-cal-day.is-drop-target').forEach(function(el) {
+    el.classList.remove('is-drop-target');
+  });
+  window._calDragItemId = null;
+}
+
+function handleCalDayDragOver(ev) {
+  ev.preventDefault();
+  if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+  ev.currentTarget.classList.add('is-drop-target');
+}
+
+function handleCalDayDragLeave(ev) {
+  // Only remove if we're actually leaving the day cell (not entering a child)
+  if (ev.currentTarget.contains(ev.relatedTarget)) return;
+  ev.currentTarget.classList.remove('is-drop-target');
+}
+
+async function handleCalDayDrop(ev, newDateStr) {
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('is-drop-target');
+  var itemId = (ev.dataTransfer && ev.dataTransfer.getData('text/plain')) || window._calDragItemId;
+  if (!itemId || !newDateStr) return;
+  var item = MarketingStore.contentItems.find(function(i) { return i.id === itemId; });
+  if (!item) return;
+  if (item.scheduled_date === newDateStr) return; // No-op
+
+  var prevDate = item.scheduled_date;
+  // Optimistic update
+  item.scheduled_date = newDateStr;
+  if (item.status === 'draft') item.status = 'scheduled';
+  renderCalendar();
+
+  try {
+    var res = await fetch('/api/marketing/save-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: itemId,
+        scheduled_date: newDateStr,
+        status: item.status
+      })
+    });
+    var data = await res.json();
+    if (!data.success) throw new Error(data.error || 'save failed');
+    showToast('Rescheduled to ' + newDateStr, 'success');
+  } catch (err) {
+    // Roll back on failure
+    item.scheduled_date = prevDate;
+    renderCalendar();
+    showToast('Failed to reschedule: ' + err.message, 'error');
+  }
+}
+
+/* ── Phase C: Day detail modal ────────────────────────────────────────── */
+
+function openDayDetailModal(dateStr) {
+  if (!dateStr) return;
+  window._calDayModalDate = dateStr;
+  var items = MarketingStore.contentItems
+    .filter(function(c) { return c.scheduled_date === dateStr; })
+    .filter(_calItemMatchesFilters)
+    .slice()
+    .sort(function(a, b) {
+      var at = a.scheduled_time || '99:99';
+      var bt = b.scheduled_time || '99:99';
+      return at.localeCompare(bt);
+    });
+
+  var d = new Date(dateStr + 'T12:00:00');
+  var title = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('calDayModalTitle').textContent = title + ' · ' + items.length + ' post' + (items.length === 1 ? '' : 's');
+
+  var platformIcons = {
+    tiktok: '♫', instagram: '📷', youtube: '▶', facebook: '👥',
+    blog: '📝', email: '✉', linkedin: '💼'
+  };
+
+  var body;
+  if (!items.length) {
+    body = '<div class="mkt-empty" style="padding:40px;text-align:center;">' +
+      '<div class="mkt-empty__text">Nothing scheduled for this day.</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:8px;">Click "+ Add Content" below to plan something.</div>' +
+      '</div>';
+  } else {
+    body = items.map(function(item) {
+      var timeLabel = '';
+      if (item.scheduled_time) {
+        var parts = item.scheduled_time.split(':');
+        var h = parseInt(parts[0], 10);
+        var m = parts[1];
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        var h12 = h % 12 || 12;
+        timeLabel = h12 + ':' + m + ' ' + ampm;
+      } else {
+        timeLabel = 'No time set';
+      }
+      var statusColor = {
+        draft: '#d97706', scheduled: '#2563eb', published: '#16a34a',
+        approved: '#16a34a', idea: '#6b7280', archived: '#9ca3af'
+      }[item.status] || '#6b7280';
+      var approvalChip = item.approval_status === 'pending_approval'
+        ? '<span class="mkt-badge" style="background:#fef3c7;color:#92400e;font-size:10px;">needs approval</span>'
+        : (item.approval_status === 'approved'
+          ? '<span class="mkt-badge" style="background:#d1fae5;color:#065f46;font-size:10px;">approved</span>'
+          : '');
+
+      var thumb = item.image_url
+        ? '<img src="' + item.image_url + '" class="mkt-cal-day-list-item__thumb" alt="" loading="lazy">'
+        : '<div class="mkt-cal-day-list-item__thumb" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:24px;">' + (platformIcons[item.platform] || '?') + '</div>';
+
+      var copy = (item.copy_text || item.title || '').slice(0, 220);
+
+      return '<div class="mkt-cal-day-list-item" onclick="closeModal(\'calDayModal\'); openContentDetail(\'' + item.id + '\');">' +
+        thumb +
+        '<div class="mkt-cal-day-list-item__body">' +
+          '<div class="mkt-cal-day-list-item__time">' + timeLabel + ' · ' +
+            '<span style="color:' + statusColor + ';">●</span> ' + escHtml(item.status) +
+            ' · ' + (platformIcons[item.platform] || '') + ' ' + escHtml(item.platform || '') +
+            ' ' + approvalChip +
+          '</div>' +
+          '<div class="mkt-cal-day-list-item__title">' + escHtml(item.title) + '</div>' +
+          '<div class="mkt-cal-day-list-item__copy">' + escHtml(copy) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  document.getElementById('calDayModalBody').innerHTML = body;
+  openModal('calDayModal');
 }
 
 function renderMiniCalendar() {
@@ -5250,6 +5496,24 @@ setTimeout(function() {
 .ss-footer-bottom-links a:hover{color:rgba(255,255,255,.6)}
 @media(max-width:900px){.ss-footer-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.ss-footer-grid{grid-template-columns:1fr}.ss-footer-bottom{flex-direction:column;gap:12px;text-align:center}}
+
+/* ── Phase C: Calendar filters + drag-drop states ───────────────────────── */
+.mkt-cal-filter{padding:4px 10px;font-size:11px;border:1px solid var(--line);background:#fff;border-radius:999px;cursor:pointer;color:var(--mid);transition:all .15s;}
+.mkt-cal-filter:hover{background:#f5f5f7;}
+.mkt-cal-filter.is-active{background:#0B1220;color:#D8FF00;border-color:#0B1220;font-weight:600;}
+.mkt-cal-day{position:relative;transition:background .15s;}
+.mkt-cal-day.is-drop-target{background:#D8FF0033 !important;outline:2px dashed #0B1220;outline-offset:-2px;}
+.mkt-cal-item{cursor:grab;user-select:none;}
+.mkt-cal-item:active{cursor:grabbing;}
+.mkt-cal-item.is-dragging{opacity:0.4;}
+.mkt-cal-day__count{position:absolute;top:4px;right:6px;font-size:10px;color:var(--muted);font-weight:600;background:#fff;padding:1px 5px;border-radius:999px;border:1px solid var(--line);}
+.mkt-cal-day-list-item{display:flex;gap:12px;padding:10px;border:1px solid var(--line);border-radius:6px;margin-bottom:8px;align-items:flex-start;cursor:pointer;transition:background .1s;}
+.mkt-cal-day-list-item:hover{background:#fafbfc;}
+.mkt-cal-day-list-item__thumb{width:64px;height:64px;border-radius:6px;background:#eee;flex-shrink:0;object-fit:cover;}
+.mkt-cal-day-list-item__body{flex:1;min-width:0;}
+.mkt-cal-day-list-item__time{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px;}
+.mkt-cal-day-list-item__title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.mkt-cal-day-list-item__copy{font-size:12px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 </style>
 <footer class="ss-footer" role="contentinfo" aria-label="Site footer">
   <div class="ss-footer-inner">
