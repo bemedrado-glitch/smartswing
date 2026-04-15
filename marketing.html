@@ -2379,8 +2379,9 @@ async function runProspecting(type, dryRun) {
 
     if (!dryRun && data.inserted > 0) {
       showToast(data.inserted + ' ' + (type === 'clubs' ? 'clubs' : 'players') + ' added to contacts pipeline!', 'success');
-      // Refresh contacts table
       if (typeof loadContacts === 'function') loadContacts();
+      if (typeof loadLeads === 'function') loadLeads();
+      if (typeof loadLeadsCount === 'function') loadLeadsCount();
     }
   } catch (err) {
     resultsEl.innerHTML = '<div style="padding:16px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
@@ -2429,6 +2430,8 @@ async function runEnrichment(dryRun) {
     if (!dryRun && data.enriched > 0) {
       showToast(data.enriched + ' emails enriched from club websites!', 'success');
       if (typeof loadContacts === 'function') loadContacts();
+      if (typeof loadLeads === 'function') loadLeads();
+      if (typeof loadLeadsCount === 'function') loadLeadsCount();
     }
   } catch (err) {
     resultsEl.innerHTML = '<div style="padding:12px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
@@ -2864,11 +2867,16 @@ async function openContactCard(contactId, leadName) {
     return;
   }
   try {
-    const safe = (p) => p.then(r => r).catch(() => ({ data: null }));
+    // Fetch contact directly — single() throws if not found so we handle it
+    const safe = (p) => p.then(r => r).catch(e => ({ data: null, error: e }));
     const [contactRes, enrollRes] = await Promise.all([
-      safe(MarketingStore.supabase.from('marketing_contacts').select('*').eq('id', contactId).single()),
+      safe(MarketingStore.supabase.from('marketing_contacts').select('*').eq('id', contactId).maybeSingle()),
       safe(MarketingStore.supabase.from('contact_cadence_enrollments').select('id,cadence_id,status,current_step,enrolled_at,email_cadences(name,target_persona)').eq('contact_id', contactId).order('enrolled_at', { ascending: false }))
     ]);
+    if (contactRes.error && !contactRes.data) {
+      body.innerHTML = `<div class="mkt-empty"><div class="mkt-empty__icon">⚠️</div><div class="mkt-empty__title">Could not load contact</div><div class="mkt-empty__text">${escHtml(contactRes.error?.message || String(contactRes.error))}</div></div>`;
+      return;
+    }
     const c = contactRes.data || {};
     const enrollments = enrollRes.data || [];
     const campaigns = [];
