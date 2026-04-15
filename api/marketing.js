@@ -1060,6 +1060,59 @@ async function handleOrchestrate(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: bulk-delete-contacts
+// Accepts { ids: string[] } — deletes in chunks of 200 using the service role key
+// to bypass RLS. Returns { deleted, failed, errors[] }.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleBulkDeleteContacts(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const { ids } = req.body || {};
+  if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'ids array is required' });
+
+  // Only allow real UUIDs — strip any local_ demo IDs
+  const uuids = ids.filter(id => /^[0-9a-f-]{36}$/i.test(String(id)));
+  if (!uuids.length) return res.status(200).json({ deleted: 0, failed: 0, errors: [] });
+
+  const CHUNK = 200;
+  let deleted = 0;
+  const errors = [];
+
+  for (let i = 0; i < uuids.length; i += CHUNK) {
+    const chunk = uuids.slice(i, i + CHUNK);
+    // PostgREST bulk delete: DELETE /rest/v1/marketing_contacts?id=in.(uuid1,uuid2,...)
+    const filter = chunk.map(id => encodeURIComponent(id)).join(',');
+    const url = `${supabaseUrl}/rest/v1/marketing_contacts?id=in.(${filter})`;
+    try {
+      const r = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        }
+      });
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '');
+        errors.push({ chunk: i / CHUNK, status: r.status, detail: txt.slice(0, 200) });
+      } else {
+        deleted += chunk.length;
+      }
+    } catch (err) {
+      errors.push({ chunk: i / CHUNK, detail: err.message });
+    }
+  }
+
+  return res.status(200).json({ deleted, failed: uuids.length - deleted, errors });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ROUTE: enroll-cadence
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -4639,6 +4692,7 @@ const ROUTES = {
   'weekly-digest':     handleWeeklyDigest,
   'meta-webhook':      handleMetaWebhook,
   'orchestrate':     handleOrchestrate,
+  'bulk-delete-contacts': handleBulkDeleteContacts,
   'enroll-cadence':      handleEnrollCadence,
   'unenroll-cadence':    handleUnenrollCadence,
   'enrollment-timeline': handleEnrollmentTimeline,

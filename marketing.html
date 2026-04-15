@@ -2268,23 +2268,26 @@ async function bulkDeleteContacts() {
   updateKPIs();
   showToast(`Deleting ${ids.length} contacts…`, '');
 
-  // Persist to DB
-  if (MarketingStore.supabase) {
+  // Persist to DB via server-side route (uses service role key — bypasses RLS,
+  // and chunks 200 at a time to avoid PostgREST URL length limits)
+  const remoteIds = ids.filter(id => !id.startsWith('local_'));
+  if (remoteIds.length) {
     try {
-      // Supabase PostgREST supports `in` filter for bulk deletes
-      const localIds = ids.filter(id => id.startsWith('local_'));
-      const remoteIds = ids.filter(id => !id.startsWith('local_'));
-      if (remoteIds.length) {
-        const { error } = await MarketingStore.supabase
-          .from('marketing_contacts')
-          .delete()
-          .in('id', remoteIds);
-        if (error) throw error;
+      const res = await fetch('/api/marketing/bulk-delete-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: remoteIds })
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error || `Server error ${res.status}`);
+      if (d.failed > 0) {
+        showToast(`⚠ ${d.deleted} deleted, ${d.failed} failed. Refreshing…`, 'error');
+        loadContacts();
+      } else {
+        showToast(`✓ ${ids.length} contact${ids.length === 1 ? '' : 's'} deleted`, 'success');
       }
-      showToast(`✓ ${ids.length} contact${ids.length === 1 ? '' : 's'} deleted`, 'success');
     } catch (err) {
-      showToast('Delete failed: ' + err.message, 'error');
-      // Re-load to restore accurate state
+      showToast('Delete failed: ' + (err.message || 'Unknown error'), 'error');
       loadContacts();
     }
   } else {
