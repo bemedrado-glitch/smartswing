@@ -1938,6 +1938,7 @@ function switchTab(tabName, triggerEl) {
   closeSidebar();
 
   if (tabName === 'calendar') renderCalendar();
+  if (tabName === 'analytics') { if (typeof loadAnalytics === 'function') loadAnalytics(); }
   if (tabName === 'meta-ads') { loadMetaAds(); loadAdInsights(); }
   if (tabName === 'settings') {
     var ss = JSON.parse(localStorage.getItem('mkt_social_stats') || '{}');
@@ -4257,53 +4258,182 @@ async function approveItem(id, approved) {
   } catch (e) { showToast('Network error: ' + e.message, 'error'); }
 }
 
-// Ticket #11: Unified Outbound Map — cross-channel 30-day view
+// Ticket #11: Unified Outbound Map — full 30-day visual calendar grid
 async function openUnifiedMap() {
   openModal('campaignPostsModal');
-  document.getElementById('campaignPostsTitle').textContent = 'Unified outbound map — next 30 days';
+  document.getElementById('campaignPostsTitle').textContent = '📅 30-Day Content Map';
   var body = document.getElementById('campaignPostsBody');
   var footer = document.getElementById('campaignPostsFooter');
-  body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Loading outbound map…</div></div>';
+  body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">⏳</div><div class="mkt-empty__title">Building your 30-day map…</div></div>';
   footer.innerHTML = '';
+
+  var PLAT_ICON = { instagram:'📷', facebook:'📘', tiktok:'🎵', youtube:'▶️', x:'✖', twitter:'🐦', reddit:'🤿', email:'✉️', sms:'📱', blog:'📝' };
+  var STATUS_COLOR = { scheduled:'#3b82f6', published:'#10b981', draft:'#f59e0b', pending:'#8b5cf6', failed:'#ef4444' };
+
   try {
     var r = await fetch('/api/marketing/unified-map?days=30');
     var data = await r.json();
     if (!r.ok) throw new Error(data.error || r.status);
+
+    // Build a lookup: date → { social[], cadence[] }
     var byDay = {};
+    var today = new Date(); today.setHours(0,0,0,0);
+
+    // Fill all 30 days so empty days show too
+    for (var di = 0; di < 30; di++) {
+      var dd = new Date(today.getTime() + di * 86400000);
+      var dk = dd.toISOString().slice(0, 10);
+      byDay[dk] = { date: dd, social: [], cadence: [] };
+    }
+
     (data.social || []).forEach(function(it) {
-      var d = it.scheduled_date || 'Unscheduled';
-      (byDay[d] = byDay[d] || { social: [], cadence: [] }).social.push(it);
+      var d = it.scheduled_date || new Date().toISOString().slice(0, 10);
+      if (byDay[d]) byDay[d].social.push(it);
     });
     (data.cadence || []).forEach(function(it) {
-      var d = (it.next_step_at || '').slice(0, 10) || 'Unscheduled';
-      (byDay[d] = byDay[d] || { social: [], cadence: [] }).cadence.push(it);
+      var d = (it.next_step_at || '').slice(0, 10);
+      if (byDay[d]) byDay[d].cadence.push(it);
     });
-    var days = Object.keys(byDay).sort();
-    if (!days.length) { body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">📭</div><div class="mkt-empty__title">Nothing scheduled in the next 30 days</div></div>'; return; }
-    var html = '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Social posts + cadence steps in one timeline. Both channels in sync = faster pipeline velocity.</div>';
-    days.forEach(function(d) {
-      var b = byDay[d];
-      html += '<div style="border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:10px;">' +
-        '<div style="font-size:12px;font-weight:700;margin-bottom:8px;">' + escHtml(d) + '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
-          '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">📱 Social (' + b.social.length + ')</div>' +
-            (b.social.length
-              ? b.social.map(function(s) { return '<div style="font-size:12px;margin-bottom:3px;">' + escHtml(s.platform || '') + ' · ' + escHtml((s.title || '').slice(0, 50)) + ' <span style="color:#64748b;">[' + s.status + ']</span></div>'; }).join('')
-              : '<div style="font-size:11px;color:var(--muted);">—</div>') +
-          '</div>' +
-          '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">✉️ Cadence (' + b.cadence.length + ')</div>' +
-            (b.cadence.length
-              ? b.cadence.map(function(c) { return '<div style="font-size:12px;margin-bottom:3px;">step ' + (c.current_step || 0) + ' · ' + escHtml(c.cadence_id || '').slice(0, 30) + '</div>'; }).join('')
-              : '<div style="font-size:11px;color:var(--muted);">—</div>') +
-          '</div>' +
-        '</div>' +
-      '</div>';
+
+    var totalPosts = (data.social || []).length;
+    var totalCadence = (data.cadence || []).length;
+    var platforms = {};
+    (data.social || []).forEach(function(it) { platforms[it.platform || 'other'] = (platforms[it.platform || 'other'] || 0) + 1; });
+    var topPlatforms = Object.entries(platforms).sort(function(a,b){return b[1]-a[1];}).slice(0,4);
+
+    var html = '';
+
+    // Summary strip
+    html += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:var(--card-bg);border:1px solid var(--line);border-radius:10px;">';
+    html += '<div style="text-align:center;min-width:60px;"><div style="font-size:22px;font-weight:700;color:#D8FF00;">' + totalPosts + '</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Posts</div></div>';
+    html += '<div style="text-align:center;min-width:60px;"><div style="font-size:22px;font-weight:700;color:#60a5fa;">' + totalCadence + '</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Cadence steps</div></div>';
+    topPlatforms.forEach(function(p) {
+      html += '<div style="text-align:center;min-width:48px;"><div style="font-size:18px;">' + (PLAT_ICON[p[0]] || '🌐') + '</div><div style="font-size:11px;font-weight:600;">' + p[1] + '</div><div style="font-size:10px;color:var(--muted);">' + p[0] + '</div></div>';
     });
+    html += '</div>';
+
+    // Weekday header
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">';
+    ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(function(d) {
+      html += '<div style="text-align:center;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;padding:2px 0;">' + d + '</div>';
+    });
+    html += '</div>';
+
+    // Calendar grid — 5 weeks
+    var days = Object.entries(byDay).sort(function(a,b){ return a[0] < b[0] ? -1 : 1; });
+    var firstDay = days[0] ? days[0][1].date : new Date();
+    // Mon = 0 index; pad start
+    var startDow = (firstDay.getDay() + 6) % 7; // 0=Mon
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+    for (var pad = 0; pad < startDow; pad++) {
+      html += '<div style="min-height:70px;border-radius:6px;border:1px dashed transparent;"></div>';
+    }
+
+    days.forEach(function(entry) {
+      var dk = entry[0];
+      var day = entry[1];
+      var isToday = dk === today.toISOString().slice(0,10);
+      var isPast = new Date(dk) < today;
+      var totalItems = day.social.length + day.cadence.length;
+      var borderColor = isToday ? '#D8FF00' : (totalItems > 0 ? 'var(--line)' : 'transparent');
+      var bg = isToday ? '#D8FF0010' : (isPast ? 'var(--card-bg)' : 'var(--bg)');
+      var domDay = day.date.getDate();
+
+      html += '<div style="min-height:70px;border:1px solid ' + borderColor + ';border-radius:6px;padding:4px 5px;background:' + bg + ';cursor:' + (totalItems ? 'pointer' : 'default') + ';"' +
+        (totalItems ? ' onclick="showDayDetail(\'' + dk + '\')" title="' + totalItems + ' items on ' + dk + '"' : '') + '>';
+
+      // Day number
+      html += '<div style="font-size:11px;font-weight:' + (isToday ? '700' : '500') + ';color:' + (isToday ? '#D8FF00' : (isPast ? 'var(--muted)' : 'var(--ink)')) + ';margin-bottom:3px;">' + domDay + '</div>';
+
+      // Post dots — platform icons stacked
+      if (day.social.length) {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:2px;">';
+        day.social.slice(0, 6).forEach(function(s) {
+          var ic = PLAT_ICON[s.platform] || '🌐';
+          var sc = STATUS_COLOR[s.status] || '#64748b';
+          var approvalDot = s.approval_status === 'pending' ? '·' : '';
+          html += '<span style="font-size:12px;line-height:1;" title="' + escHtml(s.platform + ' — ' + (s.title || '').slice(0,40)) + '">' + ic + approvalDot + '</span>';
+        });
+        if (day.social.length > 6) html += '<span style="font-size:9px;color:var(--muted);">+' + (day.social.length - 6) + '</span>';
+        html += '</div>';
+      }
+
+      // Cadence count
+      if (day.cadence.length) {
+        html += '<div style="font-size:9px;color:#60a5fa;font-weight:600;">✉ ' + day.cadence.length + ' step' + (day.cadence.length > 1 ? 's' : '') + '</div>';
+      }
+
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Legend
+    html += '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);">';
+    html += '<span style="font-size:11px;color:var(--muted);">Click a day to see details &nbsp;|&nbsp;</span>';
+    Object.entries(STATUS_COLOR).forEach(function(sc) {
+      html += '<span style="font-size:11px;display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;background:' + sc[1] + ';display:inline-block;"></span>' + sc[0] + '</span>';
+    });
+    html += '<span style="font-size:11px;color:var(--muted);">&nbsp;· dot after icon = pending approval</span>';
+    html += '</div>';
+
     body.innerHTML = html;
-    footer.innerHTML = '<button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'campaignPostsModal\')">Close</button>';
+    // Store for drill-down
+    body._mapData = byDay;
+    body._socialData = data.social || [];
+    footer.innerHTML = '<div style="display:flex;gap:8px;"><button class="mkt-btn mkt-btn--ghost" onclick="closeModal(\'campaignPostsModal\')">Close</button><button class="mkt-btn" onclick="openUnifiedMap()">↺ Refresh</button></div>';
+
   } catch (e) {
     body.innerHTML = '<div class="mkt-empty"><div class="mkt-empty__icon">⚠</div><div class="mkt-empty__title">Failed to load</div><div class="mkt-empty__text">' + escHtml(e.message) + '</div></div>';
   }
+}
+
+function showDayDetail(dk) {
+  var body = document.getElementById('campaignPostsBody');
+  var mapData = body._mapData || {};
+  var day = mapData[dk];
+  if (!day) return;
+  var PLAT_ICON = { instagram:'📷', facebook:'📘', tiktok:'🎵', youtube:'▶️', x:'✖', twitter:'🐦', reddit:'🤿', email:'✉️', sms:'📱', blog:'📝' };
+  var label = new Date(dk + 'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  var html = '<div style="margin-bottom:12px;"><a href="#" onclick="event.preventDefault();openUnifiedMap();" style="color:#D8FF00;font-size:13px;">← Back to 30-day map</a></div>';
+  html += '<div style="font-size:15px;font-weight:700;margin-bottom:12px;">' + escHtml(label) + '</div>';
+
+  if (day.social.length) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">📱 Social posts (' + day.social.length + ')</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">';
+    day.social.forEach(function(s) {
+      var ic = PLAT_ICON[s.platform] || '🌐';
+      var approvalBadge = s.approval_status === 'pending'
+        ? '<span style="font-size:10px;padding:2px 7px;background:#8b5cf620;color:#8b5cf6;border-radius:8px;margin-left:6px;">⏳ Pending approval</span>' : '';
+      var imgHtml = s.image_url
+        ? '<img src="' + escHtml(s.image_url) + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.display=\'none\'">'
+        : '<div style="width:48px;height:48px;border-radius:6px;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">' + ic + '</div>';
+      html += '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;" onclick="openContentDetail(\'' + s.id + '\')">';
+      html += imgHtml;
+      html += '<div style="flex:1;min-width:0;">';
+      html += '<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + ic + ' ' + escHtml((s.title || '').slice(0,60)) + approvalBadge + '</div>';
+      html += '<div style="font-size:11px;color:var(--muted);margin-top:2px;">' + escHtml(s.platform || '') + (s.scheduled_time ? ' · ' + s.scheduled_time.slice(0,5) : '') + ' · <span style="color:' + ({ scheduled:'#3b82f6', published:'#10b981', draft:'#f59e0b', failed:'#ef4444' }[s.status] || '#64748b') + ';">' + (s.status || '') + '</span></div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  if (day.cadence.length) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">✉️ Cadence steps (' + day.cadence.length + ')</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+    day.cadence.forEach(function(c) {
+      html += '<div style="padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:12px;">';
+      html += '<div style="font-weight:600;">Step ' + (c.current_step || 0) + ' · Contact ' + escHtml((c.contact_id || '').slice(0,8)) + '…</div>';
+      html += '<div style="font-size:11px;color:var(--muted);">' + escHtml(c.status || 'active') + (c.next_step_at ? ' · due ' + new Date(c.next_step_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (!day.social.length && !day.cadence.length) {
+    html += '<div style="padding:24px;text-align:center;color:var(--muted);">Nothing scheduled on this day. <a href="#" onclick="event.preventDefault();switchTab(\'calendar\',document.querySelector(\'[data-tab=calendar]\'));" style="color:#D8FF00;">Open calendar →</a></div>';
+  }
+
+  document.getElementById('campaignPostsBody').innerHTML = html;
 }
 
 /* ── CONTENT DETAIL ── */

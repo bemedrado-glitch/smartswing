@@ -241,7 +241,8 @@ async function handleAgent(req, res) {
     // Phase B: when true, auto-create a content_calendar draft from the output
     // and (optionally) also generate a branded visual for it.
     auto_draft = false,
-    auto_visual = false,
+    // auto_visual: if not explicitly set, defaults to true for visual platforms
+    auto_visual,
     platform = 'instagram',
     content_type = 'post',
     campaign_id = null,
@@ -427,6 +428,13 @@ async function persistAgentOutput(ctx) {
   const shouldDraft = ctx.auto_draft && COPY_AGENTS.has(ctx.agent_type) && ctx.responseText;
   if (!shouldDraft) return out;
 
+  // Auto-enable visual generation for platforms where imagery is essential.
+  // Caller can override with auto_visual=false to skip.
+  const VISUAL_PLATFORMS = new Set(['instagram', 'facebook', 'tiktok', 'youtube', 'reddit']);
+  const effectiveAutoVisual = ctx.auto_visual !== undefined
+    ? !!ctx.auto_visual
+    : VISUAL_PLATFORMS.has(String(ctx.platform || 'instagram').toLowerCase());
+
   // 1. Log agent_tasks row (provenance)
   try {
     const agentTaskRow = {
@@ -508,7 +516,7 @@ async function persistAgentOutput(ctx) {
   }
 
   // 3. Optionally generate + attach a branded visual
-  if (ctx.auto_visual && out.content_item_id) {
+  if (effectiveAutoVisual && out.content_item_id) {
     try {
       const visualPrompt = `Scene for a tennis/pickleball social post. Copy: "${ctx.responseText.slice(0, 500)}"`;
       const size = (ctx.platform === 'instagram' || ctx.content_type === 'post') ? '1024x1024' : '1024x1792';
