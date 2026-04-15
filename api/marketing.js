@@ -2782,21 +2782,29 @@ async function handleGenerateImage(req, res) {
   const { prompt, content_item_id, size } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
 
-  const imageUrl = await generateImage(prompt, size);
-  if (!imageUrl) return res.status(500).json({ error: 'Image generation failed. Check OPENAI_API_KEY.' });
+  const detail = await generateImage(prompt, size, { returnDetail: true, contentItemId: content_item_id || null });
+  if (!detail?.url) return res.status(500).json({ error: 'Image generation failed. Check OPENAI_API_KEY.' });
 
-  // If content_item_id provided, update the calendar item
+  // If content_item_id provided, update the calendar item with both URL + asset link
   if (content_item_id) {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (supabaseUrl && supabaseKey) {
       try {
-        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', content_item_id, { image_url: imageUrl });
+        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', content_item_id, {
+          image_url: detail.url,
+          media_asset_id: detail.assetId || null
+        });
       } catch (err) { console.warn('[generate-image] Failed to update content_calendar:', err.message); }
     }
   }
 
-  return res.status(200).json({ success: true, image_url: imageUrl });
+  return res.status(200).json({
+    success: true,
+    image_url: detail.url,
+    media_asset_id: detail.assetId,
+    prompt_used: detail.promptUsed
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -648,6 +648,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               Run Agent
             </button>
           </div>
+
+          <!-- Auto-draft controls (Phase B) -->
+          <div class="mkt-agent-chat__autopilot" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);background:#fafbfc;font-size:12px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="agentAutoDraft" checked>
+              <span>Save as draft</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="agentAutoVisual" checked>
+              <span>+ Generate visual (DALL-E, branded)</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+              <span style="color:var(--muted);">Platform:</span>
+              <select id="agentDraftPlatform" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+                <option value="youtube">YouTube</option>
+                <option value="facebook">Facebook</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="blog">Blog</option>
+                <option value="email">Email</option>
+              </select>
+              <select id="agentDraftType" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
+                <option value="post">Post</option>
+                <option value="reel">Reel</option>
+                <option value="story">Story</option>
+                <option value="video">Video</option>
+                <option value="blog">Blog</option>
+                <option value="email">Email</option>
+                <option value="ad">Ad</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <!-- Task history -->
@@ -3333,12 +3366,25 @@ async function runAgent() {
   const startTime = Date.now();
 
   try {
+    const autoDraft  = document.getElementById('agentAutoDraft')?.checked !== false;
+    const autoVisual = document.getElementById('agentAutoVisual')?.checked !== false;
+    const draftPlatform = document.getElementById('agentDraftPlatform')?.value || 'instagram';
+    const draftType     = document.getElementById('agentDraftType')?.value || 'post';
+
+    // When user asks for a visual and the agent is copy-only, force the
+    // content_creator agent so we get a proper visual brief.
+    const effectiveAgent = MarketingStore.selectedAgent;
+
     const res = await fetch('/api/marketing/agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        agent_type: MarketingStore.selectedAgent,
-        task
+        agent_type: effectiveAgent,
+        task,
+        auto_draft: autoDraft,
+        auto_visual: autoVisual,
+        platform: draftPlatform,
+        content_type: draftType
       })
     });
 
@@ -3346,9 +3392,33 @@ async function runAgent() {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
     if (data.success) {
-      responseEl.textContent = data.response;
-      statusText.textContent = `Done (${elapsed}s)`;
+      // Render text response + optional draft preview card
+      let html = `<div class="mkt-agent-response__text">${escHtml(data.response).replace(/\n/g, '<br>')}</div>`;
+      if (data.content_item_id) {
+        html += `<div class="mkt-draft-card" style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff;">`;
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">`;
+        html += `<span style="font-size:12px;color:var(--muted);">📝 Draft saved · <span class="mkt-badge" style="background:#fef3c7;color:#92400e;font-size:10px;">${escHtml(draftPlatform)} · ${escHtml(draftType)}</span></span>`;
+        html += `<span style="font-size:11px;color:var(--muted);">${data.content_item_id.slice(0, 8)}…</span>`;
+        html += `</div>`;
+        if (data.image_url) {
+          html += `<img src="${data.image_url}" style="width:100%;max-width:360px;border-radius:6px;display:block;margin-bottom:8px;" alt="Generated visual">`;
+        }
+        html += `<div style="display:flex;gap:8px;flex-wrap:wrap;">`;
+        if (!data.image_url) {
+          html += `<button class="mkt-btn mkt-btn--volt mkt-btn--sm" onclick="generateDraftVisual('${data.content_item_id}')">🎨 Generate Visual</button>`;
+        } else {
+          html += `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="generateDraftVisual('${data.content_item_id}')">🔄 Regenerate Visual</button>`;
+        }
+        html += `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openDraftScheduler('${data.content_item_id}')">📅 Schedule</button>`;
+        html += `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openContentDetail('${data.content_item_id}')">Open</button>`;
+        html += `</div></div>`;
+      }
+      responseEl.innerHTML = html;
+      statusText.textContent = data.image_url ? `Done + visual (${elapsed}s)` : `Done (${elapsed}s)`;
       dot.classList.remove('mkt-agent-chat__status-dot--thinking');
+
+      // Refresh the content calendar list so the new draft shows up
+      if (typeof loadContent === 'function') loadContent();
 
       // Save to history
       const taskEntry = {
@@ -3420,6 +3490,106 @@ function clearTaskHistory() {
   MarketingStore.taskHistory = [];
   renderTaskHistory();
   updateKPIs();
+}
+
+/* ── PHASE B: DRAFT VISUAL + SCHEDULING ──────────────────────────────────── */
+
+/**
+ * Generate or regenerate the DALL-E visual for an existing draft.
+ * Calls POST /api/marketing/regenerate-visual and updates the UI in place.
+ */
+async function generateDraftVisual(contentItemId, promptOverride) {
+  if (!contentItemId) return;
+  const btns = document.querySelectorAll(`[onclick*="${contentItemId}"]`);
+  btns.forEach(b => { if (b.textContent.includes('Visual')) { b.disabled = true; b.dataset.prevText = b.textContent; b.textContent = 'Generating…'; } });
+  showToast('Generating branded visual…', 'info');
+  try {
+    const res = await fetch('/api/marketing/regenerate-visual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content_item_id: contentItemId,
+        prompt_override: promptOverride || undefined
+      })
+    });
+    const data = await res.json();
+    if (!data.success || !data.image_url) {
+      showToast('Image generation failed: ' + (data.error || 'unknown'), 'error');
+      btns.forEach(b => { if (b.dataset.prevText) { b.textContent = b.dataset.prevText; b.disabled = false; } });
+      return;
+    }
+    showToast('Visual generated and saved.', 'success');
+    // Patch the in-memory content item so re-renders stay fresh
+    const item = (MarketingStore.contentItems || []).find(i => i.id === contentItemId);
+    if (item) item.image_url = data.image_url;
+    // Refresh the agent response card image if it exists
+    const card = document.querySelector(`.mkt-draft-card [src*="${contentItemId}"]`)?.closest('.mkt-draft-card');
+    if (card) {
+      const existingImg = card.querySelector('img');
+      if (existingImg) existingImg.src = data.image_url;
+      else {
+        const img = document.createElement('img');
+        img.src = data.image_url;
+        img.style.cssText = 'width:100%;max-width:360px;border-radius:6px;display:block;margin-bottom:8px;';
+        card.insertBefore(img, card.querySelector('div:last-child'));
+      }
+    }
+    if (typeof loadContent === 'function') loadContent();
+    if (typeof loadContentItems === 'function') loadContentItems();
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  } finally {
+    btns.forEach(b => { if (b.dataset.prevText) { b.textContent = b.dataset.prevText; b.disabled = false; } });
+  }
+}
+
+/**
+ * Lightweight inline scheduler — prompts for date/time and PATCHes the draft
+ * via /api/marketing/save-draft with status='scheduled'.
+ */
+async function openDraftScheduler(contentItemId) {
+  if (!contentItemId) return;
+  const today = new Date();
+  today.setDate(today.getDate() + 1);
+  const defaultDate = today.toISOString().split('T')[0];
+  const date = prompt('Schedule date (YYYY-MM-DD):', defaultDate);
+  if (!date) return;
+  const time = prompt('Schedule time (HH:MM, 24h):', '10:00');
+  if (!time) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+    showToast('Invalid date or time format.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch('/api/marketing/save-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: contentItemId,
+        scheduled_date: date,
+        scheduled_time: time,
+        status: 'scheduled',
+        approval_status: 'pending_approval'
+      })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      showToast('Failed to schedule: ' + (data.error || 'unknown'), 'error');
+      return;
+    }
+    showToast(`Scheduled for ${date} at ${time}.`, 'success');
+    if (typeof loadContentItems === 'function') loadContentItems();
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+/**
+ * Convenience shim used by the agent response card. Some code paths call
+ * `loadContent()`; we forward to the real loader if it exists.
+ */
+function loadContent() {
+  if (typeof loadContentItems === 'function') loadContentItems();
 }
 
 /* ── CONTENT DETAIL ── */
@@ -3622,17 +3792,20 @@ async function regenerateImage() {
   var btn = document.getElementById('cdRegenBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
 
-  var prompt = 'Professional sports marketing image for SmartSwing AI tennis and pickleball platform. ' + (item.copy_text || item.title || '').substring(0, 500);
-
+  // NOTE: we no longer pass a hand-written prompt here. The server-side
+  // regenerate-visual handler builds a branded prompt from the draft's
+  // copy + platform using BRAND_STYLE, then persists the image bytes to
+  // Supabase Storage so the URL survives beyond DALL-E's 60min TTL.
   try {
-    var res = await fetch('/api/marketing/generate-image', {
+    var res = await fetch('/api/marketing/regenerate-visual', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt, size: '1024x1024', content_id: id })
+      body: JSON.stringify({ content_item_id: id })
     });
     var data = await res.json();
     if (data.success && data.image_url) {
       item.image_url = data.image_url;
+      item.media_asset_id = data.media_asset_id || item.media_asset_id;
       // Update phone preview
       var phoneImg = document.getElementById('cdPhoneImg');
       phoneImg.src = data.image_url;
@@ -3641,7 +3814,7 @@ async function regenerateImage() {
       // Update full image
       document.getElementById('cdImageSection').style.display = 'block';
       document.getElementById('cdFullImage').src = data.image_url;
-      showToast('Image generated!', 'success');
+      showToast('Image generated and saved permanently.', 'success');
     } else {
       showToast('Image generation failed: ' + (data.error || 'Unknown error'), 'error');
     }
