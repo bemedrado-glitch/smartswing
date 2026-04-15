@@ -414,15 +414,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <div>
                   <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Source</label>
                   <select class="mkt-filter-select" id="prospectFederation" style="min-width:200px;" onchange="updateFederationCategories()">
-                    <optgroup label="Real-Time Rankings">
+                    <optgroup label="🎾 Tennis — Pro Rankings">
                       <option value="sofascore">All Rankings (Sofascore)</option>
                       <option value="atp">ATP Men's Pro</option>
                       <option value="wta">WTA Women's Pro</option>
                       <option value="itf">ITF International</option>
                     </optgroup>
-                    <optgroup label="Amateur &amp; Club Level">
-                      <option value="utr">UTR Rated Players (Amateur)</option>
+                    <optgroup label="🎾 Tennis — Amateur &amp; Club">
+                      <option value="utr">UTR Rated Players (All Levels)</option>
                       <option value="usta">USTA / NTRP Levels</option>
+                    </optgroup>
+                    <optgroup label="🏓 Pickleball">
+                      <option value="pickleball">Pickleball Players (PPA / APP / DUPR)</option>
+                    </optgroup>
+                    <optgroup label="👨‍🏫 Coaches">
+                      <option value="coaches">Tennis &amp; Pickleball Coaches</option>
                     </optgroup>
                   </select>
                 </div>
@@ -2366,8 +2372,11 @@ const FEDERATION_CATEGORIES = {
     { id: 'us-players',    label: 'US Players' },
     { id: 'uk-players',    label: 'UK Players' },
     { id: 'eu-players',    label: 'EU Players' },
+    { id: 'latam-players', label: 'Latin America' },
+    { id: 'asia-players',  label: 'Asia Pacific' },
     { id: 'junior',        label: 'Junior Players' },
-    { id: 'adult-amateur', label: 'Adult Amateur' }
+    { id: 'adult-amateur', label: 'Adult Amateur' },
+    { id: 'collegiate',    label: 'Collegiate (NCAA)' }
   ],
   usta: [
     { id: 'ntrp-3.0',  label: 'NTRP 3.0 (Beginner-Intermediate)' },
@@ -2378,6 +2387,26 @@ const FEDERATION_CATEGORIES = {
     { id: 'open',      label: 'Open / Ranked' },
     { id: 'junior',    label: 'Junior Rankings' },
     { id: 'collegiate', label: 'Collegiate' }
+  ],
+  pickleball: [
+    { id: 'ppa-men',     label: "PPA Men's Pro" },
+    { id: 'ppa-women',   label: "PPA Women's Pro" },
+    { id: 'app-men',     label: "APP Men's Pro" },
+    { id: 'app-women',   label: "APP Women's Pro" },
+    { id: 'dupr-all',    label: 'DUPR All Levels (Amateur)' },
+    { id: 'dupr-us',     label: 'DUPR US Players' },
+    { id: 'dupr-junior', label: 'DUPR Junior Players' },
+    { id: 'dupr-senior', label: 'DUPR Senior Players (50+)' }
+  ],
+  coaches: [
+    { id: 'tennis-us',      label: 'Tennis Coaches — United States' },
+    { id: 'tennis-uk',      label: 'Tennis Coaches — United Kingdom' },
+    { id: 'tennis-eu',      label: 'Tennis Coaches — Europe' },
+    { id: 'tennis-latam',   label: 'Tennis Coaches — Latin America' },
+    { id: 'tennis-au',      label: 'Tennis Coaches — Australia' },
+    { id: 'pickleball-us',  label: 'Pickleball Coaches — United States' },
+    { id: 'pickleball-all', label: 'Pickleball Coaches — Global' },
+    { id: 'all-global',     label: 'All Coaches — Global' }
   ]
 };
 

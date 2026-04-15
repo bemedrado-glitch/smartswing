@@ -3437,12 +3437,41 @@ const FEDERATION_CONFIGS = {
   utr: {
     name: 'UTR Amateur Players (All Levels)',
     categories: {
-      'all-players':   { label: 'All Players (by UTR)',  searchQuery: 'tennis' },
-      'us-players':    { label: 'US Players',            searchQuery: 'tennis US' },
-      'uk-players':    { label: 'UK Players',            searchQuery: 'tennis UK' },
-      'eu-players':    { label: 'EU Players',            searchQuery: 'tennis Europe' },
-      'junior':        { label: 'Junior Players',        searchQuery: 'tennis junior' },
-      'adult-amateur': { label: 'Adult Amateur',         searchQuery: 'tennis adult amateur' }
+      'all-players':    { label: 'All Players (by UTR)',   searchQuery: 'tennis' },
+      'us-players':     { label: 'US Players',             searchQuery: 'tennis US' },
+      'uk-players':     { label: 'UK Players',             searchQuery: 'tennis UK' },
+      'eu-players':     { label: 'EU Players',             searchQuery: 'tennis Europe' },
+      'latam-players':  { label: 'Latin America',          searchQuery: 'tennis Brazil Argentina' },
+      'asia-players':   { label: 'Asia Pacific',           searchQuery: 'tennis Australia Japan' },
+      'junior':         { label: 'Junior Players',         searchQuery: 'tennis junior' },
+      'adult-amateur':  { label: 'Adult Amateur',          searchQuery: 'tennis adult amateur' },
+      'collegiate':     { label: 'Collegiate (NCAA)',      searchQuery: 'tennis college NCAA' }
+    }
+  },
+  pickleball: {
+    name: 'Pickleball Players (PPA / APP / DUPR)',
+    categories: {
+      'ppa-men':        { sofascoreType: 'PPA Men',          label: "PPA Men's Pro" },
+      'ppa-women':      { sofascoreType: 'PPA Women',        label: "PPA Women's Pro" },
+      'app-men':        { sofascoreType: 'APP Men',          label: "APP Men's Pro" },
+      'app-women':      { sofascoreType: 'APP Women',        label: "APP Women's Pro" },
+      'dupr-all':       { duprQuery: 'pickleball',           label: 'DUPR All Levels (Amateur)' },
+      'dupr-us':        { duprQuery: 'pickleball US',        label: 'DUPR US Players' },
+      'dupr-junior':    { duprQuery: 'pickleball junior',    label: 'DUPR Junior Players' },
+      'dupr-senior':    { duprQuery: 'pickleball senior',    label: 'DUPR Senior Players (50+)' }
+    }
+  },
+  coaches: {
+    name: 'Tennis & Pickleball Coaches',
+    categories: {
+      'tennis-us':       { label: 'Tennis Coaches — United States',   sport: 'tennis', country: 'US' },
+      'tennis-uk':       { label: 'Tennis Coaches — United Kingdom',  sport: 'tennis', country: 'GB' },
+      'tennis-eu':       { label: 'Tennis Coaches — Europe',          sport: 'tennis', country: 'EU' },
+      'tennis-latam':    { label: 'Tennis Coaches — Latin America',   sport: 'tennis', country: 'LATAM' },
+      'tennis-au':       { label: 'Tennis Coaches — Australia',       sport: 'tennis', country: 'AU' },
+      'pickleball-us':   { label: 'Pickleball Coaches — United States', sport: 'pickleball', country: 'US' },
+      'pickleball-all':  { label: 'Pickleball Coaches — Global',      sport: 'pickleball', country: 'GLOBAL' },
+      'all-global':      { label: 'All Coaches — Global',             sport: 'both', country: 'GLOBAL' }
     }
   }
 };
@@ -3571,6 +3600,138 @@ async function fetchUTRPlayers(searchQuery, count) {
     console.warn(`[prospect-players] UTR fetch error:`, err.message);
   }
   return players;
+}
+
+/**
+ * Fetch pickleball players via DUPR public search API.
+ * DUPR (Dynamic Universal Pickleball Rating) is the universal rating system for pickleball.
+ * Falls back to UTR-style search with sportTypeId=1 (pickleball).
+ */
+async function fetchDUPRPlayers(searchQuery, count) {
+  const players = [];
+  try {
+    // Try DUPR public API first
+    const duprUrl = `https://api.dupr.gg/player/v1.0/search?query=${encodeURIComponent(searchQuery)}&limit=${Math.min(count, 100)}`;
+    const resp = await fetch(duprUrl, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'SmartSwingAI/1.0' }
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const rawPlayers = data.players || data.results || data.hits || [];
+      for (const p of rawPlayers) {
+        const src = p.source || p;
+        const displayName = src.displayName || src.fullName || src.name || '';
+        if (!displayName) continue;
+        const duprId = src.duprId || src.id || '';
+        const rating = parseFloat(src.doubles || src.singles || src.rating || 0) || 0;
+        players.push({
+          name: displayName,
+          nationality: src.countryCode || src.country || '',
+          ranking_position: null,
+          ranking_tier: rating >= 5.5 ? 'pro' : rating >= 4.5 ? 'advanced' : rating >= 3.5 ? 'intermediate' : 'beginner',
+          federation_id: `dupr-${duprId}`,
+          federation_profile_url: duprId ? `https://mydupr.com/profile/${duprId}` : '',
+          rating,
+          player_type: 'pickleball',
+          persona: 'player_pball',
+          city: src.city || src.location?.cityName || '',
+          country: src.countryName || src.location?.countryName || '',
+          _needs_enrichment: true
+        });
+      }
+      if (players.length > 0) return players;
+    }
+  } catch (err) {
+    console.warn('[prospect-players] DUPR fetch error:', err.message);
+  }
+
+  // Fallback: UTR Sports API with pickleball sport type (sportTypeId=1)
+  try {
+    const fallbackUrl = `https://api.utrsports.net/v2/search/players?query=${encodeURIComponent(searchQuery)}&sportTypeId=1&count=${Math.min(count, 100)}&pageNum=0`;
+    const resp2 = await fetch(fallbackUrl, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'SmartSwingAI/1.0' }
+    });
+    if (resp2.ok) {
+      const data2 = await resp2.json();
+      const raw = data2.players || data2.hits || [];
+      for (const p of raw) {
+        const src = p.source || p;
+        const displayName = src.displayName || src.name || '';
+        if (!displayName) continue;
+        players.push({
+          name: displayName,
+          nationality: src.location?.countryCode || '',
+          ranking_position: null,
+          ranking_tier: 'amateur',
+          federation_id: `utr-pb-${src.utrId || src.id || ''}`,
+          federation_profile_url: src.utrId ? `https://myutr.com/profiles/${src.utrId}` : '',
+          player_type: 'pickleball',
+          persona: 'player_pball',
+          city: src.location?.cityName || '',
+          country: src.location?.countryName || '',
+          _needs_enrichment: true
+        });
+      }
+    }
+  } catch (err2) {
+    console.warn('[prospect-players] DUPR/UTR pickleball fallback error:', err2.message);
+  }
+  return players;
+}
+
+/**
+ * Prospect coaches via Google Places API — searches for tennis/pickleball coaches
+ * and coaching services in a given country/region.
+ */
+async function fetchCoachesByRegion(sport, country) {
+  const googleApiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!googleApiKey) {
+    console.warn('[prospect-coaches] GOOGLE_PLACES_API_KEY not set');
+    return [];
+  }
+
+  const sportLabel = sport === 'pickleball' ? 'pickleball coach' : sport === 'both' ? 'tennis pickleball coach' : 'tennis coach';
+  const countryMap = {
+    US: 'United States', GB: 'United Kingdom', EU: 'Europe',
+    LATAM: 'Latin America', AU: 'Australia', GLOBAL: ''
+  };
+  const regionLabel = countryMap[country] || '';
+  const query = regionLabel ? `${sportLabel} ${regionLabel}` : sportLabel;
+
+  const coaches = [];
+  try {
+    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&type=gym&key=${googleApiKey}`;
+    const resp = await fetch(searchUrl);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const results = data.results || [];
+
+    for (const place of results.slice(0, 50)) {
+      // Look for individual coach names (not just venues/clubs)
+      const name = place.name || '';
+      const isCoach = /coach|trainer|instructor|academy|lessons/i.test(name) ||
+                      /coach|trainer|instructor/i.test(place.types?.join(' ') || '');
+      if (!isCoach) continue;
+
+      coaches.push({
+        name,
+        persona: 'coach',
+        player_type: 'coach',
+        data_source: 'google_places',
+        phone: place.formatted_phone_number || '',
+        city: place.formatted_address?.split(',')[1]?.trim() || '',
+        country: country === 'GLOBAL' ? '' : (countryMap[country] || ''),
+        google_place_id: place.place_id || '',
+        federation_profile_url: place.website || '',
+        rating: place.rating || null,
+        _needs_enrichment: true,
+        tags: [sport, 'coach', country.toLowerCase()]
+      });
+    }
+  } catch (err) {
+    console.warn('[prospect-coaches] Google Places error:', err.message);
+  }
+  return coaches;
 }
 
 /**
@@ -3918,6 +4079,23 @@ async function handleProspectPlayers(req, res) {
           category: fedConfig.categories[category]?.label || category,
           _needs_enrichment: true
         });
+      }
+    } else if (federation === 'pickleball') {
+      const catCfg = fedConfig.categories[category];
+      if (catCfg?.sofascoreType) {
+        // Pro pickleball via Sofascore
+        players = await fetchSofascoreRankings(catCfg.sofascoreType, rangeStart, rangeEnd);
+        // Tag all as pickleball
+        players = players.map(p => ({ ...p, player_type: 'pickleball', persona: 'player_pball', tags: ['pickleball', 'pro'] }));
+      } else if (catCfg?.duprQuery) {
+        // Amateur pickleball via DUPR / UTR fallback
+        const count = Math.min(rangeEnd - rangeStart + 1, 200);
+        players = await fetchDUPRPlayers(catCfg.duprQuery, count);
+      }
+    } else if (federation === 'coaches') {
+      const catCfg = fedConfig.categories[category];
+      if (catCfg) {
+        players = await fetchCoachesByRegion(catCfg.sport, catCfg.country);
       }
     }
 
