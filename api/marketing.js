@@ -2268,6 +2268,12 @@ async function handleCredentialsStatus(req, res) {
       configured: !!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID,
       value: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || null,
       env_var: 'WHATSAPP_BUSINESS_ACCOUNT_ID'
+    },
+    whatsapp_access_token: {
+      label: 'WhatsApp Access Token',
+      configured: !!process.env.WHATSAPP_ACCESS_TOKEN,
+      masked: maskValue(process.env.WHATSAPP_ACCESS_TOKEN, 6),
+      env_var: 'WHATSAPP_ACCESS_TOKEN'
     }
   };
 
@@ -2387,7 +2393,7 @@ async function handleSendBulkSms(req, res) {
  * If templateName is provided → sends a template message (no 24h restriction).
  * If only message is provided → sends a free-form text (within 24h window).
  *
- * Env vars: WHATSAPP_PHONE_NUMBER_ID, META_PAGE_ACCESS_TOKEN
+ * Env vars: WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN (falls back to META_PAGE_ACCESS_TOKEN)
  */
 async function handleSendWhatsapp(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -2396,11 +2402,11 @@ async function handleSendWhatsapp(req, res) {
   if (!phone) return res.status(400).json({ error: 'phone is required (E.164 format, e.g. +15551234567)' });
 
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const accessToken   = process.env.META_PAGE_ACCESS_TOKEN;
+  const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {
     return res.status(500).json({
-      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and META_PAGE_ACCESS_TOKEN in Vercel env vars.'
+      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN in Vercel env vars.'
     });
   }
 
@@ -2479,11 +2485,11 @@ async function handleSendBulkWhatsapp(req, res) {
   }
 
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const accessToken   = process.env.META_PAGE_ACCESS_TOKEN;
+  const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {
     return res.status(500).json({
-      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and META_PAGE_ACCESS_TOKEN in Vercel env vars.'
+      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN in Vercel env vars.'
     });
   }
 
@@ -2548,14 +2554,14 @@ async function handleWhatsappStatus(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
 
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const accessToken   = process.env.META_PAGE_ACCESS_TOKEN;
+  const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
 
   if (!phoneNumberId || !accessToken) {
     return res.status(200).json({
       configured: false,
       missing: {
         WHATSAPP_PHONE_NUMBER_ID: !phoneNumberId,
-        META_PAGE_ACCESS_TOKEN: !accessToken
+        WHATSAPP_ACCESS_TOKEN: !accessToken
       }
     });
   }
@@ -2600,10 +2606,10 @@ async function handleWhatsappTemplates(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
 
   const wabaId      = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
-  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
 
   if (!wabaId || !accessToken) {
-    return res.status(200).json({ templates: [], error: 'WHATSAPP_BUSINESS_ACCOUNT_ID or META_PAGE_ACCESS_TOKEN not configured' });
+    return res.status(200).json({ templates: [], error: 'WHATSAPP_BUSINESS_ACCOUNT_ID or WHATSAPP_ACCESS_TOKEN not configured' });
   }
 
   try {
