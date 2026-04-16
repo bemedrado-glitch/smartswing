@@ -40,4 +40,8 @@ User-agent: Googlebot
 Allow: /
 
 Sitemap: https://www.smartswingai.com/sitemap.xml
-LLMs-txt: https://www.smartswingai.com/llms.txt
+
+# LLM citation index (non-standard directive moved to a comment so
+# robots.txt validators stay happy — crawlers that want it will still
+# fetch /llms.txt directly):
+# https://www.smartswingai.com/llms.txt
