@@ -1274,14 +1274,19 @@ async function handleEnrollCadence(req, res) {
 
     const allEmailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
     const allSmsSteps   = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+    // WhatsApp steps (may not exist yet — graceful fallback)
+    let allWhatsappSteps = [];
+    try { allWhatsappSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_whatsapp?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || []; } catch (_) {}
 
     // Only include steps the contact can actually receive
-    const emailSteps = hasRealEmail ? allEmailSteps : [];
-    const smsSteps   = hasPhone     ? allSmsSteps   : [];
+    const emailSteps    = hasRealEmail ? allEmailSteps : [];
+    const smsSteps      = hasPhone     ? allSmsSteps   : [];
+    const whatsappSteps = hasPhone     ? allWhatsappSteps : [];
 
     const skippedChannels = [];
     if (!hasRealEmail && allEmailSteps.length > 0) skippedChannels.push(`email (${allEmailSteps.length} steps skipped — no valid email)`);
     if (!hasPhone     && allSmsSteps.length > 0)   skippedChannels.push(`SMS (${allSmsSteps.length} steps skipped — no phone number)`);
+    if (!hasPhone     && allWhatsappSteps.length > 0) skippedChannels.push(`WhatsApp (${allWhatsappSteps.length} steps skipped — no phone number)`);
 
     const enrollmentId = generateUUID();
     // Compute the first step's scheduled_at so next_step_at on the enrollment matches it
@@ -1317,6 +1322,16 @@ async function handleEnrollCadence(req, res) {
         step_type: 'sms', step_num: step.sequence_num,
         subject: null, body: null,
         message: step.message || null,
+        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
+        attempt_count: 0, created_at: now
+      });
+    }
+    for (const step of whatsappSteps) {
+      executions.push({
+        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
+        step_type: 'whatsapp', step_num: step.sequence_num,
+        subject: null, body: null,
+        message: step.template_name ? `template:${step.template_name}` : (step.message || null),
         status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
         attempt_count: 0, created_at: now
       });
@@ -2241,6 +2256,18 @@ async function handleCredentialsStatus(req, res) {
       configured: !!process.env.GOOGLE_PLACES_API_KEY,
       masked: maskValue(process.env.GOOGLE_PLACES_API_KEY, 4),
       env_var: 'GOOGLE_PLACES_API_KEY'
+    },
+    whatsapp_phone_number_id: {
+      label: 'WhatsApp Phone Number ID',
+      configured: !!process.env.WHATSAPP_PHONE_NUMBER_ID,
+      value: process.env.WHATSAPP_PHONE_NUMBER_ID || null,
+      env_var: 'WHATSAPP_PHONE_NUMBER_ID'
+    },
+    whatsapp_business_account_id: {
+      label: 'WhatsApp Business Account ID',
+      configured: !!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID,
+      value: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || null,
+      env_var: 'WHATSAPP_BUSINESS_ACCOUNT_ID'
     }
   };
 
@@ -2346,6 +2373,260 @@ async function handleSendBulkSms(req, res) {
   } catch (err) {
     console.error('[send-bulk-sms] Error:', err);
     return res.status(500).json({ error: 'Bulk SMS send failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WHATSAPP BUSINESS CLOUD API HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/marketing/send-whatsapp
+ * Body: { phone, message, templateName?, templateLang? }
+ *
+ * If templateName is provided → sends a template message (no 24h restriction).
+ * If only message is provided → sends a free-form text (within 24h window).
+ *
+ * Env vars: WHATSAPP_PHONE_NUMBER_ID, META_PAGE_ACCESS_TOKEN
+ */
+async function handleSendWhatsapp(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { phone, message, templateName, templateLang } = req.body || {};
+  if (!phone) return res.status(400).json({ error: 'phone is required (E.164 format, e.g. +15551234567)' });
+
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken   = process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    return res.status(500).json({
+      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and META_PAGE_ACCESS_TOKEN in Vercel env vars.'
+    });
+  }
+
+  // Strip non-digit characters for the API (except leading +)
+  const toNumber = phone.replace(/[^\d]/g, '');
+
+  try {
+    let payload;
+    if (templateName) {
+      // Template message — works outside the 24h window
+      payload = {
+        messaging_product: 'whatsapp',
+        to: toNumber,
+        type: 'template',
+        template: {
+          name: templateName,
+          language: { code: templateLang || 'en_US' }
+        }
+      };
+    } else if (message) {
+      // Free-form text — only works within 24h of user's last message
+      payload = {
+        messaging_product: 'whatsapp',
+        to: toNumber,
+        type: 'text',
+        text: { body: message }
+      };
+    } else {
+      return res.status(400).json({ error: 'Either message or templateName is required' });
+    }
+
+    const apiUrl = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+    const waRes = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await waRes.json();
+    if (!waRes.ok) {
+      const errMsg = data.error ? data.error.message : JSON.stringify(data);
+      console.error('[send-whatsapp] API error:', errMsg);
+      return res.status(waRes.status).json({ error: errMsg, details: data });
+    }
+
+    const messageId = data.messages && data.messages[0] ? data.messages[0].id : null;
+    return res.status(200).json({
+      success: true,
+      messageId,
+      to: toNumber,
+      type: templateName ? 'template' : 'text'
+    });
+  } catch (err) {
+    console.error('[send-whatsapp] Error:', err);
+    return res.status(500).json({ error: 'WhatsApp send failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+/**
+ * POST /api/marketing/send-bulk-whatsapp
+ * Body: { recipients: [{ phone, message?, templateName?, templateLang? }] }
+ * Max 50 per request.
+ */
+async function handleSendBulkWhatsapp(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { recipients } = req.body || {};
+  if (!Array.isArray(recipients) || recipients.length === 0) {
+    return res.status(400).json({ error: 'recipients array is required and must not be empty' });
+  }
+  if (recipients.length > 50) {
+    return res.status(400).json({ error: 'Maximum 50 recipients per request' });
+  }
+
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken   = process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    return res.status(500).json({
+      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and META_PAGE_ACCESS_TOKEN in Vercel env vars.'
+    });
+  }
+
+  const apiUrl = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+
+  const results = await Promise.allSettled(
+    recipients.map(async ({ phone, message, templateName, templateLang }) => {
+      if (!phone) throw new Error('phone is required');
+      const toNumber = phone.replace(/[^\d]/g, '');
+
+      let payload;
+      if (templateName) {
+        payload = {
+          messaging_product: 'whatsapp',
+          to: toNumber,
+          type: 'template',
+          template: { name: templateName, language: { code: templateLang || 'en_US' } }
+        };
+      } else if (message) {
+        payload = {
+          messaging_product: 'whatsapp',
+          to: toNumber,
+          type: 'text',
+          text: { body: message }
+        };
+      } else {
+        throw new Error('Either message or templateName is required');
+      }
+
+      const waRes = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await waRes.json();
+      if (!waRes.ok) throw new Error(data.error ? data.error.message : 'API error');
+      return data;
+    })
+  );
+
+  const summary = results.map((r, i) => ({
+    phone: recipients[i].phone,
+    success: r.status === 'fulfilled',
+    messageId: r.status === 'fulfilled' && r.value.messages ? r.value.messages[0].id : undefined,
+    error: r.status === 'rejected' ? r.reason.message : undefined
+  }));
+
+  const sent   = summary.filter(s => s.success).length;
+  const failed = summary.filter(s => !s.success).length;
+
+  return res.status(200).json({ success: true, sent, failed, results: summary });
+}
+
+/**
+ * GET /api/marketing/whatsapp-status
+ * Returns configuration status + phone number info from Graph API.
+ */
+async function handleWhatsappStatus(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
+
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken   = process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    return res.status(200).json({
+      configured: false,
+      missing: {
+        WHATSAPP_PHONE_NUMBER_ID: !phoneNumberId,
+        META_PAGE_ACCESS_TOKEN: !accessToken
+      }
+    });
+  }
+
+  try {
+    const infoRes = await fetch(
+      `https://graph.facebook.com/v25.0/${phoneNumberId}?fields=display_phone_number,quality_rating,verified_name,code_verification_status`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    const info = await infoRes.json();
+
+    if (!infoRes.ok) {
+      return res.status(200).json({
+        configured: true,
+        reachable: false,
+        error: info.error ? info.error.message : 'Unknown error'
+      });
+    }
+
+    return res.status(200).json({
+      configured: true,
+      reachable: true,
+      phoneNumber: info.display_phone_number,
+      qualityRating: info.quality_rating,
+      verifiedName: info.verified_name,
+      codeVerification: info.code_verification_status
+    });
+  } catch (err) {
+    return res.status(200).json({
+      configured: true,
+      reachable: false,
+      error: err.message || 'Network error'
+    });
+  }
+}
+
+/**
+ * GET /api/marketing/whatsapp-templates
+ * Lists available message templates from WhatsApp Business.
+ */
+async function handleWhatsappTemplates(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
+
+  const wabaId      = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
+  const accessToken = process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!wabaId || !accessToken) {
+    return res.status(200).json({ templates: [], error: 'WHATSAPP_BUSINESS_ACCOUNT_ID or META_PAGE_ACCESS_TOKEN not configured' });
+  }
+
+  try {
+    const tplRes = await fetch(
+      `https://graph.facebook.com/v25.0/${wabaId}/message_templates?fields=name,status,language,category&limit=50`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    const data = await tplRes.json();
+
+    if (!tplRes.ok) {
+      return res.status(200).json({ templates: [], error: data.error ? data.error.message : 'Unknown' });
+    }
+
+    return res.status(200).json({
+      templates: (data.data || []).map(t => ({
+        name: t.name,
+        status: t.status,
+        language: t.language,
+        category: t.category
+      }))
+    });
+  } catch (err) {
+    return res.status(200).json({ templates: [], error: err.message || 'Network error' });
   }
 }
 
@@ -4998,6 +5279,10 @@ const ROUTES = {
   'ai-coach':        handleAiCoach,
   'send-sms':        handleSendSms,
   'send-bulk-sms':   handleSendBulkSms,
+  'send-whatsapp':       handleSendWhatsapp,
+  'send-bulk-whatsapp':  handleSendBulkWhatsapp,
+  'whatsapp-status':     handleWhatsappStatus,
+  'whatsapp-templates':  handleWhatsappTemplates,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,

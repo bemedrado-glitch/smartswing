@@ -2115,6 +2115,51 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
           </div>
 
+          <!-- WhatsApp Business -->
+          <div class="mkt-panel">
+            <div class="mkt-panel__header">
+              <div class="mkt-panel__title">📱 WhatsApp Business</div>
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="checkWhatsappStatus()">Refresh</button>
+            </div>
+            <div class="mkt-panel__body">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Send messages via WhatsApp Cloud API. Uses your Meta Business access token.</p>
+              <div id="waStatusBox" style="display:flex;align-items:center;gap:8px;padding:12px;background:var(--bg-soft);border-radius:8px;margin-bottom:16px;">
+                <span style="font-size:14px;">⏳</span>
+                <span style="font-size:13px;color:var(--muted);">Checking WhatsApp configuration…</span>
+              </div>
+
+              <!-- Templates list -->
+              <div id="waTemplatesSection" style="display:none;margin-bottom:16px;">
+                <label class="mkt-label">Available Templates</label>
+                <select id="waTemplateSelect" class="mkt-input" style="margin-bottom:8px;">
+                  <option value="">-- Select a template --</option>
+                </select>
+              </div>
+
+              <!-- Quick send form -->
+              <div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+                <label class="mkt-label" style="margin-bottom:6px;">Quick Send</label>
+                <div style="display:flex;gap:8px;margin-bottom:8px;">
+                  <input type="text" class="mkt-input" id="waPhone" placeholder="+1 (555) 123-4567" style="flex:1;">
+                </div>
+                <div id="waMessageGroup" style="margin-bottom:8px;">
+                  <textarea class="mkt-input" id="waMessage" rows="3" placeholder="Type a message (free-form, 24h window) or choose a template above…" style="resize:vertical;"></textarea>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="sendWhatsapp('text')">Send Message</button>
+                  <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="sendWhatsapp('template')">Send Template</button>
+                  <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="sendTestWhatsapp()">Send Test</button>
+                </div>
+              </div>
+
+              <div style="padding:10px;background:var(--bg-soft);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5;">
+                <strong>Note:</strong> Template messages work anytime. Free-form text only works within 24h of the user's last message.<br>
+                <strong>Endpoint:</strong> <code>/api/marketing/send-whatsapp</code><br>
+                <strong>Credentials:</strong> <code>WHATSAPP_PHONE_NUMBER_ID</code> + <code>META_PAGE_ACCESS_TOKEN</code> in Vercel env vars.
+              </div>
+            </div>
+          </div>
+
           <!-- Email Provider -->
           <div class="mkt-panel">
             <div class="mkt-panel__header">
@@ -2781,6 +2826,7 @@ function switchTab(tabName, triggerEl) {
     if (ss.fb) document.getElementById('settFbLikes').value = ss.fb;
     checkSocialConnections();
     checkSmsStatus();
+    checkWhatsappStatus();
     loadCredentialsStatus();
   }
 }
@@ -7831,6 +7877,112 @@ async function sendTestSms() {
     }
   } catch (e) {
     showToast('SMS endpoint not reachable. Deploy /api/marketing/send-sms first.', 'error');
+  }
+}
+
+// ── WhatsApp Business ─────────────────────────────────────────────────────
+async function checkWhatsappStatus() {
+  var box = document.getElementById('waStatusBox');
+  if (!box) return;
+  box.innerHTML = '<span style="font-size:14px;">⏳</span><span style="font-size:13px;color:var(--muted);">Checking…</span>';
+  try {
+    var res = await fetch('/api/marketing/whatsapp-status');
+    var data = await res.json();
+    if (!data.configured) {
+      box.innerHTML = '<span style="font-size:14px;">❌</span><span style="font-size:13px;color:#dc2626;">Not configured. Add <code>WHATSAPP_PHONE_NUMBER_ID</code> and <code>META_PAGE_ACCESS_TOKEN</code> to Vercel env vars.</span>';
+    } else if (!data.reachable) {
+      box.innerHTML = '<span style="font-size:14px;">⚠️</span><span style="font-size:13px;color:#d97706;">Configured but unreachable: ' + (data.error || 'Unknown error') + '</span>';
+    } else {
+      box.innerHTML = '<span style="color:#16a34a;font-size:16px;">✓</span>' +
+        '<span style="font-size:13px;color:#166534;"><strong>' + (data.verifiedName || 'WhatsApp') + '</strong> — ' +
+        (data.phoneNumber || '') + ' · Quality: ' + (data.qualityRating || '—') + '</span>';
+      loadWhatsappTemplates();
+    }
+  } catch (e) {
+    box.innerHTML = '<span style="font-size:14px;">❌</span><span style="font-size:13px;color:#dc2626;">Endpoint unreachable.</span>';
+  }
+}
+
+async function loadWhatsappTemplates() {
+  try {
+    var res = await fetch('/api/marketing/whatsapp-templates');
+    var data = await res.json();
+    var sel = document.getElementById('waTemplateSelect');
+    var sec = document.getElementById('waTemplatesSection');
+    if (!sel || !sec) return;
+    if (data.templates && data.templates.length) {
+      sel.innerHTML = '<option value="">-- Select a template --</option>';
+      data.templates.forEach(function(t) {
+        var opt = document.createElement('option');
+        opt.value = t.name;
+        opt.textContent = t.name + ' (' + t.language + ') — ' + t.status;
+        opt.dataset.lang = t.language;
+        sel.appendChild(opt);
+      });
+      sec.style.display = 'block';
+    }
+  } catch (e) { /* silent */ }
+}
+
+async function sendWhatsapp(mode) {
+  var phone = document.getElementById('waPhone').value.trim();
+  if (!phone) { showToast('Enter a phone number first.', 'error'); return; }
+  if (!phone.startsWith('+')) phone = '+1' + phone.replace(/\D/g, '');
+
+  var body = { phone: phone };
+
+  if (mode === 'template') {
+    var sel = document.getElementById('waTemplateSelect');
+    if (!sel || !sel.value) { showToast('Select a template first.', 'error'); return; }
+    body.templateName = sel.value;
+    var opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset.lang) body.templateLang = opt.dataset.lang;
+  } else {
+    var msg = document.getElementById('waMessage').value.trim();
+    if (!msg) { showToast('Type a message first.', 'error'); return; }
+    body.message = msg;
+  }
+
+  showToast('Sending WhatsApp to ' + phone + '…', '');
+  try {
+    var res = await fetch('/api/marketing/send-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('WhatsApp sent! ID: ' + (data.messageId || '—'), 'success');
+      document.getElementById('waMessage').value = '';
+    } else {
+      showToast('WhatsApp failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('WhatsApp endpoint unreachable.', 'error');
+  }
+}
+
+async function sendTestWhatsapp() {
+  var phone = prompt('Enter your phone number to receive a test WhatsApp (e.g. +15551234567):');
+  if (!phone || !phone.trim()) { showToast('Cancelled.', ''); return; }
+  phone = phone.trim();
+  if (!phone.startsWith('+')) phone = '+1' + phone.replace(/\D/g, '');
+
+  showToast('Sending test WhatsApp to ' + phone + '…', '');
+  try {
+    var res = await fetch('/api/marketing/send-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone, templateName: 'hello_world', templateLang: 'en_US' })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Test WhatsApp sent to ' + phone + '!', 'success');
+    } else {
+      showToast('Failed: ' + (data.error || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('WhatsApp endpoint unreachable.', 'error');
   }
 }
 
