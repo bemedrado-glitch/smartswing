@@ -137,12 +137,6 @@
       "destination": "/api/marketing?_route=go&code=:code"
     }
   ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
