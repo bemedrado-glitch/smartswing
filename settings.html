@@ -297,6 +297,143 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </section>
 
+    <!-- ──────────────── Marketing Integrations ──────────────── -->
+    <section class="panel" id="marketing-integrations" style="margin-top:16px">
+      <h2>Marketing integrations</h2>
+      <p class="muted">Connect email, search, and social platforms so the marketing console can surface real analytics and publish content. All fields are optional; the rest of SmartSwing works without them.</p>
+
+      <!-- 1) Email Delivery (Resend) -->
+      <div class="card" id="marketing-email-delivery" style="margin-top:18px">
+        <div class="mini">Email delivery (Resend webhook)</div>
+        <h3 style="margin-top:4px;">Email events (last 30 days)</h3>
+        <p class="helper" id="emailDeliveryStatus">Loading recent email events…</p>
+        <div class="field-grid" style="grid-template-columns:repeat(5,minmax(0,1fr));margin-top:12px;gap:10px;" id="emailDeliveryStats">
+          <div><div class="mini" style="color:var(--muted)">Delivered</div><strong id="edDelivered" style="font-size:20px;">—</strong></div>
+          <div><div class="mini" style="color:var(--muted)">Opened</div><strong id="edOpened" style="font-size:20px;">—</strong></div>
+          <div><div class="mini" style="color:var(--muted)">Clicked</div><strong id="edClicked" style="font-size:20px;">—</strong></div>
+          <div><div class="mini" style="color:var(--muted)">Bounced</div><strong id="edBounced" style="font-size:20px;">—</strong></div>
+          <div><div class="mini" style="color:var(--muted)">Complained</div><strong id="edComplained" style="font-size:20px;">—</strong></div>
+        </div>
+        <div class="field-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:10px;">
+          <div><div class="mini" style="color:var(--muted)">Open rate</div><strong id="edOpenRate" style="font-size:20px;">—</strong></div>
+          <div><div class="mini" style="color:var(--muted)">Click rate</div><strong id="edClickRate" style="font-size:20px;">—</strong></div>
+        </div>
+        <div id="emailDeliveryBanner" class="alert" style="margin-top:12px;display:none;background:rgba(255,216,77,.12);border:1px solid rgba(255,216,77,.32);color:#ffe9a8;"></div>
+        <details style="margin-top:14px;">
+          <summary style="cursor:pointer;font-weight:700;color:var(--green)">Configure webhook in Resend</summary>
+          <div class="helper" style="margin-top:10px;line-height:1.7;">
+            <ol style="padding-left:18px;">
+              <li>Open <a href="https://resend.com/webhooks" target="_blank" rel="noopener" style="color:var(--green)">Resend → Webhooks</a> and click <strong>Add endpoint</strong>.</li>
+              <li>Paste this URL: <code style="user-select:all;background:rgba(57,255,20,.08);padding:2px 6px;border-radius:6px;">https://www.smartswingai.com/api/resend-webhook</code></li>
+              <li>Tick these five event types:
+                <ul style="padding-left:18px;margin-top:4px;">
+                  <li><code>email.delivered</code></li>
+                  <li><code>email.opened</code></li>
+                  <li><code>email.clicked</code></li>
+                  <li><code>email.bounced</code></li>
+                  <li><code>email.complained</code></li>
+                </ul>
+              </li>
+              <li>Copy the <em>Signing secret</em> and set it as <code>RESEND_WEBHOOK_SECRET</code> in Vercel env vars.</li>
+            </ol>
+          </div>
+        </details>
+      </div>
+
+      <!-- 2) Search Console -->
+      <div class="card" id="marketing-search-console" style="margin-top:14px">
+        <div class="mini">Google Search Console</div>
+        <h3 style="margin-top:4px;">Search performance integration</h3>
+        <p class="helper">Pulls impressions, clicks, CTR, average position, top queries, and top pages directly from Google Search Console for the marketing console's SEO panel.</p>
+        <div class="field-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:12px;">
+          <div>
+            <label>GSC_SERVICE_ACCOUNT_JSON</label>
+            <input id="gscServiceAccountStatus" type="text" readonly value="Checking…">
+            <div class="helper" style="margin-top:4px;">Set in Vercel → Project → Settings → Environment Variables. Paste the full JSON key.</div>
+          </div>
+          <div>
+            <label>GSC_SITE_URL</label>
+            <input id="gscSiteUrlStatus" type="text" readonly value="Checking…">
+            <div class="helper" style="margin-top:4px;">Exactly as registered in Search Console (e.g. <code>https://www.smartswingai.com/</code> or <code>sc-domain:smartswingai.com</code>).</div>
+          </div>
+        </div>
+        <details style="margin-top:14px;">
+          <summary style="cursor:pointer;font-weight:700;color:var(--green)">Setup instructions</summary>
+          <div class="helper" style="margin-top:10px;line-height:1.7;">
+            <ol style="padding-left:18px;">
+              <li>Open <a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank" rel="noopener" style="color:var(--green)">Google Cloud Console → Service accounts</a> and create a new service account (any name, no roles required).</li>
+              <li>Click the service account → <strong>Keys → Add key → JSON</strong>. Download the JSON file.</li>
+              <li>Copy the <code>client_email</code> from that JSON. Go to <a href="https://search.google.com/search-console" target="_blank" rel="noopener" style="color:var(--green)">Search Console</a> → your property → <strong>Settings → Users and permissions</strong> → <strong>Add user</strong> → paste that email with <em>Restricted</em> permission.</li>
+              <li>In Vercel, set <code>GSC_SERVICE_ACCOUNT_JSON</code> = the full JSON file contents (as a single string) and <code>GSC_SITE_URL</code> = your Search Console property URL.</li>
+              <li>Redeploy. The marketing console's Search Console panel will start showing real data.</li>
+            </ol>
+          </div>
+        </details>
+      </div>
+
+      <!-- 3) Social tokens -->
+      <div class="card" id="marketing-social-tokens" style="margin-top:14px">
+        <div class="mini">Social publishing tokens</div>
+        <h3 style="margin-top:4px;">Platform access tokens</h3>
+        <p class="helper">Paste developer tokens so the agent can publish directly. Each row's status dot turns green when the last API call succeeded, yellow if expired, gray if not set. Free developer tiers only — no paid plans required.</p>
+        <div class="stack" style="margin-top:14px;" id="socialTokensList">
+          <!-- TikTok -->
+          <div class="field-grid" data-social-row="tiktok" style="grid-template-columns:28px 1fr auto;align-items:center;gap:10px;">
+            <div class="social-dot" data-status-dot style="width:12px;height:12px;border-radius:50%;background:#6b7280;"></div>
+            <div>
+              <label style="margin-bottom:4px;">TikTok access token</label>
+              <input type="password" autocomplete="off" data-token-input placeholder="tt_..." />
+              <div class="helper" style="margin-top:4px;">Get one at <a href="https://developers.tiktok.com/apps" target="_blank" rel="noopener" style="color:var(--green)">TikTok for Developers → Your app → Credentials</a>. Scope: <code>video.publish</code>.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <a class="btn" href="https://developers.tiktok.com/apps" target="_blank" rel="noopener" style="font-size:12px;padding:8px 12px;">Get token</a>
+              <button type="button" class="btn primary" data-save-token style="font-size:12px;padding:8px 12px;">Save</button>
+            </div>
+          </div>
+          <!-- YouTube -->
+          <div class="field-grid" data-social-row="youtube" style="grid-template-columns:28px 1fr auto;align-items:center;gap:10px;">
+            <div class="social-dot" data-status-dot style="width:12px;height:12px;border-radius:50%;background:#6b7280;"></div>
+            <div>
+              <label style="margin-bottom:4px;">YouTube OAuth refresh token</label>
+              <input type="password" autocomplete="off" data-token-input placeholder="1//..." />
+              <div class="helper" style="margin-top:4px;">Get one via <a href="https://developers.google.com/oauthplayground/" target="_blank" rel="noopener" style="color:var(--green)">OAuth Playground</a> with scope <code>https://www.googleapis.com/auth/youtube.upload</code>.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <a class="btn" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="font-size:12px;padding:8px 12px;">Get token</a>
+              <button type="button" class="btn primary" data-save-token style="font-size:12px;padding:8px 12px;">Save</button>
+            </div>
+          </div>
+          <!-- Instagram -->
+          <div class="field-grid" data-social-row="instagram" style="grid-template-columns:28px 1fr auto;align-items:center;gap:10px;">
+            <div class="social-dot" data-status-dot style="width:12px;height:12px;border-radius:50%;background:#6b7280;"></div>
+            <div>
+              <label style="margin-bottom:4px;">Instagram Graph API token</label>
+              <input type="password" autocomplete="off" data-token-input placeholder="IGQV..." />
+              <div class="helper" style="margin-top:4px;">Long-lived user token with <code>instagram_content_publish</code>, <code>instagram_basic</code>. Connect an IG Business account to a Facebook Page first.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <a class="btn" href="https://developers.facebook.com/apps" target="_blank" rel="noopener" style="font-size:12px;padding:8px 12px;">Get token</a>
+              <button type="button" class="btn primary" data-save-token style="font-size:12px;padding:8px 12px;">Save</button>
+            </div>
+          </div>
+          <!-- Facebook -->
+          <div class="field-grid" data-social-row="facebook" style="grid-template-columns:28px 1fr auto;align-items:center;gap:10px;">
+            <div class="social-dot" data-status-dot style="width:12px;height:12px;border-radius:50%;background:#6b7280;"></div>
+            <div>
+              <label style="margin-bottom:4px;">Facebook Page access token</label>
+              <input type="password" autocomplete="off" data-token-input placeholder="EAAG..." />
+              <div class="helper" style="margin-top:4px;">Page-scoped token with <code>pages_manage_posts</code>, <code>pages_read_engagement</code>. Use the Graph API Explorer.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <a class="btn" href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener" style="font-size:12px;padding:8px 12px;">Get token</a>
+              <button type="button" class="btn primary" data-save-token style="font-size:12px;padding:8px 12px;">Save</button>
+            </div>
+          </div>
+        </div>
+        <p class="helper" id="socialTokensStatus" style="margin-top:12px;">Loading token status…</p>
+      </div>
+    </section>
+
     <section class="panel" style="margin-top:16px">
       <h2 style="color:#ff5b7c;">Account</h2>
       <p class="muted">Sign out of your SmartSwing AI account on this device.</p>
@@ -441,6 +578,158 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       store.signOut();
       window.location.href = './index.html';
     });
+
+    // ──────────────── Marketing Integrations init ────────────────
+    (function initMarketingIntegrations() {
+      const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+      const supaOk = !!(cfg.url && cfg.anonKey);
+
+      // 1) Email delivery (Resend) — pulls from Supabase email_events table
+      (async function loadEmailDelivery() {
+        const statusEl = document.getElementById('emailDeliveryStatus');
+        const banner = document.getElementById('emailDeliveryBanner');
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+        if (!supaOk) {
+          if (statusEl) statusEl.textContent = 'Supabase not configured on this device — connect to view email delivery metrics.';
+          return;
+        }
+
+        try {
+          const since = new Date(Date.now() - 30 * 86400000).toISOString();
+          const headers = { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey };
+          const r = await fetch(cfg.url + '/rest/v1/email_events?select=event_type,created_at&created_at=gte.' + since, { headers });
+          const events = r.ok ? await r.json() : [];
+          const count = (t) => events.filter(e => e.event_type === t).length;
+          const delivered = count('email_delivered') + count('email.delivered');
+          const opened = count('email_opened') + count('email.opened');
+          const clicked = count('email_clicked') + count('email.clicked');
+          const bounced = count('email_bounced') + count('email.bounced');
+          const complained = count('email_complained') + count('email.complained');
+
+          setVal('edDelivered', String(delivered));
+          setVal('edOpened', String(opened));
+          setVal('edClicked', String(clicked));
+          setVal('edBounced', String(bounced));
+          setVal('edComplained', String(complained));
+          setVal('edOpenRate', delivered > 0 ? Math.round((opened / delivered) * 100) + '%' : '—');
+          setVal('edClickRate', delivered > 0 ? Math.round((clicked / delivered) * 100) + '%' : '—');
+          if (statusEl) statusEl.textContent = events.length + ' email events received in the last 30 days.';
+
+          // Banner if no events after 24h of account creation
+          if (events.length === 0 && banner) {
+            const acctCreated = user.createdAt ? new Date(user.createdAt).getTime() : 0;
+            const dayOld = acctCreated && (Date.now() - acctCreated) > 86400000;
+            if (dayOld || !acctCreated) {
+              banner.style.display = 'block';
+              banner.textContent = 'Webhook not receiving events — check Resend dashboard: confirm the endpoint is enabled and the five event types are ticked.';
+            }
+          }
+        } catch (err) {
+          if (statusEl) statusEl.textContent = 'Could not read email events: ' + (err.message || err);
+        }
+      })();
+
+      // 2) Search Console — read-only env status via /api/search-console probe
+      (async function loadSearchConsoleStatus() {
+        const saEl = document.getElementById('gscServiceAccountStatus');
+        const urlEl = document.getElementById('gscSiteUrlStatus');
+        try {
+          const r = await fetch('/api/search-console?days=1');
+          const body = await r.json().catch(() => ({}));
+          if (r.status === 503 && body && body.missing) {
+            if (saEl) saEl.value = body.missing.GSC_SERVICE_ACCOUNT_JSON ? '✗ Not set in Vercel env' : '✓ Configured';
+            if (urlEl) urlEl.value = body.missing.GSC_SITE_URL ? '✗ Not set in Vercel env' : '✓ Configured';
+          } else if (r.ok && body && body.connected) {
+            if (saEl) saEl.value = '✓ Configured';
+            if (urlEl) urlEl.value = '✓ ' + (body.siteUrl || 'Configured');
+          } else {
+            if (saEl) saEl.value = '⚠ Error — check server logs';
+            if (urlEl) urlEl.value = '⚠ Error — check server logs';
+          }
+        } catch (err) {
+          if (saEl) saEl.value = 'Endpoint unreachable';
+          if (urlEl) urlEl.value = 'Endpoint unreachable';
+        }
+      })();
+
+      // 3) Social tokens — load/save to Supabase marketing_settings, or localStorage fallback
+      (async function initSocialTokens() {
+        const rows = document.querySelectorAll('[data-social-row]');
+        const statusEl = document.getElementById('socialTokensStatus');
+        const LS_KEY = 'ss_marketing_social_tokens';
+
+        // Load existing
+        let existing = {};
+        if (supaOk) {
+          try {
+            const headers = { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey };
+            const r = await fetch(cfg.url + '/rest/v1/marketing_settings?select=key,value&key=in.(tiktok_token,youtube_token,instagram_token,facebook_token,tiktok_status,youtube_status,instagram_status,facebook_status)', { headers });
+            if (r.ok) {
+              const rows2 = await r.json();
+              rows2.forEach(row => { existing[row.key] = row.value; });
+            }
+            if (statusEl) statusEl.textContent = 'Tokens saved to Supabase marketing_settings.';
+          } catch (err) {
+            if (statusEl) statusEl.textContent = 'Using local storage (Supabase read failed: ' + (err.message || err) + ').';
+          }
+        } else {
+          try { existing = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch (_) { existing = {}; }
+          if (statusEl) statusEl.textContent = 'Supabase not configured — tokens saved locally on this device only.';
+        }
+
+        rows.forEach(row => {
+          const platform = row.getAttribute('data-social-row');
+          const input = row.querySelector('[data-token-input]');
+          const dot = row.querySelector('[data-status-dot]');
+          const saveBtn = row.querySelector('[data-save-token]');
+          const tokenKey = platform + '_token';
+          const statusKey = platform + '_status';
+
+          // Populate masked placeholder if token exists
+          if (existing[tokenKey]) {
+            input.placeholder = '●●●●●●●● (saved — paste new to replace)';
+          }
+          // Status dot from last API result
+          const lastStatus = existing[statusKey];
+          if (lastStatus === 'connected') dot.style.background = '#39ff14';
+          else if (lastStatus === 'expired') dot.style.background = '#ffd84d';
+          else dot.style.background = '#6b7280';
+
+          saveBtn.addEventListener('click', async () => {
+            const val = (input.value || '').trim();
+            if (!val) { showAlert('Paste a token before saving.', 'error'); return; }
+            saveBtn.disabled = true;
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saving…';
+            try {
+              if (supaOk) {
+                const headers = { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' };
+                const res = await fetch(cfg.url + '/rest/v1/marketing_settings', {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify([{ key: tokenKey, value: val }])
+                });
+                if (!res.ok) throw new Error('Supabase upsert failed: HTTP ' + res.status);
+              } else {
+                const local = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+                local[tokenKey] = val;
+                localStorage.setItem(LS_KEY, JSON.stringify(local));
+              }
+              input.value = '';
+              input.placeholder = '●●●●●●●● (saved — paste new to replace)';
+              dot.style.background = '#39ff14';
+              showAlert(platform.charAt(0).toUpperCase() + platform.slice(1) + ' token saved.', 'success');
+            } catch (err) {
+              showAlert('Could not save token: ' + (err.message || err), 'error');
+            } finally {
+              saveBtn.disabled = false;
+              saveBtn.textContent = originalText;
+            }
+          });
+        });
+      })();
+    })();
   </script>
   <script>
     (function() {

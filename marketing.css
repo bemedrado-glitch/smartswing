@@ -1983,3 +1983,160 @@
 .mkt-action-item.is-expanded { border-color:var(--volt); background:#f9fff4; }
 .mkt-campaign-card { cursor:pointer; }
 .mkt-campaign-card.is-expanded { border-color:var(--volt) !important; }
+
+/* ═══════════════════════════════════════════════════════════
+   PAID MEDIA HUB — pm-* components
+   ═══════════════════════════════════════════════════════════ */
+
+/* Sub-nav pills */
+.pm-subnav-btn {
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.pm-subnav-btn:hover { background: rgba(0,0,0,.06); color: var(--black); }
+.pm-subnav-btn.is-active { background: #fff; color: var(--black); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+
+/* KPI cards in paid media */
+.pm-kpi-card {
+  background: var(--bg-alt, #f5f5f5);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.pm-kpi-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pm-kpi-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--black);
+  letter-spacing: -.04em;
+}
+.pm-kpi-delta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.pm-kpi-delta.up { color: #00a859; }
+.pm-kpi-delta.down { color: #e74c3c; }
+
+/* Hook chips (viral templates) */
+.pm-hook-chip {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--black);
+  background: var(--bg-alt, #f5f5f5);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s, border-color .15s, transform .1s;
+  font-weight: 500;
+  max-width: 320px;
+}
+.pm-hook-chip:hover {
+  background: var(--black);
+  color: #fff;
+  border-color: var(--black);
+  transform: translateY(-1px);
+}
+
+/* Keyword chips */
+.pm-kw-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a8c;
+  background: rgba(66,133,244,.1);
+  border-radius: 5px;
+}
+.pm-kw-chip--comp {
+  color: #8b5a00;
+  background: rgba(255,160,50,.12);
+}
+.pm-kw-chip--neg {
+  color: #8b0000;
+  background: rgba(220,50,50,.08);
+  text-decoration: line-through;
+  text-decoration-color: #e74c3c;
+}
+
+/* RSA chips */
+.pm-rsa-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--black);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: default;
+}
+.pm-rsa-desc {
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg-alt, #f5f5f5);
+  padding: 8px 12px;
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+/* Checklist */
+.pm-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pm-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 0;
+  line-height: 1.4;
+}
+.pm-check-item input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--volt, #c8ff00);
+}
+.pm-check-item:has(input:checked) {
+  color: var(--black);
+  text-decoration: line-through;
+  text-decoration-color: #00a859;
+}
+
+/* mkt-input--sm */
+.mkt-input--sm { padding: 5px 10px; font-size: 12px; height: 32px; }
+
+/* Generated copy hook buttons */
+.pm-copy-hook-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--black);
+  background: var(--bg-alt, #f5f5f5);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.pm-copy-hook-btn:hover { background: var(--black); color: #fff; }

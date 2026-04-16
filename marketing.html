@@ -3601,7 +3601,7 @@ async function loadAnalytics() {
     // Parallel queries — GA4 API + Supabase business data + email events + Search Console
     const [ga4Res, gscRes, emailEventsRes, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
       fetch('/api/marketing/google-analytics').then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/marketing/google-search-console').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/search-console?days=30').then(r => r.json().then(j => ({ status: r.status, body: j }))).catch(() => null),
       fetch(cfg.url + '/rest/v1/email_events?select=event_type,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(cfg.url + '/rest/v1/profiles?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/customer_subscriptions?select=id,plan_id,status,created_at', { headers }).then(r => r.json()).catch(() => []),
@@ -3681,9 +3681,13 @@ async function loadAnalytics() {
     }
 
     // ── Search Console data ──
-    var hasGSC = gscRes && gscRes.success;
-    if (hasGSC) {
-      renderSearchConsoleData(gscRes);
+    // gscRes is { status, body } from /api/search-console. 503 → not connected empty state.
+    var gscBody = gscRes && gscRes.body;
+    var gscConnected = gscRes && gscRes.status === 200 && gscBody && gscBody.connected === true;
+    if (gscConnected) {
+      renderSearchConsoleLive(gscBody);
+    } else {
+      renderSearchConsoleEmptyState(gscBody && gscBody.message);
     }
 
     // ── Business metrics (unchanged) ──
@@ -3904,6 +3908,63 @@ function renderSearchConsoleData(gsc) {
         '<td>' + q.clicks + '</td><td>' + formatNum(q.impressions) + '</td>' +
         '<td>' + (q.ctr * 100).toFixed(1) + '%</td><td>' + q.position + '</td></tr>';
     }).join('');
+  }
+}
+
+// Render live Search Console data from /api/search-console (new endpoint shape)
+function renderSearchConsoleLive(data) {
+  var panel = document.getElementById('gscPanel');
+  var kpis = document.getElementById('gscKpis');
+  var tbody = document.getElementById('gscQueriesTbody');
+  if (!panel) return;
+  panel.style.display = '';
+
+  if (kpis) {
+    kpis.innerHTML = [
+      { label: 'Impressions', value: formatNum(data.impressions || 0), color: '#a78bfa' },
+      { label: 'Clicks', value: formatNum(data.clicks || 0), color: '#00e87b' },
+      { label: 'Avg CTR', value: ((data.ctr || 0) * 100).toFixed(1) + '%', color: '#38bdf8' },
+      { label: 'Avg Position', value: (data.position || 0).toFixed(1), color: '#fbbf24' }
+    ].map(function(k) {
+      return '<div style="text-align:center;padding:12px;background:var(--bg-soft);border-radius:10px;">' +
+        '<div style="font-size:11px;color:var(--muted);margin-bottom:4px;">' + k.label + '</div>' +
+        '<div style="font-size:20px;font-weight:800;color:' + k.color + ';">' + k.value + '</div></div>';
+    }).join('');
+  }
+
+  if (tbody) {
+    var queries = Array.isArray(data.topQueries) ? data.topQueries : [];
+    if (queries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;font-size:13px;">No query data for this window yet.</td></tr>';
+    } else {
+      tbody.innerHTML = queries.slice(0, 10).map(function(q) {
+        return '<tr><td style="font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (q.query || '') + '">' + (q.query || '') + '</td>' +
+          '<td>' + (q.clicks || 0) + '</td><td>' + formatNum(q.impressions || 0) + '</td>' +
+          '<td>' + ((q.ctr || 0) * 100).toFixed(1) + '%</td><td>' + (q.position || 0) + '</td></tr>';
+      }).join('');
+    }
+  }
+}
+
+// Render "not connected" empty state for Search Console panel
+function renderSearchConsoleEmptyState(msg) {
+  var panel = document.getElementById('gscPanel');
+  var kpis = document.getElementById('gscKpis');
+  var tbody = document.getElementById('gscQueriesTbody');
+  if (!panel) return;
+  panel.style.display = '';
+
+  var message = msg || 'Search Console not connected.';
+  if (kpis) {
+    kpis.innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:22px 16px;background:var(--bg-soft);border-radius:10px;">' +
+        '<div style="font-size:14px;font-weight:700;color:var(--black);margin-bottom:6px;">🔌 ' + message + '</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set <code>GSC_SERVICE_ACCOUNT_JSON</code> and <code>GSC_SITE_URL</code> in Vercel env.</div>' +
+        '<a href="./settings.html#marketing-search-console" class="mkt-btn mkt-btn--sm" style="text-decoration:none;">Open Settings → Search Console</a>' +
+      '</div>';
+  }
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:18px;font-size:13px;">No impressions yet — finish setup in Settings to start tracking search queries.</td></tr>';
   }
 }
 
