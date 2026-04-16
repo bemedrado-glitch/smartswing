@@ -58,9 +58,15 @@ function normaliseESPNEvent(ev) {
   const homeSetsWon = (home.linescores || []).filter(s => s.winner).length;
   const awaySetsWon = (away.linescores || []).filter(s => s.winner).length;
 
+  // Build a meaningful name: prefer round note, then "P1 vs P2" (only if both known), then tournament name
+  const matchName = ev.notes?.[0]?.text
+    || (home.displayName && away.displayName
+        ? `${home.displayName} vs ${away.displayName}`
+        : tourName || null);
+
   return {
     id: ev.id || null,
-    name: ev.notes?.[0]?.text || `${home.displayName || '?'} vs ${away.displayName || '?'}`,
+    name: matchName,
     tournament: tourName || null,
     date: ev.date ? ev.date.slice(0, 10) : null,
     time: ev.date ? ev.date.slice(11, 16) : null,
@@ -209,10 +215,21 @@ module.exports = async (req, res) => {
     const live = normalised
       .filter(ev => ev.status === 'In Progress');
 
-    const upcoming = normalised
+    // Deduplicate upcoming by tournament so we show one card per event, not one per match
+    const upcomingAll = normalised
       .filter(ev => ev.status === 'Not Started')
-      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-      .slice(0, 25);
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const seenTournaments = new Set();
+    const upcoming = [];
+    for (const ev of upcomingAll) {
+      const key = ev.tournament || ev.name || ev.id;
+      if (!seenTournaments.has(key)) {
+        seenTournaments.add(key);
+        // Use tournament name as the card name, not player matchup
+        upcoming.push({ ...ev, name: ev.tournament || ev.name });
+      }
+      if (upcoming.length >= 25) break;
+    }
 
     const hasRecent = finished.length > 0 || live.length > 0;
     const hasUpcoming = upcoming.length > 0;
