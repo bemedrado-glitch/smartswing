@@ -48,21 +48,6 @@
       "permanent": true
     },
     {
-      "source": "/blog/serve-smart",
-      "destination": "/blog/serve-smart.html",
-      "permanent": true
-    },
-    {
-      "source": "/blog/topspin-science",
-      "destination": "/blog/topspin-science.html",
-      "permanent": true
-    },
-    {
-      "source": "/blog/doublefault-smart",
-      "destination": "/blog/doublefault-smart.html",
-      "permanent": true
-    },
-    {
       "source": "/post/:slug*",
       "destination": "/blog.html",
       "permanent": true
