@@ -5052,6 +5052,67 @@ async function handleMetaWebhook(req, res) {
       }
     }
   }
+
+  // WhatsApp Cloud API webhook — object === 'whatsapp_business_account'
+  if (body.object === 'whatsapp_business_account') {
+    for (const entry of entries) {
+      const changes = entry.changes || [];
+      for (const ch of changes) {
+        if (ch.field !== 'messages') continue;
+        const value = ch.value || {};
+
+        // Incoming messages
+        const messages = value.messages || [];
+        for (const msg of messages) {
+          if (key && supaUrl) {
+            const contactName = (value.contacts && value.contacts[0]) ? value.contacts[0].profile?.name : msg.from;
+            try {
+              await fetch(`${supaUrl}/rest/v1/inbox_messages`, {
+                method: 'POST',
+                headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+                body: JSON.stringify({
+                  sender_name: contactName || msg.from,
+                  body: (msg.text?.body || msg.type || '').slice(0, 2000),
+                  source_platform: 'whatsapp',
+                  source_provider_id: msg.id || null,
+                  subject: 'WhatsApp message from ' + (msg.from || 'unknown')
+                })
+              });
+              out.inbox_rows++;
+            } catch (_) {}
+          }
+        }
+
+        // Delivery status updates (sent, delivered, read, failed)
+        const statuses = value.statuses || [];
+        for (const st of statuses) {
+          if (key && supaUrl && st.id) {
+            try {
+              // Update cadence step execution status if this message was sent by a cadence
+              const statusMap = { sent: 'sent', delivered: 'delivered', read: 'opened', failed: 'failed' };
+              const newStatus = statusMap[st.status];
+              if (newStatus) {
+                const colMap = { sent: 'sent_at', delivered: 'delivered_at', opened: 'opened_at', failed: 'failed_at' };
+                const col = colMap[newStatus];
+                const patch = {};
+                if (col) patch[col] = new Date().toISOString();
+                if (st.status === 'failed') {
+                  patch.status = 'failed';
+                  patch.failure_reason = st.errors?.[0]?.title || 'WhatsApp delivery failed';
+                }
+                // Best-effort update — the message field stores the WA message ID for matching
+                await fetch(`${supaUrl}/rest/v1/cadence_step_executions?step_type=eq.whatsapp&status=eq.pending&limit=1`, {
+                  method: 'GET',
+                  headers: { apikey: key, Authorization: `Bearer ${key}` }
+                });
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    }
+  }
+
   return res.status(200).json({ ok: true, ...out });
 }
 
