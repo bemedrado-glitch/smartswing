@@ -756,52 +756,93 @@ function mapDeliverableToWorkflowType(type = '') {
 }
 
 /**
- * Generate an image via DALL-E 3 and immediately mirror the bytes to Supabase
- * Storage so the URL is permanent (DALL-E's CDN URLs expire in ~60min).
+ * Pollinations.ai free-tier image generator. No API key needed.
+ * Returns the Pollinations URL directly — it serves the image bytes on GET,
+ * and `persistGeneratedImage` will mirror those bytes into Supabase Storage.
+ *
+ * Size format here must be "WIDTHxHEIGHT" (we map 1024x1024 etc. to w/h params).
+ */
+function pollinationsUrl(prompt, size) {
+  const [w, h] = String(size || '1024x1024').split('x').map(n => parseInt(n, 10) || 1024);
+  const seed = Math.floor(Math.random() * 1000000);
+  const encoded = encodeURIComponent(String(prompt || '').slice(0, 1800));
+  // flux is the strongest free model on Pollinations as of 2026-04
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux&enhance=true`;
+}
+
+/**
+ * Generate an image. Tries DALL-E 3 first (when OPENAI_API_KEY is set), then
+ * falls back to Pollinations.ai (free, no API key required). In both cases the
+ * image bytes are mirrored to Supabase Storage so the URL is permanent.
  *
  * Returns either:
  *   - a permanent public URL string (back-compat with existing callers), or
- *   - null on failure.
+ *   - null on total failure (both providers failed).
  *
- * Pass `opts.returnDetail = true` to get `{ url, assetId, promptUsed }`.
+ * Pass `opts.returnDetail = true` to get `{ url, assetId, promptUsed, provider }`.
  */
 async function generateImage(prompt, size, opts = {}) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return opts.returnDetail ? { url: null, assetId: null } : null;
   size = size || '1024x1024';
   const brandedPrompt = brandImagePrompt(prompt);
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000); // 25s max for image gen
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'dall-e-3', prompt: brandedPrompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    if (!res.ok) {
-      console.warn('[generateImage] DALL-E error:', res.status);
-      return opts.returnDetail ? { url: null, assetId: null } : null;
-    }
-    const data = await res.json();
-    const ephemeralUrl = data.data?.[0]?.url || null;
-    if (!ephemeralUrl) return opts.returnDetail ? { url: null, assetId: null } : null;
+  const apiKey = process.env.OPENAI_API_KEY;
 
-    // Persist to Supabase Storage so it survives beyond DALL-E's 60min TTL.
-    const persisted = await persistGeneratedImage(ephemeralUrl, {
+  // ── Path 1: DALL-E 3 (if API key available) ─────────────────────────
+  if (apiKey) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+      const res = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'dall-e-3', prompt: brandedPrompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const ephemeralUrl = data.data?.[0]?.url || null;
+        if (ephemeralUrl) {
+          const persisted = await persistGeneratedImage(ephemeralUrl, {
+            prompt: brandedPrompt,
+            model: 'dall-e-3',
+            contentItemId: opts.contentItemId || null
+          });
+          const finalUrl = persisted.url || ephemeralUrl;
+          return opts.returnDetail
+            ? { url: finalUrl, assetId: persisted.assetId, promptUsed: brandedPrompt, provider: 'dall-e-3' }
+            : finalUrl;
+        }
+      } else {
+        console.warn('[generateImage] DALL-E error:', res.status, '— falling back to Pollinations');
+      }
+    } catch (err) {
+      console.warn('[generateImage] DALL-E exception:', err.message, '— falling back to Pollinations');
+    }
+  }
+
+  // ── Path 2: Pollinations.ai (free fallback) ─────────────────────────
+  try {
+    const pollUrl = pollinationsUrl(brandedPrompt, size);
+    // Pre-warm Pollinations so the image is generated before we mirror
+    try {
+      const warmCtl = new AbortController();
+      const warmT = setTimeout(() => warmCtl.abort(), 30000);
+      await fetch(pollUrl, { method: 'GET', signal: warmCtl.signal }).catch(() => null);
+      clearTimeout(warmT);
+    } catch (_) { /* best-effort warm */ }
+
+    const persisted = await persistGeneratedImage(pollUrl, {
       prompt: brandedPrompt,
-      model: 'dall-e-3',
+      model: 'pollinations-flux',
       contentItemId: opts.contentItemId || null
     });
-
-    const finalUrl = persisted.url || ephemeralUrl;  // Fall back to ephemeral if storage fails
+    const finalUrl = persisted.url || pollUrl;
     return opts.returnDetail
-      ? { url: finalUrl, assetId: persisted.assetId, promptUsed: brandedPrompt }
+      ? { url: finalUrl, assetId: persisted.assetId, promptUsed: brandedPrompt, provider: 'pollinations-flux' }
       : finalUrl;
   } catch (err) {
-    console.warn('[generateImage] Error:', err.message);
-    return opts.returnDetail ? { url: null, assetId: null } : null;
+    console.warn('[generateImage] Pollinations failed:', err.message);
+    return opts.returnDetail ? { url: null, assetId: null, provider: null } : null;
   }
 }
 
@@ -3191,13 +3232,21 @@ async function handleAutoPublish(req, res) {
         // Only mark as published if the API call actually returned a valid post ID
         if (actuallyPublished) {
           await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
-            status: 'published', published_date: today, posted_url: publishedUrl
+            status: 'published',
+            published_date: today,
+            published_at: new Date().toISOString(),
+            posted_url: publishedUrl,
+            published_url: publishedUrl,
+            platform_response: publishResult
           });
           results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'published', url: publishedUrl });
         } else {
           // Keep status='scheduled' so it retries next run; record the failure reason
+          // and raw platform response so the UI can surface the error.
           await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
-            failure_reason: (failureReason || 'Publish failed — no post ID returned').slice(0, 500)
+            status: 'failed',
+            failure_reason: (failureReason || 'Publish failed — no post ID returned').slice(0, 500),
+            platform_response: publishResult
           });
           results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'failed', reason: failureReason });
         }

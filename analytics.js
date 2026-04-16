@@ -129,24 +129,62 @@
   }
 
   /* ── Meta Pixel ── */
-  var META_PIXEL_ID = '724180587440946';
+  // Prefer runtime-configured pixel id (from api/runtime-config.js → window.SMARTSWING_META_PIXEL_ID),
+  // fall back to the historical hardcoded id so existing tracking keeps working.
+  var META_PIXEL_ID_FALLBACK = '724180587440946';
+  function getMetaPixelId() {
+    var id = (typeof window.SMARTSWING_META_PIXEL_ID === 'string' ? window.SMARTSWING_META_PIXEL_ID : '').trim();
+    return id || META_PIXEL_ID_FALLBACK;
+  }
 
   function loadMetaPixel() {
     if (window.__smartSwingMetaPixelLoaded) return;
     if (!hasAnalyticsConsent()) return;
+    var pid = getMetaPixelId();
+    if (!pid) return; // graceful noop if neither runtime nor fallback is configured
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
     n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
     document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', META_PIXEL_ID);
+    fbq('init', pid);
     fbq('track', 'PageView');
     window.__smartSwingMetaPixelLoaded = true;
+    // Flush any queued conversion events (fired before pixel loaded / consent granted)
+    if (Array.isArray(window.__smartSwingPendingFbq)) {
+      window.__smartSwingPendingFbq.forEach(function (args) {
+        try { fbq.apply(null, args); } catch (_) { /* silent */ }
+      });
+      window.__smartSwingPendingFbq.length = 0;
+    }
+  }
+
+  /* ── Unified conversion-event helper ──
+   * Safe to call any time; queues Meta Pixel calls until the pixel loads,
+   * and fires GA4 gtag events when gtag is available.
+   */
+  function trackConversion(metaEvent, metaParams, gaEvent, gaParams) {
+    try {
+      if (metaEvent) {
+        if (window.fbq) {
+          metaParams ? window.fbq('track', metaEvent, metaParams) : window.fbq('track', metaEvent);
+        } else {
+          window.__smartSwingPendingFbq = window.__smartSwingPendingFbq || [];
+          window.__smartSwingPendingFbq.push(
+            metaParams ? ['track', metaEvent, metaParams] : ['track', metaEvent]
+          );
+        }
+      }
+      if (gaEvent && typeof window.gtag === 'function') {
+        window.gtag('event', gaEvent, gaParams || {});
+      }
+    } catch (_) { /* silent */ }
   }
 
   /* ── Public API ── */
   window.SmartSwingAnalytics = {
-    track: trackEvent
+    track: trackEvent,
+    conversion: trackConversion
   };
 
   /* ── Init ── */

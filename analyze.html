@@ -19,6 +19,21 @@
   <script src="./assets/vendor/pose-detection.min.js"></script>
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
+  <script>
+    // Meta Pixel + GA4 ViewContent for analyze page
+    (function () {
+      function fire() {
+        if (window.SmartSwingAnalytics && window.SmartSwingAnalytics.conversion) {
+          window.SmartSwingAnalytics.conversion(
+            'ViewContent', { content_name: 'analyze', content_category: 'app' },
+            'view_item', { item_category: 'app', item_name: 'Analyze Swing' }
+          );
+        } else { setTimeout(fire, 200); }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fire);
+      else fire();
+    })();
+  </script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./grip-analysis-engine.js"></script>

@@ -1077,6 +1077,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
+  <script>
+    // Meta Pixel + GA4 ViewContent for pricing page
+    (function () {
+      function fire() {
+        if (window.SmartSwingAnalytics && window.SmartSwingAnalytics.conversion) {
+          window.SmartSwingAnalytics.conversion(
+            'ViewContent', { content_name: 'pricing', content_category: 'pricing' },
+            'view_item', { item_category: 'pricing', item_name: 'Pricing Page' }
+          );
+        } else { setTimeout(fire, 200); }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fire);
+      else fire();
+    })();
+  </script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script src="./site-experience.js"></script>

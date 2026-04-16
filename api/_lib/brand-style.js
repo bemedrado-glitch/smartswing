@@ -54,13 +54,20 @@ const BRAND_STYLE = {
 
   // Prepended to every DALL-E / image-model prompt
   image_prompt_prefix:
-    'Premium sports editorial photography. Apple-grade minimalism meets ' +
-    'Nike athletic precision. Subject: tennis or pickleball moment. ' +
-    'Near-black (#0B1220) or clean warm-white (#F5F5F7) background. ' +
-    'Cinematic side-light, deep shadow on one side. Accent color signal ' +
-    'yellow (#D8FF00) used sparingly as one visual note. No text or logos ' +
-    'on the image. Shot on Phase One 150mm. 3:4 vertical or 1:1 square. ' +
-    'Aspirational, quiet, craft-obsessed. --- ',
+    'PREMIUM SPORTS EDITORIAL PHOTOGRAPHY — SmartSwing AI brand. ' +
+    'Apple-grade minimalism meets Nike athletic precision for tennis/pickleball. ' +
+    'Background: either near-black matte (#0B1220) or clean warm-white (#F5F5F7). ' +
+    'Cinematic single-source side-light, deep controlled shadow on one side. ' +
+    'Single accent: signal yellow (#D8FF00) used as ONE subtle visual note only ' +
+    '(ball, string, sideline, or court marking) — never as overlay or text. ' +
+    'Subject off-center, rule of thirds, 40%+ negative space, high contrast. ' +
+    'Shot on Phase One 150mm or equivalent medium-format, shallow depth of field. ' +
+    '1:1 square or 3:4 vertical composition. Sharp focus on contact moment, ' +
+    'racket, or hand. Aspirational, quiet, craft-obsessed. ' +
+    'STRICT NO-LIST: no text, no logos, no watermarks, no emojis, no stock-photo ' +
+    'smiles, no multiple subjects posing, no fake lens flare, no gradient blur ' +
+    'filters, no AI-slop uncanny faces, no neon purple, no generic fitness poses. ' +
+    'Treat the frame like a magazine cover, not a stock library thumbnail. --- ',
 
   // Prepended to every copywriter / social-media agent prompt
   copy_prompt_prefix:
@@ -69,7 +76,9 @@ const BRAND_STYLE = {
     'Short sentences. Verbs lead. One idea per post. No hype, no emoji salad, ' +
     'no corporate jargon. Specifics over slogans (name the number, the drill, ' +
     'the millisecond). Audience: serious recreational players, coaches, and clubs. ' +
-    'Never motivational fluff. If you can\'t name a result, don\'t write the post. --- '
+    'Never motivational fluff. If you can\'t name a result, don\'t write the post. ' +
+    'Close posts with a concrete next step or a single-line SmartSwing AI mention, ' +
+    'not a generic CTA. --- '
 };
 
 /**

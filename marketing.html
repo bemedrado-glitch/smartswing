@@ -1228,7 +1228,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     </tr>
                   </thead>
                   <tbody id="anlTopContentTbody">
-                    <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">Loading…</td></tr>
+                    <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">No published content yet. Publish a post from the Content tab to see it ranked here.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -5600,9 +5600,18 @@ function switchCalView(view) {
   }
 }
 
-function renderCalList() {
+async function renderCalList() {
   const container = document.getElementById('calListContainer');
   if (!container) return;
+
+  // Ensure content items are loaded from Supabase so the 30-day view has real data
+  if (!MarketingStore.contentItems || !MarketingStore.contentItems.length) {
+    try {
+      if (typeof loadContentItems === 'function') {
+        await loadContentItems();
+      }
+    } catch (_) { }
+  }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -5644,13 +5653,17 @@ function renderCalList() {
     const dateLabel = `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`;
 
     const itemsHtml = dayItems.length === 0
-      ? `<div class="mkt-cal-list-empty" style="padding:4px 0;">— no content planned <button class="mkt-quick-prompt" style="font-size:10px;padding:2px 7px;" onclick="openModal('addContentModal');document.getElementById('ctDate').value='${key}'">+ Add</button></div>`
+      ? `<div class="mkt-cal-list-empty" style="padding:4px 0;display:flex;gap:6px;align-items:center;">— no content planned
+          <button class="mkt-quick-prompt" style="font-size:10px;padding:2px 7px;" onclick="openModal('addContentModal');document.getElementById('ctDate').value='${key}'">+ Add</button>
+          <button class="mkt-quick-prompt" style="font-size:10px;padding:2px 7px;background:#D8FF00;color:#0B1220;border-color:#D8FF00;" onclick="openAgentForDate('${key}')">Generate with AI</button>
+        </div>`
       : dayItems.map(item => `
         <div class="mkt-cal-list-item" onclick="openContentDetail('${item.id}')">
           <span class="mkt-cal-list-item__dot" style="background:${platColors[item.platform] || '#94a3b8'};"></span>
+          ${item.image_url ? `<img src="${escHtml(item.image_url)}" alt="" style="width:22px;height:22px;border-radius:4px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : ''}
           <span class="mkt-cal-list-item__title">${escHtml(item.title || '(untitled)')}</span>
           <span class="mkt-cal-list-item__meta">${escHtml(item.platform || '')} · <span style="color:${statusColors[item.status] || '#94a3b8'};font-weight:600;">${escHtml(item.status || '')}</span></span>
-          ${item.image_url ? '<span title="Has visual" style="color:#10b981;font-size:10px;">🖼</span>' : ''}
+          ${item.published_url ? `<a href="${escHtml(item.published_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View live post" style="color:#10b981;font-size:10px;text-decoration:none;">live</a>` : ''}
         </div>`).join('');
 
     return `<div class="mkt-cal-list-day">
@@ -5658,6 +5671,20 @@ function renderCalList() {
       <div class="mkt-cal-list-items">${itemsHtml}</div>
     </div>`;
   }).join('');
+}
+
+function openAgentForDate(dateKey) {
+  try {
+    const input = document.getElementById('agentTaskInput');
+    const pre = `Create a branded SmartSwing AI post scheduled for ${dateKey}. Pick the best platform for a tennis/pickleball audience on that day (e.g., Tue/Thu = educational LinkedIn carousel, Sat = TikTok demo). Give me: headline, full copy, suggested visual prompt, and one specific result to name. Nike x Apple voice. Short sentences. Verbs lead.`;
+    if (input) {
+      input.value = pre;
+      input.focus();
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const dateEl = document.getElementById('ctDate');
+    if (dateEl) dateEl.value = dateKey;
+  } catch (e) { console.warn('openAgentForDate', e); }
 }
 
 async function saveContent() {
@@ -6901,7 +6928,7 @@ async function loadAnalytics() {
     // Parallel queries — GA4 API + Supabase business data + email events + Search Console
     const [ga4Res, gscRes, emailEventsRes, profilesRes, subsRes, reportsRes, leadsRes, contactMsgsRes] = await Promise.all([
       fetch('/api/marketing/google-analytics').then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/marketing/google-search-console').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/search-console?days=30').then(async r => ({ status: r.status, body: r.ok ? await r.json() : null })).catch(() => ({ status: 0, body: null })),
       fetch(cfg.url + '/rest/v1/email_events?select=event_type,created_at&created_at=gte.' + isoThirty, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(cfg.url + '/rest/v1/profiles?select=id,created_at', { headers }).then(r => r.json()).catch(() => []),
       fetch(cfg.url + '/rest/v1/customer_subscriptions?select=id,plan_id,status,created_at', { headers }).then(r => r.json()).catch(() => []),
@@ -6980,10 +7007,17 @@ async function loadAnalytics() {
       }
     }
 
-    // ── Search Console data ──
-    var hasGSC = gscRes && gscRes.success;
+    // ── Search Console data (new /api/search-console endpoint returns {status, body}) ──
+    var gscBody = gscRes && gscRes.body;
+    var hasGSC = gscBody && (gscBody.connected || gscBody.success);
     if (hasGSC) {
-      renderSearchConsoleData(gscRes);
+      renderSearchConsoleData(gscBody);
+    } else if (gscRes && gscRes.status === 503) {
+      var gscMsg = (gscBody && gscBody.message) || 'Search Console not connected.';
+      var scPanel = document.getElementById('anlSearchConsolePanel') || document.querySelector('[data-panel="search-console"]');
+      if (scPanel) {
+        scPanel.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:13px;">' + gscMsg + ' <a href="settings.html#marketing-search-console" style="color:#0B1220;font-weight:600;">Set up →</a></div>';
+      }
     }
 
     // ── Business metrics (unchanged) ──
@@ -7065,10 +7099,23 @@ async function loadAnalytics() {
       renderChannelPerformance(leadsRes, totalUsers, evtsCurrent);
     }
 
-    // Top content from content items (only if GA4 didn't render top pages)
-    if (!hasGA4) {
-      renderTopContent();
+    // Top content — ALWAYS render, using content_calendar items as the source of truth.
+    // Load items if not already cached so the panel doesn't get stuck on "Loading…".
+    if (!MarketingStore.contentItems || !MarketingStore.contentItems.length) {
+      try {
+        if (typeof loadContentItems === 'function') {
+          await loadContentItems();
+        } else if (MarketingStore.supabase) {
+          const { data: ci } = await MarketingStore.supabase
+            .from('content_calendar')
+            .select('id,title,type,platform,status,scheduled_date,image_url,published_at,published_url')
+            .order('created_at', { ascending: false })
+            .limit(50);
+          MarketingStore.contentItems = ci || [];
+        }
+      } catch (_) { }
     }
+    renderTopContent();
 
     // Brand mentions — from Supabase contact_messages or fallback
     renderBrandMentions(contactMsgsRes);

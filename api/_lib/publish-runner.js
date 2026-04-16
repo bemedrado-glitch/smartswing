@@ -221,13 +221,19 @@ async function publishSingleItem(id) {
     await patchItem(id, {
       status: 'published',
       posted_url: result.url || null,
+      published_url: result.url || null,
       provider_post_id: result.providerId || null,
       published_at: nowISO(),
+      platform_response: result.raw || result,
       failure_reason: null
     });
     return { ok: true, id, providerId: result.providerId, url: result.url };
   } else {
-    await patchItem(id, { failure_reason: (result.error || 'Publish failed').slice(0, 500) });
+    await patchItem(id, {
+      status: 'failed',
+      failure_reason: (result.error || 'Publish failed').slice(0, 500),
+      platform_response: result.raw || { error: result.error || 'Publish failed' }
+    });
     return { ok: false, id, error: result.error, skip: !!result.skip };
   }
 }

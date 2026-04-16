@@ -11,6 +11,7 @@ module.exports = async (_req, res) => {
   const oauthFacebookEnabled = String(process.env.NEXT_PUBLIC_OAUTH_FACEBOOK_ENABLED || '').trim().toLowerCase() === 'true';
 
   const posthogKey = String(process.env.POSTHOG_KEY || '').trim();
+  const metaPixelId = String(process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || '').trim();
 
   const payload = `
 window.SMARTSWING_SUPABASE_CONFIG = Object.assign({}, window.SMARTSWING_SUPABASE_CONFIG || {}, {
@@ -30,8 +31,12 @@ window.SMARTSWING_AUTH_CONFIG = Object.assign({}, window.SMARTSWING_AUTH_CONFIG 
   facebookEnabled: ${oauthFacebookEnabled}
 });
 window.SMARTSWING_ANALYTICS_CONFIG = Object.assign({}, window.SMARTSWING_ANALYTICS_CONFIG || {}, {
-  posthogKey: ${JSON.stringify(posthogKey)}
+  posthogKey: ${JSON.stringify(posthogKey)},
+  metaPixelId: ${JSON.stringify(metaPixelId)}
 });
+if (${JSON.stringify(metaPixelId)}) {
+  window.SMARTSWING_META_PIXEL_ID = ${JSON.stringify(metaPixelId)};
+}
 `;
 
   res.statusCode = 200;
