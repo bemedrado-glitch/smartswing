@@ -61,6 +61,24 @@
     <priority>0.75</priority>
   </url>
   <url>
+    <loc>https://www.smartswingai.com/blog/serve-smart.html</loc>
+    <lastmod>2026-04-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.smartswingai.com/blog/topspin-science.html</loc>
+    <lastmod>2026-04-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.smartswingai.com/blog/doublefault-smart.html</loc>
+    <lastmod>2026-04-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.smartswingai.com/about.html</loc>
     <lastmod>2026-04-15</lastmod>
     <changefreq>monthly</changefreq>

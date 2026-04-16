@@ -524,7 +524,7 @@
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.72);
       margin-bottom: 20px;
     }
     .trust-logos {
@@ -555,11 +555,11 @@
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.72);
       text-transform: uppercase;
       transition: color 0.2s;
     }
-    .trust-logo:hover { color: rgba(255,255,255,0.6); }
+    .trust-logo:hover { color: rgba(255,255,255,0.95); }
 
     /* ── SECTION SHARED ── */
     .section {
@@ -1111,7 +1111,7 @@
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.75);
       margin-bottom: 16px;
       display: block;
     }
@@ -1124,7 +1124,7 @@
     .footer-links a,
     .footer-col ul li a {
       font-size: 14px;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.82);
       transition: color 0.2s;
     }
     .footer-links a:hover,
@@ -1138,7 +1138,7 @@
     }
     .footer-bottom p {
       font-size: 13px;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.7);
     }
     .footer-bottom-links {
       display: flex;
@@ -1146,10 +1146,10 @@
     }
     .footer-bottom-links a {
       font-size: 13px;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.7);
       transition: color 0.2s;
     }
-    .footer-bottom-links a:hover { color: rgba(255,255,255,0.6); }
+    .footer-bottom-links a:hover { color: rgba(255,255,255,0.95); }
 
     /* ── COOKIE BANNER ── */
     .cookie-banner {
@@ -1255,7 +1255,7 @@
       border-color: var(--volt);
       box-shadow: 0 0 0 3px rgba(57,255,20,0.15);
     }
-    .hero-email-capture input[type="email"]::placeholder { color: rgba(255,255,255,0.35); }
+    .hero-email-capture input[type="email"]::placeholder { color: rgba(255,255,255,0.6); }
     .hero-email-capture .btn-primary { flex-shrink: 0; }
     .hero-email-capture .capture-ok {
       display: none;
@@ -1558,11 +1558,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <img src="./assets/redesign/hero-action.webp"
                alt="Tennis player executing a powerful backhand with perfect technique"
                class="hero-visual-img"
+               width="720" height="580"
                loading="eager" fetchpriority="high" decoding="async">
           <!-- floating AI analysis phone -->
           <img src="./assets/uiux/Smart%203.webp"
                alt="SmartSwing AI analysis results — score 88/100"
-               class="hero-phone-overlay">
+               class="hero-phone-overlay"
+               width="168" height="340"
+               loading="lazy" decoding="async">
           <!-- badge overlay -->
           <div class="hero-visual-badge">
             <span style="width:6px;height:6px;border-radius:50%;background:var(--volt);display:inline-block;"></span>
@@ -2130,6 +2133,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener" data-i18n="footer.tiktok">TikTok</a>
           </div>
         </div>
+      </div>
+      <div class="footer-review" style="margin:24px 0 16px;padding:14px 18px;border:1px solid rgba(216,255,0,.25);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:rgba(216,255,0,.04);">
+        <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(255,255,255,.85);">
+          <span aria-hidden="true" style="color:#D8FF00;font-size:16px;letter-spacing:1px;">★★★★★</span>
+          <span data-i18n="footer.reviewPrompt">Using SmartSwing AI? We'd love your honest review.</span>
+        </div>
+        <a href="https://www.g2.com/products/smart-swing-ai/review_modalities/new?entry_point=new_review_page&amp;source_type=organic"
+           target="_blank" rel="noopener"
+           class="btn-primary"
+           style="padding:8px 16px;font-size:13px;white-space:nowrap;"
+           data-i18n="footer.reviewCta"
+           onclick="if(window.gtag){gtag('event','click_g2_review',{location:'footer'})}">
+          Leave us a review on G2 →
+        </a>
       </div>
       <div class="footer-bottom">
         <p data-i18n="footer.copyright">© 2025 SmartSwing AI. All rights reserved.</p>
