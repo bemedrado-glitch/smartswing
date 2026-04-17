@@ -211,6 +211,104 @@ Current growth stage: early traction, moving to scale. Focus on referral loops, 
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PIPELINE SYSTEM PROMPTS (v2) — schema-aware, used by /pipeline/* endpoints
+// Each prompt explicitly constrains output to the schema in api/_lib/schemas/*.
+// Kept separate from SYSTEM_PROMPTS so the existing dashboard UI keeps working.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PIPELINE_PROMPTS = {
+  planner: `You are the Planner in the SmartSwing content pipeline. You receive a topic, persona, and platform, and emit a single ContentBrief JSON object.
+
+OUTPUT: One JSON object matching ContentBrief.schema.json. Output ONLY the JSON — no prose, no markdown fences.
+
+Required keys: brief_id, plan_id, platform, format, angle, hook, cta (object: label, url, intent), target_audience (object: persona, stage), visual_spec (object with kind; if kind is generated_image/infographic/banner then prompt + aspect_ratio required), success_metric (object: primary, target_value), deadline (ISO 8601), created_at (ISO 8601), created_by_agent = "planner".
+
+Rules:
+- brief_id format: brief_YYYYMMDD_<6-char slug>
+- plan_id format: plan_YYYYMMDD_<4+ char slug>
+- platform must be one of: tiktok, instagram, youtube, facebook, linkedin, blog, email, x
+- format must be one of: short_video, long_video, reel, story, carousel, static_image, blog_post, email, thread, single_post, ad
+- cta.intent must be one of: signup, trial, upgrade, download, book_coach, follow, share, visit_blog
+- target_audience.persona must be one of: player, coach, club, parent, pickleball
+- target_audience.stage must be one of: lead, prospect, trial, customer, churned
+- success_metric.primary must be one of: reach, impressions, engagement_rate, ctr, signups, trial_starts, upgrades, saves, shares, watch_time_seconds
+- angle is the provocative insight/POV (not the topic). 20-500 chars.
+- hook is the first 2 seconds of video or first line of text. 10-240 chars.
+- methodology_tags defaults to ["SPIN", "CorporateVisions"]
+- If the post is video: include video_spec with duration_seconds, source (one of: generate_fal, stitch_videodb, upload, reuse).
+
+SmartSwing context: AI swing analysis (tennis/pickleball) — phone video in, biomechanics report + drill plan out in 60s. Pricing: Starter free, Player $9.99/mo, Performance $19.99/mo, Tournament Pro $49.99/mo, Coach $29/mo, Club $299/mo.`,
+
+  copywriter_v2: `You are the Copywriter in the SmartSwing content pipeline. You receive a ContentBrief JSON and emit a copy object that will become part of a PostPackage.
+
+OUTPUT: One JSON object with shape:
+{
+  "headline": string (<=120 chars, may be null for platforms that don't need one),
+  "subheadline": string (<=240 chars, optional),
+  "body": string (REQUIRED, at least 1 char),
+  "caption": string (<=2200 chars, for social posts),
+  "script": [{ "seconds": number, "line": string, "kind": "voiceover"|"on_screen"|"dialogue" }] (video only),
+  "email_subject": string (<=120 chars, email format only),
+  "email_preheader": string (<=140 chars, email format only)
+}
+
+Output ONLY the JSON — no prose, no markdown fences.
+
+Hard rules from the brief:
+- Respect brief.hook verbatim in the first line/first 2s — do not soften it.
+- Respect brief.must_include tokens (if present) — every item must appear in body.
+- Avoid every token in brief.must_avoid (if present).
+- Respect brief.cta: use exactly brief.cta.label as your CTA text and the intent as your framing.
+- Match platform conventions: TikTok/IG/Reels = ≤ 60s scripts w/ 2-sec hook, Instagram carousel = numbered slides, LinkedIn = plain-text no emoji header, X = 280 chars per post in a thread, email = subject + preheader + body.
+
+Voice: confident, expert, direct — Nike x McKinsey. Show specific numbers/timings/drills — if you can't name one, rewrite. Frameworks: Corporate Visions (Why Change / Why You / Why Now), SPIN Selling.`,
+
+  editor_in_chief: `You are the Editor-in-Chief in the SmartSwing content pipeline. You score an assembled PostPackage against a rubric and emit a decision.
+
+OUTPUT: One JSON object with shape:
+{
+  "decision": "approved" | "revise" | "reject",
+  "rubric_version": "v1",
+  "scores": {
+    "brand_voice": 0..5,
+    "hook_strength": 0..5,
+    "cta_clarity": 0..5,
+    "platform_fit": 0..5,
+    "factual_accuracy": 0..5,
+    "legal_compliance": 0..5
+  },
+  "revision_notes": [
+    { "target": "copy"|"visual"|"video"|"hashtags"|"cta", "issue": string, "fix": string, "severity": "blocker"|"major"|"minor" }
+  ],
+  "reviewed_at": ISO 8601 timestamp
+}
+
+Output ONLY the JSON — no prose, no markdown fences.
+
+Rubric (0 = unusable, 5 = exceptional):
+- brand_voice: confident+direct, specific numbers, no fluff, no jargon
+- hook_strength: earns the second — first line/2s creates a reason to keep reading/watching
+- cta_clarity: one CTA, unambiguous action verb, matches brief.cta.intent
+- platform_fit: caption length, hashtag count, format (carousel/reel/thread) correct for brief.platform
+- factual_accuracy: every claim either verifiable from known SmartSwing facts or marked as opinion. NO hallucinated stats.
+- legal_compliance: no medical claims ("cures injury"), no unverified testimonials, pricing accurate if cited, no competitor disparagement
+
+Decision rules (enforce strictly):
+- approved: all dimensions >= 3 AND no dimension = 0
+- revise: any dimension = 2 — ALWAYS include revision_notes with at least one major/blocker item
+- reject: any dimension = 0 OR legal_compliance <= 2
+
+Known SmartSwing facts (use ONLY these for factual_accuracy checks):
+- 90-second phone video → biomechanics report
+- Tracks: hip-shoulder separation, kinetic-chain timing, racket-head speed, pronation, footwork
+- Pricing: Starter free (2 free reports), Player $9.99/mo, Performance $19.99/mo, Tournament Pro $49.99/mo, Coach from $29/mo, Club from $299/mo
+- Tennis + Pickleball
+- Personas: player 3.0-4.5 NTRP, coach USPTA/PTR, club, parent, pickleball
+
+Any stat outside this list without a brief.must_include anchor should be flagged as factual_accuracy=2 (revise).`
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // CLAUDE API HELPER
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -5944,6 +6042,204 @@ async function handleGoRedirect(req, res) {
   res.status(302).end();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// AGENT PIPELINE (v2) — schema-validated handoffs per claude-handoff/AGENT_PIPELINE.md
+//
+// Flow:
+//   Planner   → ContentBrief.json     (POST /api/marketing/pipeline/plan)
+//   Copywriter→ copy object           (POST /api/marketing/pipeline/copy)
+//   Assembler → PostPackage.json      (POST /api/marketing/pipeline/assemble)  [deterministic, no LLM]
+//   Editor    → decision + scores     (POST /api/marketing/pipeline/review)
+//
+// Keeps backward compat with existing handleAgent / handleOrchestrate endpoints.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function extractJsonObject(text) {
+  if (!text || typeof text !== 'string') return null;
+  // Strip common markdown fences if the model ignored the "no fences" instruction
+  let t = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  // Find the first { and last } to tolerate stray pre/post prose
+  const first = t.indexOf('{');
+  const last = t.lastIndexOf('}');
+  if (first === -1 || last === -1 || last < first) return null;
+  try { return JSON.parse(t.slice(first, last + 1)); } catch { return null; }
+}
+
+// Lightweight validator — checks only the required top-level keys + enum values.
+// Full JSONSchema validation would need ajv (extra dep); this catches the common
+// failure modes (missing required keys, bad enum values) without adding weight.
+function validateContentBrief(brief) {
+  const errors = [];
+  if (!brief || typeof brief !== 'object') return ['Not an object'];
+  const required = ['brief_id','plan_id','platform','format','angle','hook','cta','target_audience','visual_spec','success_metric','deadline','created_at'];
+  required.forEach(k => { if (!(k in brief)) errors.push('Missing required key: ' + k); });
+  const platforms = ['tiktok','instagram','youtube','facebook','linkedin','blog','email','x'];
+  if (brief.platform && !platforms.includes(brief.platform)) errors.push('Invalid platform: ' + brief.platform);
+  const formats = ['short_video','long_video','reel','story','carousel','static_image','blog_post','email','thread','single_post','ad'];
+  if (brief.format && !formats.includes(brief.format)) errors.push('Invalid format: ' + brief.format);
+  if (brief.cta && !brief.cta.label) errors.push('cta.label required');
+  if (brief.cta && !brief.cta.url) errors.push('cta.url required');
+  if (brief.target_audience && !['player','coach','club','parent','pickleball'].includes(brief.target_audience.persona)) errors.push('Invalid target_audience.persona');
+  if (brief.success_metric && !brief.success_metric.primary) errors.push('success_metric.primary required');
+  return errors;
+}
+
+function validatePostPackage(pkg) {
+  const errors = [];
+  if (!pkg || typeof pkg !== 'object') return ['Not an object'];
+  const required = ['package_id','brief_id','platform','copy','assets','platform_variants','status','created_at'];
+  required.forEach(k => { if (!(k in pkg)) errors.push('Missing required key: ' + k); });
+  if (pkg.copy && !pkg.copy.body) errors.push('copy.body required');
+  const statuses = ['assembled','in_review','revise_requested','approved','scheduled','publishing','published','failed','rejected'];
+  if (pkg.status && !statuses.includes(pkg.status)) errors.push('Invalid status: ' + pkg.status);
+  return errors;
+}
+
+async function handlePipelinePlan(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { topic, persona, platform, format, plan_id, notes } = req.body || {};
+  if (!topic) return res.status(400).json({ error: 'topic is required' });
+  if (!platform) return res.status(400).json({ error: 'platform is required' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+
+  const userMsg = `Generate one ContentBrief for:
+Topic: ${topic}
+Platform: ${platform}
+${format ? 'Format: ' + format : ''}
+${persona ? 'Target persona: ' + persona : ''}
+${notes ? 'Additional notes: ' + notes : ''}
+Plan ID (use this as plan_id): ${plan_id || 'plan_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '_auto'}
+Today: ${new Date().toISOString()}
+
+Return ONLY the JSON object.`;
+
+  try {
+    const text = await callClaude(PIPELINE_PROMPTS.planner, userMsg, apiKey, 'claude-opus-4-5');
+    const brief = extractJsonObject(text);
+    if (!brief) return res.status(502).json({ error: 'Planner returned unparseable output', raw: text.slice(0, 500) });
+    const errors = validateContentBrief(brief);
+    if (errors.length) return res.status(422).json({ error: 'ContentBrief validation failed', validation_errors: errors, brief });
+    return res.status(200).json({ success: true, brief });
+  } catch (err) {
+    console.error('[pipeline/plan] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function handlePipelineCopy(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { brief } = req.body || {};
+  if (!brief) return res.status(400).json({ error: 'brief (ContentBrief) is required' });
+  const briefErrors = validateContentBrief(brief);
+  if (briefErrors.length) return res.status(400).json({ error: 'Invalid ContentBrief', validation_errors: briefErrors });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+
+  const userMsg = `ContentBrief:
+${JSON.stringify(brief, null, 2)}
+
+Write the copy object per your system prompt. Return ONLY the JSON.`;
+
+  try {
+    const text = await callClaude(PIPELINE_PROMPTS.copywriter_v2, userMsg, apiKey, 'claude-opus-4-5');
+    const copy = extractJsonObject(text);
+    if (!copy || !copy.body) return res.status(502).json({ error: 'Copywriter returned invalid output (missing body)', raw: text.slice(0, 500) });
+    return res.status(200).json({ success: true, copy, brief_id: brief.brief_id });
+  } catch (err) {
+    console.error('[pipeline/copy] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function handlePipelineAssemble(req, res) {
+  // Deterministic assembler — NO LLM call. Takes brief + copy + visuals + video,
+  // emits a schema-valid PostPackage. If any required field is missing or a
+  // validation fails, returns 422 with the list of errors. This is the gate
+  // between creative production and review.
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { brief, copy, visuals, video, hashtags, mentions, platform_variants } = req.body || {};
+  if (!brief) return res.status(400).json({ error: 'brief is required' });
+  if (!copy) return res.status(400).json({ error: 'copy is required' });
+
+  const briefErrors = validateContentBrief(brief);
+  if (briefErrors.length) return res.status(422).json({ error: 'Invalid ContentBrief', validation_errors: briefErrors });
+
+  const now = new Date().toISOString();
+  const today = now.slice(0, 10).replace(/-/g, '');
+  const pkg = {
+    package_id: 'pkg_' + today + '_' + Math.random().toString(36).slice(2, 10),
+    brief_id: brief.brief_id,
+    platform: brief.platform,
+    copy: copy,
+    assets: {
+      ...(Array.isArray(visuals) && visuals.length ? { visuals } : {}),
+      ...(video ? { video } : {})
+    },
+    platform_variants: platform_variants || {},
+    ...(Array.isArray(hashtags) ? { hashtags } : {}),
+    ...(Array.isArray(mentions) ? { mentions } : {}),
+    status: 'assembled',
+    revision_cycle: 0,
+    created_at: now,
+    updated_at: now
+  };
+
+  const pkgErrors = validatePostPackage(pkg);
+  if (pkgErrors.length) return res.status(422).json({ error: 'PostPackage validation failed', validation_errors: pkgErrors, package: pkg });
+
+  return res.status(200).json({ success: true, package: pkg });
+}
+
+async function handlePipelineReview(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { package: pkg } = req.body || {};
+  if (!pkg) return res.status(400).json({ error: 'package (PostPackage) is required' });
+  const pkgErrors = validatePostPackage(pkg);
+  if (pkgErrors.length) return res.status(400).json({ error: 'Invalid PostPackage', validation_errors: pkgErrors });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+
+  const userMsg = `PostPackage to review:
+${JSON.stringify(pkg, null, 2)}
+
+Score it per your rubric and return ONLY the JSON decision object.`;
+
+  try {
+    const text = await callClaude(PIPELINE_PROMPTS.editor_in_chief, userMsg, apiKey, 'claude-opus-4-5');
+    const decision = extractJsonObject(text);
+    if (!decision || !decision.decision || !decision.scores) {
+      return res.status(502).json({ error: 'Editor returned invalid output', raw: text.slice(0, 500) });
+    }
+    const validDecisions = ['approved', 'revise', 'reject'];
+    if (!validDecisions.includes(decision.decision)) {
+      return res.status(502).json({ error: 'Editor returned invalid decision value', decision });
+    }
+    // Enforce decision rules server-side (guardrail against LLM drift)
+    const scores = decision.scores || {};
+    const allScores = Object.values(scores).filter(v => typeof v === 'number');
+    const enforcedDecision = (() => {
+      if (scores.legal_compliance <= 2 || allScores.includes(0)) return 'reject';
+      if (allScores.some(v => v === 2)) return 'revise';
+      if (allScores.every(v => v >= 3)) return 'approved';
+      return decision.decision;
+    })();
+    if (enforcedDecision !== decision.decision) {
+      decision.decision = enforcedDecision;
+      decision._enforced = true;
+    }
+    decision.reviewed_at = decision.reviewed_at || new Date().toISOString();
+    decision.rubric_version = decision.rubric_version || 'v1';
+    return res.status(200).json({ success: true, review: decision });
+  } catch (err) {
+    console.error('[pipeline/review] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 const ROUTES = {
   'agent':               handleAgent,
   'regenerate-visual':   handleRegenerateVisual,
@@ -5962,6 +6258,10 @@ const ROUTES = {
   'weekly-digest':     handleWeeklyDigest,
   'meta-webhook':      handleMetaWebhook,
   'orchestrate':     handleOrchestrate,
+  'pipeline-plan':       handlePipelinePlan,
+  'pipeline-copy':       handlePipelineCopy,
+  'pipeline-assemble':   handlePipelineAssemble,
+  'pipeline-review':     handlePipelineReview,
   'generate-ai-copy':    handleGenerateAiCopy,
   'bulk-delete-contacts': handleBulkDeleteContacts,
   'enroll-cadence':      handleEnrollCadence,
