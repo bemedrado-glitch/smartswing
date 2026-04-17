@@ -138,6 +138,7 @@ module.exports = async (req, res) => {
             subscription_tier: planId,
             subscription_status: session.payment_status === 'paid' ? 'active' : session.status || 'complete',
             stripe_customer_id: session.customer || null,
+            stripe_subscription_id: session.subscription || null,
             billing_interval: billingInterval
           });
           await upsertSupabaseSubscription({
@@ -147,6 +148,7 @@ module.exports = async (req, res) => {
             billing_interval: billingInterval,
             status: session.payment_status === 'paid' ? 'active' : session.status || 'complete',
             stripe_customer_id: session.customer || null,
+            stripe_subscription_id: session.subscription || null,
             checkout_session_id: session.id,
             metadata: {
               payment_status: session.payment_status || null

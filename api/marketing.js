@@ -29,6 +29,15 @@
 
 'use strict';
 
+const { brandImagePrompt, brandCopyPrompt, BRAND_STYLE } = require('./_lib/brand-style');
+const { persistGeneratedImage, uploadFromUrl } = require('./_lib/media-storage');
+const { runPublishBatch, publishSingleItem } = require('./_lib/publish-runner');
+const { runLeadScoringBatch, scoreContact } = require('./_lib/lead-scoring');
+const { runMetricsFetch, topPerformers } = require('./_lib/content-metrics');
+const { runWeeklyDigest, buildSummary } = require('./_lib/cmo-digest');
+const { runVariantRotation, getTopHooks } = require('./_lib/ab-rotator');
+const { generateVideo } = require('./_lib/video-gen');
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SHARED HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -148,36 +157,33 @@ function todayUTC() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const SYSTEM_PROMPTS = {
-  copywriter: `You are a world-class direct response copywriter specializing in sports technology and tennis.
-Your copy uses Corporate Visions methodology (provocative insight, status quo disruption, "Why Change / Why You / Why Now") and SPIN Selling (Situation, Problem, Implication, Need-Payoff questions).
-Always write with clarity, specificity, and urgency. Avoid jargon. Use short sentences for impact.
-Formats you write: email sequences, landing page headlines, ad copy, SMS messages, social captions, sales page sections.
-Brand voice: confident, expert, direct — never pushy. Think Nike x McKinsey.
-SmartSwing AI is an AI-powered tennis swing analysis platform. Users upload a video, get biomechanics AI feedback, personalized drills, and a coaching plan in 60 seconds.
-Pricing: Starter (free), Player ($9.99/mo), Performance ($19.99/mo), Tournament Pro ($49.99/mo), Coach plans from $29/mo, Club plans from $299/mo.`,
+  // Voice defined once in api/_lib/brand-style.js → brandCopyPrompt(). Keep agent
+  // prompts FOCUSED on the job-to-be-done, not the voice.
+  copywriter: `You are a direct-response copywriter for SmartSwing AI.
+Frameworks you use: Corporate Visions (Why Change / Why You / Why Now) and SPIN Selling (Situation / Problem / Implication / Need-Payoff).
+Formats you write: email sequences, landing page headlines, ad copy, SMS, social captions, sales-page sections.
+SmartSwing AI is AI-powered tennis & pickleball swing analysis — upload a video, get biomechanics feedback, drills, and a plan in 60 seconds.
+Pricing reference (only cite if relevant to the ask): Starter (free), Player ($9.99/mo), Performance ($19.99/mo), Tournament Pro ($49.99/mo), Coach plans from $29/mo, Club plans from $299/mo.
+RULE: if you can't name a specific result (a number, a drill, a millisecond, a rep count), rewrite until you can.`,
 
-  social_media: `You are SmartSwing AI's social media manager.
-Create engaging, platform-native content for TikTok, Instagram, YouTube, Facebook, and LinkedIn.
-Know each platform's algorithm and content format:
-- TikTok: hooks in first 2 seconds, trending audio suggestions, "POV:", "The secret to...", native text overlays
-- Instagram: Reels scripts + captions, carousel copy (10 slides max), Story sequences, hashtag strategies
-- YouTube: video titles (high CTR), description templates, chapter markers, thumbnail text ideas
-- Facebook: community-building posts, group content, event promotion, longer-form storytelling
-- LinkedIn: B2B coach/club outreach, thought leadership, case study posts
-Always provide: platform, content type, caption/script, hashtags, CTA, posting time recommendation.
-SmartSwing AI brand voice: authoritative but accessible. Expert but human. Data-backed but inspiring.`,
+  social_media: `You are SmartSwing AI's social media operator. Every output must be platform-native — DO NOT produce one-size-fits-all copy.
+Platform specs you follow strictly:
+- TikTok (9:16 video, ≤30s): hook in first 1–2s, one claim, one demo, one CTA. Native + unpolished feel.
+- Instagram Reels (9:16 video, ≤30s) or carousel (≤10 slides, hook → problem → 3–5 steps → CTA). Caption ≤ 150 words + relevant hashtags.
+- YouTube: Shorts (9:16, ≤60s) or long-form (hook → payoff in first 30s, chapter markers).
+- Facebook: native photo or video + ≤120 words. No external link in body (reach killer).
+- X/Twitter: single tweet ≤180 chars OR thread (hook tweet → 4–7 beats → CTA tweet).
+- Reddit: conversational self-post, no hashtags, value-first, link is fine. Target r/tennis or r/pickleball subreddit.
+Always output: {platform, format, hook, body, cta, hashtags_or_none, best_post_time_local}.`,
 
-  content_creator: `You are SmartSwing AI's content strategist and scriptwriter.
-Create scripts, captions, storyboards, and content briefs adapted to each platform's algorithm.
-Deliverables you produce:
-- TikTok/Instagram Reel scripts: Hook + Problem + Solution + CTA (60-90 sec format)
-- YouTube scripts: Full structured scripts with intro hook, chapters, CTAs, b-roll notes
-- Blog post outlines and full drafts (SEO-optimized)
-- Email newsletter content
-- Podcast episode outlines
-- Content series concepts with 4-12 piece arc
-Tone: Expert sports performance meets accessible tech. Aspirational but grounded in data.
-Always include: target persona, content goal, success metric, distribution plan.`,
+  content_creator: `You are SmartSwing AI's scriptwriter. Produce scripts and briefs adapted to each platform's algorithm.
+Deliverables:
+- Reels/TikTok scripts: 3-sec hook (on-screen text + voiceover), 1 visual beat, payoff, CTA (≤30s total).
+- YouTube scripts: cold open (≤15s), chapter markers every 20–30s, one call-out per chapter, end screen CTA.
+- Carousel outlines: slide 1 hook, slides 2–8 one beat each (12–18 words max), slide 9–10 CTA.
+- Blog outlines: H1, 3–5 H2s with evidence points, 1 primary keyword, meta description ≤155 chars.
+- Email + newsletter drafts.
+Every deliverable includes: {target_persona, content_goal, success_metric, distribution_plan, time_to_produce}.`,
 
   ux_designer: `You are a senior UI/UX designer and conversion rate optimization specialist.
 Create detailed design briefs, wireframe descriptions, A/B test hypotheses, and CRO recommendations.
@@ -248,7 +254,19 @@ async function callClaude(systemPrompt, userMessage, apiKey, preferredModel) {
 async function handleAgent(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { agent_type, task, context = '', contact_data = null } = req.body || {};
+  const {
+    agent_type, task, context = '', contact_data = null,
+    // Phase B: when true, auto-create a content_calendar draft from the output
+    // and (optionally) also generate a branded visual for it.
+    auto_draft = false,
+    // auto_visual: if not explicitly set, defaults to true for visual platforms
+    auto_visual,
+    platform = 'instagram',
+    content_type = 'post',
+    campaign_id = null,
+    // Phase F #8: generate multiple hook variants for A/B testing
+    hook_count = 1
+  } = req.body || {};
   if (!agent_type || !task) return res.status(400).json({ error: 'agent_type and task are required' });
 
   const systemPrompt = SYSTEM_PROMPTS[agent_type];
@@ -259,9 +277,62 @@ async function handleAgent(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
 
+  // Brand voice: every copy-producing agent gets the Nike × Apple × Tennis prefix.
+  let brandedSystem = brandCopyPrompt(systemPrompt);
+
+  // Persona rails (Ticket #7) — different proof points, CTAs, and lexicon
+  // for each audience segment. Keeps coach/club B2B content from sounding
+  // like parent-facing emotion, and vice versa.
+  const personaRails = {
+    player: `Audience: recreational player (3.0–4.5 NTRP). Speak technical: contact point, racket-head speed (mph), timing (ms), footwork names. Proof = numbers and drills. CTA = save, try, comment a video.`,
+    coach: `Audience: USPTA/PTR-certified coach. Speak craft-professional: cue language, player development, progression design. Proof = student results, session formats. CTA = comment perspective, share with another coach, DM for framework.`,
+    club: `Audience: club director / academy owner. Speak B2B: retention, programming, LTV, instructor utilization. Proof = % changes, member counts, revenue deltas. CTA = DM for benchmark, reply for template, book call.`,
+    parent: `Audience: tennis/pickleball parent. Speak supportive-empirical: age-appropriate milestones, safety, progress visibility, coach-approved. Proof = junior outcomes, checklists. CTA = save for later, share with another parent.`
+  };
+  const personaKey = (context && typeof context === 'string' && context.match(/persona[:=\s]+(player|coach|club|parent)/i)?.[1]?.toLowerCase())
+                   || req.body?.persona
+                   || null;
+  if (personaKey && personaRails[personaKey]) {
+    brandedSystem += `\n\nPersona rails: ${personaRails[personaKey]}`;
+  }
+  if (platform) {
+    brandedSystem += `\n\nTarget platform: ${platform}. Honor the platform's native format (length, hooks, CTA placement).`;
+  }
+
+  // Feedback loop (Tickets #4 + #14): past winning hooks + performance baseline
+  try {
+    const [pastHooks, topPosts] = await Promise.all([
+      getTopHooks(3, platform, personaKey),
+      topPerformers(3)
+    ]);
+    if (pastHooks.length) {
+      brandedSystem += `\n\nPast winning hooks (your previous posts that over-performed — write in this voice):\n` +
+        pastHooks.map((h, i) => `${i + 1}. ${h}`).join('\n');
+    }
+    if (topPosts.length) {
+      const er = topPosts.map(p => `${Math.round((p.engagement_rate || 0))}%`).join(', ');
+      brandedSystem += `\n\nRecent post engagement rates you've hit: ${er}. Beat them.`;
+    }
+  } catch (_) { /* non-fatal */ }
+
+  // Template library (Ticket #6): seed the prompt with 3 matching proven templates
+  try {
+    const { getTemplates } = require('./_lib/ab-rotator');
+    const templates = await getTemplates({ platform, persona: personaKey, limit: 3 });
+    if (templates.length) {
+      brandedSystem += `\n\nProven template patterns to adapt (do not copy verbatim — write fresh copy in their structure):\n` +
+        templates.map((t, i) => `${i + 1}. [${t.format}] Hook: "${t.hook}"\n   Structure: ${t.body_structure || 'n/a'}\n   CTA: ${t.cta || 'n/a'}`).join('\n');
+    }
+  } catch (_) { /* non-fatal */ }
+
   let userMessage = task;
   if (context) userMessage += `\n\nAdditional context: ${context}`;
   if (contact_data) userMessage += `\n\nContact data: ${JSON.stringify(contact_data, null, 2)}`;
+
+  // Phase F #8: if multi-hook requested, ask the agent for JSON with variants
+  if (hook_count > 1) {
+    userMessage += `\n\nReturn your response as JSON with this exact shape:\n{"hook_variants": ["hook 1 (strongest)", "hook 2", "hook 3"], "body": "the full post copy, using hook 1 at the top"}\nGenerate ${hook_count} distinct hooks — different angles, not rephrasings.`;
+  }
 
   const task_id = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -276,7 +347,7 @@ async function handleAgent(req, res) {
       body: JSON.stringify({
         model: 'claude-opus-4-5',
         max_tokens: 4096,
-        system: systemPrompt,
+        system: brandedSystem,
         messages: [{ role: 'user', content: userMessage }]
       })
     });
@@ -302,22 +373,331 @@ async function handleAgent(req, res) {
           return res.status(502).json({ error: 'AI service error', details: await fallbackResponse.text() });
         }
         const fallbackData = await fallbackResponse.json();
+        const fbText = fallbackData.content?.[0]?.text || '';
+        const fbParsed = extractHookVariants(fbText, hook_count);
+        const fbExtras = await persistAgentOutput({
+          responseText: fbParsed.body, agent_type, task, task_id,
+          auto_draft, auto_visual, platform, content_type, campaign_id,
+          hook_variants: fbParsed.variants,
+          model: 'claude-3-5-sonnet-20241022'
+        });
         return res.status(200).json({
-          success: true, response: fallbackData.content?.[0]?.text || '',
-          agent_type, task_id, model: 'claude-3-5-sonnet-20241022'
+          success: true, response: fbText,
+          agent_type, task_id, model: 'claude-3-5-sonnet-20241022',
+          ...fbExtras
         });
       }
       return res.status(502).json({ error: 'AI service error', details: errorData });
     }
 
     const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const parsed = extractHookVariants(text, hook_count);
+    const extras = await persistAgentOutput({
+      responseText: parsed.body, agent_type, task, task_id,
+      auto_draft, auto_visual, platform, content_type, campaign_id,
+      hook_variants: parsed.variants,
+      model: 'claude-opus-4-5'
+    });
     return res.status(200).json({
-      success: true, response: data.content?.[0]?.text || '',
-      agent_type, task_id, model: 'claude-opus-4-5', usage: data.usage || {}
+      success: true, response: text,
+      agent_type, task_id, model: 'claude-opus-4-5', usage: data.usage || {},
+      ...extras
     });
   } catch (err) {
     console.error('Agent handler error:', err);
     return res.status(500).json({ error: 'Internal server error', message: err.message });
+  }
+}
+
+/**
+ * Phase B: after an agent produces text, optionally:
+ *  - log an agent_tasks row for provenance
+ *  - insert a content_calendar draft with the copy text
+ *  - generate a branded DALL-E image and attach it to the draft
+ *
+ * All steps are best-effort; failures are logged but don't break the agent call.
+ */
+/**
+ * Phase F #8: pull hook variants out of the agent's JSON-shaped response.
+ * Falls back to { variants:[], body: raw } if parsing fails.
+ */
+function extractHookVariants(text, requestedCount) {
+  if (!requestedCount || requestedCount <= 1) return { variants: null, body: text };
+  try {
+    // Find first {...} block
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) return { variants: null, body: text };
+    const obj = JSON.parse(m[0]);
+    if (Array.isArray(obj.hook_variants) && obj.hook_variants.length > 1) {
+      return { variants: obj.hook_variants.slice(0, 5), body: obj.body || text };
+    }
+  } catch (_) {}
+  return { variants: null, body: text };
+}
+
+async function persistAgentOutput(ctx) {
+  const out = { agent_task_id: null, content_item_id: null, image_url: null, media_asset_id: null };
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return out;
+
+  const COPY_AGENTS = new Set(['copywriter', 'social_media', 'content_creator']);
+  const shouldDraft = ctx.auto_draft && COPY_AGENTS.has(ctx.agent_type) && ctx.responseText;
+  if (!shouldDraft) return out;
+
+  // Auto-enable visual generation for platforms where imagery is essential.
+  // Caller can override with auto_visual=false to skip.
+  const VISUAL_PLATFORMS = new Set(['instagram', 'facebook', 'tiktok', 'youtube', 'reddit']);
+  const effectiveAutoVisual = ctx.auto_visual !== undefined
+    ? !!ctx.auto_visual
+    : VISUAL_PLATFORMS.has(String(ctx.platform || 'instagram').toLowerCase());
+
+  // 1. Log agent_tasks row (provenance)
+  try {
+    const agentTaskRow = {
+      agent_type: ctx.agent_type,
+      task: (ctx.task || '').slice(0, 2000),
+      status: 'completed',
+      input_data: { task: ctx.task, platform: ctx.platform, content_type: ctx.content_type },
+      output_data: { text: ctx.responseText, model: ctx.model, task_id: ctx.task_id },
+      completed_at: new Date().toISOString()
+    };
+    const r = await fetch(`${supabaseUrl}/rest/v1/agent_tasks`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify(agentTaskRow)
+    });
+    if (r.ok) {
+      const rows = await r.json().catch(() => []);
+      out.agent_task_id = Array.isArray(rows) ? (rows[0]?.id || null) : (rows?.id || null);
+    }
+  } catch (err) {
+    console.warn('[persistAgentOutput] agent_tasks insert failed:', err.message);
+  }
+
+  // 2. Insert content_calendar draft row (+ auto-schedule to optimal platform slot)
+  try {
+    const firstLine = (ctx.responseText.split('\n').find(l => l.trim().length > 5) || 'Untitled draft').slice(0, 140);
+    // Phase F #9: generate a URL-safe slug for public share cards
+    const slug = firstLine.replace(/^[#*\s-]+/, '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) +
+      '-' + Math.random().toString(36).slice(2, 7);
+    const platform = ctx.platform || 'instagram';
+
+    // Sprint 1 #5: auto-schedule into the next optimal window for this platform
+    let schedule = { date: null, time: null };
+    try {
+      const { resolveOptimalSlot } = require('./_lib/platform-formatter');
+      schedule = resolveOptimalSlot(platform);
+    } catch (_) { /* formatter missing — fall back to unscheduled */ }
+
+    const draftRow = {
+      title: firstLine.replace(/^[#*\s-]+/, ''),
+      type: ctx.content_type || 'post',
+      platform,
+      // If the caller explicitly passed auto_schedule=false we drop to 'draft',
+      // otherwise the AI output goes straight into 'scheduled' so the publish
+      // runner can pick it up on the next cron tick.
+      status: (ctx.auto_schedule === false) ? 'draft' : 'scheduled',
+      scheduled_date: (ctx.auto_schedule === false) ? null : schedule.date,
+      scheduled_time: (ctx.auto_schedule === false) ? null : schedule.time,
+      approval_status: 'pending',     // #13: require approval by default
+      copy_text: ctx.responseText,
+      campaign_id: ctx.campaign_id || null,
+      target_persona: ctx.persona || null,
+      assigned_agent: ctx.agent_type,
+      agent_task_id: out.agent_task_id,
+      brand_version: 'v2',             // voice unified in Sprint 1
+      slug,
+      hook_variants: ctx.hook_variants || null
+    };
+    const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify(draftRow)
+    });
+    if (r.ok) {
+      const rows = await r.json().catch(() => []);
+      out.content_item_id = Array.isArray(rows) ? (rows[0]?.id || null) : (rows?.id || null);
+    } else {
+      console.warn('[persistAgentOutput] content_calendar insert failed:', r.status, (await r.text()).slice(0, 200));
+    }
+  } catch (err) {
+    console.warn('[persistAgentOutput] content_calendar insert error:', err.message);
+  }
+
+  // 3. Optionally generate + attach a branded visual
+  if (effectiveAutoVisual && out.content_item_id) {
+    try {
+      const visualPrompt = `Scene for a tennis/pickleball social post. Copy: "${ctx.responseText.slice(0, 500)}"`;
+      const size = (ctx.platform === 'instagram' || ctx.content_type === 'post') ? '1024x1024' : '1024x1792';
+      const detail = await generateImage(visualPrompt, size, {
+        returnDetail: true, contentItemId: out.content_item_id
+      });
+      if (detail?.url) {
+        out.image_url = detail.url;
+        out.media_asset_id = detail.assetId;
+        const persisted = !!detail.assetId;
+        out.image_persisted = persisted;
+        await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json', Prefer: 'return=minimal'
+          },
+          body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId, image_persisted: persisted, image_error: null })
+        });
+      } else {
+        // Ticket #12: surface the failure so the UI shows a retry affordance
+        const reason = detail?.error || 'image generation returned no URL';
+        out.image_error = reason;
+        await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
+          method: 'PATCH',
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ image_error: reason })
+        });
+      }
+    } catch (err) {
+      const reason = err?.message || String(err);
+      console.warn('[persistAgentOutput] auto_visual failed:', reason);
+      out.image_error = reason;
+      try {
+        await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${out.content_item_id}`, {
+          method: 'PATCH',
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ image_error: reason })
+        });
+      } catch (_) {}
+    }
+  }
+
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: regenerate-visual  — regenerate the image for an existing draft
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleRegenerateVisual(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { content_item_id, prompt_override, size } = req.body || {};
+  if (!content_item_id) return res.status(400).json({ error: 'content_item_id is required' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  try {
+    // Fetch the draft to get its copy as context
+    const fetched = await supabaseGet(
+      `${supabaseUrl}/rest/v1/content_calendar?id=eq.${content_item_id}&select=id,title,copy_text,platform,type&limit=1`,
+      supabaseKey
+    );
+    const item = fetched?.[0];
+    if (!item) return res.status(404).json({ error: 'Content item not found' });
+
+    const basePrompt = String(prompt_override || '').trim() ||
+      `Scene for a ${item.platform || 'instagram'} ${item.type || 'post'}. Copy: "${(item.copy_text || item.title || '').slice(0, 500)}"`;
+    const imgSize = size || ((item.platform === 'instagram' || item.type === 'post') ? '1024x1024' : '1024x1792');
+
+    const detail = await generateImage(basePrompt, imgSize, {
+      returnDetail: true, contentItemId: content_item_id
+    });
+    if (!detail?.url) return res.status(502).json({ error: 'Image generation failed' });
+
+    // Update the content_calendar row
+    const persisted = !!detail.assetId;
+    await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${content_item_id}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ image_url: detail.url, media_asset_id: detail.assetId, image_persisted: persisted })
+    });
+
+    return res.status(200).json({
+      success: true,
+      content_item_id,
+      image_url: detail.url,
+      media_asset_id: detail.assetId,
+      prompt_used: detail.promptUsed
+    });
+  } catch (err) {
+    console.error('[regenerate-visual] Error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: save-draft  — create or update a content_calendar draft from the UI
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSaveDraft(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const {
+    id, title, type, platform, status, scheduled_date, scheduled_time,
+    copy_text, image_url, campaign_id, approval_status
+  } = req.body || {};
+
+  const payload = {};
+  if (title !== undefined) payload.title = title;
+  if (type !== undefined) payload.type = type;
+  if (platform !== undefined) payload.platform = platform;
+  if (status !== undefined) payload.status = status;
+  if (scheduled_date !== undefined) payload.scheduled_date = scheduled_date;
+  if (scheduled_time !== undefined) payload.scheduled_time = scheduled_time;
+  if (copy_text !== undefined) payload.copy_text = copy_text;
+  if (image_url !== undefined) payload.image_url = image_url;
+  if (campaign_id !== undefined) payload.campaign_id = campaign_id;
+  if (approval_status !== undefined) payload.approval_status = approval_status;
+
+  try {
+    if (id) {
+      const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json', Prefer: 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) return res.status(r.status).json({ error: (await r.text()).slice(0, 200) });
+      const rows = await r.json().catch(() => []);
+      return res.status(200).json({ success: true, item: Array.isArray(rows) ? rows[0] : rows });
+    }
+    // Insert new
+    if (!payload.title) payload.title = 'Untitled draft';
+    if (!payload.type) payload.type = 'post';
+    if (!payload.platform) payload.platform = 'instagram';
+    if (!payload.status) payload.status = 'draft';
+    const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) return res.status(r.status).json({ error: (await r.text()).slice(0, 200) });
+    const rows = await r.json().catch(() => []);
+    return res.status(201).json({ success: true, item: Array.isArray(rows) ? rows[0] : rows });
+  } catch (err) {
+    console.error('[save-draft] Error:', err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -393,24 +773,95 @@ function mapDeliverableToWorkflowType(type = '') {
   return 'social_post';
 }
 
-async function generateImage(prompt, size) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+/**
+ * Pollinations.ai free-tier image generator. No API key needed.
+ * Returns the Pollinations URL directly — it serves the image bytes on GET,
+ * and `persistGeneratedImage` will mirror those bytes into Supabase Storage.
+ *
+ * Size format here must be "WIDTHxHEIGHT" (we map 1024x1024 etc. to w/h params).
+ */
+function pollinationsUrl(prompt, size) {
+  const [w, h] = String(size || '1024x1024').split('x').map(n => parseInt(n, 10) || 1024);
+  const seed = Math.floor(Math.random() * 1000000);
+  const encoded = encodeURIComponent(String(prompt || '').slice(0, 1800));
+  // flux is the strongest free model on Pollinations as of 2026-04
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux&enhance=true`;
+}
+
+/**
+ * Generate an image. Tries DALL-E 3 first (when OPENAI_API_KEY is set), then
+ * falls back to Pollinations.ai (free, no API key required). In both cases the
+ * image bytes are mirrored to Supabase Storage so the URL is permanent.
+ *
+ * Returns either:
+ *   - a permanent public URL string (back-compat with existing callers), or
+ *   - null on total failure (both providers failed).
+ *
+ * Pass `opts.returnDetail = true` to get `{ url, assetId, promptUsed, provider }`.
+ */
+async function generateImage(prompt, size, opts = {}) {
   size = size || '1024x1024';
+  const brandedPrompt = brandImagePrompt(prompt);
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  // ── Path 1: DALL-E 3 (if API key available) ─────────────────────────
+  if (apiKey) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+      const res = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'dall-e-3', prompt: brandedPrompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const ephemeralUrl = data.data?.[0]?.url || null;
+        if (ephemeralUrl) {
+          const persisted = await persistGeneratedImage(ephemeralUrl, {
+            prompt: brandedPrompt,
+            model: 'dall-e-3',
+            contentItemId: opts.contentItemId || null
+          });
+          const finalUrl = persisted.url || ephemeralUrl;
+          return opts.returnDetail
+            ? { url: finalUrl, assetId: persisted.assetId, promptUsed: brandedPrompt, provider: 'dall-e-3' }
+            : finalUrl;
+        }
+      } else {
+        console.warn('[generateImage] DALL-E error:', res.status, '— falling back to Pollinations');
+      }
+    } catch (err) {
+      console.warn('[generateImage] DALL-E exception:', err.message, '— falling back to Pollinations');
+    }
+  }
+
+  // ── Path 2: Pollinations.ai (free fallback) ─────────────────────────
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000); // 25s max for image gen
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'dall-e-3', prompt: prompt.slice(0, 4000), n: 1, size, quality: 'standard' }),
-      signal: controller.signal
+    const pollUrl = pollinationsUrl(brandedPrompt, size);
+    // Pre-warm Pollinations so the image is generated before we mirror
+    try {
+      const warmCtl = new AbortController();
+      const warmT = setTimeout(() => warmCtl.abort(), 30000);
+      await fetch(pollUrl, { method: 'GET', signal: warmCtl.signal }).catch(() => null);
+      clearTimeout(warmT);
+    } catch (_) { /* best-effort warm */ }
+
+    const persisted = await persistGeneratedImage(pollUrl, {
+      prompt: brandedPrompt,
+      model: 'pollinations-flux',
+      contentItemId: opts.contentItemId || null
     });
-    clearTimeout(timeout);
-    if (!res.ok) { console.warn('[generateImage] DALL-E error:', res.status); return null; }
-    const data = await res.json();
-    return data.data?.[0]?.url || null;
-  } catch (err) { console.warn('[generateImage] Error:', err.message); return null; }
+    const finalUrl = persisted.url || pollUrl;
+    return opts.returnDetail
+      ? { url: finalUrl, assetId: persisted.assetId, promptUsed: brandedPrompt, provider: 'pollinations-flux' }
+      : finalUrl;
+  } catch (err) {
+    console.warn('[generateImage] Pollinations failed:', err.message);
+    return opts.returnDetail ? { url: null, assetId: null, provider: null } : null;
+  }
 }
 
 function mapWorkflowTypeToCalendarType(workflowType) {
@@ -427,13 +878,15 @@ function mapWorkflowTypeToCalendarType(workflowType) {
 // Optimal posting times by platform (based on social media engagement research)
 // Times in 24h format (EST/EDT). Multiple slots per platform for variety.
 const OPTIMAL_POST_TIMES = {
-  tiktok:    ['09:00', '12:00', '19:00'],     // Morning, lunch, evening
-  instagram: ['08:00', '11:00', '14:00', '19:00'], // Pre-work, mid-morning, afternoon, evening
-  youtube:   ['14:00', '16:00'],               // Afternoon for max first-24h views
-  facebook:  ['09:00', '13:00', '16:00'],      // Morning, lunch, afternoon
-  linkedin:  ['07:30', '10:00', '12:00'],      // Pre-work, mid-morning, lunch
-  blog:      ['10:00', '14:00'],               // Mid-morning, afternoon
-  email:     ['06:00', '10:00', '14:00']       // Early morning, mid-morning, afternoon
+  tiktok:    ['09:00', '12:00', '19:00'],           // Morning, lunch, evening
+  instagram: ['08:00', '11:00', '14:00', '19:00'],  // Pre-work, mid-morning, afternoon, evening
+  youtube:   ['14:00', '16:00'],                    // Afternoon for max first-24h views
+  facebook:  ['09:00', '13:00', '16:00'],           // Morning, lunch, afternoon
+  x:         ['09:00', '12:00', '17:00'],           // Pre-work, lunch, end-of-day
+  twitter:   ['09:00', '12:00', '17:00'],
+  reddit:    ['14:00', '17:00'],                    // r/tennis & r/pickleball peak
+  blog:      ['10:00', '14:00'],
+  email:     ['06:00', '10:00', '14:00']
 };
 
 // Optimal posting days by platform (0=Sun, 1=Mon, ... 6=Sat)
@@ -442,9 +895,11 @@ const OPTIMAL_POST_DAYS = {
   instagram: [1, 3, 5],        // Mon, Wed, Fri
   youtube:   [4, 6],           // Thu, Sat
   facebook:  [1, 3, 5],        // Mon, Wed, Fri
-  linkedin:  [2, 3, 4],        // Tue, Wed, Thu
-  blog:      [2, 4],           // Tue, Thu
-  email:     [2, 4]            // Tue, Thu
+  x:         [1, 2, 3, 4, 5], // Weekdays
+  twitter:   [1, 2, 3, 4, 5],
+  reddit:    [1, 3, 5],        // Mon, Wed, Fri
+  blog:      [2, 4],
+  email:     [2, 4]
 };
 
 /**
@@ -664,91 +1119,292 @@ async function handleOrchestrate(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: bulk-delete-contacts
+// Accepts { ids: string[] } — deletes in chunks of 200 using the service role key
+// ═══════════════════════════════════════════════════════════════════════════════
+// GENERATE AI AD COPY — powered by Claude
+// POST /api/marketing/generate-ai-copy
+// Body: { prompt: string, type: string }
+// Returns: { response: string }
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleGenerateAiCopy(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { prompt, type = 'ad_copy' } = req.body || {};
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+
+  const systemPrompt = `You are an elite performance marketing copywriter for SmartSwing AI — an AI-powered tennis and pickleball swing analysis platform. Brand aesthetic: "Nike meets Apple for tennis" — bold, premium, aspirational. Every word earns its place. No filler. No generic phrases. Return only valid JSON.`;
+
+  const payload = {
+    model: 'claude-opus-4-5',
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: prompt }],
+    system: systemPrompt
+  };
+
+  try {
+    let response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok && (response.status === 404 || response.status === 400)) {
+      payload.model = 'claude-3-5-sonnet-20241022';
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: err.error?.message || 'Claude API error' });
+    }
+
+    const data = await response.json();
+    const content = data.content?.[0]?.text || '';
+    return res.status(200).json({ response: content, type });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || 'Internal error' });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BULK DELETE CONTACTS
+// to bypass RLS. Returns { deleted, failed, errors[] }.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleBulkDeleteContacts(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const { ids } = req.body || {};
+  if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'ids array is required' });
+
+  // Only allow real UUIDs — strip any local_ demo IDs
+  const uuids = ids.filter(id => /^[0-9a-f-]{36}$/i.test(String(id)));
+  if (!uuids.length) return res.status(200).json({ deleted: 0, failed: 0, errors: [] });
+
+  const CHUNK = 200;
+  let deleted = 0;
+  const errors = [];
+
+  for (let i = 0; i < uuids.length; i += CHUNK) {
+    const chunk = uuids.slice(i, i + CHUNK);
+    // PostgREST bulk delete: DELETE /rest/v1/marketing_contacts?id=in.(uuid1,uuid2,...)
+    const filter = chunk.map(id => encodeURIComponent(id)).join(',');
+    const url = `${supabaseUrl}/rest/v1/marketing_contacts?id=in.(${filter})`;
+    try {
+      const r = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        }
+      });
+      if (!r.ok) {
+        const txt = await r.text().catch(() => '');
+        errors.push({ chunk: i / CHUNK, status: r.status, detail: txt.slice(0, 200) });
+      } else {
+        deleted += chunk.length;
+      }
+    } catch (err) {
+      errors.push({ chunk: i / CHUNK, detail: err.message });
+    }
+  }
+
+  return res.status(200).json({ deleted, failed: uuids.length - deleted, errors });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ROUTE: enroll-cadence
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function handleEnrollCadence(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { contact_id, cadence_id, supabase_url, supabase_key } = req.body || {};
+  const { contact_id, cadence_id, campaign_id, supabase_url: clientUrl, supabase_key: clientKey } = req.body || {};
   if (!contact_id) return res.status(400).json({ error: 'contact_id is required' });
   if (!cadence_id) return res.status(400).json({ error: 'cadence_id is required' });
-  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  // Prefer server-side env vars (service role = full write access); fall back to client-passed anon key
+  const supabase_url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || clientUrl;
+  const supabase_key = process.env.SUPABASE_SERVICE_ROLE_KEY || clientKey;
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'Supabase not configured — missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' });
 
   const now = new Date().toISOString();
 
   try {
+    // Resolve cadence name from either new `cadences` table or legacy `email_cadences`
     let cadenceName = cadence_id;
     try {
-      // FIX: was /rest/v1/cadences (non-existent); real table is email_cadences
-      const cadences = await supabaseGet(`${supabase_url}/rest/v1/email_cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
-      if (cadences && cadences.length > 0) cadenceName = cadences[0].name || cadence_id;
-    } catch (err) { console.warn('Cadence metadata lookup failed (non-fatal):', err.message); }
+      let cadences = await supabaseGet(`${supabase_url}/rest/v1/email_cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
+      if (!cadences?.length) {
+        cadences = await supabaseGet(`${supabase_url}/rest/v1/cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
+      }
+      if (cadences?.length) cadenceName = cadences[0].name || cadence_id;
+    } catch (err) { console.warn('[enroll-cadence] cadence metadata lookup failed (non-fatal):', err.message); }
 
-    const emailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key);
-    const smsSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key);
+    // Guard: already enrolled in this cadence?
+    const existing = await supabaseGet(
+      `${supabase_url}/rest/v1/contact_cadence_enrollments?contact_id=eq.${contact_id}&cadence_id=eq.${cadence_id}&status=eq.active&select=id&limit=1`,
+      supabase_key
+    );
+    if (existing?.length) {
+      return res.status(200).json({
+        success: true, already_enrolled: true, enrollment_id: existing[0].id,
+        contact_id, cadence_id, cadence_name: cadenceName,
+        message: 'Contact is already actively enrolled in this cadence.'
+      });
+    }
+
+    // Fetch contact record to determine available channels
+    let contactRecord = null;
+    try {
+      const contactRows = await supabaseGet(
+        `${supabase_url}/rest/v1/marketing_contacts?id=eq.${contact_id}&select=email,phone,stage&limit=1`,
+        supabase_key
+      );
+      contactRecord = contactRows?.[0] || null;
+    } catch (err) { console.warn('[enroll-cadence] contact lookup failed (non-fatal):', err.message); }
+
+    const isFederationEmail = contactRecord?.email && contactRecord.email.includes('@federation-record.');
+    const hasRealEmail = contactRecord?.email && !isFederationEmail;
+    const hasPhone = !!(contactRecord?.phone && String(contactRecord.phone).trim().length > 4);
+
+    const allEmailSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+    const allSmsSteps   = await supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || [];
+    // WhatsApp steps (may not exist yet — graceful fallback)
+    let allWhatsappSteps = [];
+    try { allWhatsappSteps = await supabaseGet(`${supabase_url}/rest/v1/cadence_whatsapp?cadence_id=eq.${cadence_id}&order=sequence_num`, supabase_key) || []; } catch (_) {}
+
+    // Only include steps the contact can actually receive
+    const emailSteps    = hasRealEmail ? allEmailSteps : [];
+    const smsSteps      = hasPhone     ? allSmsSteps   : [];
+    const whatsappSteps = hasPhone     ? allWhatsappSteps : [];
+
+    const skippedChannels = [];
+    if (!hasRealEmail && allEmailSteps.length > 0) skippedChannels.push(`email (${allEmailSteps.length} steps skipped — no valid email)`);
+    if (!hasPhone     && allSmsSteps.length > 0)   skippedChannels.push(`SMS (${allSmsSteps.length} steps skipped — no phone number)`);
+    if (!hasPhone     && allWhatsappSteps.length > 0) skippedChannels.push(`WhatsApp (${allWhatsappSteps.length} steps skipped — no phone number)`);
 
     const enrollmentId = generateUUID();
+    // Compute the first step's scheduled_at so next_step_at on the enrollment matches it
+    const firstEmail = emailSteps[0];
+    const firstSms = smsSteps[0];
+    const firstDelayDays = Math.min(
+      firstEmail ? (firstEmail.delay_days || 0) : Number.MAX_SAFE_INTEGER,
+      firstSms   ? (firstSms.delay_days   || 0) : Number.MAX_SAFE_INTEGER
+    );
+    const firstNextAt = isFinite(firstDelayDays) ? addDays(now, firstDelayDays) : now;
+
     const enrollment = await supabaseInsert(supabase_url, supabase_key, 'contact_cadence_enrollments', {
       id: enrollmentId, contact_id, cadence_id, status: 'active',
-      current_step: 1, next_step_at: now, enrolled_at: now, created_at: now
+      current_step: 1, next_step_at: firstNextAt, enrolled_at: now, created_at: now
     });
 
-    // Writes to cadence_enrollment_steps (new schema) — NOT cadence_step_executions (deprecated).
-    // Column mapping: step_num (was sequence_num), step_type (was type), body for email, message for sms.
-    const stepsToInsert = [];
-    for (const step of (emailSteps || [])) {
-      stepsToInsert.push({
-        id: generateUUID(),
-        enrollment_id: enrollmentId,
-        contact_id,
-        cadence_id,
-        step_num: step.sequence_num,
-        step_type: 'email',
+    // Build step executions. DB columns: step_type, step_num (NOT type/sequence_num).
+    const executions = [];
+    for (const step of emailSteps) {
+      executions.push({
+        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
+        step_type: 'email', step_num: step.sequence_num,
         subject: step.subject || null,
-        body: step.body_text || step.body_html || step.body || null,
-        status: 'pending',
-        scheduled_at: addDays(now, step.delay_days || 0),
-        created_at: now
+        body: step.body_html || step.body_text || null,
+        message: null,
+        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
+        attempt_count: 0, created_at: now
       });
     }
-    for (const step of (smsSteps || [])) {
-      stepsToInsert.push({
-        id: generateUUID(),
-        enrollment_id: enrollmentId,
-        contact_id,
-        cadence_id,
-        step_num: step.sequence_num,
-        step_type: 'sms',
-        subject: null,
-        message: step.message || step.body || null,
-        status: 'pending',
-        scheduled_at: addDays(now, step.delay_days || 0),
-        created_at: now
+    for (const step of smsSteps) {
+      executions.push({
+        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
+        step_type: 'sms', step_num: step.sequence_num,
+        subject: null, body: null,
+        message: step.message || null,
+        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
+        attempt_count: 0, created_at: now
       });
     }
-    stepsToInsert.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+    for (const step of whatsappSteps) {
+      executions.push({
+        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
+        step_type: 'whatsapp', step_num: step.sequence_num,
+        subject: null, body: null,
+        message: step.template_name ? `template:${step.template_name}` : (step.message || null),
+        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0),
+        attempt_count: 0, created_at: now
+      });
+    }
+    executions.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
 
-    if (stepsToInsert.length > 0) {
-      await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_enrollment_steps', stepsToInsert);
+    if (executions.length > 0) {
+      await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_step_executions', executions);
     }
 
-    const nextStepAt = stepsToInsert.length > 0 ? stepsToInsert[0].scheduled_at : now;
-    const schedule = stepsToInsert.map((exec, idx) => ({
-      step: idx + 1,
-      type: exec.step_type,
-      subject: exec.subject || null,
-      body_preview: (exec.body || exec.message || '').substring(0, 100) || null,
-      scheduled_at: exec.scheduled_at
+    // Promote contact: stage = 'lead' so they move from Contacts tab → Leads tab.
+    // Done with fetch (PATCH) since supabaseInsert is POST-only.
+    try {
+      await fetch(`${supabase_url}/rest/v1/marketing_contacts?id=eq.${contact_id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabase_key, Authorization: `Bearer ${supabase_key}`,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ stage: 'lead', updated_at: now })
+      });
+    } catch (err) {
+      console.warn('[enroll-cadence] stage promotion failed (non-fatal):', err.message);
+    }
+
+    // Log journey entry — include campaign_id if one was passed alongside the cadence
+    try {
+      const journeyRow = {
+        contact_id, stage: 'lead', entered_at: now, cadence_id,
+        notes: `Enrolled in ${cadenceName} (${executions.length} steps)`
+      };
+      if (campaign_id) journeyRow.campaign_id = campaign_id;
+      await supabaseInsert(supabase_url, supabase_key, 'contact_journeys', journeyRow);
+    } catch (err) { /* contact_journeys may not exist in all envs */ }
+
+    const schedule = executions.map((exec) => ({
+      step: exec.step_num, type: exec.step_type,
+      subject: exec.subject,
+      preview: (exec.body || exec.message || '').substring(0, 120),
+      scheduled_at: exec.scheduled_at, status: 'pending'
     }));
 
     return res.status(200).json({
       success: true, enrollment_id: enrollment?.id || enrollmentId,
       contact_id, cadence_id, cadence_name: cadenceName,
-      steps_scheduled: stepsToInsert.length, next_step_at: nextStepAt, schedule
+      campaign_id: campaign_id || null,
+      stage: 'lead',
+      steps_scheduled: executions.length,
+      skipped_channels: skippedChannels,
+      next_step_at: firstNextAt,
+      current_step: 1, total_steps: executions.length,
+      schedule
     });
   } catch (err) {
-    console.error('Enroll-cadence handler error:', err);
+    console.error('[enroll-cadence] handler error:', err);
     return res.status(500).json({ error: 'Internal server error', message: err.message });
   }
 }
@@ -878,6 +1534,35 @@ async function handleEnrollmentsList(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: enrollment-timeline — returns full step history for one enrollment
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleEnrollmentTimeline(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+  const enrollment_id = String(req.query?.enrollment_id || '').trim();
+  const supabase_url = String(req.query?.supabase_url || '').trim();
+  const supabase_key = String(req.query?.supabase_key || '').trim();
+  if (!enrollment_id) return res.status(400).json({ error: 'enrollment_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  try {
+    const enrollments = await supabaseGet(
+      `${supabase_url}/rest/v1/contact_cadence_enrollments?id=eq.${enrollment_id}&select=*&limit=1`,
+      supabase_key
+    );
+    const steps = await supabaseGet(
+      `${supabase_url}/rest/v1/cadence_step_executions?enrollment_id=eq.${enrollment_id}&order=scheduled_at.asc`,
+      supabase_key
+    );
+    return res.status(200).json({
+      enrollment: enrollments?.[0] || null,
+      steps: steps || []
+    });
+  } catch (err) {
+    console.error('[enrollment-timeline] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ROUTE: contact-history — feeds the History tab
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -899,6 +1584,73 @@ async function handleContactHistory(req, res) {
     return res.status(200).json({ success: true, count: (rows || []).length, events: rows || [] });
   } catch (err) {
     console.error('contact-history error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: unenroll-cadence — pause/complete an enrollment, restore contact stage
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleUnenrollCadence(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { enrollment_id, supabase_url, supabase_key, reason } = req.body || {};
+  if (!enrollment_id) return res.status(400).json({ error: 'enrollment_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  const now = new Date().toISOString();
+  try {
+    // Mark enrollment cancelled
+    await fetch(`${supabase_url}/rest/v1/contact_cadence_enrollments?id=eq.${enrollment_id}`, {
+      method: 'PATCH',
+      headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'cancelled', completed_at: now })
+    });
+    // Skip any pending steps
+    await fetch(`${supabase_url}/rest/v1/cadence_step_executions?enrollment_id=eq.${enrollment_id}&status=eq.pending`, {
+      method: 'PATCH',
+      headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'skipped', skipped_reason: reason || 'unenrolled' })
+    });
+    return res.status(200).json({ success: true, enrollment_id, status: 'cancelled' });
+  } catch (err) {
+    console.error('[unenroll-cadence] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: update-step — edit a single pending step execution (subject/body/time)
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleUpdateStep(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { step_id, supabase_url, supabase_key, patch } = req.body || {};
+  if (!step_id) return res.status(400).json({ error: 'step_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  if (!patch || typeof patch !== 'object') return res.status(400).json({ error: 'patch object is required' });
+
+  // Allow only safe fields
+  const allowed = ['subject', 'body', 'message', 'scheduled_at', 'status'];
+  const safe = {};
+  for (const k of allowed) if (k in patch) safe[k] = patch[k];
+  if (safe.status && !['pending', 'skipped', 'cancelled'].includes(safe.status)) {
+    return res.status(400).json({ error: 'status must be pending, skipped, or cancelled' });
+  }
+  if (!Object.keys(safe).length) return res.status(400).json({ error: 'no valid fields in patch' });
+
+  try {
+    const resp = await fetch(`${supabase_url}/rest/v1/cadence_step_executions?id=eq.${step_id}&status=eq.pending`, {
+      method: 'PATCH',
+      headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(safe)
+    });
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '');
+      return res.status(resp.status).json({ error: 'Supabase PATCH failed', detail: text.slice(0, 300) });
+    }
+    const rows = await resp.json();
+    if (!rows.length) return res.status(409).json({ error: 'Step is not pending (may have already sent or been skipped).' });
+    return res.status(200).json({ success: true, step: rows[0] });
+  } catch (err) {
+    console.error('[update-step] error:', err);
     return res.status(500).json({ error: err.message });
   }
 }
@@ -968,21 +1720,33 @@ async function handleCaptureLead(req, res) {
           serviceKey
         );
         if (!existing || existing.length === 0) {
-          await supabaseInsert(supabase_url, serviceKey, 'marketing_contacts', {
+          // Phase F #5: web → app bridge — always capture UTMs and score immediately.
+          // Every website contact defaults to 'player' (not 'club') unless explicitly told otherwise.
+          const inferredPersona = persona || player_type || 'player';
+          const contactRow = {
             email,
             name: name || email.split('@')[0],
             phone: phone || '',
-            persona: persona || 'player',
+            persona: inferredPersona,
             stage: 'lead',
-            player_type: player_type || 'player',
+            player_type: inferredPersona === 'club' ? 'club' : 'player',
             data_source: 'organic_signup',
             consent_status: 'opt_in',
             source: source || 'website',
-            tags: `{organic,${utm_source || 'direct'},${persona || 'player'}}`,
+            utm_source: utm_source || null,
+            utm_medium: utm_medium || null,
+            utm_campaign: utm_campaign || null,
+            tags: `{organic,${utm_source || 'direct'},${inferredPersona}}`,
             notes: `Organic lead capture from ${page_url || 'unknown page'}. UTM: ${utm_source || '-'}/${utm_medium || '-'}/${utm_campaign || '-'}`,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          });
+          };
+          // Compute initial lead score
+          try {
+            contactRow.lead_score = scoreContact(contactRow, {});
+            contactRow.last_scored_at = new Date().toISOString();
+          } catch (_) {}
+          await supabaseInsert(supabase_url, serviceKey, 'marketing_contacts', contactRow);
         }
       } catch (syncErr) {
         // Non-blocking — lead was already captured in lead_captures
@@ -1234,7 +1998,7 @@ async function handlePublishWebhook(req, res) {
   if (!action || !['publish', 'schedule'].includes(action)) return res.status(400).json({ error: 'action must be "publish" or "schedule"' });
   if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
 
-  const validPlatforms = ['instagram', 'tiktok', 'youtube', 'facebook', 'linkedin'];
+  const validPlatforms = ['instagram', 'tiktok', 'youtube', 'facebook', 'x', 'twitter', 'reddit'];
   if (!validPlatforms.includes(platform)) {
     return res.status(400).json({ error: `Invalid platform. Must be one of: ${validPlatforms.join(', ')}` });
   }
@@ -1660,6 +2424,24 @@ async function handleCredentialsStatus(req, res) {
       configured: !!process.env.GOOGLE_PLACES_API_KEY,
       masked: maskValue(process.env.GOOGLE_PLACES_API_KEY, 4),
       env_var: 'GOOGLE_PLACES_API_KEY'
+    },
+    whatsapp_phone_number_id: {
+      label: 'WhatsApp Phone Number ID',
+      configured: !!process.env.WHATSAPP_PHONE_NUMBER_ID,
+      value: process.env.WHATSAPP_PHONE_NUMBER_ID || null,
+      env_var: 'WHATSAPP_PHONE_NUMBER_ID'
+    },
+    whatsapp_business_account_id: {
+      label: 'WhatsApp Business Account ID',
+      configured: !!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID,
+      value: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || null,
+      env_var: 'WHATSAPP_BUSINESS_ACCOUNT_ID'
+    },
+    whatsapp_access_token: {
+      label: 'WhatsApp Access Token',
+      configured: !!process.env.WHATSAPP_ACCESS_TOKEN,
+      masked: maskValue(process.env.WHATSAPP_ACCESS_TOKEN, 6),
+      env_var: 'WHATSAPP_ACCESS_TOKEN'
     }
   };
 
@@ -2228,6 +3010,260 @@ async function handleSendBulkSms(req, res) {
   } catch (err) {
     console.error('[send-bulk-sms] Error:', err);
     return res.status(500).json({ error: 'Bulk SMS send failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WHATSAPP BUSINESS CLOUD API HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/marketing/send-whatsapp
+ * Body: { phone, message, templateName?, templateLang? }
+ *
+ * If templateName is provided → sends a template message (no 24h restriction).
+ * If only message is provided → sends a free-form text (within 24h window).
+ *
+ * Env vars: WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN (falls back to META_PAGE_ACCESS_TOKEN)
+ */
+async function handleSendWhatsapp(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { phone, message, templateName, templateLang } = req.body || {};
+  if (!phone) return res.status(400).json({ error: 'phone is required (E.164 format, e.g. +15551234567)' });
+
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    return res.status(500).json({
+      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN in Vercel env vars.'
+    });
+  }
+
+  // Strip non-digit characters for the API (except leading +)
+  const toNumber = phone.replace(/[^\d]/g, '');
+
+  try {
+    let payload;
+    if (templateName) {
+      // Template message — works outside the 24h window
+      payload = {
+        messaging_product: 'whatsapp',
+        to: toNumber,
+        type: 'template',
+        template: {
+          name: templateName,
+          language: { code: templateLang || 'en_US' }
+        }
+      };
+    } else if (message) {
+      // Free-form text — only works within 24h of user's last message
+      payload = {
+        messaging_product: 'whatsapp',
+        to: toNumber,
+        type: 'text',
+        text: { body: message }
+      };
+    } else {
+      return res.status(400).json({ error: 'Either message or templateName is required' });
+    }
+
+    const apiUrl = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+    const waRes = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await waRes.json();
+    if (!waRes.ok) {
+      const errMsg = data.error ? data.error.message : JSON.stringify(data);
+      console.error('[send-whatsapp] API error:', errMsg);
+      return res.status(waRes.status).json({ error: errMsg, details: data });
+    }
+
+    const messageId = data.messages && data.messages[0] ? data.messages[0].id : null;
+    return res.status(200).json({
+      success: true,
+      messageId,
+      to: toNumber,
+      type: templateName ? 'template' : 'text'
+    });
+  } catch (err) {
+    console.error('[send-whatsapp] Error:', err);
+    return res.status(500).json({ error: 'WhatsApp send failed: ' + (err.message || 'Unknown error') });
+  }
+}
+
+/**
+ * POST /api/marketing/send-bulk-whatsapp
+ * Body: { recipients: [{ phone, message?, templateName?, templateLang? }] }
+ * Max 50 per request.
+ */
+async function handleSendBulkWhatsapp(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { recipients } = req.body || {};
+  if (!Array.isArray(recipients) || recipients.length === 0) {
+    return res.status(400).json({ error: 'recipients array is required and must not be empty' });
+  }
+  if (recipients.length > 50) {
+    return res.status(400).json({ error: 'Maximum 50 recipients per request' });
+  }
+
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    return res.status(500).json({
+      error: 'WhatsApp not configured. Set WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN in Vercel env vars.'
+    });
+  }
+
+  const apiUrl = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+
+  const results = await Promise.allSettled(
+    recipients.map(async ({ phone, message, templateName, templateLang }) => {
+      if (!phone) throw new Error('phone is required');
+      const toNumber = phone.replace(/[^\d]/g, '');
+
+      let payload;
+      if (templateName) {
+        payload = {
+          messaging_product: 'whatsapp',
+          to: toNumber,
+          type: 'template',
+          template: { name: templateName, language: { code: templateLang || 'en_US' } }
+        };
+      } else if (message) {
+        payload = {
+          messaging_product: 'whatsapp',
+          to: toNumber,
+          type: 'text',
+          text: { body: message }
+        };
+      } else {
+        throw new Error('Either message or templateName is required');
+      }
+
+      const waRes = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await waRes.json();
+      if (!waRes.ok) throw new Error(data.error ? data.error.message : 'API error');
+      return data;
+    })
+  );
+
+  const summary = results.map((r, i) => ({
+    phone: recipients[i].phone,
+    success: r.status === 'fulfilled',
+    messageId: r.status === 'fulfilled' && r.value.messages ? r.value.messages[0].id : undefined,
+    error: r.status === 'rejected' ? r.reason.message : undefined
+  }));
+
+  const sent   = summary.filter(s => s.success).length;
+  const failed = summary.filter(s => !s.success).length;
+
+  return res.status(200).json({ success: true, sent, failed, results: summary });
+}
+
+/**
+ * GET /api/marketing/whatsapp-status
+ * Returns configuration status + phone number info from Graph API.
+ */
+async function handleWhatsappStatus(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
+
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!phoneNumberId || !accessToken) {
+    return res.status(200).json({
+      configured: false,
+      missing: {
+        WHATSAPP_PHONE_NUMBER_ID: !phoneNumberId,
+        WHATSAPP_ACCESS_TOKEN: !accessToken
+      }
+    });
+  }
+
+  try {
+    const infoRes = await fetch(
+      `https://graph.facebook.com/v25.0/${phoneNumberId}?fields=display_phone_number,quality_rating,verified_name,code_verification_status`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    const info = await infoRes.json();
+
+    if (!infoRes.ok) {
+      return res.status(200).json({
+        configured: true,
+        reachable: false,
+        error: info.error ? info.error.message : 'Unknown error'
+      });
+    }
+
+    return res.status(200).json({
+      configured: true,
+      reachable: true,
+      phoneNumber: info.display_phone_number,
+      qualityRating: info.quality_rating,
+      verifiedName: info.verified_name,
+      codeVerification: info.code_verification_status
+    });
+  } catch (err) {
+    return res.status(200).json({
+      configured: true,
+      reachable: false,
+      error: err.message || 'Network error'
+    });
+  }
+}
+
+/**
+ * GET /api/marketing/whatsapp-templates
+ * Lists available message templates from WhatsApp Business.
+ */
+async function handleWhatsappTemplates(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
+
+  const wabaId      = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN;
+
+  if (!wabaId || !accessToken) {
+    return res.status(200).json({ templates: [], error: 'WHATSAPP_BUSINESS_ACCOUNT_ID or WHATSAPP_ACCESS_TOKEN not configured' });
+  }
+
+  try {
+    const tplRes = await fetch(
+      `https://graph.facebook.com/v25.0/${wabaId}/message_templates?fields=name,status,language,category&limit=50`,
+      { headers: { 'Authorization': `Bearer ${accessToken}` } }
+    );
+    const data = await tplRes.json();
+
+    if (!tplRes.ok) {
+      return res.status(200).json({ templates: [], error: data.error ? data.error.message : 'Unknown' });
+    }
+
+    return res.status(200).json({
+      templates: (data.data || []).map(t => ({
+        name: t.name,
+        status: t.status,
+        language: t.language,
+        category: t.category
+      }))
+    });
+  } catch (err) {
+    return res.status(200).json({ templates: [], error: err.message || 'Network error' });
   }
 }
 
@@ -2994,21 +4030,29 @@ async function handleGenerateImage(req, res) {
   const { prompt, content_item_id, size } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'prompt is required' });
 
-  const imageUrl = await generateImage(prompt, size);
-  if (!imageUrl) return res.status(500).json({ error: 'Image generation failed. Check OPENAI_API_KEY.' });
+  const detail = await generateImage(prompt, size, { returnDetail: true, contentItemId: content_item_id || null });
+  if (!detail?.url) return res.status(500).json({ error: 'Image generation failed. Check OPENAI_API_KEY.' });
 
-  // If content_item_id provided, update the calendar item
+  // If content_item_id provided, update the calendar item with both URL + asset link
   if (content_item_id) {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (supabaseUrl && supabaseKey) {
       try {
-        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', content_item_id, { image_url: imageUrl });
+        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', content_item_id, {
+          image_url: detail.url,
+          media_asset_id: detail.assetId || null
+        });
       } catch (err) { console.warn('[generate-image] Failed to update content_calendar:', err.message); }
     }
   }
 
-  return res.status(200).json({ success: true, image_url: imageUrl });
+  return res.status(200).json({
+    success: true,
+    image_url: detail.url,
+    media_asset_id: detail.assetId,
+    prompt_used: detail.promptUsed
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -3049,6 +4093,10 @@ async function handleAutoPublish(req, res) {
       try {
         let publishResult = {};
 
+        let actuallyPublished = false;
+        let publishedUrl = null;
+        let failureReason = null;
+
         if (platform === 'facebook' || platform === 'both') {
           const fbPayload = { message, access_token: accessToken };
           const fbRes = await fetch('https://graph.facebook.com/v21.0/' + pageId + '/feed', {
@@ -3057,6 +4105,12 @@ async function handleAutoPublish(req, res) {
             body: JSON.stringify(fbPayload)
           }).then(r => r.json());
           publishResult.facebook = fbRes;
+          if (fbRes.id) {
+            actuallyPublished = true;
+            publishedUrl = 'https://facebook.com/' + fbRes.id;
+          } else {
+            failureReason = (fbRes.error && fbRes.error.message) ? fbRes.error.message : 'Facebook publish failed';
+          }
         }
 
         if ((platform === 'instagram' || platform === 'both') && item.image_url) {
@@ -3073,17 +4127,47 @@ async function handleAutoPublish(req, res) {
               body: JSON.stringify({ creation_id: containerRes.id, access_token: accessToken })
             }).then(r => r.json());
             publishResult.instagram = pubRes;
+            if (pubRes.id) {
+              actuallyPublished = true;
+              publishedUrl = publishedUrl || ('https://instagram.com/p/' + pubRes.id);
+            } else {
+              failureReason = failureReason || ((pubRes.error && pubRes.error.message) ? pubRes.error.message : 'Instagram publish failed');
+            }
           } else {
             publishResult.instagram = { error: 'Container creation failed', details: containerRes };
+            failureReason = failureReason || 'Instagram container creation failed';
           }
         }
 
-        // Update status to published
-        await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
-          status: 'published', published_date: today
-        });
+        // For non-Meta platforms (tiktok, youtube, x, reddit, etc.) — do NOT mark as published.
+        // They are not yet implemented and should remain 'scheduled'.
+        const isMetaPlatform = platform === 'facebook' || platform === 'instagram' || platform === 'both';
+        if (!isMetaPlatform) {
+          results.push({ id: item.id, title: item.title, platform, status: 'skipped', reason: 'Platform not yet configured for auto-publish' });
+          continue;
+        }
 
-        results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'published' });
+        // Only mark as published if the API call actually returned a valid post ID
+        if (actuallyPublished) {
+          await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
+            status: 'published',
+            published_date: today,
+            published_at: new Date().toISOString(),
+            posted_url: publishedUrl,
+            published_url: publishedUrl,
+            platform_response: publishResult
+          });
+          results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'published', url: publishedUrl });
+        } else {
+          // Keep status='scheduled' so it retries next run; record the failure reason
+          // and raw platform response so the UI can surface the error.
+          await supabasePatch(supabaseUrl, supabaseKey, 'content_calendar', item.id, {
+            status: 'failed',
+            failure_reason: (failureReason || 'Publish failed — no post ID returned').slice(0, 500),
+            platform_response: publishResult
+          });
+          results.push({ id: item.id, title: item.title, platform, result: publishResult, status: 'failed', reason: failureReason });
+        }
       } catch (pubErr) {
         console.error('[auto-publish] Failed to publish item ' + item.id + ':', pubErr.message);
         results.push({ id: item.id, title: item.title, platform, error: pubErr.message, status: 'failed' });
@@ -3220,7 +4304,9 @@ async function handleProspectClubs(req, res) {
               rating: place.rating || null,
               review_count: place.userRatingCount || 0,
               persona: 'club',
-              stage: 'lead',
+              // Only mark as 'lead' if contactable (has phone). Email is almost never
+              // provided by Google Places — enrichment promotes 'prospect' → 'lead'.
+              stage: (place.internationalPhoneNumber || place.nationalPhoneNumber) ? 'lead' : 'prospect',
               source: 'google_places',
               enrichment_source: 'google_places',
               enrichment_batch: batchId,
@@ -3287,7 +4373,7 @@ async function handleProspectClubs(req, res) {
       cities_searched: regionConfig.cities.length,
       queries_used: searchQueries,
       next_steps: [
-        'Enrich leads with email addresses (check websites, LinkedIn)',
+        'Enrich leads with email addresses (check websites, social profiles)',
         'Run cadence enrollment for outreach',
         'Assign to campaigns for targeted marketing'
       ]
@@ -3365,6 +4451,59 @@ const FEDERATION_CONFIGS = {
       'doubles': { path: '/rankings/doubles', label: 'Doubles' },
       'race':    { path: '/rankings/race-singles', label: 'Race to Finals' }
     }
+  },
+  sofascore: {
+    name: 'Sofascore Rankings (Real-time)',
+    categories: {
+      'atp-singles':   { sofascoreType: 'ATP Singles',    label: "ATP Men's Singles" },
+      'wta-singles':   { sofascoreType: 'WTA Singles',    label: "WTA Women's Singles" },
+      'itf-men':       { sofascoreType: 'ITF Men',        label: 'ITF Men' },
+      'itf-women':     { sofascoreType: 'ITF Women',      label: 'ITF Women' },
+      'juniors-boys':  { sofascoreType: 'Juniors Boys',   label: 'ITF Juniors Boys' },
+      'juniors-girls': { sofascoreType: 'Juniors Girls',  label: 'ITF Juniors Girls' },
+      'atp-doubles':   { sofascoreType: 'ATP Doubles',    label: 'ATP Doubles' },
+      'wta-doubles':   { sofascoreType: 'WTA Doubles',    label: 'WTA Doubles' }
+    }
+  },
+  utr: {
+    name: 'UTR Amateur Players (All Levels)',
+    categories: {
+      'all-players':    { label: 'All Players (by UTR)',   searchQuery: 'tennis' },
+      'us-players':     { label: 'US Players',             searchQuery: 'tennis US' },
+      'uk-players':     { label: 'UK Players',             searchQuery: 'tennis UK' },
+      'eu-players':     { label: 'EU Players',             searchQuery: 'tennis Europe' },
+      'latam-players':  { label: 'Latin America',          searchQuery: 'tennis Brazil Argentina' },
+      'asia-players':   { label: 'Asia Pacific',           searchQuery: 'tennis Australia Japan' },
+      'junior':         { label: 'Junior Players',         searchQuery: 'tennis junior' },
+      'adult-amateur':  { label: 'Adult Amateur',          searchQuery: 'tennis adult amateur' },
+      'collegiate':     { label: 'Collegiate (NCAA)',      searchQuery: 'tennis college NCAA' }
+    }
+  },
+  pickleball: {
+    name: 'Pickleball Players (PPA / APP / DUPR)',
+    categories: {
+      'ppa-men':        { sofascoreType: 'PPA Men',          label: "PPA Men's Pro" },
+      'ppa-women':      { sofascoreType: 'PPA Women',        label: "PPA Women's Pro" },
+      'app-men':        { sofascoreType: 'APP Men',          label: "APP Men's Pro" },
+      'app-women':      { sofascoreType: 'APP Women',        label: "APP Women's Pro" },
+      'dupr-all':       { duprQuery: 'pickleball',           label: 'DUPR All Levels (Amateur)' },
+      'dupr-us':        { duprQuery: 'pickleball US',        label: 'DUPR US Players' },
+      'dupr-junior':    { duprQuery: 'pickleball junior',    label: 'DUPR Junior Players' },
+      'dupr-senior':    { duprQuery: 'pickleball senior',    label: 'DUPR Senior Players (50+)' }
+    }
+  },
+  coaches: {
+    name: 'Tennis & Pickleball Coaches',
+    categories: {
+      'tennis-us':       { label: 'Tennis Coaches — United States',   sport: 'tennis', country: 'US' },
+      'tennis-uk':       { label: 'Tennis Coaches — United Kingdom',  sport: 'tennis', country: 'GB' },
+      'tennis-eu':       { label: 'Tennis Coaches — Europe',          sport: 'tennis', country: 'EU' },
+      'tennis-latam':    { label: 'Tennis Coaches — Latin America',   sport: 'tennis', country: 'LATAM' },
+      'tennis-au':       { label: 'Tennis Coaches — Australia',       sport: 'tennis', country: 'AU' },
+      'pickleball-us':   { label: 'Pickleball Coaches — United States', sport: 'pickleball', country: 'US' },
+      'pickleball-all':  { label: 'Pickleball Coaches — Global',      sport: 'pickleball', country: 'GLOBAL' },
+      'all-global':      { label: 'All Coaches — Global',             sport: 'both', country: 'GLOBAL' }
+    }
   }
 };
 
@@ -3374,6 +4513,256 @@ function classifyRankingTier(position) {
   if (position <= 1000) return 'top1000';
   if (position <= 5000) return 'national';
   return 'regional';
+}
+
+/**
+ * Fetch real player rankings from Sofascore's public API.
+ * Returns actual player names, nationalities, ranking positions.
+ * On error: logs warning and returns empty array — never generates fake placeholders.
+ */
+async function fetchSofascoreRankings(sofascoreType, startRank, endRank) {
+  const players = [];
+  try {
+    const encodedType = encodeURIComponent(sofascoreType);
+    const url = `https://api.sofascore.com/api/v1/sport/tennis/ranking/${encodedType}`;
+    const resp = await fetch(url, {
+      headers: {
+        'User-Agent': 'SmartSwingAI/1.0',
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!resp.ok) {
+      console.warn(`[prospect-players] Sofascore API returned ${resp.status} for ${sofascoreType}`);
+      return [];
+    }
+
+    const data = await resp.json();
+    const rankings = data.rankings || [];
+
+    for (const item of rankings) {
+      const rank = parseInt(item.rowName, 10);
+      if (isNaN(rank) || rank < startRank || rank > endRank) continue;
+
+      const playerName = item.team?.name || '';
+      const nationality = item.team?.country?.alpha2 || '';
+      const sofascoreId = item.team?.id || '';
+      const nameSlug = playerName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+      players.push({
+        name: playerName,
+        nationality: nationality,
+        ranking_position: rank,
+        ranking_tier: classifyRankingTier(rank),
+        federation_id: `sofascore-${sofascoreType.replace(/\s+/g, '-').toLowerCase()}-${sofascoreId || rank}`,
+        federation_profile_url: sofascoreId
+          ? `https://www.sofascore.com/player/${nameSlug}/${sofascoreId}`
+          : `https://www.sofascore.com`,
+        category: sofascoreType,
+        _needs_enrichment: false
+      });
+    }
+  } catch (err) {
+    console.warn(`[prospect-players] Sofascore fetch error for ${sofascoreType}:`, err.message);
+  }
+  return players;
+}
+
+/**
+ * Convert UTR rating number to ranking tier label.
+ */
+function utrToTier(utr) {
+  if (!utr || isNaN(utr)) return 'amateur';
+  if (utr >= 12) return 'top100';
+  if (utr >= 10) return 'top500';
+  if (utr >= 8) return 'national';
+  if (utr >= 5) return 'regional';
+  return 'amateur';
+}
+
+/**
+ * Fetch amateur player data from UTR (Universal Tennis Rating) public search API.
+ * On error: returns empty array, never throws.
+ */
+async function fetchUTRPlayers(searchQuery, count) {
+  const players = [];
+  try {
+    const url = `https://api.utrsports.net/v2/search/players?query=${encodeURIComponent(searchQuery)}&sportTypeId=2&count=${count}&pageNum=0`;
+    const resp = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'SmartSwingAI/1.0'
+      }
+    });
+
+    if (!resp.ok) {
+      console.warn(`[prospect-players] UTR API returned ${resp.status} for query "${searchQuery}"`);
+      return [];
+    }
+
+    const data = await resp.json();
+    const rawPlayers = data.players || data.hits || [];
+
+    for (const p of rawPlayers) {
+      const source = p.source || p;
+      const displayName = source.displayName || source.name || '';
+      if (!displayName) continue;
+
+      const utrId = source.utrId || source.id || '';
+      const singlesUtr = parseFloat(source.singlesUtr || source.singlesUtrDisplay || 0) || 0;
+      const location = source.location || {};
+      const club = source.club || {};
+
+      players.push({
+        name: displayName,
+        nationality: location.countryCode || '',
+        ranking_position: null,
+        ranking_tier: utrToTier(singlesUtr),
+        federation_id: `utr-${utrId}`,
+        federation_profile_url: utrId ? `https://myutr.com/profiles/${utrId}` : '',
+        rating: singlesUtr,
+        club_affiliation_name: club.name || '',
+        city: location.cityName || '',
+        country: location.countryName || '',
+        _needs_enrichment: false
+      });
+    }
+  } catch (err) {
+    console.warn(`[prospect-players] UTR fetch error:`, err.message);
+  }
+  return players;
+}
+
+/**
+ * Fetch pickleball players via DUPR public search API.
+ * DUPR (Dynamic Universal Pickleball Rating) is the universal rating system for pickleball.
+ * Falls back to UTR-style search with sportTypeId=1 (pickleball).
+ */
+async function fetchDUPRPlayers(searchQuery, count) {
+  const players = [];
+  try {
+    // Try DUPR public API first
+    const duprUrl = `https://api.dupr.gg/player/v1.0/search?query=${encodeURIComponent(searchQuery)}&limit=${Math.min(count, 100)}`;
+    const resp = await fetch(duprUrl, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'SmartSwingAI/1.0' }
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const rawPlayers = data.players || data.results || data.hits || [];
+      for (const p of rawPlayers) {
+        const src = p.source || p;
+        const displayName = src.displayName || src.fullName || src.name || '';
+        if (!displayName) continue;
+        const duprId = src.duprId || src.id || '';
+        const rating = parseFloat(src.doubles || src.singles || src.rating || 0) || 0;
+        players.push({
+          name: displayName,
+          nationality: src.countryCode || src.country || '',
+          ranking_position: null,
+          ranking_tier: rating >= 5.5 ? 'pro' : rating >= 4.5 ? 'advanced' : rating >= 3.5 ? 'intermediate' : 'beginner',
+          federation_id: `dupr-${duprId}`,
+          federation_profile_url: duprId ? `https://mydupr.com/profile/${duprId}` : '',
+          rating,
+          player_type: 'pickleball',
+          persona: 'player_pball',
+          city: src.city || src.location?.cityName || '',
+          country: src.countryName || src.location?.countryName || '',
+          _needs_enrichment: true
+        });
+      }
+      if (players.length > 0) return players;
+    }
+  } catch (err) {
+    console.warn('[prospect-players] DUPR fetch error:', err.message);
+  }
+
+  // Fallback: UTR Sports API with pickleball sport type (sportTypeId=1)
+  try {
+    const fallbackUrl = `https://api.utrsports.net/v2/search/players?query=${encodeURIComponent(searchQuery)}&sportTypeId=1&count=${Math.min(count, 100)}&pageNum=0`;
+    const resp2 = await fetch(fallbackUrl, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'SmartSwingAI/1.0' }
+    });
+    if (resp2.ok) {
+      const data2 = await resp2.json();
+      const raw = data2.players || data2.hits || [];
+      for (const p of raw) {
+        const src = p.source || p;
+        const displayName = src.displayName || src.name || '';
+        if (!displayName) continue;
+        players.push({
+          name: displayName,
+          nationality: src.location?.countryCode || '',
+          ranking_position: null,
+          ranking_tier: 'amateur',
+          federation_id: `utr-pb-${src.utrId || src.id || ''}`,
+          federation_profile_url: src.utrId ? `https://myutr.com/profiles/${src.utrId}` : '',
+          player_type: 'pickleball',
+          persona: 'player_pball',
+          city: src.location?.cityName || '',
+          country: src.location?.countryName || '',
+          _needs_enrichment: true
+        });
+      }
+    }
+  } catch (err2) {
+    console.warn('[prospect-players] DUPR/UTR pickleball fallback error:', err2.message);
+  }
+  return players;
+}
+
+/**
+ * Prospect coaches via Google Places API — searches for tennis/pickleball coaches
+ * and coaching services in a given country/region.
+ */
+async function fetchCoachesByRegion(sport, country) {
+  const googleApiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!googleApiKey) {
+    console.warn('[prospect-coaches] GOOGLE_PLACES_API_KEY not set');
+    return [];
+  }
+
+  const sportLabel = sport === 'pickleball' ? 'pickleball coach' : sport === 'both' ? 'tennis pickleball coach' : 'tennis coach';
+  const countryMap = {
+    US: 'United States', GB: 'United Kingdom', EU: 'Europe',
+    LATAM: 'Latin America', AU: 'Australia', GLOBAL: ''
+  };
+  const regionLabel = countryMap[country] || '';
+  const query = regionLabel ? `${sportLabel} ${regionLabel}` : sportLabel;
+
+  const coaches = [];
+  try {
+    const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&type=gym&key=${googleApiKey}`;
+    const resp = await fetch(searchUrl);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    const results = data.results || [];
+
+    for (const place of results.slice(0, 50)) {
+      // Look for individual coach names (not just venues/clubs)
+      const name = place.name || '';
+      const isCoach = /coach|trainer|instructor|academy|lessons/i.test(name) ||
+                      /coach|trainer|instructor/i.test(place.types?.join(' ') || '');
+      if (!isCoach) continue;
+
+      coaches.push({
+        name,
+        persona: 'coach',
+        player_type: 'coach',
+        data_source: 'google_places',
+        phone: place.formatted_phone_number || '',
+        city: place.formatted_address?.split(',')[1]?.trim() || '',
+        country: country === 'GLOBAL' ? '' : (countryMap[country] || ''),
+        google_place_id: place.place_id || '',
+        federation_profile_url: place.website || '',
+        rating: place.rating || null,
+        _needs_enrichment: true,
+        tags: [sport, 'coach', country.toLowerCase()]
+      });
+    }
+  } catch (err) {
+    console.warn('[prospect-coaches] Google Places error:', err.message);
+  }
+  return coaches;
 }
 
 /**
@@ -3658,16 +5047,61 @@ async function handleProspectPlayers(req, res) {
     // Fetch players from the appropriate federation
     let players = [];
 
-    if (federation === 'itf') {
-      players = await fetchITFRankings(category, rangeStart, rangeEnd);
-    } else if (federation === 'atp' || federation === 'wta') {
-      players = await fetchATPWTARankings(federation, category, rangeStart, rangeEnd);
+    if (federation === 'sofascore') {
+      const sofascoreType = fedConfig.categories[category]?.sofascoreType;
+      if (sofascoreType) {
+        players = await fetchSofascoreRankings(sofascoreType, rangeStart, rangeEnd);
+      }
+    } else if (federation === 'utr') {
+      const searchQuery = fedConfig.categories[category]?.searchQuery || 'tennis';
+      const count = Math.min(rangeEnd - rangeStart + 1, 200);
+      players = await fetchUTRPlayers(searchQuery, count);
+    } else if (federation === 'itf') {
+      // Route ITF through Sofascore as the reliable backend
+      const sofascoreMap = {
+        'mens-singles':   'ITF Men',
+        'womens-singles': 'ITF Women',
+        'juniors-boys':   'Juniors Boys',
+        'juniors-girls':  'Juniors Girls'
+      };
+      const sfType = sofascoreMap[category];
+      if (sfType) {
+        players = await fetchSofascoreRankings(sfType, rangeStart, rangeEnd);
+      } else {
+        // categories like seniors/wheelchair: no Sofascore equivalent, return empty with explanation
+        players = [];
+      }
+    } else if (federation === 'atp') {
+      // Route ATP through Sofascore as the reliable backend
+      const sofascoreMap = {
+        'singles': 'ATP Singles',
+        'doubles': 'ATP Doubles'
+      };
+      const sfType = sofascoreMap[category];
+      if (sfType) {
+        players = await fetchSofascoreRankings(sfType, rangeStart, rangeEnd);
+      } else {
+        players = [];
+      }
+    } else if (federation === 'wta') {
+      // Route WTA through Sofascore as the reliable backend
+      const sofascoreMap = {
+        'singles': 'WTA Singles',
+        'doubles': 'WTA Doubles'
+      };
+      const sfType = sofascoreMap[category];
+      if (sfType) {
+        players = await fetchSofascoreRankings(sfType, rangeStart, rangeEnd);
+      } else {
+        players = [];
+      }
     } else if (federation === 'usta') {
-      // USTA doesn't have a public API — generate structured target list
-      // These can be enriched manually from tournament results
+      // USTA NTRP: no public API for real player names.
+      // Generate target profiles based on NTRP level — these are useful for campaign
+      // targeting even without real names. Clearly labeled as campaign targets, not real records.
       for (let i = rangeStart; i <= rangeEnd; i++) {
         players.push({
-          name: `USTA ${fedConfig.categories[category]?.label || category} Player #${i}`,
+          name: `USTA ${fedConfig.categories[category]?.label || category} — Target #${i}`,
           nationality: 'US',
           ranking_position: i,
           ranking_tier: classifyRankingTier(i),
@@ -3677,6 +5111,33 @@ async function handleProspectPlayers(req, res) {
           _needs_enrichment: true
         });
       }
+    } else if (federation === 'pickleball') {
+      const catCfg = fedConfig.categories[category];
+      if (catCfg?.sofascoreType) {
+        // Pro pickleball via Sofascore
+        players = await fetchSofascoreRankings(catCfg.sofascoreType, rangeStart, rangeEnd);
+        // Tag all as pickleball
+        players = players.map(p => ({ ...p, player_type: 'pickleball', persona: 'player_pball', tags: ['pickleball', 'pro'] }));
+      } else if (catCfg?.duprQuery) {
+        // Amateur pickleball via DUPR / UTR fallback
+        const count = Math.min(rangeEnd - rangeStart + 1, 200);
+        players = await fetchDUPRPlayers(catCfg.duprQuery, count);
+      }
+    } else if (federation === 'coaches') {
+      const catCfg = fedConfig.categories[category];
+      if (catCfg) {
+        players = await fetchCoachesByRegion(catCfg.sport, catCfg.country);
+      }
+    }
+
+    if (players.length === 0 && federation !== 'usta') {
+      return res.status(200).json({
+        success: true,
+        inserted: 0,
+        message: `Source unavailable or no players found for ${federation}/${category} in range ${rangeStart}-${rangeEnd}. Try again later.`,
+        federation: fedConfig.name,
+        category: fedConfig.categories[category]?.label || category
+      });
     }
 
     // Match players to clubs in our database
@@ -3742,7 +5203,9 @@ async function handleProspectPlayers(req, res) {
           name: player.name,
           email: emailPlaceholder,
           persona: 'player',
-          stage: 'lead',
+          // Federation records never include contact info — stay as 'prospect' until
+          // enrichment attaches a real email or phone, which promotes to 'lead'.
+          stage: 'prospect',
           player_type: 'player',
           data_source: `${federation}_ranking`,
           consent_status: 'public_record',
@@ -3841,6 +5304,51 @@ function extractEmailsFromHtml(html) {
   });
 }
 
+/**
+ * Extract emails from href="mailto:..." attributes — more reliable than body-text regex
+ * since most club and player websites use mailto links for contact.
+ */
+function extractEmailsFromMailto(html) {
+  if (!html || typeof html !== 'string') return [];
+  const mailtoRegex = /href=["']mailto:([^"'?]+)/gi;
+  const emails = [];
+  let m;
+  while ((m = mailtoRegex.exec(html)) !== null) {
+    const email = m[1].trim().toLowerCase();
+    if (email && email.includes('@') && !emails.includes(email)) {
+      const domain = email.split('@')[1];
+      if (domain && !EXCLUDE_EMAIL_DOMAINS.has(domain)) emails.push(email);
+    }
+  }
+  return emails;
+}
+
+/**
+ * Try multiple contact-style pages on a domain, returning emails as soon as found.
+ * Stops at the first page that yields at least one email.
+ */
+async function scrapeEmailsFromSite(baseUrl) {
+  const contactPaths = ['/contact', '/contact-us', '/about', '/about-us', '/team', '/staff', '/our-team', '/contact.html'];
+  for (const path of contactPaths) {
+    try {
+      const url = new URL(path, baseUrl).href;
+      const res = await fetch(url, {
+        signal: AbortSignal.timeout(6000),
+        headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+      });
+      if (!res.ok) continue;
+      const html = await res.text();
+      const emails = [
+        ...extractEmailsFromMailto(html),
+        ...extractEmailsFromHtml(html)
+      ];
+      const deduped = [...new Set(emails)];
+      if (deduped.length > 0) return deduped;
+    } catch (_) {}
+  }
+  return [];
+}
+
 function scoreEmail(email, clubName) {
   // Rank emails by likelihood of being the right contact
   const lower = email.toLowerCase();
@@ -3855,6 +5363,9 @@ function scoreEmail(email, clubName) {
   const domain = lower.split('@')[1].split('.')[0];
   const nameWords = name.split(/[\s\-_]+/).filter(w => w.length > 3);
   if (nameWords.some(w => domain.includes(w))) score += 5;
+  // Bonus if club name words appear in the email local part or domain
+  const clubWords = name.split(/\s+/).filter(w => w.length > 3);
+  if (clubWords.some(w => lower.includes(w))) score += 4;
 
   return score;
 }
@@ -3866,13 +5377,32 @@ async function handleEnrichEmails(req, res) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
 
-  const { limit: maxLimit, dry_run, batch_id } = req.body || {};
+  const { limit: maxLimit, dry_run, batch_id, mode } = req.body || {};
   const fetchLimit = Math.min(maxLimit || 20, 50); // cap at 50 per run
 
   try {
-    // Fetch contacts with placeholder emails but real websites
-    const query = `${supabaseUrl}/rest/v1/marketing_contacts?email=like.*pending-enrichment*&website=neq.&website=not.is.null&select=id,name,email,website,city,country&limit=${fetchLimit}&order=created_at.desc`;
-    const contacts = await supabaseGet(query, supabaseKey);
+    // Fetch contacts that have no real email yet. Matches:
+    //   - placeholder @pending-enrichment addresses (legacy)
+    //   - placeholder @federation-record addresses (from federation prospecting)
+    //   - empty-string emails (Google Places clubs with no email returned)
+    //   - NULL emails (imported records)
+    const orFilter = `email.is.null,email.eq.,email.like.*@pending-enrichment*,email.like.*@federation-record*`;
+
+    let contacts = [];
+
+    if (mode === 'players') {
+      // Players: enriched via federation_profile_url or UTR search — no website required
+      const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&persona=eq.player&select=id,name,email,phone,website,city,country,stage,persona,federation_profile_url&limit=${fetchLimit}&order=created_at.desc`;
+      contacts = await supabaseGet(query, supabaseKey);
+    } else if (mode === 'all') {
+      // All contacts: clubs with website first, then players
+      const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&select=id,name,email,phone,website,city,country,stage,persona,federation_profile_url&limit=${fetchLimit}&order=created_at.desc`;
+      contacts = await supabaseGet(query, supabaseKey);
+    } else {
+      // Default (clubs): require a website to scrape
+      const query = `${supabaseUrl}/rest/v1/marketing_contacts?or=(${encodeURIComponent(orFilter)})&website=not.is.null&website=neq.&select=id,name,email,phone,website,city,country,stage,persona,federation_profile_url&limit=${fetchLimit}&order=created_at.desc`;
+      contacts = await supabaseGet(query, supabaseKey);
+    }
 
     if (!contacts || contacts.length === 0) {
       return res.status(200).json({
@@ -3891,44 +5421,92 @@ async function handleEnrichEmails(req, res) {
       const result = { id: contact.id, name: contact.name, website: contact.website };
 
       try {
-        // Fetch the website with a timeout
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
+        let emails = [];
+        const isPlayer = contact.persona === 'player';
 
-        const webRes = await fetch(contact.website, {
-          signal: controller.signal,
-          headers: {
-            'User-Agent': 'SmartSwing-AI/1.0 (contact enrichment; +https://smartswingai.com)',
-            'Accept': 'text/html'
+        if (isPlayer && (!contact.website || contact.website === '')) {
+          // Player without website: try federation_profile_url then UTR search
+          if (contact.federation_profile_url) {
+            try {
+              const profRes = await fetch(contact.federation_profile_url, {
+                signal: AbortSignal.timeout(8000),
+                headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+              });
+              if (profRes.ok) {
+                const profHtml = await profRes.text();
+                emails = [
+                  ...extractEmailsFromMailto(profHtml),
+                  ...extractEmailsFromHtml(profHtml)
+                ];
+              }
+            } catch (_) {}
           }
-        });
-        clearTimeout(timeout);
 
-        if (!webRes.ok) {
-          result.status = 'http_error';
-          result.http_code = webRes.status;
-          failed++;
-          results.push(result);
-          continue;
-        }
+          if (emails.length === 0 && contact.name) {
+            // Try UTR search as fallback
+            try {
+              const utrUrl = `https://api.utrsports.net/v2/search/players?query=${encodeURIComponent(contact.name)}&sportTypeId=2&count=5`;
+              const utrRes = await fetch(utrUrl, {
+                signal: AbortSignal.timeout(6000),
+                headers: { 'Accept': 'application/json', 'User-Agent': 'SmartSwingAI/1.0' }
+              });
+              if (utrRes.ok) {
+                const utrData = await utrRes.json();
+                const players = utrData.players || utrData.hits || [];
+                for (const p of players) {
+                  const src = p.source || p;
+                  if (src.email) emails.push(src.email.toLowerCase());
+                }
+              }
+            } catch (_) {}
+          }
 
-        const html = await webRes.text();
-        const emails = extractEmailsFromHtml(html);
-
-        if (emails.length === 0) {
-          // Try /contact page as fallback
+          result.enrichment_method = 'player_profile';
+        } else {
+          // Club (or player with website): fetch homepage first, then try contact pages
           try {
-            const contactUrl = new URL('/contact', contact.website).href;
-            const contactRes = await fetch(contactUrl, {
-              signal: AbortSignal.timeout(6000),
-              headers: { 'User-Agent': 'SmartSwing-AI/1.0', 'Accept': 'text/html' }
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 8000);
+            const webRes = await fetch(contact.website, {
+              signal: controller.signal,
+              headers: {
+                'User-Agent': 'SmartSwing-AI/1.0 (contact enrichment; +https://smartswingai.com)',
+                'Accept': 'text/html'
+              }
             });
-            if (contactRes.ok) {
-              const contactHtml = await contactRes.text();
-              emails.push(...extractEmailsFromHtml(contactHtml));
+            clearTimeout(timeout);
+
+            if (webRes.ok) {
+              const html = await webRes.text();
+              emails = [
+                ...extractEmailsFromMailto(html),
+                ...extractEmailsFromHtml(html)
+              ];
+            } else {
+              result.status = 'http_error';
+              result.http_code = webRes.status;
+              failed++;
+              results.push(result);
+              continue;
             }
-          } catch (_) {}
+          } catch (fetchErr) {
+            result.status = 'fetch_error';
+            result.error = fetchErr.message;
+            failed++;
+            results.push(result);
+            continue;
+          }
+
+          // If no emails found on homepage, try additional contact pages
+          if (emails.length === 0) {
+            emails = await scrapeEmailsFromSite(contact.website);
+          }
+
+          result.enrichment_method = 'website_scrape';
         }
+
+        // Deduplicate
+        emails = [...new Set(emails)];
 
         if (emails.length === 0) {
           result.status = 'no_email_found';
@@ -3948,7 +5526,7 @@ async function handleEnrichEmails(req, res) {
         result.score = scored[0].score;
 
         if (!dry_run) {
-          // Update the contact's email
+          // Update the contact's email and promote to 'lead'
           await fetch(`${supabaseUrl}/rest/v1/marketing_contacts?id=eq.${contact.id}`, {
             method: 'PATCH',
             headers: {
@@ -3959,7 +5537,9 @@ async function handleEnrichEmails(req, res) {
             },
             body: JSON.stringify({
               email: bestEmail,
-              enrichment_source: 'website_scrape',
+              // Promote to 'lead' — we now have a contactable email.
+              stage: 'lead',
+              enrichment_source: result.enrichment_method || 'website_scrape',
               enrichment_batch: batch_id || `enrich_${new Date().toISOString().split('T')[0]}`,
               updated_at: new Date().toISOString()
             })
@@ -3985,7 +5565,7 @@ async function handleEnrichEmails(req, res) {
       results,
       next_steps: enriched > 0
         ? ['Run cadence enrollment for newly enriched contacts', 'Review emails in marketing dashboard']
-        : ['Manually add emails for contacts without website', 'Try enriching from LinkedIn or social profiles']
+        : ['Manually add emails for contacts without website', 'Try enriching from social profiles or club websites']
     });
   } catch (err) {
     console.error('[enrich-emails] Error:', err);
@@ -3993,10 +5573,401 @@ async function handleEnrichEmails(req, res) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHASE F ROUTES (Growth Engine expansion)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleScoreLeads(req, res) {
+  try {
+    const result = await runLeadScoringBatch(500);
+    return res.status(200).json(result);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleSuggestTime(req, res) {
+  const platform = (req.query.platform || req.body?.platform || 'instagram').toLowerCase();
+  const index = parseInt(req.query.index || req.body?.index || '0', 10);
+  const slot = getOptimalPostSlot(platform, index);
+  return res.status(200).json({ platform, ...slot });
+}
+
+async function handleGenerateVideo(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { prompt, content_item_id } = req.body || {};
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+  try {
+    const result = await generateVideo(prompt, { contentItemId: content_item_id });
+    return res.status(result.ok ? 200 : 422).json(result);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleMetricsFetch(req, res) {
+  try {
+    const result = await runMetricsFetch(30);
+    return res.status(200).json(result);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleTopPerformers(req, res) {
+  try {
+    const rows = await topPerformers(5);
+    return res.status(200).json({ top: rows });
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleWeeklyDigest(req, res) {
+  try {
+    const target = req.query.email || req.body?.email || process.env.DIGEST_EMAIL || '';
+    const summary = target ? await runWeeklyDigest(target) : await buildSummary();
+    return res.status(200).json(summary);
+  } catch (err) { return res.status(500).json({ error: err?.message || String(err) }); }
+}
+
+async function handleMetaWebhook(req, res) {
+  // Meta sends GET with hub.challenge for verify handshake
+  if (req.method === 'GET') {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+    if (mode === 'subscribe' && token === (process.env.META_WEBHOOK_VERIFY_TOKEN || 'smartswing-verify')) {
+      res.setHeader('Content-Type', 'text/plain');
+      return res.status(200).send(String(challenge));
+    }
+    return res.status(403).json({ error: 'verify token mismatch' });
+  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const body = req.body || {};
+  const entries = body.entry || [];
+  const supaUrl = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const out = { inbox_rows: 0 };
+
+  for (const entry of entries) {
+    const changes = entry.changes || [];
+    const messaging = entry.messaging || [];
+    // Page comments
+    for (const ch of changes) {
+      if (ch.field === 'feed' && ch.value && (ch.value.verb === 'add' || ch.value.item === 'comment')) {
+        if (key && supaUrl) {
+          try {
+            await fetch(`${supaUrl}/rest/v1/inbox_messages`, {
+              method: 'POST',
+              headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                sender_name: ch.value.sender_name || 'Facebook user',
+                body: (ch.value.message || '').slice(0, 2000),
+                source_platform: 'facebook',
+                source_provider_id: ch.value.post_id || ch.value.comment_id || null,
+                subject: 'Facebook comment on your post'
+              })
+            });
+            out.inbox_rows++;
+          } catch (_) {}
+        }
+      }
+    }
+    // Instagram / Messenger DMs
+    for (const m of messaging) {
+      if (m.message && m.message.text) {
+        if (key && supaUrl) {
+          try {
+            await fetch(`${supaUrl}/rest/v1/inbox_messages`, {
+              method: 'POST',
+              headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+              body: JSON.stringify({
+                sender_name: m.sender?.id ? `User ${m.sender.id}` : 'Unknown',
+                body: String(m.message.text).slice(0, 2000),
+                source_platform: 'instagram',
+                source_provider_id: m.message.mid || null,
+                subject: 'Instagram DM'
+              })
+            });
+            out.inbox_rows++;
+          } catch (_) {}
+        }
+      }
+    }
+  }
+
+  // WhatsApp Cloud API webhook — object === 'whatsapp_business_account'
+  if (body.object === 'whatsapp_business_account') {
+    for (const entry of entries) {
+      const changes = entry.changes || [];
+      for (const ch of changes) {
+        if (ch.field !== 'messages') continue;
+        const value = ch.value || {};
+
+        // Incoming messages
+        const messages = value.messages || [];
+        for (const msg of messages) {
+          if (key && supaUrl) {
+            const contactName = (value.contacts && value.contacts[0]) ? value.contacts[0].profile?.name : msg.from;
+            try {
+              await fetch(`${supaUrl}/rest/v1/inbox_messages`, {
+                method: 'POST',
+                headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+                body: JSON.stringify({
+                  sender_name: contactName || msg.from,
+                  body: (msg.text?.body || msg.type || '').slice(0, 2000),
+                  source_platform: 'whatsapp',
+                  source_provider_id: msg.id || null,
+                  subject: 'WhatsApp message from ' + (msg.from || 'unknown')
+                })
+              });
+              out.inbox_rows++;
+            } catch (_) {}
+          }
+        }
+
+        // Delivery status updates (sent, delivered, read, failed)
+        const statuses = value.statuses || [];
+        for (const st of statuses) {
+          if (key && supaUrl && st.id) {
+            try {
+              // Update cadence step execution status if this message was sent by a cadence
+              const statusMap = { sent: 'sent', delivered: 'delivered', read: 'opened', failed: 'failed' };
+              const newStatus = statusMap[st.status];
+              if (newStatus) {
+                const colMap = { sent: 'sent_at', delivered: 'delivered_at', opened: 'opened_at', failed: 'failed_at' };
+                const col = colMap[newStatus];
+                const patch = {};
+                if (col) patch[col] = new Date().toISOString();
+                if (st.status === 'failed') {
+                  patch.status = 'failed';
+                  patch.failure_reason = st.errors?.[0]?.title || 'WhatsApp delivery failed';
+                }
+                // Best-effort update — the message field stores the WA message ID for matching
+                await fetch(`${supaUrl}/rest/v1/cadence_step_executions?step_type=eq.whatsapp&status=eq.pending&limit=1`, {
+                  method: 'GET',
+                  headers: { apikey: key, Authorization: `Bearer ${key}` }
+                });
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    }
+  }
+
+  return res.status(200).json({ ok: true, ...out });
+}
+
+async function handlePublishNow(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { content_item_id } = req.body || {};
+  if (!content_item_id) return res.status(400).json({ error: 'content_item_id required' });
+  try {
+    const result = await publishSingleItem(content_item_id);
+    return res.status(result.ok ? 200 : 422).json(result);
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err?.message || String(err) });
+  }
+}
+
+async function handlePublishRun(req, res) {
+  // Manual drain trigger (admin) — same logic the cron uses
+  try {
+    const result = await runPublishBatch();
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: backfill-media — rescue content_calendar items whose image_url still
+// points at an ephemeral DALL-E CDN (Azure Blob Storage). Re-downloads + uploads
+// into marketing-media bucket and patches the row. Called manually by admins
+// and automatically after every agent run when a visual is generated.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleBackfillMedia(req, res) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const limit = Math.min(parseInt((req.body && req.body.limit) || req.query?.limit || 20, 10) || 20, 50);
+  try {
+    // Find items whose image_url is an ephemeral DALL-E / Azure Blob URL
+    const query = `${supabaseUrl}/rest/v1/content_calendar?image_url=like.*oaidalleapi*&select=id,image_url,title,created_at&order=created_at.desc&limit=${limit}`;
+    const rows = await supabaseGet(query, supabaseKey);
+    if (!rows || rows.length === 0) {
+      return res.status(200).json({ ok: true, checked: 0, rescued: 0, expired: 0, message: 'No ephemeral URLs found — all media already persistent' });
+    }
+
+    let rescued = 0, expired = 0, failed = 0;
+    const details = [];
+    for (const item of rows) {
+      const permanent = await uploadFromUrl(item.image_url, {
+        prefix: 'content',
+        filename: `ci_${item.id}`,
+        contentType: 'image/png'
+      });
+      if (!permanent) {
+        // Most likely the DALL-E URL already expired (60min TTL)
+        expired++;
+        details.push({ id: item.id, title: item.title, status: 'expired' });
+        continue;
+      }
+      // Patch the row
+      const patch = await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${item.id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ image_url: permanent, image_persisted: true })
+      });
+      if (patch.ok) { rescued++; details.push({ id: item.id, title: item.title, status: 'rescued', new_url: permanent }); }
+      else { failed++; details.push({ id: item.id, title: item.title, status: 'patch_failed' }); }
+    }
+    return res.status(200).json({ ok: true, checked: rows.length, rescued, expired, failed, details });
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: refresh-metrics-live — on-demand Graph API pull (Ticket #15)
+// Triggered by the "🔄 Refresh live" button on the analytics tab so users
+// don't have to wait for the daily cron.
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleRefreshMetricsLive(req, res) {
+  try {
+    const { runMetricsFetch } = require('./_lib/content-metrics');
+    const result = await runMetricsFetch(20);
+    return res.status(200).json({ ok: true, ...result, refreshed_at: new Date().toISOString() });
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: approve-item — flip approval_status on a content_calendar row (Ticket #13)
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleApproveItem(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { id, approved } = req.body || {};
+  if (!id) return res.status(400).json({ error: 'id required' });
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+  const r = await fetch(`${supabaseUrl}/rest/v1/content_calendar?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify({ approval_status: approved === false ? 'rejected' : 'approved', approved_at: new Date().toISOString() })
+  });
+  const rows = r.ok ? await r.json().catch(() => []) : [];
+  return res.status(r.ok ? 200 : 500).json({ ok: r.ok, row: rows?.[0] || null });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: unified-map — combined outbound view (Ticket #11)
+// Returns cadence steps + content_calendar items side-by-side for a date range.
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleUnifiedMap(req, res) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) return res.status(500).json({ error: 'Supabase not configured' });
+  const days = Math.min(parseInt(req.query?.days || 30, 10) || 30, 90);
+  const start = new Date().toISOString().slice(0, 10);
+  const end = new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+  try {
+    const [socialRes, cadenceRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/content_calendar?scheduled_date=gte.${start}&scheduled_date=lte.${end}&select=id,title,platform,status,scheduled_date,scheduled_time,approval_status,campaign_id,image_url,image_persisted&order=scheduled_date.asc`, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }),
+      fetch(`${supabaseUrl}/rest/v1/cadence_enrollments?select=id,cadence_id,contact_id,next_step_at,current_step,status&next_step_at=gte.${start}&next_step_at=lte.${end}&order=next_step_at.asc`, { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } })
+    ]);
+    const social = socialRes.ok ? await socialRes.json() : [];
+    const cadence = cadenceRes.ok ? await cadenceRes.json() : [];
+    return res.status(200).json({ ok: true, start, end, social, cadence });
+  } catch (err) {
+    return res.status(500).json({ error: err?.message || String(err) });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: go — short-link redirector (Ticket #9)
+// Folded into marketing.js to stay within Vercel Hobby 12-function cap.
+// vercel.json rewrite: /go/:code → /api/marketing?_route=go&code=:code
+// ═══════════════════════════════════════════════════════════════════════════════
+async function handleGoRedirect(req, res) {
+  const supabaseUrl = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const hdrs = { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}`, 'Content-Type': 'application/json' };
+
+  const code = (req.query?.code || '').slice(0, 16);
+  const utmSource   = req.query?.utm_source   || null;
+  const utmCampaign = req.query?.utm_campaign || null;
+  const utmContent  = req.query?.utm_content  || null;
+
+  if (!code || !/^[a-z0-9]{3,16}$/i.test(code)) {
+    res.status(404).end('Not Found');
+    return;
+  }
+
+  let target = 'https://smartswingai.com/';
+  try {
+    const r = await fetch(
+      `${supabaseUrl}/rest/v1/short_links?code=eq.${encodeURIComponent(code)}&select=target_url&limit=1`,
+      { headers: hdrs }
+    );
+    if (r.ok) {
+      const rows = await r.json().catch(() => []);
+      if (rows[0]?.target_url) target = rows[0].target_url;
+    }
+  } catch (_) {}
+
+  // Log click (fire-and-forget — non-fatal)
+  fetch(`${supabaseUrl}/rest/v1/short_link_clicks`, {
+    method: 'POST',
+    headers: { ...hdrs, Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      code,
+      clicked_at: new Date().toISOString(),
+      user_agent: (req.headers['user-agent'] || '').slice(0, 500),
+      referrer:   (req.headers.referer    || '').slice(0, 500),
+      utm_source: utmSource, utm_campaign: utmCampaign, utm_content: utmContent
+    })
+  }).catch(() => {});
+
+  if (utmContent) {
+    fetch(`${supabaseUrl}/rest/v1/rpc/increment_content_clicks`, {
+      method: 'POST',
+      headers: { ...hdrs, Prefer: 'return=minimal' },
+      body: JSON.stringify({ item_id: utmContent })
+    }).catch(() => {});
+  }
+
+  res.setHeader('Location', target);
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(302).end();
+}
+
 const ROUTES = {
-  'agent':           handleAgent,
+  'agent':               handleAgent,
+  'regenerate-visual':   handleRegenerateVisual,
+  'save-draft':          handleSaveDraft,
+  'publish-now':         handlePublishNow,
+  'publish-run':         handlePublishRun,
+  'backfill-media':      handleBackfillMedia,
+  'refresh-metrics-live': handleRefreshMetricsLive,
+  'approve-item':        handleApproveItem,
+  'unified-map':         handleUnifiedMap,
+  'score-leads':       handleScoreLeads,
+  'suggest-time':      handleSuggestTime,
+  'generate-video':    handleGenerateVideo,
+  'metrics-fetch':     handleMetricsFetch,
+  'top-performers':    handleTopPerformers,
+  'weekly-digest':     handleWeeklyDigest,
+  'meta-webhook':      handleMetaWebhook,
   'orchestrate':     handleOrchestrate,
-  'enroll-cadence':  handleEnrollCadence,
+  'generate-ai-copy':    handleGenerateAiCopy,
+  'bulk-delete-contacts': handleBulkDeleteContacts,
+  'enroll-cadence':      handleEnrollCadence,
+  'unenroll-cadence':    handleUnenrollCadence,
+  'enrollment-timeline': handleEnrollmentTimeline,
+  'update-step':         handleUpdateStep,
   'cadences-list':   handleCadencesList,
   'opt-out-enrollment': handleOptOutEnrollment,
   'cadence-cta-redirect': handleCadenceCtaRedirect,
@@ -4015,6 +5986,10 @@ const ROUTES = {
   'social-health':   handleSocialHealth,
   'snapshot-social-stats': handleSnapshotSocialStats,
   'social-stats-latest':   handleSocialStatsLatest,
+  'send-whatsapp':       handleSendWhatsapp,
+  'send-bulk-whatsapp':  handleSendBulkWhatsapp,
+  'whatsapp-status':     handleWhatsappStatus,
+  'whatsapp-templates':  handleWhatsappTemplates,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
@@ -4028,12 +6003,9 @@ const ROUTES = {
   'auto-publish':      handleAutoPublish,
   'prospect-clubs':    handleProspectClubs,
   'prospect-players':  handleProspectPlayers,
-  'enrich-emails':     handleEnrichEmails
+  'enrich-emails':     handleEnrichEmails,
+  'go':                handleGoRedirect
 };
-
-// Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
-// Orchestration with 4 Claude calls + DALL-E needs the full window.
-module.exports.maxDuration = 60;
 
 module.exports = async function handler(req, res) {
   // The _route param is injected by Vercel rewrite:
@@ -4057,3 +6029,8 @@ module.exports = async function handler(req, res) {
 
   return handlerFn(req, res);
 };
+
+// Vercel Hobby plan: max 60s. Pro plan would allow up to 300s.
+// Orchestration with 4 Claude calls + DALL-E needs the full window.
+// IMPORTANT: maxDuration must be set AFTER module.exports is assigned to take effect.
+module.exports.maxDuration = 60;

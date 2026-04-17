@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Your SmartSwing AI Account</title>
   <meta name="description" content="Create a SmartSwing AI player or coach account with Google, Apple, or email. Start analyzing your tennis swings with AI in 60 seconds.">
-  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="robots" content="index,follow">
   <link rel="manifest" href="./manifest.json">
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
@@ -978,6 +978,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           startTrial: document.getElementById('startTrial').value === '1',
           userRole: document.getElementById('userRole').value
         });
+
+        // Meta Pixel Lead + GA4 generate_lead on successful signup
+        try {
+          if (window.SmartSwingAnalytics && window.SmartSwingAnalytics.conversion) {
+            window.SmartSwingAnalytics.conversion(
+              'Lead', { content_name: 'signup', content_category: document.getElementById('userRole').value || 'player' },
+              'generate_lead', { method: 'signup_form', plan: document.getElementById('planId').value }
+            );
+          }
+        } catch (_) { /* silent */ }
 
         if (result?.requiresEmailConfirmation) {
           showAlert('Account created. Check your email and confirm your address before signing in.', 'success');

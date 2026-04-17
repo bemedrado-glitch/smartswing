@@ -571,6 +571,24 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
+  <script>
+    // Meta Pixel InitiateCheckout + GA4 begin_checkout on checkout page load
+    (function () {
+      function fire() {
+        if (window.SmartSwingAnalytics && window.SmartSwingAnalytics.conversion) {
+          var params = new URLSearchParams(window.location.search);
+          var plan = params.get('plan') || 'pro';
+          var interval = params.get('interval') || 'monthly';
+          window.SmartSwingAnalytics.conversion(
+            'InitiateCheckout', { content_name: plan, content_category: 'subscription' },
+            'begin_checkout', { currency: 'USD', items: [{ item_id: plan, item_name: plan, item_category: interval }] }
+          );
+        } else { setTimeout(fire, 200); }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fire);
+      else fire();
+    })();
+  </script>
   <script src="/api/runtime-config.js"></script>
   <script src="./app-data.js"></script>
   <script>

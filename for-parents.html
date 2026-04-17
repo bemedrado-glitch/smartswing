@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -156,6 +156,20 @@
   <link rel="stylesheet" href="./growth-pages.css">
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
+  <script>
+    (function () {
+      function fire() {
+        if (window.SmartSwingAnalytics && window.SmartSwingAnalytics.conversion) {
+          window.SmartSwingAnalytics.conversion(
+            'ViewContent', { content_name: 'for-parents', content_category: 'audience' },
+            'view_item', { item_category: 'audience', item_name: 'For Parents' }
+          );
+        } else { setTimeout(fire, 200); }
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fire);
+      else fire();
+    })();
+  </script>
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
