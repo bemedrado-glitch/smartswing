@@ -2570,7 +2570,7 @@ async function handleSocialHealth(req, res) {
           remediation: pageR.error.code === 190
             ? 'Token expired or invalidated. Go to https://developers.facebook.com → your app → WhatsApp/Marketing → API Setup → copy new Page Access Token → update META_PAGE_ACCESS_TOKEN in Vercel → redeploy.'
             : pageR.error.code === 100
-            ? 'META_PAGE_ID is wrong or the token doesn''t have access to this page. Verify Page ID at facebook.com/yourpage → About → Page ID.'
+            ? "META_PAGE_ID is wrong or the token doesn't have access to this page. Verify Page ID at facebook.com/yourpage → About → Page ID."
             : 'See error_message. Most auth/token errors are resolved by regenerating the Page Access Token.'
         };
       } else {
