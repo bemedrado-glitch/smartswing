@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smartswing.ai/schemas/post-package.schema.json",
+  "title": "PostPackage",
+  "description": "The assembled, ready-to-ship unit. Built deterministically by the Assembler from one ContentBrief + Copywriter output + Visual/Video outputs. Scored by Editor-in-Chief, final-approved by CMO, consumed by Scheduler + Publisher.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "package_id",
+    "brief_id",
+    "platform",
+    "copy",
+    "assets",
+    "platform_variants",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "package_id": {
+      "type": "string",
+      "pattern": "^pkg_[0-9]{8}_[a-z0-9]{6,}$"
+    },
+    "brief_id": {
+      "type": "string",
+      "pattern": "^brief_[0-9]{8}_[a-z0-9]{6,}$",
+      "description": "Foreign key back to the ContentBrief this package implements."
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["tiktok", "instagram", "youtube", "facebook", "linkedin", "blog", "email", "x"]
+    },
+    "copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body"],
+      "description": "Copywriter output, normalized. One source of truth; platform_variants derive from this.",
+      "properties": {
+        "headline": { "type": "string", "maxLength": 120 },
+        "subheadline": { "type": "string", "maxLength": 240 },
+        "body": { "type": "string", "minLength": 1 },
+        "caption": { "type": "string", "maxLength": 2200 },
+        "script": {
+          "type": "array",
+          "description": "For video: ordered spoken/on-screen lines with timing.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seconds", "line"],
+            "properties": {
+              "seconds": { "type": "number", "minimum": 0 },
+              "line": { "type": "string" },
+              "kind": { "type": "string", "enum": ["voiceover", "on_screen", "dialogue"], "default": "voiceover" }
+            }
+          }
+        },
+        "email_subject": { "type": "string", "maxLength": 120 },
+        "email_preheader": { "type": "string", "maxLength": 140 }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Uploaded/generated media artifacts. Each has a resolvable URL (Supabase storage or CDN).",
+      "properties": {
+        "visuals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "kind", "aspect_ratio"],
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "kind": { "type": "string", "enum": ["image", "infographic", "banner", "screenshot"] },
+              "aspect_ratio": { "type": "string", "enum": ["1:1", "4:5", "9:16", "16:9", "1.91:1"] },
+              "alt_text": { "type": "string", "minLength": 4, "description": "Accessibility — required for publish." },
+              "source_model": { "type": "string", "description": "e.g. 'flux-dev', 'nano-banana-pro', 'dalle-3'." },
+              "width": { "type": "integer" },
+              "height": { "type": "integer" }
+            }
+          }
+        },
+        "video": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "url": { "type": "string", "format": "uri" },
+            "duration_seconds": { "type": "number", "minimum": 0 },
+            "captions_url": { "type": "string", "format": "uri", "description": "SRT/VTT file." },
+            "thumbnail_url": { "type": "string", "format": "uri" },
+            "source_model": { "type": "string", "description": "e.g. 'kling-v2', 'runway-gen4', 'veo-3'." },
+            "aspect_ratio": { "type": "string", "enum": ["9:16", "1:1", "16:9", "4:5"] }
+          }
+        }
+      }
+    },
+    "platform_variants": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Per-platform overrides. Publisher uses the variant matching 'platform'.",
+      "properties": {
+        "tiktok":    { "$ref": "#/$defs/variant" },
+        "instagram": { "$ref": "#/$defs/variant" },
+        "youtube":   { "$ref": "#/$defs/variant" },
+        "facebook":  { "$ref": "#/$defs/variant" },
+        "linkedin":  { "$ref": "#/$defs/variant" },
+        "blog":      { "$ref": "#/$defs/variant" },
+        "email":     { "$ref": "#/$defs/variant" },
+        "x":         { "$ref": "#/$defs/variant" }
+      }
+    },
+    "hashtags": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^#[A-Za-z0-9_]{1,99}$" },
+      "maxItems": 30
+    },
+    "mentions": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^@[A-Za-z0-9_.]{1,30}$" }
+    },
+    "scheduled_for": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Set by Scheduler after CMO approval. Publisher reads this."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "assembled",
+        "in_review",
+        "revise_requested",
+        "approved",
+        "scheduled",
+        "publishing",
+        "published",
+        "failed",
+        "rejected"
+      ]
+    },
+    "editor_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Editor-in-Chief output. Rubric-scored, structured feedback.",
+      "required": ["decision", "scores", "rubric_version"],
+      "properties": {
+        "decision": { "type": "string", "enum": ["approved", "revise", "reject"] },
+        "rubric_version": { "type": "string", "pattern": "^v[0-9]+(\\.[0-9]+)?$" },
+        "scores": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "brand_voice",
+            "hook_strength",
+            "cta_clarity",
+            "platform_fit",
+            "factual_accuracy",
+            "legal_compliance"
+          ],
+          "properties": {
+            "brand_voice":      { "type": "integer", "minimum": 0, "maximum": 5 },
+            "hook_strength":    { "type": "integer", "minimum": 0, "maximum": 5 },
+            "cta_clarity":      { "type": "integer", "minimum": 0, "maximum": 5 },
+            "platform_fit":     { "type": "integer", "minimum": 0, "maximum": 5 },
+            "factual_accuracy": { "type": "integer", "minimum": 0, "maximum": 5 },
+            "legal_compliance": { "type": "integer", "minimum": 0, "maximum": 5 }
+          }
+        },
+        "revision_notes": {
+          "type": "array",
+          "description": "Structured feedback for Copy/Visual/Video when decision = revise. Max 2 revise cycles enforced by orchestrator.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["target", "issue", "fix"],
+            "properties": {
+              "target":  { "type": "string", "enum": ["copy", "visual", "video", "hashtags", "cta"] },
+              "issue":   { "type": "string" },
+              "fix":     { "type": "string" },
+              "severity": { "type": "string", "enum": ["blocker", "major", "minor"], "default": "major" }
+            }
+          }
+        },
+        "reviewed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "cmo_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Human-in-the-loop final gate. Only set after editor_review.decision = approved.",
+      "required": ["decision", "decided_by", "decided_at"],
+      "properties": {
+        "decision":   { "type": "string", "enum": ["approve", "reject", "hold"] },
+        "decided_by": { "type": "string", "description": "auth.users.id (uuid) of CMO." },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "note":       { "type": "string" }
+      }
+    },
+    "revision_cycle": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2,
+      "default": 0,
+      "description": "Orchestrator hard-stops at 2 and escalates to human."
+    },
+    "legal_flags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["contains_claims", "contains_testimonial", "contains_price", "contains_competitor_name", "contains_medical_claim"]
+      }
+    },
+    "cost_cents": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Sum of model + generation costs for observability."
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Platform-specific copy override. Null fields fall back to top-level copy.",
+      "properties": {
+        "text":     { "type": "string" },
+        "title":    { "type": "string" },
+        "first_comment": { "type": "string", "description": "Used on Instagram for extra hashtags." },
+        "link_placement": { "type": "string", "enum": ["inline", "first_comment", "bio", "description", "none"] },
+        "asset_order":  { "type": "array", "items": { "type": "integer" }, "description": "Indexes into assets.visuals." }
+      }
+    }
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smartswing.ai/schemas/post-result.schema.json",
+  "title": "PostResult",
+  "description": "The post-publish feedback artifact. Publisher writes the initial row at publish time; Analyst updates metrics on a daily cron. Closes the loop back to Strategist.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "result_id",
+    "package_id",
+    "brief_id",
+    "platform",
+    "status",
+    "published_at"
+  ],
+  "properties": {
+    "result_id": {
+      "type": "string",
+      "pattern": "^res_[0-9]{8}_[a-z0-9]{6,}$"
+    },
+    "package_id": {
+      "type": "string",
+      "pattern": "^pkg_[0-9]{8}_[a-z0-9]{6,}$"
+    },
+    "brief_id": {
+      "type": "string",
+      "pattern": "^brief_[0-9]{8}_[a-z0-9]{6,}$"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["tiktok", "instagram", "youtube", "facebook", "linkedin", "blog", "email", "x"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["published", "publish_failed", "removed", "unpublished"]
+    },
+    "external_post_id": {
+      "type": "string",
+      "description": "Platform-native ID (Tweet ID, Instagram media ID, YouTube video ID, etc.)."
+    },
+    "external_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical URL of the live post."
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publish_error": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Present only when status = publish_failed.",
+      "required": ["code", "message"],
+      "properties": {
+        "code":    { "type": "string" },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean", "default": false },
+        "retry_count": { "type": "integer", "minimum": 0, "default": 0 }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Latest measured engagement. Overwritten by Analyst on each pull (not append).",
+      "properties": {
+        "reach":          { "type": "integer", "minimum": 0 },
+        "impressions":    { "type": "integer", "minimum": 0 },
+        "views":          { "type": "integer", "minimum": 0 },
+        "likes":          { "type": "integer", "minimum": 0 },
+        "comments":       { "type": "integer", "minimum": 0 },
+        "shares":         { "type": "integer", "minimum": 0 },
+        "saves":          { "type": "integer", "minimum": 0 },
+        "clicks":         { "type": "integer", "minimum": 0 },
+        "ctr":            { "type": "number", "minimum": 0, "maximum": 1 },
+        "engagement_rate":{ "type": "number", "minimum": 0, "maximum": 1 },
+        "watch_time_seconds": { "type": "number", "minimum": 0 },
+        "avg_watch_pct":  { "type": "number", "minimum": 0, "maximum": 1 },
+        "followers_gained": { "type": "integer" },
+        "measured_at":    { "type": "string", "format": "date-time" }
+      }
+    },
+    "conversions": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Attributed conversions. Joined via UTM + internal signup events.",
+      "properties": {
+        "signups":        { "type": "integer", "minimum": 0 },
+        "trial_starts":   { "type": "integer", "minimum": 0 },
+        "upgrades":       { "type": "integer", "minimum": 0 },
+        "coach_bookings": { "type": "integer", "minimum": 0 },
+        "revenue_cents":  { "type": "integer", "minimum": 0 },
+        "attribution_window_days": { "type": "integer", "minimum": 1, "maximum": 30, "default": 7 }
+      }
+    },
+    "metric_history": {
+      "type": "array",
+      "description": "Append-only time series for plotting. Each entry is a snapshot of metrics at measured_at.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at"],
+        "properties": {
+          "at":              { "type": "string", "format": "date-time" },
+          "reach":           { "type": "integer" },
+          "impressions":     { "type": "integer" },
+          "engagement_rate": { "type": "number" },
+          "clicks":          { "type": "integer" },
+          "conversions":     { "type": "integer" }
+        }
+      }
+    },
+    "success_evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Did this post hit its Brief.success_metric.target_value? Computed by Analyst.",
+      "required": ["primary_metric", "target_value", "actual_value", "hit"],
+      "properties": {
+        "primary_metric": {
+          "type": "string",
+          "enum": [
+            "reach",
+            "impressions",
+            "engagement_rate",
+            "ctr",
+            "signups",
+            "trial_starts",
+            "upgrades",
+            "saves",
+            "shares",
+            "watch_time_seconds"
+          ]
+        },
+        "target_value": { "type": "number" },
+        "actual_value": { "type": "number" },
+        "hit":          { "type": "boolean" },
+        "ratio":        { "type": "number", "description": "actual / target. >=1 = hit." },
+        "evaluated_at": { "type": "string", "format": "date-time" },
+        "evaluation_window_hours": { "type": "integer", "minimum": 1, "default": 72 }
+      }
+    },
+    "learning_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Structured tags the Strategist ingests weekly to update ContentPlan.",
+      "properties": {
+        "top_performing_dimension": {
+          "type": "string",
+          "enum": ["hook", "angle", "format", "cta", "visual", "timing", "platform", "persona"]
+        },
+        "underperforming_dimension": {
+          "type": "string",
+          "enum": ["hook", "angle", "format", "cta", "visual", "timing", "platform", "persona"]
+        },
+        "notes": { "type": "string", "maxLength": 1000 }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  }
+}
