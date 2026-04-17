@@ -97,12 +97,31 @@ Dimensions: `brand_voice`, `hook_strength`, `cta_clarity`, `platform_fit`, `fact
 
 `api/marketing.js` lines 129–187 (`SYSTEM_PROMPTS`) and lines 310–3400 (workflow chains) will be migrated in phases. Current behavior kept behind a feature flag until the new pipeline is validated end-to-end on one platform (recommend: LinkedIn, lowest-risk audience).
 
-## Migration phases (proposed — not yet sequenced)
+## Migration phases
 
 1. Schemas + validators land in `api/_lib/schemas/` ← **DONE**
-2. Assembler + Editor-in-Chief endpoints (deterministic + scored gate)
-3. Planner endpoint (brief generation from a seed plan)
-4. Publisher adapters (start with one platform)
-5. Analyst cron + PostResult updates
-6. Strategist weekly loop
-7. Flip old `WORKFLOW_CHAINS` off
+2. Assembler + Editor-in-Chief endpoints ← **DONE** (`/api/marketing/pipeline-assemble`, `/api/marketing/pipeline-review`)
+3. Planner endpoint ← **DONE** (`/api/marketing/pipeline-plan`, `/api/marketing/pipeline-copy`)
+4. Publisher adapters (start with one platform) — NEXT
+5. Analyst cron + PostResult updates — NEXT
+6. Strategist weekly loop — NEXT
+7. Flip old `WORKFLOW_CHAINS` off — NEXT (pipeline prompts now live as `PIPELINE_PROMPTS` alongside the legacy `SYSTEM_PROMPTS` so the old dashboard keeps working during cutover)
+
+## Endpoint reference (current state)
+
+| Endpoint | Method | Input | Output | LLM? |
+|---|---|---|---|---|
+| `/api/marketing/pipeline-plan` | POST | `{ topic, platform, persona?, format?, plan_id?, notes? }` | `{ success, brief }` (validated ContentBrief) | ✅ (Planner prompt) |
+| `/api/marketing/pipeline-copy` | POST | `{ brief }` (ContentBrief) | `{ success, copy, brief_id }` | ✅ (Copywriter v2 prompt) |
+| `/api/marketing/pipeline-assemble` | POST | `{ brief, copy, visuals?, video?, hashtags?, mentions?, platform_variants? }` | `{ success, package }` (validated PostPackage) | ❌ (deterministic) |
+| `/api/marketing/pipeline-review` | POST | `{ package }` (PostPackage) | `{ success, review }` (decision + scores + revision_notes) | ✅ (Editor-in-Chief prompt) |
+
+### Decision enforcement (server-side)
+
+Editor-in-Chief output is re-validated server-side to prevent LLM drift:
+
+- `legal_compliance <= 2` OR any score = 0 → forced to `reject`
+- any score = 2 → forced to `revise`
+- all scores >= 3 → forced to `approved`
+
+If the LLM's decision differs from the enforced one, the response flips and `_enforced: true` is added to the review object.
