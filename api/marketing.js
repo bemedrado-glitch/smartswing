@@ -96,6 +96,24 @@ async function supabaseBulkInsert(supabaseUrl, key, table, rows) {
   return Array.isArray(result) ? result : [result];
 }
 
+async function supabaseRpc(supabaseUrl, key, fnName, args) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(args || {})
+  });
+  if (!response.ok) {
+    const errText = await response.text().catch(() => response.statusText);
+    throw new Error(`Supabase RPC ${fnName} failed (${response.status}): ${errText}`);
+  }
+  const text = await response.text();
+  try { return text ? JSON.parse(text) : null; } catch { return text; }
+}
+
 async function supabasePatch(supabaseUrl, key, table, id, patch) {
   const response = await fetch(`${supabaseUrl}/rest/v1/${table}?id=eq.${id}`, {
     method: 'PATCH',
@@ -662,7 +680,8 @@ async function handleEnrollCadence(req, res) {
   try {
     let cadenceName = cadence_id;
     try {
-      const cadences = await supabaseGet(`${supabase_url}/rest/v1/cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
+      // FIX: was /rest/v1/cadences (non-existent); real table is email_cadences
+      const cadences = await supabaseGet(`${supabase_url}/rest/v1/email_cadences?id=eq.${cadence_id}&select=id,name&limit=1`, supabase_key);
       if (cadences && cadences.length > 0) cadenceName = cadences[0].name || cadence_id;
     } catch (err) { console.warn('Cadence metadata lookup failed (non-fatal):', err.message); }
 
@@ -675,44 +694,212 @@ async function handleEnrollCadence(req, res) {
       current_step: 1, next_step_at: now, enrolled_at: now, created_at: now
     });
 
-    const executions = [];
+    // Writes to cadence_enrollment_steps (new schema) — NOT cadence_step_executions (deprecated).
+    // Column mapping: step_num (was sequence_num), step_type (was type), body for email, message for sms.
+    const stepsToInsert = [];
     for (const step of (emailSteps || [])) {
-      executions.push({
-        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
-        step_id: step.id || null, sequence_num: step.sequence_num, type: 'email',
-        subject: step.subject || null, body: step.body || step.html_body || null,
-        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0), created_at: now
+      stepsToInsert.push({
+        id: generateUUID(),
+        enrollment_id: enrollmentId,
+        contact_id,
+        cadence_id,
+        step_num: step.sequence_num,
+        step_type: 'email',
+        subject: step.subject || null,
+        body: step.body_text || step.body_html || step.body || null,
+        status: 'pending',
+        scheduled_at: addDays(now, step.delay_days || 0),
+        created_at: now
       });
     }
     for (const step of (smsSteps || [])) {
-      executions.push({
-        id: generateUUID(), enrollment_id: enrollmentId, contact_id, cadence_id,
-        step_id: step.id || null, sequence_num: step.sequence_num, type: 'sms',
-        subject: null, body: step.message || step.body || null,
-        status: 'pending', scheduled_at: addDays(now, step.delay_days || 0), created_at: now
+      stepsToInsert.push({
+        id: generateUUID(),
+        enrollment_id: enrollmentId,
+        contact_id,
+        cadence_id,
+        step_num: step.sequence_num,
+        step_type: 'sms',
+        subject: null,
+        message: step.message || step.body || null,
+        status: 'pending',
+        scheduled_at: addDays(now, step.delay_days || 0),
+        created_at: now
       });
     }
-    executions.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+    stepsToInsert.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
 
-    let insertedExecutions = [];
-    if (executions.length > 0) {
-      insertedExecutions = await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_step_executions', executions);
+    if (stepsToInsert.length > 0) {
+      await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_enrollment_steps', stepsToInsert);
     }
 
-    const nextStepAt = executions.length > 0 ? executions[0].scheduled_at : now;
-    const schedule = executions.map((exec, idx) => ({
-      step: idx + 1, type: exec.type, subject: exec.subject || null,
-      body_preview: exec.body ? exec.body.substring(0, 100) : null, scheduled_at: exec.scheduled_at
+    const nextStepAt = stepsToInsert.length > 0 ? stepsToInsert[0].scheduled_at : now;
+    const schedule = stepsToInsert.map((exec, idx) => ({
+      step: idx + 1,
+      type: exec.step_type,
+      subject: exec.subject || null,
+      body_preview: (exec.body || exec.message || '').substring(0, 100) || null,
+      scheduled_at: exec.scheduled_at
     }));
 
     return res.status(200).json({
       success: true, enrollment_id: enrollment?.id || enrollmentId,
       contact_id, cadence_id, cadence_name: cadenceName,
-      steps_scheduled: executions.length, next_step_at: nextStepAt, schedule
+      steps_scheduled: stepsToInsert.length, next_step_at: nextStepAt, schedule
     });
   } catch (err) {
     console.error('Enroll-cadence handler error:', err);
     return res.status(500).json({ error: 'Internal server error', message: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: cadences-list — active cadences for enroll dropdown
+// Fixes the "empty cadence dropdown" bug by sourcing from email_cadences (not a
+// non-existent 'cadences' table).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleCadencesList(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const supabase_url = req.query.supabase_url || (req.body && req.body.supabase_url);
+  const supabase_key = req.query.supabase_key || (req.body && req.body.supabase_key);
+  if (!supabase_url || !supabase_key) {
+    return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  }
+  try {
+    // Count steps per cadence for the UI "X emails + Y SMS"
+    const cadences = await supabaseGet(
+      `${supabase_url}/rest/v1/email_cadences?is_active=eq.true&select=id,name,methodology,target_persona,description,is_active&order=name`,
+      supabase_key
+    );
+    // Hydrate step counts
+    const withCounts = await Promise.all((cadences || []).map(async c => {
+      try {
+        const [emails, sms] = await Promise.all([
+          supabaseGet(`${supabase_url}/rest/v1/cadence_emails?cadence_id=eq.${c.id}&select=id`, supabase_key),
+          supabaseGet(`${supabase_url}/rest/v1/cadence_sms?cadence_id=eq.${c.id}&select=id`, supabase_key)
+        ]);
+        return { ...c, email_steps: (emails || []).length, sms_steps: (sms || []).length, total_steps: (emails || []).length + (sms || []).length };
+      } catch { return { ...c, email_steps: 0, sms_steps: 0, total_steps: 0 }; }
+    }));
+    return res.status(200).json({ success: true, cadences: withCounts, count: withCounts.length });
+  } catch (err) {
+    console.error('cadences-list error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: opt-out-enrollment
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleOptOutEnrollment(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { enrollment_id, reason, supabase_url, supabase_key } = req.body || {};
+  if (!enrollment_id) return res.status(400).json({ error: 'enrollment_id is required' });
+  if (!supabase_url || !supabase_key) return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  try {
+    const ok = await supabaseRpc(supabase_url, supabase_key, 'opt_out_enrollment', {
+      p_enrollment_id: enrollment_id,
+      p_reason: reason || 'manual'
+    });
+    return res.status(200).json({ success: ok === true || ok === 'true', enrollment_id });
+  } catch (err) {
+    console.error('opt-out-enrollment error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: cadence-cta-redirect
+// Link-click tracker. Cadence emails/SMS use a URL like:
+//   https://.../api/marketing/cadence-cta-redirect?e=<enrollment_id>&u=<destination>
+// This logs the click via record_cadence_cta_click RPC (removes from active,
+// logs history), then 302s to the real destination.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleCadenceCtaRedirect(req, res) {
+  const e = req.query.e;
+  const u = req.query.u;
+  if (!e || !u) return res.status(400).json({ error: 'Missing e (enrollment_id) or u (destination)' });
+  const supabase_url = process.env.SUPABASE_URL;
+  const supabase_key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  try {
+    if (supabase_url && supabase_key) {
+      await supabaseRpc(supabase_url, supabase_key, 'record_cadence_cta_click', {
+        p_enrollment_id: e,
+        p_cta_url: u
+      }).catch(err => console.warn('CTA click RPC failed (non-fatal):', err.message));
+    }
+  } finally {
+    // Always redirect — never strand the user
+    res.writeHead(302, { Location: u });
+    res.end();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: enrollments-list — feeds the Enrollments tab
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleEnrollmentsList(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const supabase_url = req.query.supabase_url || (req.body && req.body.supabase_url);
+  const supabase_key = req.query.supabase_key || (req.body && req.body.supabase_key);
+  const cadence_id   = req.query.cadence_id;
+  if (!supabase_url || !supabase_key) {
+    return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  }
+  try {
+    let qs = 'select=*&order=enrolled_at.desc';
+    if (cadence_id) qs += `&cadence_id=eq.${cadence_id}`;
+    const rows = await supabaseGet(`${supabase_url}/rest/v1/v_active_enrollments?${qs}`, supabase_key);
+    // Group by cadence for the UI
+    const grouped = {};
+    (rows || []).forEach(r => {
+      const key = r.cadence_id || 'unknown';
+      if (!grouped[key]) grouped[key] = { cadence_id: key, cadence_name: r.cadence_name, methodology: r.methodology, rows: [] };
+      grouped[key].rows.push(r);
+    });
+    return res.status(200).json({
+      success: true,
+      total: (rows || []).length,
+      enrollments: rows || [],
+      grouped: Object.values(grouped)
+    });
+  } catch (err) {
+    console.error('enrollments-list error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: contact-history — feeds the History tab
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleContactHistory(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const supabase_url = req.query.supabase_url || (req.body && req.body.supabase_url);
+  const supabase_key = req.query.supabase_key || (req.body && req.body.supabase_key);
+  const contact_id   = req.query.contact_id;
+  const limit        = Math.min(parseInt(req.query.limit || '100', 10) || 100, 500);
+  if (!supabase_url || !supabase_key) {
+    return res.status(400).json({ error: 'supabase_url and supabase_key are required' });
+  }
+  try {
+    let qs = `select=*&order=occurred_at.desc&limit=${limit}`;
+    if (contact_id) qs += `&contact_id=eq.${contact_id}`;
+    const rows = await supabaseGet(`${supabase_url}/rest/v1/v_contact_history?${qs}`, supabase_key);
+    return res.status(200).json({ success: true, count: (rows || []).length, events: rows || [] });
+  } catch (err) {
+    console.error('contact-history error:', err);
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -1485,12 +1672,40 @@ async function handleCredentialsStatus(req, res) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SMS SENDING VIA AWS SNS
 // ═══════════════════════════════════════════════════════════════════════════════
+//
+// IMPORTANT: AWS SNS returns a MessageId the moment it ACCEPTS a PublishCommand.
+// Acceptance is NOT delivery. Messages can be silently dropped by:
+//   1. SMS Sandbox (destination not verified)
+//   2. Unverified toll-free origination number (AT&T/T-Mobile block in 2024+)
+//   3. Monthly SMS spend limit exhausted (default $1/month for new accounts)
+//   4. Destination carrier filter (Promotional type)
+// Use /sms-diagnostics to check account state before debugging send failures.
+
+function normalizeToE164(phone) {
+  if (!phone || typeof phone !== 'string') return null;
+  const digits = phone.replace(/[^\d+]/g, '');
+  // If it already starts with +, trust it (minimal validation)
+  if (digits.startsWith('+') && digits.length >= 8 && digits.length <= 16) return digits;
+  // If it's 10 digits, assume US
+  const bare = digits.replace(/^\+/, '');
+  if (bare.length === 10) return '+1' + bare;
+  if (bare.length === 11 && bare.startsWith('1')) return '+' + bare;
+  return null;
+}
 
 async function handleSendSms(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { phone, message, subject } = req.body || {};
+  const { phone, message, subject, sms_type } = req.body || {};
   if (!phone || !message) return res.status(400).json({ error: 'phone and message are required' });
+
+  const e164 = normalizeToE164(phone);
+  if (!e164) {
+    return res.status(400).json({
+      error: 'Invalid phone format. Expected E.164 (e.g. +15551234567) or 10-digit US number.',
+      received: phone
+    });
+  }
 
   const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
@@ -1501,24 +1716,447 @@ async function handleSendSms(req, res) {
   }
 
   const originationNumber = process.env.AWS_SMS_ORIGINATION_NUMBER || '+18885429135';
+  // Transactional has higher deliverability and lower carrier filtering than Promotional.
+  // Override with body.sms_type='Promotional' only for marketing blasts where opt-out is mandatory.
+  const smsType = (sms_type === 'Promotional') ? 'Promotional' : 'Transactional';
 
   try {
     const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
     const client = new SNSClient({ region, credentials: { accessKeyId, secretAccessKey } });
     const params = {
-      PhoneNumber: phone,
+      PhoneNumber: e164,
       Message: message,
       Subject: subject || undefined,
       MessageAttributes: {
         'AWS.MM.SMS.OriginationNumber': { DataType: 'String', StringValue: originationNumber },
-        'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Promotional' }
+        'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: smsType }
       }
     };
     const result = await client.send(new PublishCommand(params));
-    return res.status(200).json({ success: true, messageId: result.MessageId });
+    return res.status(200).json({
+      success: true,
+      status: 'accepted_by_sns',
+      delivery_guaranteed: false,
+      messageId: result.MessageId,
+      phone_e164: e164,
+      origination_number: originationNumber,
+      sms_type: smsType,
+      note: 'MessageId means SNS accepted the request. Actual delivery depends on sandbox status, spend limit, origination verification, and carrier filtering. Call /api/marketing/sms-diagnostics to check account state if the SMS does not arrive.'
+    });
   } catch (err) {
     console.error('[send-sms] Error:', err);
-    return res.status(500).json({ error: 'SMS send failed: ' + (err.message || 'Unknown error') });
+    return res.status(500).json({
+      error: 'SMS send failed: ' + (err.message || 'Unknown error'),
+      code: err.name || err.Code || null,
+      hint: 'Call /api/marketing/sms-diagnostics for account state.'
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOCIAL HEALTH — surfaces per-platform connection status with actionable errors
+// Tests each platform's token with a cheap "whoami"-style call and returns
+// { connected, error_code, remediation } so the dashboard can say WHY a
+// connection is broken instead of just "disconnected".
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSocialHealth(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const report = {};
+
+  // Meta (Page + Instagram) — share one token
+  const metaToken = process.env.META_PAGE_ACCESS_TOKEN;
+  const metaPageId = process.env.META_PAGE_ID || '724180587440946';
+  const metaIgId = process.env.META_IG_ACCOUNT_ID || '17841475762518145';
+  if (!metaToken) {
+    report.meta_facebook  = { connected: false, error_code: 'MISSING_TOKEN', remediation: 'Set META_PAGE_ACCESS_TOKEN in Vercel env vars.' };
+    report.meta_instagram = { connected: false, error_code: 'MISSING_TOKEN', remediation: 'Set META_PAGE_ACCESS_TOKEN in Vercel env vars.' };
+  } else {
+    try {
+      const [pageR, igR] = await Promise.all([
+        fetch(`https://graph.facebook.com/v21.0/${metaPageId}?fields=name,followers_count,fan_count&access_token=${metaToken}`).then(r => r.json()),
+        fetch(`https://graph.facebook.com/v21.0/${metaIgId}?fields=username,followers_count,media_count&access_token=${metaToken}`).then(r => r.json())
+      ]);
+      if (pageR.error) {
+        report.meta_facebook = {
+          connected: false,
+          error_code: pageR.error.code ? 'META_' + pageR.error.code : 'META_ERROR',
+          error_message: pageR.error.message,
+          error_subcode: pageR.error.error_subcode,
+          remediation: pageR.error.code === 190
+            ? 'Token expired or invalidated. Go to https://developers.facebook.com → your app → WhatsApp/Marketing → API Setup → copy new Page Access Token → update META_PAGE_ACCESS_TOKEN in Vercel → redeploy.'
+            : pageR.error.code === 100
+            ? 'META_PAGE_ID is wrong or the token doesn''t have access to this page. Verify Page ID at facebook.com/yourpage → About → Page ID.'
+            : 'See error_message. Most auth/token errors are resolved by regenerating the Page Access Token.'
+        };
+      } else {
+        report.meta_facebook = { connected: true, name: pageR.name, followers: pageR.followers_count || pageR.fan_count || 0 };
+      }
+      if (igR.error) {
+        report.meta_instagram = {
+          connected: false,
+          error_code: igR.error.code ? 'META_' + igR.error.code : 'META_ERROR',
+          error_message: igR.error.message,
+          remediation: igR.error.code === 190
+            ? 'Page token expired — fix Meta/Facebook first; same token covers Instagram.'
+            : 'Verify META_IG_ACCOUNT_ID matches the IG Business Account linked to the Facebook Page.'
+        };
+      } else {
+        report.meta_instagram = { connected: true, username: igR.username, followers: igR.followers_count || 0, media_count: igR.media_count || 0 };
+      }
+    } catch (e) {
+      report.meta_facebook  = { connected: false, error_code: 'NETWORK', error_message: e.message, remediation: 'Network error reaching graph.facebook.com. Retry.' };
+      report.meta_instagram = { connected: false, error_code: 'NETWORK', error_message: e.message, remediation: 'Network error reaching graph.facebook.com. Retry.' };
+    }
+  }
+
+  // TikTok — check token presence only (full validation requires a user token + display API)
+  const tiktokToken = process.env.TIKTOK_ACCESS_TOKEN;
+  if (!tiktokToken) {
+    report.tiktok = { connected: false, error_code: 'MISSING_TOKEN', remediation: 'Set TIKTOK_ACCESS_TOKEN in Vercel env vars. Get one from https://developers.tiktok.com/apps.' };
+  } else {
+    try {
+      // TikTok user info (minimal validation)
+      const r = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=display_name,follower_count,video_count', {
+        headers: { Authorization: 'Bearer ' + tiktokToken }
+      });
+      const d = await r.json();
+      if (d.error && d.error.code !== 'ok') {
+        report.tiktok = {
+          connected: false,
+          error_code: 'TIKTOK_' + (d.error.code || 'ERROR'),
+          error_message: d.error.message,
+          remediation: String(d.error.code || '').includes('expired')
+            ? 'TikTok token expired. Refresh via TikTok developer console and update TIKTOK_ACCESS_TOKEN.'
+            : 'See error_message. Likely scope or app-review issue.'
+        };
+      } else {
+        report.tiktok = {
+          connected: true,
+          username: d.data && d.data.user && d.data.user.display_name,
+          followers: d.data && d.data.user && d.data.user.follower_count,
+          video_count: d.data && d.data.user && d.data.user.video_count
+        };
+      }
+    } catch (e) {
+      report.tiktok = { connected: false, error_code: 'NETWORK', error_message: e.message, remediation: 'Network error reaching open.tiktokapis.com. Retry.' };
+    }
+  }
+
+  // YouTube — YOUTUBE_API_KEY (public data, no token refresh needed) OR YOUTUBE_ACCESS_TOKEN (authed)
+  const ytKey = process.env.YOUTUBE_API_KEY;
+  const ytChannelId = process.env.YOUTUBE_CHANNEL_ID;
+  if (!ytKey) {
+    report.youtube = { connected: false, error_code: 'MISSING_API_KEY', remediation: 'Set YOUTUBE_API_KEY in Vercel (public read-only key from Google Cloud Console → APIs & Services → YouTube Data API v3).' };
+  } else if (!ytChannelId) {
+    report.youtube = { connected: false, error_code: 'MISSING_CHANNEL_ID', remediation: 'Set YOUTUBE_CHANNEL_ID in Vercel. Find it at youtube.com/account_advanced.' };
+  } else {
+    try {
+      const r = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${ytChannelId}&key=${ytKey}`);
+      const d = await r.json();
+      if (d.error) {
+        report.youtube = {
+          connected: false,
+          error_code: 'YT_' + (d.error.code || 'ERROR'),
+          error_message: d.error.message,
+          remediation: d.error.code === 403
+            ? 'API key restricted or quota exceeded. Check https://console.cloud.google.com/apis/credentials and daily quota.'
+            : 'See error_message. If 400, verify YOUTUBE_CHANNEL_ID format (starts with UC...).'
+        };
+      } else if (!d.items || d.items.length === 0) {
+        report.youtube = { connected: false, error_code: 'CHANNEL_NOT_FOUND', remediation: 'YouTube returned 0 channels. Verify YOUTUBE_CHANNEL_ID.' };
+      } else {
+        const ch = d.items[0];
+        report.youtube = {
+          connected: true,
+          title: ch.snippet.title,
+          subscribers: Number(ch.statistics.subscriberCount || 0),
+          video_count: Number(ch.statistics.videoCount || 0),
+          view_count: Number(ch.statistics.viewCount || 0)
+        };
+      }
+    } catch (e) {
+      report.youtube = { connected: false, error_code: 'NETWORK', error_message: e.message, remediation: 'Network error reaching googleapis.com. Retry.' };
+    }
+  }
+
+  // LinkedIn — optional, token-gated
+  const liToken = process.env.LINKEDIN_ACCESS_TOKEN;
+  const liOrgId = process.env.LINKEDIN_ORGANIZATION_ID;
+  if (!liToken) {
+    report.linkedin = { connected: false, error_code: 'MISSING_TOKEN', remediation: 'Set LINKEDIN_ACCESS_TOKEN in Vercel. Get via https://www.linkedin.com/developers/apps → your app → Auth → generate token with r_organization_social scope.' };
+  } else if (!liOrgId) {
+    report.linkedin = { connected: false, error_code: 'MISSING_ORG_ID', remediation: 'Set LINKEDIN_ORGANIZATION_ID in Vercel (numeric ID of your LinkedIn company page).' };
+  } else {
+    try {
+      const r = await fetch(`https://api.linkedin.com/v2/organizationalEntityFollowerStatistics?q=organizationalEntity&organizationalEntity=urn:li:organization:${liOrgId}`, {
+        headers: { Authorization: 'Bearer ' + liToken, 'LinkedIn-Version': '202501', 'X-Restli-Protocol-Version': '2.0.0' }
+      });
+      const d = await r.json();
+      if (d.serviceErrorCode || d.status >= 400) {
+        report.linkedin = {
+          connected: false,
+          error_code: 'LI_' + (d.serviceErrorCode || d.status || 'ERROR'),
+          error_message: d.message,
+          remediation: d.serviceErrorCode === 65601 || d.status === 401
+            ? 'LinkedIn token expired (60-day default). Regenerate and update LINKEDIN_ACCESS_TOKEN.'
+            : 'See error_message. Scope r_organization_social required.'
+        };
+      } else {
+        const totals = (d.elements && d.elements[0]) || {};
+        report.linkedin = {
+          connected: true,
+          followers: (totals.followerCountsByAssociationType || []).reduce(function(a, x){ return a + (x.followerCounts ? (x.followerCounts.organicFollowerCount || 0) : 0); }, 0)
+        };
+      }
+    } catch (e) {
+      report.linkedin = { connected: false, error_code: 'NETWORK', error_message: e.message, remediation: 'Network error reaching api.linkedin.com.' };
+    }
+  }
+
+  // X / Twitter — optional
+  const xToken = process.env.X_BEARER_TOKEN;
+  const xUserId = process.env.X_USER_ID;
+  if (!xToken) {
+    report.x = { connected: false, error_code: 'MISSING_TOKEN', remediation: 'Set X_BEARER_TOKEN in Vercel (from developer.twitter.com → project → Keys and tokens).' };
+  } else if (!xUserId) {
+    report.x = { connected: false, error_code: 'MISSING_USER_ID', remediation: 'Set X_USER_ID in Vercel (numeric user ID; use https://tweeterid.com).' };
+  } else {
+    try {
+      const r = await fetch(`https://api.twitter.com/2/users/${xUserId}?user.fields=public_metrics,username,name`, {
+        headers: { Authorization: 'Bearer ' + xToken }
+      });
+      const d = await r.json();
+      if (d.errors || (d.status && d.status >= 400)) {
+        report.x = {
+          connected: false,
+          error_code: 'X_' + (d.status || (d.errors && d.errors[0] && d.errors[0].title) || 'ERROR'),
+          error_message: (d.errors && d.errors[0] && d.errors[0].detail) || d.detail,
+          remediation: 'Regenerate Bearer Token at developer.twitter.com. Note: free tier has 1 app + 1500 reads/mo.'
+        };
+      } else if (d.data) {
+        report.x = {
+          connected: true,
+          username: d.data.username,
+          followers: d.data.public_metrics && d.data.public_metrics.followers_count,
+          tweets: d.data.public_metrics && d.data.public_metrics.tweet_count
+        };
+      } else {
+        report.x = { connected: false, error_code: 'UNKNOWN_RESPONSE', remediation: 'X API returned unexpected shape.' };
+      }
+    } catch (e) {
+      report.x = { connected: false, error_code: 'NETWORK', error_message: e.message, remediation: 'Network error reaching api.twitter.com.' };
+    }
+  }
+
+  const connected = Object.values(report).filter(function(p) { return p.connected; }).length;
+  const total = Object.keys(report).length;
+  return res.status(200).json({ success: true, connected, total, platforms: report });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SNAPSHOT SOCIAL STATS — call /social-health, persist per-platform daily row
+// Hit via Vercel cron (daily). Upserts into social_stats_snapshots (unique on
+// platform + snapshot_date).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSnapshotSocialStats(req, res) {
+  // Protect against abuse — allow only with a valid cron secret or authed session
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const headerSecret = req.headers['x-cron-secret'] || req.query.cron_secret;
+    if (headerSecret !== cronSecret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  }
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) {
+    return res.status(500).json({ error: 'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY required for snapshot persistence.' });
+  }
+
+  // Reuse the social-health logic by calling it internally via a stub res
+  const healthReport = await new Promise((resolve, reject) => {
+    handleSocialHealth(req, {
+      status() { return this; },
+      json(obj) { resolve(obj); return this; }
+    }).catch(reject);
+  });
+  if (!healthReport || !healthReport.success) {
+    return res.status(500).json({ error: 'Could not compute social health.' });
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = Object.entries(healthReport.platforms).map(([platform, p]) => ({
+    platform,
+    snapshot_date: today,
+    followers: p.followers || p.subscribers || null,
+    posts: p.media_count || p.video_count || p.tweets || null,
+    views: p.view_count || null,
+    connected: !!p.connected,
+    error_code: p.error_code || null,
+    error_message: p.error_message || null,
+    raw: p
+  }));
+
+  // Upsert (platform, snapshot_date is unique)
+  try {
+    const upsertRes = await fetch(`${supabaseUrl}/rest/v1/social_stats_snapshots?on_conflict=platform,snapshot_date`, {
+      method: 'POST',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(rows)
+    });
+    if (!upsertRes.ok) {
+      const txt = await upsertRes.text().catch(() => '');
+      return res.status(500).json({ error: 'Upsert failed', details: txt.slice(0, 400) });
+    }
+    return res.status(200).json({ success: true, snapshot_date: today, platforms_written: rows.length, summary: healthReport.platforms });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+async function handleSocialStatsLatest(req, res) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !anonKey) return res.status(500).json({ error: 'Supabase config missing' });
+  try {
+    const r = await fetch(`${supabaseUrl}/rest/v1/v_social_stats_latest?select=*`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` }
+    });
+    const rows = await r.json();
+    return res.status(200).json({ success: true, stats: rows });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SMS DIAGNOSTICS — surfaces the 4 silent-drop failure modes
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function handleSmsDiagnostics(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const region = process.env.AWS_REGION || 'us-east-1';
+  const originationNumber = process.env.AWS_SMS_ORIGINATION_NUMBER || '+18885429135';
+
+  if (!accessKeyId || !secretAccessKey) {
+    return res.status(500).json({ error: 'AWS credentials not configured.' });
+  }
+
+  const report = {
+    region,
+    origination_number: originationNumber,
+    checks: {},
+    remediation: []
+  };
+
+  try {
+    const sns = require('@aws-sdk/client-sns');
+    const { SNSClient, GetSMSAttributesCommand, GetSMSSandboxAccountStatusCommand, ListSMSSandboxPhoneNumbersCommand } = sns;
+    const client = new SNSClient({ region, credentials: { accessKeyId, secretAccessKey } });
+
+    // 1. Account-level SMS attributes (spend limit + default type)
+    try {
+      const attrs = await client.send(new GetSMSAttributesCommand({}));
+      const a = attrs.attributes || {};
+      const monthlySpendLimit = a.MonthlySpendLimit ? Number(a.MonthlySpendLimit) : null;
+      report.checks.sms_attributes = {
+        ok: true,
+        monthly_spend_limit_usd: monthlySpendLimit,
+        default_sms_type: a.DefaultSMSType || null,
+        delivery_status_logging_role: a.DeliveryStatusIAMRole ? 'configured' : 'not_configured',
+        default_sender_id: a.DefaultSenderID || null
+      };
+      if (monthlySpendLimit !== null && monthlySpendLimit < 5) {
+        report.remediation.push({
+          severity: 'high',
+          issue: `Monthly SMS spend limit is $${monthlySpendLimit}`,
+          fix: 'AWS Console → SNS → Text messaging (SMS) → Preferences → raise Account spend limit. Default $1/mo is often exhausted in hours.'
+        });
+      }
+      if (!a.DeliveryStatusIAMRole) {
+        report.remediation.push({
+          severity: 'medium',
+          issue: 'No delivery-status logging configured — cannot see why messages fail after SNS accepts them.',
+          fix: 'AWS Console → SNS → Text messaging → Preferences → enable CloudWatch delivery status logs. Then retry a send and check CloudWatch log group /aws/sns/.../DirectPublishToPhoneNumber.'
+        });
+      }
+    } catch (e) {
+      report.checks.sms_attributes = { ok: false, error: e.message };
+    }
+
+    // 2. Sandbox status (biggest silent killer for new accounts)
+    try {
+      const sandbox = await client.send(new GetSMSSandboxAccountStatusCommand({}));
+      report.checks.sandbox_status = {
+        ok: true,
+        in_sandbox: sandbox.IsInSandbox === true,
+        note: sandbox.IsInSandbox
+          ? 'ACCOUNT IS IN SMS SANDBOX. Messages to unverified destinations drop silently.'
+          : 'Production access granted.'
+      };
+      if (sandbox.IsInSandbox) {
+        report.remediation.push({
+          severity: 'critical',
+          issue: 'AWS SNS is in SMS sandbox.',
+          fix: 'AWS Console → SNS → Text messaging → Sandbox destination phone numbers → add + verify target numbers for testing. For production: open a "Request SMS production access" case with AWS Support (Limits → SNS → SMS). Usually approved within 24h.'
+        });
+      }
+    } catch (e) {
+      report.checks.sandbox_status = { ok: false, error: e.message };
+    }
+
+    // 3. Verified sandbox destinations (only relevant if in sandbox)
+    if (report.checks.sandbox_status && report.checks.sandbox_status.in_sandbox === true) {
+      try {
+        const verified = await client.send(new ListSMSSandboxPhoneNumbersCommand({}));
+        report.checks.verified_sandbox_destinations = {
+          ok: true,
+          count: (verified.PhoneNumbers || []).length,
+          numbers: (verified.PhoneNumbers || []).map(p => ({
+            phone: p.PhoneNumber,
+            status: p.Status
+          }))
+        };
+      } catch (e) {
+        report.checks.verified_sandbox_destinations = { ok: false, error: e.message };
+      }
+    }
+
+    // 4. Origination number sanity
+    report.checks.origination_number = {
+      ok: /^\+1[0-9]{10}$/.test(originationNumber),
+      value: originationNumber,
+      note: originationNumber.startsWith('+1800') || originationNumber.startsWith('+1888') || originationNumber.startsWith('+1877') || originationNumber.startsWith('+1866') || originationNumber.startsWith('+1855') || originationNumber.startsWith('+1844') || originationNumber.startsWith('+1833')
+        ? 'US toll-free number detected. TFNs MUST be registered with carriers (TCR/AT&T/T-Mobile). Unregistered TFNs are blocked. Complete toll-free verification in AWS End User Messaging console.'
+        : 'Not a toll-free number.'
+    };
+    if (originationNumber === '+18885429135') {
+      report.remediation.push({
+        severity: 'high',
+        issue: 'Using hardcoded fallback toll-free number +18885429135.',
+        fix: 'Set AWS_SMS_ORIGINATION_NUMBER env var in Vercel to a number actually provisioned in your AWS account, and verify it\'s registered for carrier delivery.'
+      });
+    }
+
+    return res.status(200).json({ success: true, diagnostic: report });
+  } catch (err) {
+    console.error('[sms-diagnostics] Error:', err);
+    return res.status(500).json({ error: 'Diagnostics failed: ' + err.message, report });
   }
 }
 
@@ -1548,17 +2186,22 @@ async function handleSendBulkSms(req, res) {
     const originationNumber = process.env.AWS_SMS_ORIGINATION_NUMBER || '+18885429135';
 
     const results = await Promise.allSettled(
-      recipients.map(({ phone, message, subject }) => {
+      recipients.map(({ phone, message, subject, sms_type }) => {
         if (!phone || !message) {
           return Promise.reject(new Error('Each recipient must have phone and message'));
         }
+        const e164 = normalizeToE164(phone);
+        if (!e164) {
+          return Promise.reject(new Error('Invalid phone format (expected E.164 or 10-digit US): ' + phone));
+        }
+        const smsType = (sms_type === 'Promotional') ? 'Promotional' : 'Transactional';
         return client.send(new PublishCommand({
-          PhoneNumber: phone,
+          PhoneNumber: e164,
           Message: message,
           Subject: subject || undefined,
           MessageAttributes: {
             'AWS.MM.SMS.OriginationNumber': { DataType: 'String', StringValue: originationNumber },
-            'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: 'Promotional' }
+            'AWS.SNS.SMS.SMSType': { DataType: 'String', StringValue: smsType }
           }
         }));
       })
@@ -1566,15 +2209,22 @@ async function handleSendBulkSms(req, res) {
 
     const summary = results.map((r, i) => ({
       phone: recipients[i].phone,
-      success: r.status === 'fulfilled',
+      accepted_by_sns: r.status === 'fulfilled',
       messageId: r.status === 'fulfilled' ? r.value.MessageId : undefined,
       error: r.status === 'rejected' ? r.reason.message : undefined
     }));
 
-    const sent = summary.filter(s => s.success).length;
-    const failed = summary.filter(s => !s.success).length;
+    const accepted = summary.filter(s => s.accepted_by_sns).length;
+    const failed = summary.filter(s => !s.accepted_by_sns).length;
 
-    return res.status(200).json({ success: true, sent, failed, results: summary });
+    return res.status(200).json({
+      success: true,
+      accepted_by_sns: accepted,
+      failed,
+      delivery_guaranteed: false,
+      note: 'accepted_by_sns ≠ delivered. Run /api/marketing/sms-diagnostics if messages are not arriving.',
+      results: summary
+    });
   } catch (err) {
     console.error('[send-bulk-sms] Error:', err);
     return res.status(500).json({ error: 'Bulk SMS send failed: ' + (err.message || 'Unknown error') });
@@ -3347,6 +3997,11 @@ const ROUTES = {
   'agent':           handleAgent,
   'orchestrate':     handleOrchestrate,
   'enroll-cadence':  handleEnrollCadence,
+  'cadences-list':   handleCadencesList,
+  'opt-out-enrollment': handleOptOutEnrollment,
+  'cadence-cta-redirect': handleCadenceCtaRedirect,
+  'enrollments-list': handleEnrollmentsList,
+  'contact-history':  handleContactHistory,
   'capture-lead':    handleCaptureLead,
   'next-action':     handleNextAction,
   'export-leads':    handleExportLeads,
@@ -3356,6 +4011,10 @@ const ROUTES = {
   'ai-coach':        handleAiCoach,
   'send-sms':        handleSendSms,
   'send-bulk-sms':   handleSendBulkSms,
+  'sms-diagnostics': handleSmsDiagnostics,
+  'social-health':   handleSocialHealth,
+  'snapshot-social-stats': handleSnapshotSocialStats,
+  'social-stats-latest':   handleSocialStatsLatest,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,

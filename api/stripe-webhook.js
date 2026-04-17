@@ -13,6 +13,46 @@ const { renderTemplate } = require('./_lib/email-templates');
 
 const RESEND_API = 'https://api.resend.com/emails';
 
+// ── Marketing-side conversion hook ────────────────────────────────────────────
+// When a checkout completes, find the marketing_contact by email and mark ALL
+// their active cadence enrollments as 'converted' via the SQL helper.
+// Fire-and-forget — NEVER let a marketing-side error break subscription handling.
+async function maybeMarkMarketingConversion({ email, stripeCustomerId, stripeSubscriptionId, revenueCents }) {
+  const supabaseUrl = String(process.env.SUPABASE_URL || '').trim();
+  const serviceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!supabaseUrl || !serviceKey || !email) return;
+  try {
+    // 1. Look up contact by email
+    const lookupRes = await fetch(
+      `${supabaseUrl}/rest/v1/marketing_contacts?email=eq.${encodeURIComponent(email)}&select=id&limit=1`,
+      { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+    );
+    if (!lookupRes.ok) return;
+    const contacts = await lookupRes.json();
+    const contactId = Array.isArray(contacts) && contacts[0] ? contacts[0].id : null;
+    if (!contactId) return;
+
+    // 2. Call mark_contact_converted RPC — closes all active enrollments,
+    //    cancels pending steps, logs to contact_activity_log.
+    const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/mark_contact_converted`, {
+      method: 'POST',
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_contact_id: contactId,
+        p_stripe_subscription_id: stripeSubscriptionId || null,
+        p_stripe_customer_id: stripeCustomerId || null,
+        p_revenue_cents: revenueCents || null
+      })
+    });
+    if (!rpcRes.ok) {
+      const txt = await rpcRes.text().catch(() => '');
+      console.warn('[stripe-webhook] mark_contact_converted failed:', rpcRes.status, txt.slice(0, 200));
+    }
+  } catch (err) {
+    console.warn('[stripe-webhook] marketing conversion hook error (non-critical):', err?.message || err);
+  }
+}
+
 async function maybeSendEmail(type, data) {
   const apiKey = String(process.env.RESEND_API_KEY || '').trim();
   if (!apiKey || !data?.email) return;
@@ -124,6 +164,14 @@ module.exports = async (req, res) => {
               email: customerEmail,
               planName: planLabel,
               billingInterval
+            });
+
+            // Marketing-side: close any active cadence enrollments + log conversion
+            await maybeMarkMarketingConversion({
+              email: customerEmail,
+              stripeCustomerId: session.customer || null,
+              stripeSubscriptionId: session.subscription || null,
+              revenueCents: typeof session.amount_total === 'number' ? session.amount_total : null
             });
           }
         }

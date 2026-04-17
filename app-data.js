@@ -17,7 +17,8 @@
     referralBonus: 'smartswing_referral_bonus',      // { [userId]: bonusCount }
     referrals: 'smartswing_referrals',               // [{ id, referrerCode, referredUserId, completedAt }]
     pendingReferral: 'smartswing_pending_referral',  // { code } — stored from ?ref= URL param before signup
-    matches: 'smartswing_matches'
+    matches: 'smartswing_matches',
+    pendingAssessmentSyncs: 'smartswing_pending_assessment_syncs'  // retry queue for failed cloud syncs
   };
 
   const DEFAULT_COACHES = [
@@ -2192,6 +2193,37 @@
       persistAssessments(Array.from(map.values()).sort((a, b) => new Date(b.analyzedAt) - new Date(a.analyzedAt)));
     }
 
+    // Pull analysis_reports so stored HTML/PDF report paths survive cache clear.
+    // These rows link an assessment.id → storage path. We attach the path back to
+    // the matching local assessment by remoteId.
+    try {
+      const { data: reports, error: reportsError } = await client
+        .from('analysis_reports')
+        .select('id, assessment_id, report_path, report_format, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (!reportsError && Array.isArray(reports) && reports.length) {
+        const all = getAssessments();
+        const byRemoteId = new Map(all.filter(a => a.remoteId).map(a => [a.remoteId, a]));
+        let mutated = false;
+        reports.forEach((row) => {
+          const a = byRemoteId.get(row.assessment_id);
+          if (!a) return;
+          // Keep most recent report_path per assessment (reports ordered desc)
+          if (!a.reportPath) {
+            a.reportPath = row.report_path;
+            a.reportFormat = row.report_format || 'html';
+            a.reportStoredAt = row.created_at;
+            mutated = true;
+          }
+        });
+        if (mutated) persistAssessments(all);
+      }
+    } catch (e) {
+      console.warn('[SmartSwing] analysis_reports pull failed (non-fatal):', e?.message || e);
+    }
+
     const { data: sessions, error: sessionError } = await client
       .from('coach_sessions')
       .select('*')
@@ -2390,6 +2422,10 @@
       });
       persistMatches(Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date)));
     }
+
+    // Any assessments that failed to sync during a previous session will retry
+    // here now that we know the user is authenticated and client is available.
+    retryFailedAssessmentSyncs().catch((e) => console.warn('[SmartSwing] retryFailedAssessmentSyncs error:', e?.message || e));
   }
 
   async function signUp(fields) {
@@ -3048,7 +3084,11 @@
 
   async function syncAssessmentToCloud(assessment) {
     const client = await getSupabaseClient();
-    if (!client || !assessment?.userId) return;
+    if (!client || !assessment?.userId) {
+      // Queue for retry when client becomes available (signed-in with Supabase)
+      queueFailedSync(assessment, 'no_client_or_user');
+      return;
+    }
     const { data, error } = await client.from('assessments').upsert({
       external_id: assessment.externalId,
       user_id: assessment.userId,
@@ -3087,13 +3127,68 @@
       competitor_name: assessment.competitorName || null,
       analyzed_at: assessment.analyzedAt
     }, { onConflict: 'external_id' }).select('id, external_id').single();
-    if (error) return;
+    if (error) {
+      console.warn('[SmartSwing] Assessment cloud sync failed:', error.message || error);
+      queueFailedSync(assessment, error.message || 'upsert_error');
+      return;
+    }
     const all = getAssessments();
     const idx = all.findIndex((item) => item.externalId === assessment.externalId);
     if (idx >= 0) {
       all[idx] = { ...all[idx], remoteId: data.id, syncedAt: nowIso() };
       persistAssessments(all);
     }
+    // On success, remove this assessment from the failed-sync queue if present
+    dequeueFailedSync(assessment.externalId);
+  }
+
+  // ── Failed-sync queue ───────────────────────────────────────────────────────
+  // Persists failed assessment uploads to localStorage so a later login/retry
+  // can re-push them. Prevents silent data loss when sync fails mid-session.
+  function queueFailedSync(assessment, reason) {
+    if (!assessment || !assessment.externalId) return;
+    try {
+      const queue = read(KEYS.pendingAssessmentSyncs) || [];
+      const existing = queue.findIndex(q => q.externalId === assessment.externalId);
+      const entry = {
+        externalId: assessment.externalId,
+        userId: assessment.userId,
+        reason,
+        attempts: existing >= 0 ? (queue[existing].attempts || 0) + 1 : 1,
+        lastAttemptAt: nowIso()
+      };
+      if (existing >= 0) queue[existing] = entry; else queue.push(entry);
+      write(KEYS.pendingAssessmentSyncs, queue);
+    } catch (e) { /* best-effort */ }
+  }
+
+  function dequeueFailedSync(externalId) {
+    try {
+      const queue = read(KEYS.pendingAssessmentSyncs) || [];
+      const filtered = queue.filter(q => q.externalId !== externalId);
+      if (filtered.length !== queue.length) write(KEYS.pendingAssessmentSyncs, filtered);
+    } catch (e) { /* best-effort */ }
+  }
+
+  async function retryFailedAssessmentSyncs() {
+    const queue = read(KEYS.pendingAssessmentSyncs) || [];
+    if (!queue.length) return { retried: 0, succeeded: 0 };
+    const all = getAssessments();
+    let succeeded = 0;
+    for (const entry of queue) {
+      if ((entry.attempts || 0) >= 5) continue; // backoff after 5 failed attempts
+      const assessment = all.find(a => a.externalId === entry.externalId);
+      if (!assessment) {
+        // Assessment is gone locally, drop from queue
+        dequeueFailedSync(entry.externalId);
+        continue;
+      }
+      const before = getAssessments().find(a => a.externalId === entry.externalId)?.syncedAt;
+      await syncAssessmentToCloud(assessment);
+      const after = getAssessments().find(a => a.externalId === entry.externalId)?.syncedAt;
+      if (!before && after) succeeded++;
+    }
+    return { retried: queue.length, succeeded };
   }
 
   async function syncCoachSessionToCloud(session) {
@@ -3785,6 +3880,7 @@
     matchDrillsToWeaknesses,
     matchTacticsToProfile,
     saveAssessment,
+    retryFailedAssessmentSyncs,
     saveMatch,
     getUserMatches,
     getMatchStats,

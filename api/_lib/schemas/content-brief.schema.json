@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smartswing.ai/schemas/content-brief.schema.json",
+  "title": "ContentBrief",
+  "description": "The handoff artifact produced by the Planner agent and consumed in parallel by Copywriter, Visual Gen, and Video Gen agents. One ContentBrief describes exactly one post.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "brief_id",
+    "plan_id",
+    "platform",
+    "format",
+    "angle",
+    "hook",
+    "cta",
+    "target_audience",
+    "visual_spec",
+    "success_metric",
+    "deadline",
+    "created_at"
+  ],
+  "properties": {
+    "brief_id": {
+      "type": "string",
+      "description": "Stable ID. Format: brief_<YYYYMMDD>_<short>.",
+      "pattern": "^brief_[0-9]{8}_[a-z0-9]{6,}$"
+    },
+    "plan_id": {
+      "type": "string",
+      "description": "Parent ContentPlan this brief was derived from.",
+      "pattern": "^plan_[0-9]{8}_[a-z0-9]{4,}$"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["tiktok", "instagram", "youtube", "facebook", "linkedin", "blog", "email", "x"]
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "short_video",
+        "long_video",
+        "reel",
+        "story",
+        "carousel",
+        "static_image",
+        "blog_post",
+        "email",
+        "thread",
+        "single_post",
+        "ad"
+      ]
+    },
+    "angle": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 500,
+      "description": "The provocative insight / status-quo disruption. Not the topic — the POV. Corporate Visions methodology."
+    },
+    "hook": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 240,
+      "description": "First 2 seconds (video) or first line (text). Must earn the second."
+    },
+    "cta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "url", "intent"],
+      "properties": {
+        "label": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "url": { "type": "string", "format": "uri" },
+        "intent": {
+          "type": "string",
+          "enum": ["signup", "trial", "upgrade", "download", "book_coach", "follow", "share", "visit_blog"]
+        }
+      }
+    },
+    "target_audience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["persona", "stage"],
+      "properties": {
+        "persona": {
+          "type": "string",
+          "enum": ["player", "coach", "club", "parent", "pickleball"]
+        },
+        "stage": {
+          "type": "string",
+          "enum": ["lead", "prospect", "trial", "customer", "churned"]
+        },
+        "ntrp_range": {
+          "type": "string",
+          "pattern": "^[0-9](\\.[05])?-[0-9](\\.[05])?$",
+          "description": "NTRP level band, e.g. '3.0-4.5'."
+        },
+        "geo": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "visual_spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["none", "generated_image", "infographic", "banner", "screenshot", "stock"]
+        },
+        "prompt": { "type": "string", "description": "Image gen prompt (required if kind is generated_image / infographic / banner)." },
+        "style": { "type": "string", "description": "e.g. 'editorial sports photography, volt-green accent, high contrast'." },
+        "aspect_ratio": { "type": "string", "enum": ["1:1", "4:5", "9:16", "16:9", "1.91:1"] },
+        "count": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "enum": ["generated_image", "infographic", "banner"] } } },
+          "then": { "required": ["prompt", "aspect_ratio"] }
+        }
+      ]
+    },
+    "video_spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Present only when format is short_video / long_video / reel.",
+      "required": ["duration_seconds", "source"],
+      "properties": {
+        "duration_seconds": { "type": "integer", "minimum": 3, "maximum": 900 },
+        "source": {
+          "type": "string",
+          "enum": ["generate_fal", "stitch_videodb", "upload", "reuse"]
+        },
+        "fal_model": {
+          "type": "string",
+          "enum": ["kling-v2", "runway-gen4", "veo-3", "none"]
+        },
+        "captions_required": { "type": "boolean", "default": true },
+        "voiceover_required": { "type": "boolean", "default": false },
+        "shot_list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seconds", "description"],
+            "properties": {
+              "seconds": { "type": "number", "minimum": 0 },
+              "description": { "type": "string" },
+              "b_roll": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "success_metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "target_value"],
+      "description": "What 'this post worked' means. Analyst checks against this.",
+      "properties": {
+        "primary": {
+          "type": "string",
+          "enum": [
+            "reach",
+            "impressions",
+            "engagement_rate",
+            "ctr",
+            "signups",
+            "trial_starts",
+            "upgrades",
+            "saves",
+            "shares",
+            "watch_time_seconds"
+          ]
+        },
+        "target_value": { "type": "number", "minimum": 0 },
+        "baseline_p50": { "type": "number", "description": "Historical median for this platform+format, if known." }
+      }
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date-time",
+      "description": "By when the PostPackage must exist. Scheduler uses this + publish_at."
+    },
+    "methodology_tags": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["SPIN", "CorporateVisions", "AIDA", "PAS"] },
+      "default": ["SPIN", "CorporateVisions"]
+    },
+    "ab_test_group": {
+      "type": "string",
+      "description": "If this brief is part of an A/B test, the group ID.",
+      "pattern": "^abt_[a-z0-9_]+$"
+    },
+    "must_include": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Non-negotiable keywords, stats, or proof points copy must contain."
+    },
+    "must_avoid": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Banned phrases, competitor names, stale claims."
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "created_by_agent": { "type": "string", "const": "planner" }
+  }
+}

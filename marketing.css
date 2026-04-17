@@ -313,9 +313,27 @@
 .mkt-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;  /* equal-height rows so one panel doesn't tower over the other */
   gap: 20px;
   margin-bottom: 24px;
+  align-items: stretch;
 }
+
+/* Cap dashboard panel height + enable internal scroll for NBA / Activity lists.
+   Prevents the "AI Next Best Actions" card from ballooning when items expand. */
+.mkt-grid-2 > .mkt-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 420px;
+}
+.mkt-grid-2 > .mkt-panel > .mkt-panel__header { flex-shrink: 0; }
+.mkt-grid-2 > .mkt-panel .mkt-nba-list,
+.mkt-grid-2 > .mkt-panel .mkt-activity-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+.mkt-grid-2 > .mkt-panel > .mkt-panel__body--no-pad { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
 .mkt-grid-3 {
   display: grid;

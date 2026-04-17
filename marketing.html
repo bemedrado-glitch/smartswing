@@ -131,15 +131,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <span class="mkt-nav-item__icon">👥</span> Contacts
           <span class="mkt-nav-item__badge" id="contactsBadge">0</span>
         </button>
-        <button class="mkt-nav-item" data-tab="campaigns" onclick="switchTab('campaigns', this)">
-          <span class="mkt-nav-item__icon">📢</span> Campaigns
+        <button class="mkt-nav-item" data-tab="enrollments" onclick="switchTab('enrollments', this)">
+          <span class="mkt-nav-item__icon">🎯</span> Enrollments
+          <span class="mkt-nav-item__badge" id="enrollmentsBadge">0</span>
+        </button>
+        <button class="mkt-nav-item" data-tab="history" onclick="switchTab('history', this)">
+          <span class="mkt-nav-item__icon">📜</span> History
         </button>
       </div>
 
       <div class="mkt-sidebar__section">
         <div class="mkt-sidebar__section-label">Content</div>
         <button class="mkt-nav-item" data-tab="cadences" onclick="switchTab('cadences', this)">
-          <span class="mkt-nav-item__icon">📧</span> Cadences
+          <span class="mkt-nav-item__icon">📧</span> Sales Cadences
         </button>
         <button class="mkt-nav-item" data-tab="calendar" onclick="switchTab('calendar', this)">
           <span class="mkt-nav-item__icon">📅</span> Content Calendar
@@ -209,19 +213,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="mkt-kpi-card__icon">👥</div>
             <div class="mkt-kpi-card__label">Total Contacts</div>
             <div class="mkt-kpi-card__value" id="kpiContacts">—</div>
-            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 12 this week</div>
+            <div class="mkt-kpi-card__delta" id="kpiContactsDelta">&nbsp;</div>
           </div>
-          <div class="mkt-kpi-card" title="Click to view details" onclick="switchTab('campaigns', document.querySelector('[data-tab=campaigns]'))">
-            <div class="mkt-kpi-card__icon">📢</div>
-            <div class="mkt-kpi-card__label">Active Campaigns</div>
-            <div class="mkt-kpi-card__value" id="kpiCampaigns">—</div>
-            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 2 launched</div>
+          <div class="mkt-kpi-card" title="Click to view enrollments" onclick="switchTab('enrollments', document.querySelector('[data-tab=enrollments]'))">
+            <div class="mkt-kpi-card__icon">🎯</div>
+            <div class="mkt-kpi-card__label">Active Enrollments</div>
+            <div class="mkt-kpi-card__value" id="kpiEnrollments">—</div>
+            <div class="mkt-kpi-card__sub">Leads in active cadences</div>
           </div>
           <div class="mkt-kpi-card" title="Click to view details" onclick="switchTab('calendar', document.querySelector('[data-tab=calendar]'))">
             <div class="mkt-kpi-card__icon">📅</div>
             <div class="mkt-kpi-card__label">Content This Week</div>
             <div class="mkt-kpi-card__value" id="kpiContent">—</div>
-            <div class="mkt-kpi-card__delta mkt-kpi-card__delta--up">↑ 3 scheduled</div>
+            <div class="mkt-kpi-card__delta" id="kpiContentDelta">&nbsp;</div>
           </div>
           <div class="mkt-kpi-card mkt-kpi-card--volt" title="Click to view details" onclick="switchTab('agents', document.querySelector('[data-tab=agents]'))">
             <div class="mkt-kpi-card__icon">🤖</div>
@@ -516,22 +520,61 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       </div><!-- /tab-calendar -->
 
-      <!-- ─────────────── TAB: CAMPAIGNS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-campaigns">
+      <!-- ─────────────── TAB: ENROLLMENTS ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-enrollments">
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
-            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Campaigns</h2>
-            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Track and manage marketing campaigns.</p>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Enrollments</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Leads actively running in each sales cadence. Click Opt out to remove a lead; conversion auto-removes on CTA click or checkout.</p>
           </div>
-          <button class="mkt-btn mkt-btn--primary" onclick="openModal('addCampaignModal')">+ New Campaign</button>
+          <div style="display:flex;gap:8px;">
+            <select class="mkt-select" id="enrollmentsCadenceFilter" onchange="renderEnrollments()" style="max-width:260px;">
+              <option value="">All cadences</option>
+            </select>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="renderEnrollments()">↻ Refresh</button>
+          </div>
         </div>
 
-        <div class="mkt-campaign-grid" id="campaignGrid">
-          <!-- Populated by JS -->
+        <div id="enrollmentsContainer">
+          <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading enrollments…</div>
         </div>
 
-      </div><!-- /tab-campaigns -->
+      </div><!-- /tab-enrollments -->
+
+      <!-- ─────────────── TAB: HISTORY ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-history">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Activity History</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Unified log: cadence steps sent, CTA clicks, opt-outs, conversions, content created, posts published, emails/SMS sent.</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select class="mkt-select" id="historyEventFilter" onchange="renderHistory()" style="max-width:240px;">
+              <option value="">All events</option>
+              <option value="cadence_enrolled">Cadence: enrolled</option>
+              <option value="cadence_step_sent">Cadence: step sent</option>
+              <option value="cadence_cta_clicked">Cadence: CTA clicked</option>
+              <option value="cadence_opted_out">Cadence: opted out</option>
+              <option value="cadence_converted">Cadence: converted</option>
+              <option value="post_published">Post published</option>
+              <option value="content_created">Content created</option>
+              <option value="email_sent">Email sent</option>
+              <option value="sms_sent">SMS sent</option>
+              <option value="blog_published">Blog published</option>
+              <option value="subscription_created">Subscription created</option>
+            </select>
+            <input type="text" class="mkt-input" id="historyContactFilter" placeholder="Filter by email…" oninput="renderHistory()" style="max-width:220px;">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="renderHistory()">↻ Refresh</button>
+          </div>
+        </div>
+
+        <div id="historyContainer">
+          <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading history…</div>
+        </div>
+
+      </div><!-- /tab-history -->
 
       <!-- ─────────────── TAB: AI AGENTS ─────────────── -->
       <div class="mkt-tab-panel" id="tab-agents">
@@ -1046,15 +1089,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
 
-        <!-- Campaign List -->
+        <!-- Live Meta Ad Campaigns (from Meta Marketing API) -->
         <div class="mkt-panel" style="margin-bottom:20px;">
           <div class="mkt-panel__header">
-            <div class="mkt-panel__title">📋 Campaigns</div>
+            <div class="mkt-panel__title">📋 Live Ad Campaigns (Meta)</div>
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadMetaAds()">Refresh</button>
           </div>
           <div class="mkt-panel__body--no-pad">
             <div id="metaAdCampaignList" style="width:100%;">
               <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading campaigns...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaign Playbooks (our planned paid-media campaigns with full step + creative build-out) -->
+        <div class="mkt-panel" style="margin-bottom:20px;">
+          <div class="mkt-panel__header">
+            <div class="mkt-panel__title">🎯 Campaign Playbooks</div>
+            <div style="display:flex;gap:8px;">
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="renderCampaignPlaybooks()">↻ Refresh</button>
+              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openModal('addCampaignModal')">+ New Campaign</button>
+            </div>
+          </div>
+          <div class="mkt-panel__body">
+            <p style="font-size:13px;color:var(--muted);margin:0 0 16px;">Each playbook includes full step sequence (research → creative brief → ad creatives → launch → retargeting) and ready-to-use ad creatives.</p>
+            <div id="campaignPlaybooksContainer">
+              <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading campaign playbooks…</div>
             </div>
           </div>
         </div>
@@ -1599,7 +1659,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 window.MarketingStore = {
   currentTab: 'dashboard',
   contacts: [],
-  campaigns: [],
+  campaigns: [],      // kept for Paid Media playbooks only
+  enrollments: [],    // active enrollments from v_active_enrollments
+  history: [],        // unified activity feed from v_contact_history
+  cadences: [],       // loaded from email_cadences via /api/marketing/cadences-list
   contentItems: [],
   taskHistory: [],
   selectedAgent: 'copywriter',
@@ -1637,11 +1700,14 @@ function offsetDate(days) {
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', function () {
   initSupabase();
-  loadCampaigns().then(function() { renderCampaigns(); });
+  loadCampaigns().then(function() { renderCampaigns(); renderCampaignPlaybooks(); });
   loadContentItems().then(function() { renderCalendar(); renderMiniCalendar(); });
   loadTaskHistory();
   loadApprovals();
   renderCadences();
+  loadCadencesForDropdown();  // feeds the enroll modal dropdown
+  loadEnrollments();           // feeds the Enrollments tab + KPI card
+  loadHistory();               // feeds the History tab
   loadNextActions();
   loadContacts();
   updateKPIs();
@@ -1770,7 +1836,7 @@ function switchTab(tabName, triggerEl) {
   // Activate sidebar item
   if (triggerEl) triggerEl.classList.add('is-active');
   // Update topbar title
-  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', cadences: 'Cadences', calendar: 'Content Calendar', campaigns: 'Campaigns', agents: 'AI Agents', analytics: 'Analytics', 'meta-ads': 'Meta Ads', approvals: 'CMO Approvals', settings: 'Settings' };
+  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', enrollments: 'Enrollments', history: 'Activity History', cadences: 'Sales Cadences', calendar: 'Content Calendar', agents: 'AI Agents', analytics: 'Analytics', 'meta-ads': 'Paid Media', approvals: 'CMO Approvals', settings: 'Settings' };
   document.getElementById('topbarTitle').textContent = titles[tabName] || tabName;
   MarketingStore.currentTab = tabName;
   closeSidebar();
@@ -1835,8 +1901,18 @@ function showToast(message, type = '') {
 function updateKPIs() {
   document.getElementById('kpiContacts').textContent = MarketingStore.contacts.length || '—';
   document.getElementById('contactsBadge').textContent = MarketingStore.contacts.length;
-  const activeCampaigns = MarketingStore.campaigns.filter(c => c.status === 'active').length;
-  document.getElementById('kpiCampaigns').textContent = activeCampaigns;
+  // Contacts delta: new in last 7 days (from created_at if present)
+  var sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  var newThisWeek = (MarketingStore.contacts || []).filter(function(c) {
+    return c.created_at && new Date(c.created_at).getTime() >= sevenDaysAgo;
+  }).length;
+  var contactsDelta = document.getElementById('kpiContactsDelta');
+  if (contactsDelta) contactsDelta.textContent = newThisWeek > 0 ? ('↑ ' + newThisWeek + ' new this week') : 'No new contacts this week';
+  const activeEnrollments = (MarketingStore.enrollments || []).length;
+  const kpiEnrollEl = document.getElementById('kpiEnrollments');
+  if (kpiEnrollEl) kpiEnrollEl.textContent = activeEnrollments;
+  const enrollBadge = document.getElementById('enrollmentsBadge');
+  if (enrollBadge) enrollBadge.textContent = activeEnrollments;
   // Content this week
   const now = new Date();
   const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
@@ -1845,6 +1921,11 @@ function updateKPIs() {
     return d >= now && d <= weekEnd;
   }).length;
   document.getElementById('kpiContent').textContent = thisWeekContent;
+  var contentDelta = document.getElementById('kpiContentDelta');
+  if (contentDelta) {
+    var scheduledCount = (MarketingStore.contentItems || []).filter(function(c) { return c.status === 'scheduled'; }).length;
+    contentDelta.textContent = scheduledCount > 0 ? (scheduledCount + ' scheduled total') : '—';
+  }
   document.getElementById('kpiTasks').textContent = MarketingStore.taskHistory.length;
   // Load lead count from Supabase
   const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
@@ -2466,8 +2547,17 @@ function confirmAssignCadence() {
       supabase_key: cfg.anonKey || ''
     })
   }).then(r => r.json()).then(d => {
-    if (d.success) showToast(`✓ Enrolled — ${d.steps_scheduled} steps scheduled!`, 'success');
-  }).catch(() => {});
+    if (d.success) {
+      showToast(`✓ Enrolled — ${d.steps_scheduled} steps scheduled!`, 'success');
+      // Refresh Enrollments + History tabs so the new row shows immediately
+      if (typeof loadEnrollments === 'function') loadEnrollments();
+      if (typeof loadHistory === 'function') loadHistory();
+    } else if (d && d.error) {
+      showToast('Enroll failed: ' + d.error, 'error');
+    }
+  }).catch(err => {
+    showToast('Enroll failed: ' + (err.message || 'network error'), 'error');
+  });
 }
 
 function editCadenceWithAI(idx) {
@@ -2480,8 +2570,13 @@ function editCadenceWithAI(idx) {
 }
 
 /* ── CAMPAIGNS ── */
+// NOTE: #campaignGrid was removed when the generic Campaigns tab was deleted
+// (replaced by Enrollments + History in Commit 3). This function now no-ops
+// if the grid is missing. Paid-media campaigns render via renderCampaignPlaybooks()
+// into #campaignPlaybooksContainer inside the Paid Media tab.
 function renderCampaigns() {
   const grid = document.getElementById('campaignGrid');
+  if (!grid) return;
   if (!MarketingStore.campaigns.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;"><div class="mkt-empty"><div class="mkt-empty__icon">📢</div><div class="mkt-empty__title">No campaigns yet</div><div class="mkt-empty__text">Create your first campaign to get started.</div></div></div>`;
     return;
@@ -4357,22 +4452,47 @@ function connectSocial(platform) {
 }
 
 function checkSocialConnections() {
-  fetch('/api/marketing/meta-stats').then(function(r) { return r.json(); }).then(function(data) {
-    if (data.success) {
-      var igEl = document.getElementById('igStatus');
-      var fbEl = document.getElementById('fbStatus');
-      var igBtn = igEl ? igEl.closest('.mkt-social-conn').querySelector('button') : null;
-      var fbBtn = fbEl ? fbEl.closest('.mkt-social-conn').querySelector('button') : null;
-      if (data.instagram && data.instagram.username) {
-        if (igEl) { igEl.textContent = '✅ Connected — @' + data.instagram.username + ' (' + (data.instagram.followers || 0) + ' followers)'; igEl.style.color = '#00e87b'; }
-        if (igBtn) { igBtn.textContent = 'Connected'; igBtn.disabled = true; igBtn.style.opacity = '0.6'; }
+  // Use the /social-health endpoint which tests every platform and surfaces
+  // WHY it's broken (expired token, missing env, wrong ID, rate limit, etc.)
+  // instead of failing silently.
+  fetch('/api/marketing/social-health').then(function(r) { return r.json(); }).then(function(data) {
+    if (!data || !data.success) return;
+    var map = {
+      meta_instagram: { elId: 'igStatus', labelPrefix: 'Instagram' },
+      meta_facebook:  { elId: 'fbStatus', labelPrefix: 'Facebook' },
+      tiktok:         { elId: 'ttStatus', labelPrefix: 'TikTok' },
+      youtube:        { elId: 'ytStatus', labelPrefix: 'YouTube' },
+      linkedin:       { elId: 'liStatus', labelPrefix: 'LinkedIn' },
+      x:              { elId: 'xStatus',  labelPrefix: 'X' }
+    };
+    Object.keys(map).forEach(function(key) {
+      var cfg = map[key];
+      var p = data.platforms[key];
+      if (!p) return;
+      var el = document.getElementById(cfg.elId);
+      if (!el) return;
+      var btn = el.closest('.mkt-social-conn') ? el.closest('.mkt-social-conn').querySelector('button') : null;
+      if (p.connected) {
+        var handle = p.username ? ('@' + p.username) : (p.title || p.name || '');
+        var followers = (p.followers || p.subscribers || 0);
+        el.textContent = '✅ Connected' + (handle ? ' — ' + handle : '') + (followers ? ' (' + followers.toLocaleString() + ' followers)' : '');
+        el.style.color = '#00e87b';
+        el.title = '';
+        if (btn) { btn.textContent = 'Connected'; btn.disabled = true; btn.style.opacity = '0.6'; }
+      } else {
+        var code = p.error_code || 'NOT_CONFIGURED';
+        el.textContent = '⚠️ ' + code.replace(/_/g, ' ');
+        el.style.color = '#dc2626';
+        el.title = (p.error_message || '') + '\n\nFix: ' + (p.remediation || 'See /api/marketing/social-health for details.');
+        if (btn) { btn.textContent = 'Reconnect'; btn.disabled = false; btn.style.opacity = '1'; }
       }
-      if (data.facebook && data.facebook.name) {
-        if (fbEl) { fbEl.textContent = '✅ Connected — ' + data.facebook.name + ' (' + (data.facebook.followers || 0) + ' followers)'; fbEl.style.color = '#00e87b'; }
-        if (fbBtn) { fbBtn.textContent = 'Connected'; fbBtn.disabled = true; fbBtn.style.opacity = '0.6'; }
-      }
-    }
-  }).catch(function() { /* silent */ });
+    });
+    // Also update a summary KPI if present
+    var summary = document.getElementById('socialHealthSummary');
+    if (summary) summary.textContent = data.connected + ' of ' + data.total + ' connected';
+  }).catch(function(e) {
+    console.warn('social-health fetch failed:', e);
+  });
 }
 
 function loadCredentialsStatus() {
@@ -4621,6 +4741,310 @@ setTimeout(function() {
   renderApprovals();
   loadActivityFeed();
 }, 100);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CADENCE ENROLLMENTS + HISTORY — Commit 4 wiring
+   Backed by:
+     GET  /api/marketing/cadences-list     → email_cadences (active only)
+     GET  /api/marketing/enrollments-list  → v_active_enrollments
+     GET  /api/marketing/contact-history   → v_contact_history
+     POST /api/marketing/opt-out-enrollment
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function _mktSupabaseCreds() {
+  var cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+  return { url: cfg.url, key: cfg.anonKey };
+}
+
+async function loadCadencesForDropdown() {
+  var c = _mktSupabaseCreds();
+  if (!c.url || !c.key) return;
+  try {
+    var qs = new URLSearchParams({ supabase_url: c.url, supabase_key: c.key }).toString();
+    var res = await fetch('/api/marketing/cadences-list?' + qs);
+    var data = await res.json();
+    if (!data || !data.success) throw new Error(data && data.error || 'cadences-list failed');
+    MarketingStore.cadences = data.cadences || [];
+    _renderCadenceDropdowns();
+    _renderEnrollmentsCadenceFilter();
+  } catch (e) {
+    console.warn('loadCadencesForDropdown failed:', e);
+  }
+}
+
+function _renderCadenceDropdowns() {
+  var targets = ['enrollCadenceSelect', 'contactEnrollCadenceSelect'];
+  var opts = '<option value="">— Select a cadence —</option>' +
+    (MarketingStore.cadences || []).map(function(c) {
+      var label = c.name + (c.total_steps ? ' (' + c.total_steps + ' steps)' : '');
+      return '<option value="' + c.id + '">' + escHtml(label) + '</option>';
+    }).join('');
+  targets.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+function _renderEnrollmentsCadenceFilter() {
+  var sel = document.getElementById('enrollmentsCadenceFilter');
+  if (!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All cadences</option>' +
+    (MarketingStore.cadences || []).map(function(c) {
+      return '<option value="' + c.id + '">' + escHtml(c.name) + '</option>';
+    }).join('');
+  if (current) sel.value = current;
+}
+
+async function loadEnrollments() {
+  var c = _mktSupabaseCreds();
+  if (!c.url || !c.key) return;
+  try {
+    var params = { supabase_url: c.url, supabase_key: c.key };
+    var filter = document.getElementById('enrollmentsCadenceFilter');
+    if (filter && filter.value) params.cadence_id = filter.value;
+    var qs = new URLSearchParams(params).toString();
+    var res = await fetch('/api/marketing/enrollments-list?' + qs);
+    var data = await res.json();
+    if (!data || !data.success) throw new Error(data && data.error || 'enrollments-list failed');
+    MarketingStore.enrollments = data.enrollments || [];
+    renderEnrollments(data);
+    updateKPIs();
+  } catch (e) {
+    console.warn('loadEnrollments failed:', e);
+    var c1 = document.getElementById('enrollmentsContainer');
+    if (c1) c1.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Could not load enrollments.</div>';
+  }
+}
+
+function renderEnrollments(data) {
+  var container = document.getElementById('enrollmentsContainer');
+  if (!container) return;
+  data = data || { grouped: [], total: 0 };
+  var groups = data.grouped || [];
+  if (!groups.length) {
+    container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">No active enrollments. Assign a contact to a cadence to see them here.</div>';
+    return;
+  }
+  container.innerHTML = groups.map(function(g) {
+    return '' +
+      '<div class="mkt-panel" style="margin-bottom:16px;">' +
+        '<div class="mkt-panel__header">' +
+          '<div class="mkt-panel__title">' + escHtml(g.cadence_name || '—') + ' <span style="color:var(--muted);font-weight:500;font-size:12px;">(' + g.rows.length + ' active)</span></div>' +
+          '<div style="font-size:12px;color:var(--muted);">' + escHtml(g.methodology || '') + '</div>' +
+        '</div>' +
+        '<div class="mkt-panel__body--no-pad">' +
+          '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+            '<thead><tr style="background:#f5f5f7;text-align:left;">' +
+              '<th style="padding:10px 14px;">Contact</th>' +
+              '<th style="padding:10px 14px;">Persona</th>' +
+              '<th style="padding:10px 14px;">Step</th>' +
+              '<th style="padding:10px 14px;">Next send</th>' +
+              '<th style="padding:10px 14px;">Enrolled</th>' +
+              '<th style="padding:10px 14px;text-align:right;">Actions</th>' +
+            '</tr></thead>' +
+            '<tbody>' +
+              g.rows.map(function(r) {
+                return '<tr style="border-top:1px solid #e5e5e7;">' +
+                  '<td style="padding:10px 14px;">' +
+                    '<div style="font-weight:600;">' + escHtml(r.contact_name || r.email || '—') + '</div>' +
+                    '<div style="font-size:11px;color:var(--muted);">' + escHtml(r.email || '') + '</div>' +
+                  '</td>' +
+                  '<td style="padding:10px 14px;"><span class="mkt-badge">' + escHtml(r.persona || '—') + '</span></td>' +
+                  '<td style="padding:10px 14px;">' + (r.sent_steps || 0) + ' / ' + (r.total_steps || 0) + '</td>' +
+                  '<td style="padding:10px 14px;font-size:12px;color:var(--muted);">' + (r.next_step_at ? new Date(r.next_step_at).toLocaleString() : '—') + '</td>' +
+                  '<td style="padding:10px 14px;font-size:12px;color:var(--muted);">' + (r.enrolled_at ? new Date(r.enrolled_at).toLocaleDateString() : '—') + '</td>' +
+                  '<td style="padding:10px 14px;text-align:right;">' +
+                    '<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="optOutEnrollment(\'' + r.enrollment_id + '\')">Opt out</button>' +
+                  '</td>' +
+                '</tr>';
+              }).join('') +
+            '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+async function optOutEnrollment(enrollmentId) {
+  if (!enrollmentId) return;
+  if (!confirm('Opt this contact out of the cadence? Pending steps will be cancelled.')) return;
+  var c = _mktSupabaseCreds();
+  try {
+    var res = await fetch('/api/marketing/opt-out-enrollment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enrollment_id: enrollmentId, reason: 'manual', supabase_url: c.url, supabase_key: c.key })
+    });
+    var data = await res.json();
+    if (data && data.success) {
+      showToast('Contact opted out of cadence.', 'success');
+      loadEnrollments();
+      loadHistory();
+    } else {
+      showToast('Opt-out failed: ' + (data && data.error || 'unknown'), 'error');
+    }
+  } catch (e) {
+    showToast('Opt-out failed: ' + e.message, 'error');
+  }
+}
+
+async function loadHistory() {
+  var c = _mktSupabaseCreds();
+  if (!c.url || !c.key) return;
+  try {
+    var params = { supabase_url: c.url, supabase_key: c.key, limit: 200 };
+    var qs = new URLSearchParams(params).toString();
+    var res = await fetch('/api/marketing/contact-history?' + qs);
+    var data = await res.json();
+    if (!data || !data.success) throw new Error(data && data.error || 'contact-history failed');
+    MarketingStore.history = data.events || [];
+    renderHistory();
+  } catch (e) {
+    console.warn('loadHistory failed:', e);
+    var c1 = document.getElementById('historyContainer');
+    if (c1) c1.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Could not load history.</div>';
+  }
+}
+
+function renderHistory() {
+  var container = document.getElementById('historyContainer');
+  if (!container) return;
+  var events = MarketingStore.history || [];
+  var filterEvent = (document.getElementById('historyEventFilter') || {}).value;
+  var filterContact = ((document.getElementById('historyContactFilter') || {}).value || '').toLowerCase().trim();
+  var filtered = events.filter(function(e) {
+    if (filterEvent && e.event_type !== filterEvent) return false;
+    if (filterContact && (e.email || '').toLowerCase().indexOf(filterContact) === -1) return false;
+    return true;
+  });
+  if (!filtered.length) {
+    container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">No activity matches the current filter.</div>';
+    return;
+  }
+  var eventLabels = {
+    cadence_enrolled: '🎯 Enrolled in cadence',
+    cadence_step_sent: '✉️ Cadence step sent',
+    cadence_cta_clicked: '🔗 Cadence CTA clicked',
+    cadence_opened: '👀 Cadence email opened',
+    cadence_opted_out: '🚪 Opted out of cadence',
+    cadence_completed: '✅ Cadence completed',
+    cadence_converted: '💰 Cadence → converted',
+    content_created: '📝 Content created',
+    post_published: '📢 Post published',
+    email_sent: '📧 Email sent',
+    sms_sent: '💬 SMS sent',
+    blog_published: '📰 Blog published',
+    plan_selected: '💎 Plan selected',
+    checkout_started: '🛒 Checkout started',
+    checkout_completed: '✅ Checkout completed',
+    subscription_created: '🚀 Subscription created',
+    note_added: '📌 Note added'
+  };
+  container.innerHTML = '<div class="mkt-panel"><div class="mkt-panel__body--no-pad"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+    '<thead><tr style="background:#f5f5f7;text-align:left;">' +
+      '<th style="padding:10px 14px;">When</th>' +
+      '<th style="padding:10px 14px;">Contact</th>' +
+      '<th style="padding:10px 14px;">Event</th>' +
+      '<th style="padding:10px 14px;">Context</th>' +
+    '</tr></thead><tbody>' +
+    filtered.map(function(e) {
+      var ctx = [];
+      if (e.cadence_name) ctx.push('Cadence: ' + escHtml(e.cadence_name));
+      if (e.campaign_name) ctx.push('Campaign: ' + escHtml(e.campaign_name));
+      if (e.event_data && e.event_data.step_num) ctx.push('Step ' + e.event_data.step_num);
+      if (e.event_data && e.event_data.cta_url) ctx.push('<a href="' + escHtml(e.event_data.cta_url) + '" target="_blank" rel="noopener" style="color:var(--volt);">link</a>');
+      if (e.event_data && e.event_data.revenue_cents) ctx.push('$' + (e.event_data.revenue_cents / 100).toFixed(2));
+      return '<tr style="border-top:1px solid #e5e5e7;">' +
+        '<td style="padding:10px 14px;font-size:12px;color:var(--muted);">' + (e.occurred_at ? new Date(e.occurred_at).toLocaleString() : '—') + '</td>' +
+        '<td style="padding:10px 14px;">' +
+          '<div style="font-weight:600;">' + escHtml(e.contact_name || e.email || '—') + '</div>' +
+          '<div style="font-size:11px;color:var(--muted);">' + escHtml(e.email || '') + '</div>' +
+        '</td>' +
+        '<td style="padding:10px 14px;">' + (eventLabels[e.event_type] || escHtml(e.event_type)) + '</td>' +
+        '<td style="padding:10px 14px;font-size:12px;color:var(--muted);">' + ctx.join(' · ') + '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div></div>';
+}
+
+/* ── Campaign Playbooks (paid media) — populated by Commit 5 seed ── */
+async function renderCampaignPlaybooks() {
+  var c = _mktSupabaseCreds();
+  var container = document.getElementById('campaignPlaybooksContainer');
+  if (!container) return;
+  if (!c.url || !c.key) {
+    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Supabase not configured.</div>';
+    return;
+  }
+  try {
+    var headers = { apikey: c.key, Authorization: 'Bearer ' + c.key };
+    var [camps, steps, creatives] = await Promise.all([
+      fetch(c.url + '/rest/v1/marketing_campaigns?is_paid_media=eq.true&select=*&order=start_date.desc', { headers }).then(function(r){ return r.json(); }),
+      fetch(c.url + '/rest/v1/campaign_steps?select=*&order=campaign_id,step_num', { headers }).then(function(r){ return r.json(); }),
+      fetch(c.url + '/rest/v1/campaign_ad_creatives?select=*&order=campaign_id', { headers }).then(function(r){ return r.json(); })
+    ]);
+    if (!Array.isArray(camps) || !camps.length) {
+      container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">No paid-media campaigns yet. Seed data will populate once Commit 5 runs.</div>';
+      return;
+    }
+    var stepsByCampaign = {};
+    (steps || []).forEach(function(s) { (stepsByCampaign[s.campaign_id] = stepsByCampaign[s.campaign_id] || []).push(s); });
+    var crByCampaign = {};
+    (creatives || []).forEach(function(c2) { (crByCampaign[c2.campaign_id] = crByCampaign[c2.campaign_id] || []).push(c2); });
+    container.innerHTML = camps.map(function(camp) {
+      var campSteps = stepsByCampaign[camp.id] || [];
+      var campCreatives = crByCampaign[camp.id] || [];
+      return '' +
+        '<div class="mkt-panel" style="margin-bottom:12px;">' +
+          '<div class="mkt-panel__header">' +
+            '<div>' +
+              '<div class="mkt-panel__title">' + escHtml(camp.name) + '</div>' +
+              '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + escHtml(camp.ad_platform || '—') + ' · ' + escHtml(camp.objective || '—') + ' · ' + escHtml(camp.target_persona || '—') + '</div>' +
+            '</div>' +
+            '<span class="mkt-badge mkt-badge--' + (camp.status === 'active' ? 'success' : 'neutral') + '">' + escHtml(camp.status) + '</span>' +
+          '</div>' +
+          '<div class="mkt-panel__body">' +
+            (camp.description ? '<p style="font-size:13px;color:var(--mid);margin:0 0 12px;">' + escHtml(camp.description) + '</p>' : '') +
+            '<details style="margin-bottom:10px;"><summary style="cursor:pointer;font-size:13px;font-weight:600;">📋 Steps (' + campSteps.length + ')</summary>' +
+              '<ol style="margin:8px 0 0 20px;font-size:12.5px;line-height:1.7;">' +
+                campSteps.map(function(s) {
+                  return '<li><strong>' + escHtml(s.step_name) + '</strong> <span style="color:var(--muted);">(' + escHtml(s.step_type) + ')</span>' +
+                    (s.content_brief ? '<div style="color:var(--mid);margin:2px 0 4px;">' + escHtml(s.content_brief) + '</div>' : '') +
+                    '<span class="mkt-badge">' + escHtml(s.status) + '</span></li>';
+                }).join('') +
+              '</ol>' +
+            '</details>' +
+            '<details><summary style="cursor:pointer;font-size:13px;font-weight:600;">🎨 Creatives (' + campCreatives.length + ')</summary>' +
+              '<ul style="margin:8px 0 0 20px;font-size:12.5px;line-height:1.7;list-style:none;">' +
+                campCreatives.map(function(cr) {
+                  return '<li style="margin-bottom:6px;"><strong>' + escHtml(cr.creative_type) + '</strong> · ' + escHtml(cr.platform) + ' · <em>' + escHtml(cr.headline || '') + '</em><div style="color:var(--mid);">' + escHtml((cr.primary_text || '').slice(0, 140)) + '</div></li>';
+                }).join('') +
+              '</ul>' +
+            '</details>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+  } catch (e) {
+    console.warn('renderCampaignPlaybooks failed:', e);
+    container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Could not load playbooks.</div>';
+  }
+}
+
+// Re-render enrollments/history when filter dropdowns change (wired via inline onchange already).
+window.renderEnrollments = window.renderEnrollments || renderEnrollments;
+window.loadEnrollments = loadEnrollments;
+window.renderHistory = renderHistory;
+window.loadHistory = loadHistory;
+window.optOutEnrollment = optOutEnrollment;
+window.loadCadencesForDropdown = loadCadencesForDropdown;
+window.renderCampaignPlaybooks = renderCampaignPlaybooks;
+
+/* Rebind Refresh buttons on Enrollments tab to reload, not just re-render. */
+(function() {
+  var refreshBtn = document.querySelector('#tab-enrollments .mkt-btn--ghost');
+  if (refreshBtn) refreshBtn.setAttribute('onclick', 'loadEnrollments()');
+})();
 </script>
 
 <!-- CONTENT DETAIL MODAL -->

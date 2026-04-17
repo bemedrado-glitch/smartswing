@@ -4,6 +4,10 @@
     {
       "path": "/api/cron-win-back",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/marketing/snapshot-social-stats",
+      "schedule": "0 6 * * *"
     }
   ],
   "redirects": [
