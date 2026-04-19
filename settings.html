@@ -297,6 +297,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </section>
 
+    <!-- ──────────────── Reports & data sync ──────────────── -->
+    <section class="panel" id="reports-sync" style="margin-top:16px">
+      <h2>Reports &amp; data sync</h2>
+      <p class="muted">Your swing analyses are saved to your account and survive cache clears, incognito windows, and device changes — as long as you're signed in. Anything that hasn't synced yet still lives on this device only.</p>
+      <div class="card" style="margin-top:14px">
+        <div id="syncStatusLine" style="font-size:14px;line-height:1.5;margin-bottom:12px;color:#a3a8b8;">Checking sync status…</div>
+        <div class="actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn primary" type="button" id="resyncBtn">Resync now</button>
+          <button class="btn" type="button" id="refreshSyncStatusBtn">Refresh status</button>
+        </div>
+        <div id="resyncResult" style="margin-top:12px;font-size:13px;line-height:1.5;display:none;"></div>
+      </div>
+    </section>
+
     <!-- ──────────────── Marketing Integrations ──────────────── -->
     <section class="panel" id="marketing-integrations" style="margin-top:16px">
       <h2>Marketing integrations</h2>
@@ -482,6 +496,70 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       alertBox.textContent = message;
       alertBox.className = `alert ${type}`;
     }
+
+    /* ── Reports & data sync panel ─────────────────────────────────────────── */
+    function renderSyncStatus() {
+      const line = document.getElementById('syncStatusLine');
+      if (!line) return;
+      const fn = typeof store.getReportsSyncStatus === 'function' ? store.getReportsSyncStatus : null;
+      if (!fn) {
+        line.textContent = 'Sync status unavailable in this build.';
+        return;
+      }
+      const s = fn();
+      const total = s.total_local || 0;
+      if (total === 0) {
+        line.innerHTML = '<span style="color:#9ca3af;">No assessments saved on this device yet.</span>';
+      } else if (s.healthy) {
+        line.innerHTML = '<span style="color:#39ff14;">✓ All ' + total + ' assessment' + (total === 1 ? '' : 's') + ' synced to your account.</span>';
+      } else {
+        line.innerHTML = '<span style="color:#fbbf24;">⚠ ' + s.unsynced + ' of ' + total + ' assessment' + (total === 1 ? '' : 's') + ' not yet synced to your account.</span>' +
+          (s.queued_retries > 0 ? '<div style="font-size:12px;color:#a3a8b8;margin-top:4px;">' + s.queued_retries + ' queued for retry.</div>' : '') +
+          (s.hint ? '<div style="font-size:12px;color:#a3a8b8;margin-top:4px;">' + s.hint + '</div>' : '');
+      }
+    }
+
+    async function runResync() {
+      const result = document.getElementById('resyncResult');
+      const btn = document.getElementById('resyncBtn');
+      const fn = typeof store.retryFailedAssessmentSyncs === 'function' ? store.retryFailedAssessmentSyncs : null;
+      if (!fn) {
+        result.style.display = 'block';
+        result.style.color = '#ff5b7c';
+        result.textContent = 'Resync function unavailable in this build.';
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Resyncing…';
+      result.style.display = 'block';
+      result.style.color = '#a3a8b8';
+      result.textContent = 'Pushing queued assessments to your account…';
+      try {
+        const r = await fn();
+        if (r.retried === 0) {
+          result.style.color = '#9ca3af';
+          result.textContent = 'Nothing to retry — sync queue is empty.';
+        } else {
+          const failed = r.retried - r.succeeded;
+          result.style.color = failed === 0 ? '#39ff14' : '#fbbf24';
+          result.innerHTML = '<strong>' + r.succeeded + '</strong> of <strong>' + r.retried + '</strong> assessments resynced successfully.' +
+            (failed > 0 ? '<div style="font-size:12px;color:#a3a8b8;margin-top:4px;">' + failed + ' still failing — open the browser console for details.</div>' : '');
+        }
+        renderSyncStatus();
+      } catch (e) {
+        result.style.color = '#ff5b7c';
+        result.textContent = 'Resync error: ' + (e?.message || e);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Resync now';
+      }
+    }
+
+    document.getElementById('resyncBtn')?.addEventListener('click', runResync);
+    document.getElementById('refreshSyncStatusBtn')?.addEventListener('click', renderSyncStatus);
+    renderSyncStatus();
+    // Auto-refresh status whenever a sync failure event fires
+    window.addEventListener('smartswing:sync-failure', renderSyncStatus);
 
     function fillForm(profile) {
       document.getElementById('fullName').value = profile.fullName || '';
