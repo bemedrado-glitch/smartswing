@@ -115,6 +115,19 @@ Dimensions: `brand_voice`, `hook_strength`, `cta_clarity`, `platform_fit`, `fact
 | `/api/marketing/pipeline-copy` | POST | `{ brief }` (ContentBrief) | `{ success, copy, brief_id }` | ✅ (Copywriter v2 prompt) |
 | `/api/marketing/pipeline-assemble` | POST | `{ brief, copy, visuals?, video?, hashtags?, mentions?, platform_variants? }` | `{ success, package }` (validated PostPackage) | ❌ (deterministic) |
 | `/api/marketing/pipeline-review` | POST | `{ package }` (PostPackage) | `{ success, review }` (decision + scores + revision_notes) | ✅ (Editor-in-Chief prompt) |
+| `/api/marketing/publish-x` | POST | `{ package, dry_run? }` | `{ success, external_post_id, external_url, composed_text }` | ❌ |
+| `/api/marketing/publish-linkedin` | POST | `{ package, dry_run? }` | `{ success, external_post_id, external_url, composed_text }` | ❌ |
+
+### Publisher behavior
+
+- Both adapters require `package.status === 'approved'` (or `'scheduled'`) for live posts. `dry_run: true` bypasses this so you can preview the composed text/payload without posting.
+- X adapter composes `text + hashtags`, truncates to 280 chars, requires `X_USER_ACCESS_TOKEN` (write scope) — `X_BEARER_TOKEN` alone won't post.
+- LinkedIn adapter posts as the organization (`LINKEDIN_ORGANIZATION_ID`), supports a single image attachment from `package.assets.visuals[0]`, requires `LINKEDIN_ACCESS_TOKEN` with `w_organization_social` scope.
+- Errors surface with `{ x_response | li_response, hint }` so token/scope problems are debuggable from the response.
+
+### Dashboard UI
+
+The "Pipeline Studio" panel inside the AI Agents tab walks through all 5 stages with one button per stage. Each stage's output is JSON-pretty-printed inline. Reset button clears state. Status pills update per stage (idle → running → ✓/✗).
 
 ### Decision enforcement (server-side)
 

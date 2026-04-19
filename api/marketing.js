@@ -6193,6 +6193,172 @@ async function handlePipelineAssemble(req, res) {
   return res.status(200).json({ success: true, package: pkg });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PUBLISHER ADAPTERS — consume an approved PostPackage and post to a platform.
+// Per-platform endpoints so each can fail independently without poisoning others.
+// All adapters: validate package, build platform payload, POST, return external IDs.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function platformVariantOrFallback(pkg, platform, key) {
+  // Returns the variant override if present, else falls back to top-level copy.
+  const variant = pkg.platform_variants && pkg.platform_variants[platform];
+  if (variant && variant[key]) return variant[key];
+  if (pkg.copy && pkg.copy[key]) return pkg.copy[key];
+  return null;
+}
+
+function packageBodyForPlatform(pkg, platform) {
+  // The "main" text to post for a platform. Prefer variant.text, then caption,
+  // then body. Returns {text, link} where link is appended if not inline.
+  const variant = (pkg.platform_variants || {})[platform] || {};
+  const text = variant.text || pkg.copy.caption || pkg.copy.body || '';
+  return { text, variant };
+}
+
+async function handlePublishX(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { package: pkg, dry_run } = req.body || {};
+  if (!pkg) return res.status(400).json({ error: 'package (PostPackage) is required' });
+  const errors = validatePostPackage(pkg);
+  if (errors.length) return res.status(400).json({ error: 'Invalid PostPackage', validation_errors: errors });
+  if (pkg.status !== 'approved' && pkg.status !== 'scheduled' && !dry_run) {
+    return res.status(412).json({ error: 'Package must be approved or scheduled before publishing. Use dry_run:true to preview.', current_status: pkg.status });
+  }
+
+  const bearer = process.env.X_BEARER_TOKEN;       // App-only (read+write requires user OAuth)
+  const accessToken = process.env.X_USER_ACCESS_TOKEN; // User OAuth 2.0 token (write scope)
+  const writeToken = accessToken || bearer;
+  if (!writeToken) {
+    return res.status(500).json({ error: 'X_USER_ACCESS_TOKEN or X_BEARER_TOKEN not configured. Tweet posting requires a user OAuth 2.0 token with tweet.write scope.' });
+  }
+
+  const { text } = packageBodyForPlatform(pkg, 'x');
+  // Hashtags: append distinct tags not already in text, keeping under 280 chars
+  const hashtagSuffix = (pkg.hashtags || []).filter(h => text.indexOf(h) === -1).join(' ');
+  const composed = (text + (hashtagSuffix ? '\n' + hashtagSuffix : '')).slice(0, 280);
+
+  if (dry_run) {
+    return res.status(200).json({ success: true, dry_run: true, would_post: { text: composed, length: composed.length } });
+  }
+
+  try {
+    const r = await fetch('https://api.twitter.com/2/tweets', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + writeToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: composed })
+    });
+    const d = await r.json();
+    if (!r.ok || d.errors || (d.status && d.status >= 400)) {
+      return res.status(502).json({
+        error: 'X API rejected post',
+        x_status: r.status,
+        x_response: d,
+        hint: 'Most common: token lacks tweet.write scope, or app is in read-only project. Set X_USER_ACCESS_TOKEN with proper scopes.'
+      });
+    }
+    const tweetId = d.data && d.data.id;
+    return res.status(200).json({
+      success: true,
+      package_id: pkg.package_id,
+      brief_id: pkg.brief_id,
+      platform: 'x',
+      external_post_id: tweetId,
+      external_url: tweetId ? 'https://x.com/i/status/' + tweetId : null,
+      published_at: new Date().toISOString(),
+      composed_text: composed
+    });
+  } catch (err) {
+    console.error('[publish-x] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function handlePublishLinkedIn(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { package: pkg, dry_run } = req.body || {};
+  if (!pkg) return res.status(400).json({ error: 'package (PostPackage) is required' });
+  const errors = validatePostPackage(pkg);
+  if (errors.length) return res.status(400).json({ error: 'Invalid PostPackage', validation_errors: errors });
+  if (pkg.status !== 'approved' && pkg.status !== 'scheduled' && !dry_run) {
+    return res.status(412).json({ error: 'Package must be approved or scheduled before publishing. Use dry_run:true to preview.', current_status: pkg.status });
+  }
+
+  const token = process.env.LINKEDIN_ACCESS_TOKEN;
+  const orgId = process.env.LINKEDIN_ORGANIZATION_ID;
+  if (!token) return res.status(500).json({ error: 'LINKEDIN_ACCESS_TOKEN not configured (needs w_organization_social scope).' });
+  if (!orgId) return res.status(500).json({ error: 'LINKEDIN_ORGANIZATION_ID not configured.' });
+
+  const { text } = packageBodyForPlatform(pkg, 'linkedin');
+  const hashtagSuffix = (pkg.hashtags || []).filter(h => text.indexOf(h) === -1).join(' ');
+  const composed = text + (hashtagSuffix ? '\n\n' + hashtagSuffix : '');
+
+  // Optional first-image attachment (LinkedIn supports a single image per post via this simple path;
+  // carousels need a multi-step asset upload which we skip in this adapter version).
+  const firstImage = (pkg.assets && pkg.assets.visuals && pkg.assets.visuals[0]) || null;
+
+  const author = 'urn:li:organization:' + orgId;
+  const body = {
+    author,
+    lifecycleState: 'PUBLISHED',
+    specificContent: {
+      'com.linkedin.ugc.ShareContent': {
+        shareCommentary: { text: composed },
+        shareMediaCategory: firstImage ? 'IMAGE' : 'NONE',
+        ...(firstImage ? {
+          media: [{
+            status: 'READY',
+            description: { text: firstImage.alt_text || '' },
+            originalUrl: firstImage.url,
+            title: { text: pkg.copy.headline || pkg.copy.body.slice(0, 80) }
+          }]
+        } : {})
+      }
+    },
+    visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+  };
+
+  if (dry_run) {
+    return res.status(200).json({ success: true, dry_run: true, would_post: body, length: composed.length });
+  }
+
+  try {
+    const r = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'X-Restli-Protocol-Version': '2.0.0',
+        'LinkedIn-Version': '202501'
+      },
+      body: JSON.stringify(body)
+    });
+    const txt = await r.text();
+    let d; try { d = JSON.parse(txt); } catch { d = { raw: txt }; }
+    if (!r.ok) {
+      return res.status(502).json({
+        error: 'LinkedIn API rejected post',
+        li_status: r.status,
+        li_response: d,
+        hint: 'Most common: token lacks w_organization_social scope, or LINKEDIN_ORGANIZATION_ID is wrong. Token expires every 60 days by default.'
+      });
+    }
+    const postId = (d && d.id) || r.headers.get('x-restli-id') || null;
+    return res.status(200).json({
+      success: true,
+      package_id: pkg.package_id,
+      brief_id: pkg.brief_id,
+      platform: 'linkedin',
+      external_post_id: postId,
+      external_url: postId ? 'https://www.linkedin.com/feed/update/' + encodeURIComponent(postId) : null,
+      published_at: new Date().toISOString(),
+      composed_text: composed
+    });
+  } catch (err) {
+    console.error('[publish-linkedin] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function handlePipelineReview(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const { package: pkg } = req.body || {};
@@ -6262,6 +6428,8 @@ const ROUTES = {
   'pipeline-copy':       handlePipelineCopy,
   'pipeline-assemble':   handlePipelineAssemble,
   'pipeline-review':     handlePipelineReview,
+  'publish-x':           handlePublishX,
+  'publish-linkedin':    handlePublishLinkedIn,
   'generate-ai-copy':    handleGenerateAiCopy,
   'bulk-delete-contacts': handleBulkDeleteContacts,
   'enroll-cadence':      handleEnrollCadence,
