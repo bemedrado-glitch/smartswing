@@ -3648,40 +3648,92 @@
 
     let videoPath = null;
     let reportPath = null;
+    const stepErrors = [];
+
+    function _emitSyncEvent(detail) {
+      try {
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('smartswing:sync-failure', { detail }));
+        }
+      } catch (_) { /* non-fatal */ }
+    }
 
     if (options?.videoFile && typeof File !== 'undefined' && options.videoFile instanceof File) {
       const safeName = String(options.videoFile.name || 'video.mp4').replace(/\s+/g, '-');
       videoPath = `${user.id}/${assessment.externalId}/video-${Date.now()}-${safeName}`;
-      await client.storage.from('tennis-videos').upload(videoPath, options.videoFile, { upsert: true });
+      try {
+        const { error } = await client.storage.from('tennis-videos').upload(videoPath, options.videoFile, { upsert: true });
+        if (error) throw error;
+      } catch (e) {
+        const msg = `Video upload failed: ${e?.message || e}`;
+        console.error('[upload-artifacts] tennis-videos:', msg, { externalId: assessment.externalId });
+        stepErrors.push({ step: 'video_upload', error: msg });
+        _emitSyncEvent({ kind: 'video_upload', externalId: assessment.externalId, error: msg });
+        videoPath = null; // don't pretend the path exists
+      }
     }
 
     if (options?.reportHtml) {
       const blob = new Blob([String(options.reportHtml)], { type: 'text/html' });
       reportPath = `${user.id}/${assessment.externalId}/report-${Date.now()}.html`;
-      await client.storage.from('analysis-reports').upload(reportPath, blob, { upsert: true });
+      try {
+        const { error } = await client.storage.from('analysis-reports').upload(reportPath, blob, { upsert: true });
+        if (error) throw error;
+      } catch (e) {
+        const msg = `Report upload failed: ${e?.message || e}`;
+        console.error('[upload-artifacts] analysis-reports:', msg, { externalId: assessment.externalId });
+        stepErrors.push({ step: 'report_upload', error: msg });
+        _emitSyncEvent({ kind: 'report_upload', externalId: assessment.externalId, error: msg });
+        reportPath = null;
+      }
     }
 
     if (videoPath) {
-      await client.from('assessments').update({ video_path: videoPath }).eq('external_id', assessment.externalId);
+      try {
+        const { error } = await client.from('assessments').update({ video_path: videoPath }).eq('external_id', assessment.externalId);
+        if (error) throw error;
+      } catch (e) {
+        console.error('[upload-artifacts] video_path update failed:', e?.message || e);
+        stepErrors.push({ step: 'video_path_link', error: e?.message || String(e) });
+      }
     }
 
     let remoteAssessmentId = assessment.remoteId || null;
     if (reportPath && !remoteAssessmentId) {
-      const { data: linkedAssessment } = await client
-        .from('assessments')
-        .select('id')
-        .eq('external_id', assessment.externalId)
-        .maybeSingle();
-      remoteAssessmentId = linkedAssessment?.id || null;
+      try {
+        const { data: linkedAssessment, error } = await client
+          .from('assessments')
+          .select('id')
+          .eq('external_id', assessment.externalId)
+          .maybeSingle();
+        if (error) throw error;
+        remoteAssessmentId = linkedAssessment?.id || null;
+      } catch (e) {
+        console.error('[upload-artifacts] linked-assessment lookup failed:', e?.message || e);
+        stepErrors.push({ step: 'assessment_lookup', error: e?.message || String(e) });
+      }
     }
 
     if (reportPath && remoteAssessmentId) {
-      await client.from('analysis_reports').insert({
-        assessment_id: remoteAssessmentId,
-        user_id: user.id,
-        report_path: reportPath,
-        report_format: 'html'
-      });
+      try {
+        const { error } = await client.from('analysis_reports').insert({
+          assessment_id: remoteAssessmentId,
+          user_id: user.id,
+          report_path: reportPath,
+          report_format: 'html'
+        });
+        if (error) throw error;
+      } catch (e) {
+        console.error('[upload-artifacts] analysis_reports insert failed:', e?.message || e);
+        stepErrors.push({ step: 'analysis_reports_insert', error: e?.message || String(e) });
+        _emitSyncEvent({ kind: 'analysis_reports_insert', externalId: assessment.externalId, error: e?.message || String(e) });
+      }
+    } else if (reportPath && !remoteAssessmentId) {
+      // We uploaded the HTML but couldn't link it because the assessment row doesn't exist
+      // in the cloud yet. Queue this assessment for re-sync so the link is restored later.
+      console.warn('[upload-artifacts] report uploaded but no remote assessment to link to — queueing assessment for re-sync');
+      queueFailedSync(assessment, 'orphan_report_no_assessment_row');
+      _emitSyncEvent({ kind: 'orphan_report', externalId: assessment.externalId });
     }
 
     if (videoPath || reportPath) {
@@ -3698,7 +3750,31 @@
       }
     }
 
-    return { uploaded: !!(videoPath || reportPath), videoPath, reportPath };
+    return {
+      uploaded: !!(videoPath || reportPath),
+      videoPath,
+      reportPath,
+      step_errors: stepErrors,
+      ok: stepErrors.length === 0
+    };
+  }
+
+  // Public health check — tells the UI how many assessments are unsynced + total local count.
+  // Use this to drive a "your reports may not be saved to cloud" banner.
+  function getReportsSyncStatus() {
+    const local = getAssessments();
+    const queue = read(KEYS.pendingAssessmentSyncs) || [];
+    const unsynced = local.filter((a) => !a.remoteId).length;
+    const queuedRetries = queue.length;
+    return {
+      total_local: local.length,
+      unsynced,
+      queued_retries: queuedRetries,
+      healthy: unsynced === 0 && queuedRetries === 0,
+      hint: unsynced > 0
+        ? `${unsynced} assessment(s) only exist on this device. Sign in or call retryFailedAssessmentSyncs() to push to cloud.`
+        : null
+    };
   }
 
   async function saveContactMessage(payload) {
@@ -3881,6 +3957,7 @@
     matchTacticsToProfile,
     saveAssessment,
     retryFailedAssessmentSyncs,
+    getReportsSyncStatus,
     saveMatch,
     getUserMatches,
     getMatchStats,
