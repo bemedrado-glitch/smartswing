@@ -6225,20 +6225,21 @@ async function handlePublishX(req, res) {
     return res.status(412).json({ error: 'Package must be approved or scheduled before publishing. Use dry_run:true to preview.', current_status: pkg.status });
   }
 
-  const bearer = process.env.X_BEARER_TOKEN;       // App-only (read+write requires user OAuth)
-  const accessToken = process.env.X_USER_ACCESS_TOKEN; // User OAuth 2.0 token (write scope)
-  const writeToken = accessToken || bearer;
-  if (!writeToken) {
-    return res.status(500).json({ error: 'X_USER_ACCESS_TOKEN or X_BEARER_TOKEN not configured. Tweet posting requires a user OAuth 2.0 token with tweet.write scope.' });
-  }
-
   const { text } = packageBodyForPlatform(pkg, 'x');
   // Hashtags: append distinct tags not already in text, keeping under 280 chars
   const hashtagSuffix = (pkg.hashtags || []).filter(h => text.indexOf(h) === -1).join(' ');
   const composed = (text + (hashtagSuffix ? '\n' + hashtagSuffix : '')).slice(0, 280);
 
+  // Dry-run does not need credentials — it's a pure preview of what would post.
   if (dry_run) {
     return res.status(200).json({ success: true, dry_run: true, would_post: { text: composed, length: composed.length } });
+  }
+
+  const bearer = process.env.X_BEARER_TOKEN;       // App-only (read+write requires user OAuth)
+  const accessToken = process.env.X_USER_ACCESS_TOKEN; // User OAuth 2.0 token (write scope)
+  const writeToken = accessToken || bearer;
+  if (!writeToken) {
+    return res.status(500).json({ error: 'X_USER_ACCESS_TOKEN or X_BEARER_TOKEN not configured. Tweet posting requires a user OAuth 2.0 token with tweet.write scope.' });
   }
 
   try {
@@ -6283,11 +6284,6 @@ async function handlePublishLinkedIn(req, res) {
     return res.status(412).json({ error: 'Package must be approved or scheduled before publishing. Use dry_run:true to preview.', current_status: pkg.status });
   }
 
-  const token = process.env.LINKEDIN_ACCESS_TOKEN;
-  const orgId = process.env.LINKEDIN_ORGANIZATION_ID;
-  if (!token) return res.status(500).json({ error: 'LINKEDIN_ACCESS_TOKEN not configured (needs w_organization_social scope).' });
-  if (!orgId) return res.status(500).json({ error: 'LINKEDIN_ORGANIZATION_ID not configured.' });
-
   const { text } = packageBodyForPlatform(pkg, 'linkedin');
   const hashtagSuffix = (pkg.hashtags || []).filter(h => text.indexOf(h) === -1).join(' ');
   const composed = text + (hashtagSuffix ? '\n\n' + hashtagSuffix : '');
@@ -6296,7 +6292,9 @@ async function handlePublishLinkedIn(req, res) {
   // carousels need a multi-step asset upload which we skip in this adapter version).
   const firstImage = (pkg.assets && pkg.assets.visuals && pkg.assets.visuals[0]) || null;
 
-  const author = 'urn:li:organization:' + orgId;
+  const orgId = process.env.LINKEDIN_ORGANIZATION_ID;
+  // Dry-run uses a placeholder org URN so credentials aren't required for preview.
+  const author = 'urn:li:organization:' + (orgId || 'PLACEHOLDER_ORG_ID');
   const body = {
     author,
     lifecycleState: 'PUBLISHED',
@@ -6320,6 +6318,10 @@ async function handlePublishLinkedIn(req, res) {
   if (dry_run) {
     return res.status(200).json({ success: true, dry_run: true, would_post: body, length: composed.length });
   }
+
+  const token = process.env.LINKEDIN_ACCESS_TOKEN;
+  if (!token) return res.status(500).json({ error: 'LINKEDIN_ACCESS_TOKEN not configured (needs w_organization_social scope).' });
+  if (!orgId) return res.status(500).json({ error: 'LINKEDIN_ORGANIZATION_ID not configured.' });
 
   try {
     const r = await fetch('https://api.linkedin.com/v2/ugcPosts', {
