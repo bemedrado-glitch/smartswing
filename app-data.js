@@ -4007,6 +4007,105 @@
   };
 })();
 
+/* ── Cloud-sync failure toast ────────────────────────────────────────────────
+ * Listens for `smartswing:sync-failure` events dispatched by app-data.js
+ * upload paths and surfaces a passive yellow toast in the bottom-right.
+ * Debounced (rapid failures collapse into one toast), auto-dismisses after
+ * 6 seconds, includes a "Retry now" link that calls retryFailedAssessmentSyncs().
+ * Mounted once per page load. Skips if no <body> (server-side / non-DOM contexts).
+ * ───────────────────────────────────────────────────────────────────────── */
+(function mountSyncFailureToast() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (window.__smartswingSyncToastMounted) return;
+  window.__smartswingSyncToastMounted = true;
+
+  // Inject scoped styles once
+  var styleEl = document.createElement('style');
+  styleEl.textContent = '\
+    .ss-sync-toast{position:fixed;bottom:20px;right:20px;max-width:340px;background:#fef3c7;color:#78350f;\
+      border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:10px;padding:12px 14px;\
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:13px;\
+      line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:99999;\
+      animation:ss-sync-slidein .25s ease-out;}\
+    .ss-sync-toast__title{font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px;}\
+    .ss-sync-toast__body{color:#92400e;font-size:12px;}\
+    .ss-sync-toast__actions{margin-top:8px;display:flex;gap:10px;font-size:12px;}\
+    .ss-sync-toast__btn{background:none;border:none;padding:0;color:#78350f;text-decoration:underline;\
+      cursor:pointer;font-weight:600;font-size:12px;font-family:inherit;}\
+    .ss-sync-toast__btn:hover{color:#451a03;}\
+    .ss-sync-toast__close{position:absolute;top:6px;right:8px;background:none;border:none;font-size:18px;\
+      color:#92400e;cursor:pointer;line-height:1;padding:0;font-family:inherit;}\
+    @keyframes ss-sync-slidein{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}\
+    @media (max-width:480px){.ss-sync-toast{left:10px;right:10px;bottom:10px;max-width:none;}}';
+  document.head.appendChild(styleEl);
+
+  var debounceTimer = null;
+  var pendingFailures = [];
+  var currentToast = null;
+
+  function dismissToast() {
+    if (currentToast && currentToast.parentNode) {
+      currentToast.parentNode.removeChild(currentToast);
+    }
+    currentToast = null;
+  }
+
+  function showToast() {
+    dismissToast();
+    var failures = pendingFailures.slice();
+    pendingFailures = [];
+
+    var status = (window.SmartSwingStore && typeof window.SmartSwingStore.getReportsSyncStatus === 'function')
+      ? window.SmartSwingStore.getReportsSyncStatus()
+      : { unsynced: failures.length, healthy: false };
+    var unsynced = status.unsynced || failures.length;
+
+    var toast = document.createElement('div');
+    toast.className = 'ss-sync-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.innerHTML =
+      '<button class="ss-sync-toast__close" aria-label="Dismiss">&times;</button>' +
+      '<div class="ss-sync-toast__title">⚠️ Saved locally, retrying upload\u2026</div>' +
+      '<div class="ss-sync-toast__body">' +
+        unsynced + ' assessment' + (unsynced === 1 ? '' : 's') + ' not yet synced to your account. ' +
+        'Your data is safe on this device.' +
+      '</div>' +
+      '<div class="ss-sync-toast__actions">' +
+        '<button class="ss-sync-toast__btn" data-action="retry">Retry now</button>' +
+        '<button class="ss-sync-toast__btn" data-action="dismiss">Dismiss</button>' +
+      '</div>';
+
+    toast.addEventListener('click', function(e) {
+      var action = e.target && e.target.dataset && e.target.dataset.action;
+      if (action === 'retry' || (e.target && e.target.classList && e.target.classList.contains('ss-sync-toast__close'))) {
+        if (action === 'retry' && window.SmartSwingStore && typeof window.SmartSwingStore.retryFailedAssessmentSyncs === 'function') {
+          window.SmartSwingStore.retryFailedAssessmentSyncs().then(function(r) {
+            console.info('[sync-toast] retry result:', r);
+          }).catch(function(err) { console.warn('[sync-toast] retry error:', err); });
+        }
+        dismissToast();
+      } else if (action === 'dismiss') {
+        dismissToast();
+      }
+    });
+
+    document.body.appendChild(toast);
+    currentToast = toast;
+    // Auto-dismiss after 6s unless user is hovering
+    var dismissTimer = setTimeout(dismissToast, 6000);
+    toast.addEventListener('mouseenter', function() { clearTimeout(dismissTimer); });
+    toast.addEventListener('mouseleave', function() { dismissTimer = setTimeout(dismissToast, 3000); });
+  }
+
+  window.addEventListener('smartswing:sync-failure', function(e) {
+    pendingFailures.push((e && e.detail) || {});
+    // Debounce: collapse a burst of failures into a single toast 250ms after the last one
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(showToast, 250);
+  });
+})();
+
 /* ── PostHog Analytics Bootstrap ─────────────────────────────────────────────
  * Reads POSTHOG_KEY from window.SMARTSWING_ANALYTICS_CONFIG (set by
  * /api/runtime-config.js). Only activates when:
