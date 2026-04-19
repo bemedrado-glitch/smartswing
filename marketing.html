@@ -2962,6 +2962,10 @@ function switchTab(tabName, triggerEl) {
   closeSidebar();
 
   if (tabName === 'calendar') renderCalendar();
+  // Refresh enrollments / history when their tabs are opened so freshly-enrolled
+  // contacts appear without manual page reload.
+  if (tabName === 'enrollments' && typeof loadEnrollments === 'function') loadEnrollments();
+  if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
   if (tabName === 'analytics') {
     if (typeof loadAnalytics === 'function') loadAnalytics();
     // Auto-refresh every 15 minutes while analytics tab is active
