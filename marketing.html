@@ -1030,6 +1030,107 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
 
+        <!-- ═══ PIPELINE STUDIO (v2: schema-validated handoffs) ═══════════════ -->
+        <div class="mkt-panel" style="margin-top:20px;">
+          <div class="mkt-panel__header">
+            <div>
+              <div class="mkt-panel__title">🧪 Pipeline Studio</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px;">Plan → Copy → Assemble → Review → Publish. Each stage emits a schema-validated artifact you can inspect and edit before passing to the next.</div>
+            </div>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="resetPipelineStudio()">Reset</button>
+          </div>
+          <div class="mkt-panel__body">
+            <!-- Stage 1: Plan -->
+            <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <strong style="font-size:13px;">1. Planner — generate ContentBrief</strong>
+                <span id="stagePlanStatus" style="font-size:11px;color:var(--muted);">idle</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <input type="text" class="mkt-input" id="stagePlanTopic" placeholder="Topic (e.g. hip-shoulder separation for 3.5 players)">
+                <select class="mkt-select" id="stagePlanPlatform">
+                  <option value="tiktok">TikTok</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="x">X</option>
+                  <option value="email">Email</option>
+                  <option value="blog">Blog</option>
+                  <option value="facebook">Facebook</option>
+                </select>
+                <select class="mkt-select" id="stagePlanPersona">
+                  <option value="player">Player</option>
+                  <option value="coach">Coach</option>
+                  <option value="club">Club</option>
+                  <option value="parent">Parent</option>
+                  <option value="pickleball">Pickleball</option>
+                </select>
+                <select class="mkt-select" id="stagePlanFormat">
+                  <option value="">— Auto-pick format —</option>
+                  <option value="short_video">Short video</option>
+                  <option value="long_video">Long video</option>
+                  <option value="reel">Reel</option>
+                  <option value="carousel">Carousel</option>
+                  <option value="static_image">Static image</option>
+                  <option value="email">Email</option>
+                  <option value="blog_post">Blog post</option>
+                  <option value="thread">Thread</option>
+                  <option value="single_post">Single post</option>
+                  <option value="ad">Ad</option>
+                </select>
+              </div>
+              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="runPipelinePlan()">▶ Run Planner</button>
+              <pre id="stagePlanOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:240px;overflow:auto;white-space:pre-wrap;"></pre>
+            </div>
+
+            <!-- Stage 2: Copy -->
+            <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <strong style="font-size:13px;">2. Copywriter — generate copy from brief</strong>
+                <span id="stageCopyStatus" style="font-size:11px;color:var(--muted);">waiting for brief</span>
+              </div>
+              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stageCopyBtn" onclick="runPipelineCopy()" disabled>▶ Run Copywriter</button>
+              <pre id="stageCopyOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:240px;overflow:auto;white-space:pre-wrap;"></pre>
+            </div>
+
+            <!-- Stage 3: Assemble -->
+            <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <strong style="font-size:13px;">3. Assembler — build PostPackage (deterministic)</strong>
+                <span id="stageAsmStatus" style="font-size:11px;color:var(--muted);">waiting for copy</span>
+              </div>
+              <input type="text" class="mkt-input" id="stageAsmVisualUrl" placeholder="Optional placeholder visual URL (else assembled with no visuals)" style="margin-bottom:8px;">
+              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stageAsmBtn" onclick="runPipelineAssemble()" disabled>▶ Run Assembler</button>
+              <pre id="stageAsmOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:240px;overflow:auto;white-space:pre-wrap;"></pre>
+            </div>
+
+            <!-- Stage 4: Review -->
+            <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <strong style="font-size:13px;">4. Editor-in-Chief — score on 6-dim rubric</strong>
+                <span id="stageReviewStatus" style="font-size:11px;color:var(--muted);">waiting for package</span>
+              </div>
+              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stageReviewBtn" onclick="runPipelineReview()" disabled>▶ Run Editor</button>
+              <pre id="stageReviewOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>
+            </div>
+
+            <!-- Stage 5: Publish -->
+            <div style="border:1px solid var(--line);border-radius:10px;padding:14px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <strong style="font-size:13px;">5. Publisher — post to platform</strong>
+                <span id="stagePublishStatus" style="font-size:11px;color:var(--muted);">waiting for approved package</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" id="stagePublishXDryBtn" onclick="runPipelinePublish('x', true)" disabled>👁 Dry-run X</button>
+                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stagePublishXBtn" onclick="runPipelinePublish('x', false)" disabled>📤 Publish to X</button>
+                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" id="stagePublishLIDryBtn" onclick="runPipelinePublish('linkedin', true)" disabled>👁 Dry-run LinkedIn</button>
+                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stagePublishLIBtn" onclick="runPipelinePublish('linkedin', false)" disabled>📤 Publish to LinkedIn</button>
+              </div>
+              <pre id="stagePublishOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /tab-agents -->
 
       <!-- ─────────────── TAB: ANALYTICS ─────────────── -->
@@ -2645,19 +2746,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p id="assignCadenceSubtitle" style="font-size:13px;color:var(--muted);margin-bottom:16px;"></p>
       <input type="hidden" id="assignCadenceContactId">
       <div class="mkt-form-group">
-        <label class="mkt-label">Cadence <span style="color:var(--muted);font-weight:400;font-size:11px;">(optional if campaign selected)</span></label>
+        <label class="mkt-label">Cadence</label>
         <select class="mkt-select" id="assignCadencePicker">
           <option value="">⏳ Loading cadences…</option>
         </select>
-      </div>
-      <div class="mkt-form-group" style="margin-top:12px;">
-        <label class="mkt-label">Campaign <span style="color:var(--muted);font-weight:400;font-size:11px;">(optional if cadence selected)</span></label>
-        <select class="mkt-select" id="assignCampaignPicker">
-          <option value="">⏳ Loading campaigns…</option>
-        </select>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Paid-media campaigns live under <strong>Paid Media</strong>. This flow only assigns sales cadences (email + SMS).</div>
       </div>
       <div style="margin-top:14px;padding:10px 12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#166534;line-height:1.5;">
-        ✅ Enrolling will promote this contact to <strong>Lead</strong> status and move them to the Leads tab.
+        ✅ Enrolling will promote this contact to <strong>Lead</strong> status and schedule the cadence's first send.
       </div>
     </div>
     <div class="mkt-modal__footer">
@@ -3897,61 +3993,50 @@ async function openAssignCadenceModal(contactId, contactName, preselectCadenceId
   document.getElementById('assignCadenceTitle').textContent = `Enroll ${nameLabel} as Lead`;
   document.getElementById('assignCadenceSubtitle').textContent =
     contactName
-      ? `Move ${contactName} into the Leads pipeline by assigning them to a cadence and/or campaign.`
+      ? `Move ${contactName} into the Leads pipeline by assigning them to a cadence.`
       : 'Select a contact to move into the Leads pipeline.';
   document.getElementById('assignCadenceContactId').value = contactId || '';
 
-  const cadSel  = document.getElementById('assignCadencePicker');
-  const campSel = document.getElementById('assignCampaignPicker');
-  cadSel.innerHTML  = '<option value="">⏳ Loading…</option>';
-  campSel.innerHTML = '<option value="">⏳ Loading…</option>';
+  const cadSel = document.getElementById('assignCadencePicker');
+  cadSel.innerHTML = '<option value="">⏳ Loading…</option>';
 
   // Close any open lead/contact detail modals so they don't stack
   closeModal('leadTimelineModal');
   openModal('assignCadenceModal');
 
   if (MarketingStore.supabase) {
-    const [cadRes, campRes] = await Promise.all([
-      MarketingStore.supabase.from('email_cadences').select('id,name,target_persona,status').order('name'),
-      MarketingStore.supabase.from('marketing_campaigns').select('id,name,type,status').eq('status', 'active').order('name')
-    ]);
-
-    const cadences  = cadRes.data  || [];
-    const campaigns = campRes.data || [];
-
-    cadSel.innerHTML = '<option value="">— No cadence —</option>' +
+    const cadRes = await MarketingStore.supabase
+      .from('email_cadences')
+      .select('id,name,target_persona,is_active')
+      .eq('is_active', true)
+      .order('name');
+    const cadences = cadRes.data || [];
+    cadSel.innerHTML = '<option value="">— Select a cadence —</option>' +
       cadences.map(c =>
         `<option value="${escHtml(c.id)}"${preselectCadenceId === c.id ? ' selected' : ''}>` +
         `${escHtml(c.name)}${c.target_persona ? ' · ' + escHtml(c.target_persona) : ''}` +
         `</option>`
       ).join('');
-    if (!cadences.length) cadSel.innerHTML = '<option value="">No cadences yet — create one in the Cadences tab</option>';
-
-    campSel.innerHTML = '<option value="">— No campaign —</option>' +
-      campaigns.map(c => {
-        const icon = { email:'📧', social:'📱', paid:'💰', content:'📝', event:'📅', outreach:'🎯' }[c.type] || '🎯';
-        return `<option value="${escHtml(c.id)}">${icon} ${escHtml(c.name)}</option>`;
-      }).join('');
-    if (!campaigns.length) campSel.innerHTML = '<option value="">No active campaigns</option>';
+    if (!cadences.length) {
+      cadSel.innerHTML = '<option value="">No active cadences — create one in Sales Cadences tab</option>';
+    }
   } else {
     // Demo mode fallback
     cadSel.innerHTML = `
-      <option value="">— No cadence —</option>
+      <option value="">— Select a cadence —</option>
       <option value="demo-players">New Lead — Tennis Players</option>
       <option value="demo-coaches">New Lead — Coaches</option>
       <option value="demo-trial">Trial to Paid</option>
     `;
-    campSel.innerHTML = '<option value="">— No active campaigns —</option>';
   }
 }
 
 async function confirmAssignCadence() {
-  const contactId  = document.getElementById('assignCadenceContactId').value;
-  const cadenceId  = document.getElementById('assignCadencePicker').value;
-  const campaignId = document.getElementById('assignCampaignPicker').value;
+  const contactId = document.getElementById('assignCadenceContactId').value;
+  const cadenceId = document.getElementById('assignCadencePicker').value;
 
   if (!contactId) { showToast('No contact selected', 'error'); return; }
-  if (!cadenceId && !campaignId) { showToast('Select at least a cadence or a campaign', 'error'); return; }
+  if (!cadenceId) { showToast('Select a cadence', 'error'); return; }
 
   closeModal('assignCadenceModal');
   showToast('Enrolling as lead…', '');
@@ -3960,14 +4045,13 @@ async function confirmAssignCadence() {
 
   try {
     if (cadenceId) {
-      // Cadence path (+ optionally campaign) — use the API which schedules steps
+      // Cadence-only path (paid-media campaigns live under Paid Media → Playbooks)
       const res = await fetch('/api/marketing/enroll-cadence', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contact_id: contactId,
           cadence_id: cadenceId,
-          campaign_id: campaignId || null,
           supabase_url: cfg.url || '',
           supabase_key: cfg.anonKey || ''
         })
@@ -3977,21 +4061,12 @@ async function confirmAssignCadence() {
       if (d.already_enrolled) { showToast('Already enrolled in this cadence', 'error'); return; }
       const cadName = d.cadence_name || 'cadence';
       const nextWhen = d.next_step_at ? new Date(d.next_step_at).toLocaleString() : 'now';
-      const campNote = campaignId ? ' + campaign' : '';
       const skipNote = d.skipped_channels && d.skipped_channels.length
         ? ` ⚠ Skipped: ${d.skipped_channels.join(', ')}.` : '';
-      showToast(`✓ Enrolled in "${cadName}"${campNote} (${d.steps_scheduled || 0} steps, first send ${nextWhen}). Moved to Leads.${skipNote}`, 'success');
-
-    } else if (campaignId && MarketingStore.supabase) {
-      // Campaign-only path — promote stage + log journey via Supabase client directly
-      const now = new Date().toISOString();
-      await Promise.all([
-        MarketingStore.supabase.from('marketing_contacts')
-          .update({ stage: 'lead', updated_at: now }).eq('id', contactId),
-        MarketingStore.supabase.from('contact_journeys')
-          .insert({ contact_id: contactId, stage: 'lead', entered_at: now, campaign_id: campaignId, notes: 'Manually assigned to campaign' })
-      ]);
-      showToast('✓ Contact promoted to Lead and added to campaign.', 'success');
+      showToast(`✓ Enrolled in "${cadName}" (${d.steps_scheduled || 0} steps, first send ${nextWhen}). Moved to Leads.${skipNote}`, 'success');
+      // Refresh Enrollments + History so the new row shows immediately
+      if (typeof loadEnrollments === 'function') loadEnrollments();
+      if (typeof loadHistory === 'function') loadHistory();
     }
 
     // Refresh contacts, leads, and KPIs
@@ -3999,35 +4074,8 @@ async function confirmAssignCadence() {
     if (typeof loadLeads === 'function') loadLeads();
     if (typeof loadLeadsCount === 'function') loadLeadsCount();
 
-    // ── Auto-navigate: campaign chosen → Campaigns tab (highlight card)
-    //                  cadence-only   → Leads tab
-    if (campaignId) {
-      await loadCampaigns();
-      renderCampaigns();
-      switchTab('campaigns', document.querySelector('[data-tab=campaigns]'));
-      // Highlight the relevant campaign card
-      setTimeout(function() {
-        const camp = (MarketingStore.campaigns || []).find(c => c.id === campaignId);
-        if (camp) {
-          const cards = document.querySelectorAll('.mkt-campaign-card');
-          cards.forEach(function(card) {
-            const nameEl = card.querySelector('.mkt-campaign-card__name');
-            if (nameEl && nameEl.textContent.trim() === camp.name) {
-              card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              card.style.transition = 'box-shadow 0.3s, outline 0.3s';
-              card.style.outline    = '2px solid #D8FF00';
-              card.style.boxShadow  = '0 0 0 5px rgba(216,255,0,0.18)';
-              setTimeout(function() { card.style.outline = ''; card.style.boxShadow = ''; }, 2500);
-            }
-          });
-        }
-      }, 250);
-    } else {
-      // Cadence-only path → drop the user into Leads so they can see the new row
-      switchTab('leads', document.querySelector('[data-tab=leads]'));
-      if (typeof loadLeads === 'function') loadLeads();
-    }
-
+    // Drop the user into Enrollments so they can see the new row
+    switchTab('enrollments', document.querySelector('[data-tab=enrollments]'));
   } catch (err) {
     showToast('Enrollment error: ' + (err?.message || String(err)), 'error');
   }
@@ -8163,6 +8211,182 @@ function loadActivityFeed() {
   document.head.appendChild(style);
 })();
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIPELINE STUDIO — UI for the v2 schema-validated agent pipeline.
+   Stages: Plan → Copy → Assemble → Review → Publish.
+   State lives on window.PipelineStudio so each stage can read the previous
+   stage's output without re-fetching.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+window.PipelineStudio = window.PipelineStudio || { brief: null, copy: null, package: null, review: null };
+
+function _stageWrite(prefix, status, payload) {
+  var statusEl = document.getElementById('stage' + prefix + 'Status');
+  var outEl    = document.getElementById('stage' + prefix + 'Output');
+  if (statusEl) statusEl.textContent = status;
+  if (outEl) {
+    if (payload === undefined || payload === null) {
+      outEl.style.display = 'none';
+      outEl.textContent = '';
+    } else {
+      outEl.style.display = 'block';
+      outEl.textContent = (typeof payload === 'string') ? payload : JSON.stringify(payload, null, 2);
+    }
+  }
+}
+
+function _stageEnable(id, enabled) {
+  var el = document.getElementById(id);
+  if (el) el.disabled = !enabled;
+}
+
+function resetPipelineStudio() {
+  window.PipelineStudio = { brief: null, copy: null, package: null, review: null };
+  ['Plan','Copy','Asm','Review','Publish'].forEach(function(p) { _stageWrite(p, 'idle', null); });
+  ['stageCopyBtn','stageAsmBtn','stageReviewBtn','stagePublishXBtn','stagePublishXDryBtn','stagePublishLIBtn','stagePublishLIDryBtn']
+    .forEach(function(id) { _stageEnable(id, false); });
+  document.getElementById('stageCopyStatus').textContent = 'waiting for brief';
+  document.getElementById('stageAsmStatus').textContent  = 'waiting for copy';
+  document.getElementById('stageReviewStatus').textContent = 'waiting for package';
+  document.getElementById('stagePublishStatus').textContent = 'waiting for approved package';
+}
+
+async function runPipelinePlan() {
+  var topic    = document.getElementById('stagePlanTopic').value.trim();
+  var platform = document.getElementById('stagePlanPlatform').value;
+  var persona  = document.getElementById('stagePlanPersona').value;
+  var format   = document.getElementById('stagePlanFormat').value;
+  if (!topic) { showToast('Topic is required for the planner', 'error'); return; }
+  _stageWrite('Plan', 'running…', null);
+  try {
+    var body = { topic: topic, platform: platform, persona: persona };
+    if (format) body.format = format;
+    var r = await fetch('/api/marketing/pipeline-plan', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || 'planner failed');
+    window.PipelineStudio.brief = d.brief;
+    _stageWrite('Plan', '✓ ' + d.brief.brief_id, d.brief);
+    _stageEnable('stageCopyBtn', true);
+    document.getElementById('stageCopyStatus').textContent = 'ready';
+  } catch (e) {
+    _stageWrite('Plan', '✗ ' + e.message, null);
+    showToast('Planner failed: ' + e.message, 'error');
+  }
+}
+
+async function runPipelineCopy() {
+  if (!window.PipelineStudio.brief) { showToast('Run Planner first', 'error'); return; }
+  _stageWrite('Copy', 'running…', null);
+  try {
+    var r = await fetch('/api/marketing/pipeline-copy', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ brief: window.PipelineStudio.brief })
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || 'copywriter failed');
+    window.PipelineStudio.copy = d.copy;
+    _stageWrite('Copy', '✓ written', d.copy);
+    _stageEnable('stageAsmBtn', true);
+    document.getElementById('stageAsmStatus').textContent = 'ready';
+  } catch (e) {
+    _stageWrite('Copy', '✗ ' + e.message, null);
+    showToast('Copywriter failed: ' + e.message, 'error');
+  }
+}
+
+async function runPipelineAssemble() {
+  if (!window.PipelineStudio.copy) { showToast('Run Copywriter first', 'error'); return; }
+  _stageWrite('Asm', 'running…', null);
+  try {
+    var visualUrl = document.getElementById('stageAsmVisualUrl').value.trim();
+    var visuals = visualUrl ? [{ url: visualUrl, kind: 'image', aspect_ratio: '1:1', alt_text: 'Pipeline Studio test visual', source_model: 'manual' }] : [];
+    var body = {
+      brief: window.PipelineStudio.brief,
+      copy: window.PipelineStudio.copy,
+      visuals: visuals,
+      hashtags: [],
+      platform_variants: {}
+    };
+    var r = await fetch('/api/marketing/pipeline-assemble', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || (d.validation_errors && d.validation_errors.join('; ')) || 'assemble failed');
+    window.PipelineStudio.package = d.package;
+    _stageWrite('Asm', '✓ ' + d.package.package_id, d.package);
+    _stageEnable('stageReviewBtn', true);
+    document.getElementById('stageReviewStatus').textContent = 'ready';
+  } catch (e) {
+    _stageWrite('Asm', '✗ ' + e.message, null);
+    showToast('Assembler failed: ' + e.message, 'error');
+  }
+}
+
+async function runPipelineReview() {
+  if (!window.PipelineStudio.package) { showToast('Assemble first', 'error'); return; }
+  _stageWrite('Review', 'running…', null);
+  try {
+    var r = await fetch('/api/marketing/pipeline-review', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ package: window.PipelineStudio.package })
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || 'review failed');
+    window.PipelineStudio.review = d.review;
+    _stageWrite('Review', '✓ ' + d.review.decision, d.review);
+    if (d.review.decision === 'approved') {
+      // Promote the package status so publishers will accept it
+      window.PipelineStudio.package.status = 'approved';
+      window.PipelineStudio.package.editor_review = d.review;
+      ['stagePublishXBtn','stagePublishXDryBtn','stagePublishLIBtn','stagePublishLIDryBtn']
+        .forEach(function(id) { _stageEnable(id, true); });
+      document.getElementById('stagePublishStatus').textContent = '✓ approved — ready to publish';
+    } else {
+      // dry-run still allowed even on revise/reject so the user can preview composed text
+      ['stagePublishXDryBtn','stagePublishLIDryBtn'].forEach(function(id) { _stageEnable(id, true); });
+      document.getElementById('stagePublishStatus').textContent =
+        d.review.decision + ' — fix issues then re-run, or dry-run to preview';
+    }
+  } catch (e) {
+    _stageWrite('Review', '✗ ' + e.message, null);
+    showToast('Editor failed: ' + e.message, 'error');
+  }
+}
+
+async function runPipelinePublish(platform, dryRun) {
+  if (!window.PipelineStudio.package) { showToast('No package to publish', 'error'); return; }
+  // For dry-runs we don't require approved status
+  var pkg = JSON.parse(JSON.stringify(window.PipelineStudio.package));
+  if (dryRun && pkg.status !== 'approved' && pkg.status !== 'scheduled') pkg.status = 'approved';
+
+  _stageWrite('Publish', 'running ' + (dryRun ? 'dry-run' : 'live publish') + ' to ' + platform + '…', null);
+  try {
+    var endpoint = platform === 'x' ? 'publish-x' : 'publish-linkedin';
+    var r = await fetch('/api/marketing/' + endpoint, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ package: pkg, dry_run: !!dryRun })
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || 'publish failed');
+    _stageWrite('Publish', dryRun ? '✓ dry-run OK (' + platform + ')' : '✓ published to ' + platform, d);
+    if (!dryRun) {
+      showToast('✓ Published to ' + platform + (d.external_url ? ' — ' + d.external_url : ''), 'success');
+    }
+  } catch (e) {
+    _stageWrite('Publish', '✗ ' + platform + ': ' + e.message, null);
+    showToast(platform + ' publish failed: ' + e.message, 'error');
+  }
+}
+
+window.runPipelinePlan = runPipelinePlan;
+window.runPipelineCopy = runPipelineCopy;
+window.runPipelineAssemble = runPipelineAssemble;
+window.runPipelineReview = runPipelineReview;
+window.runPipelinePublish = runPipelinePublish;
+window.resetPipelineStudio = resetPipelineStudio;
+
 /* ── UPDATE INIT to include new features ── */
 var _origInit = document.addEventListener;
 // Patch DOMContentLoaded to add analytics + settings
@@ -8188,6 +8412,9 @@ function _mktSupabaseCreds() {
 }
 
 async function loadCadencesForDropdown() {
+  // Loads cadences into MarketingStore + populates the Enrollments tab cadence
+  // filter. The Enroll modal loads its own cadences fresh on open
+  // (openAssignCadenceModal queries email_cadences directly).
   var c = _mktSupabaseCreds();
   if (!c.url || !c.key) return;
   try {
@@ -8196,24 +8423,10 @@ async function loadCadencesForDropdown() {
     var data = await res.json();
     if (!data || !data.success) throw new Error(data && data.error || 'cadences-list failed');
     MarketingStore.cadences = data.cadences || [];
-    _renderCadenceDropdowns();
     _renderEnrollmentsCadenceFilter();
   } catch (e) {
     console.warn('loadCadencesForDropdown failed:', e);
   }
-}
-
-function _renderCadenceDropdowns() {
-  var targets = ['enrollCadenceSelect', 'contactEnrollCadenceSelect'];
-  var opts = '<option value="">— Select a cadence —</option>' +
-    (MarketingStore.cadences || []).map(function(c) {
-      var label = c.name + (c.total_steps ? ' (' + c.total_steps + ' steps)' : '');
-      return '<option value="' + c.id + '">' + escHtml(label) + '</option>';
-    }).join('');
-  targets.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.innerHTML = opts;
-  });
 }
 
 function _renderEnrollmentsCadenceFilter() {
