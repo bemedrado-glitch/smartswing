@@ -602,6 +602,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <div class="mkt-table-wrap">
+          <div id="leadsPersonaStrip" style="display:none;margin:8px 0 12px;padding:10px 14px;background:linear-gradient(135deg,#1a1a1a,#101010);border:1px solid #2a2a2a;border-radius:10px;font-size:12px;color:#a3a8b8;"></div>
           <table class="mkt-table" id="leadsTable">
             <thead>
               <tr>
@@ -3706,21 +3707,23 @@ async function runProspecting(type, dryRun) {
     resultsEl.innerHTML = html;
 
     if (!dryRun && data.inserted > 0) {
-      showToast(data.inserted + ' ' + (type === 'clubs' ? 'clubs' : 'players') + ' added to contacts pipeline!', 'success');
       // Auto-promote any newly inserted contacts that have a real email or phone to 'lead' stage
       if (MarketingStore.supabase) {
-        MarketingStore.supabase
+        await MarketingStore.supabase
           .from('marketing_contacts')
           .update({ stage: 'lead' })
           .eq('stage', 'prospect')
           .not('email', 'like', '%@pending-enrichment%')
           .not('email', 'like', '%@federation-record%')
-          .or('email.not.is.null,phone.not.is.null')
-          .then(() => {});
+          .or('email.not.is.null,phone.not.is.null');
       }
       if (typeof loadContacts === 'function') loadContacts();
       if (typeof loadLeads === 'function') loadLeads();
       if (typeof loadLeadsCount === 'function') loadLeadsCount();
+      var msg = data.inserted + ' ' + (type === 'clubs' ? 'clubs' : 'players') +
+        ' added. ' + (data.skipped > 0 ? data.skipped + ' skipped (duplicates). ' : '') +
+        'Run Email Enrichment next, then enroll from the Leads tab.';
+      showToast(msg, 'success');
     }
   } catch (err) {
     resultsEl.innerHTML = '<div style="padding:16px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
@@ -3769,21 +3772,26 @@ async function runEnrichment(dryRun) {
     resultsEl.innerHTML = html;
 
     if (!dryRun && data.enriched > 0) {
-      showToast(data.enriched + ' emails enriched! Promoting to lead stage…', 'success');
       // Auto-promote newly-enriched contacts to 'lead' stage so they appear in the Leads tab
       if (MarketingStore.supabase) {
-        MarketingStore.supabase
+        await MarketingStore.supabase
           .from('marketing_contacts')
           .update({ stage: 'lead', enrichment_source: 'website_scrape' })
           .in('stage', ['prospect', 'contact'])
           .not('email', 'is', null)
           .not('email', 'like', '%@pending-enrichment%')
-          .not('email', 'like', '%@federation-record%')
-          .then(() => {});
+          .not('email', 'like', '%@federation-record%');
       }
       if (typeof loadContacts === 'function') loadContacts();
       if (typeof loadLeads === 'function') loadLeads();
       if (typeof loadLeadsCount === 'function') loadLeadsCount();
+      showToast(data.enriched + ' emails enriched. Showing them in the Leads tab now — click Enroll on any row.', 'success');
+      // Auto-switch to Leads tab so users see the enriched contacts immediately
+      // (they're filtered out of Contacts tab because stage='lead', causing "where did they go?" confusion)
+      setTimeout(function() {
+        var leadsBtn = document.querySelector('.mkt-nav-item[data-tab="leads"]');
+        if (leadsBtn && typeof switchTab === 'function') switchTab('leads', leadsBtn);
+      }, 800);
     }
   } catch (err) {
     resultsEl.innerHTML = '<div style="padding:12px;background:#ff4d4f15;border-radius:8px;color:#ff4d4f;font-size:13px;">Error: ' + err.message + '</div>';
@@ -4224,6 +4232,8 @@ async function loadLeads() {
     filterLeads();
     const badge = document.getElementById('leadsBadge');
     if (badge) badge.textContent = String(MarketingLeads.raw.length);
+    // Render persona distribution strip so player rows aren't lost in a sea of clubs
+    renderLeadsPersonaStrip();
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="mkt-empty">
       <div style="font-size:28px;margin-bottom:8px;">⚠️</div>
@@ -4232,6 +4242,43 @@ async function loadLeads() {
       <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" style="margin-top:10px;" onclick="loadLeads()">Retry</button>
     </div></td></tr>`;
   }
+}
+
+function renderLeadsPersonaStrip() {
+  var strip = document.getElementById('leadsPersonaStrip');
+  if (!strip) return;
+  var rows = (MarketingLeads.raw || []);
+  if (!rows.length) { strip.style.display = 'none'; return; }
+  // Count by persona (uses player_type primarily, falls back to persona)
+  var counts = {};
+  rows.forEach(function(r) {
+    var c = r.contact || {};
+    var pt = (c.player_type || c.persona || 'unknown').toLowerCase();
+    counts[pt] = (counts[pt] || 0) + 1;
+  });
+  var icons = { player: '🎾', coach: '📋', club: '🏟️', parent: '👨‍👩‍👧', pickleball: '🥒', federation: '🏛️', unknown: '👤' };
+  var labels = { player: 'Players', coach: 'Coaches', club: 'Clubs', parent: 'Parents', pickleball: 'Pickleball', federation: 'Federation', unknown: 'Unknown' };
+  // Sort by count desc; show all categories present
+  var pairs = Object.keys(counts).map(function(k) { return { type: k, n: counts[k] }; }).sort(function(a, b) { return b.n - a.n; });
+  var html = '<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;">';
+  html += '<strong style="color:#fff;">' + rows.length + ' contactable leads</strong>';
+  pairs.forEach(function(p) {
+    var icon = icons[p.type] || '👤';
+    var label = labels[p.type] || p.type;
+    var clickable = ['player','coach','club','parent','pickleball'].indexOf(p.type) !== -1;
+    if (clickable) {
+      html += '<button onclick="document.getElementById(\'leadPersonaFilter\').value=\'' + p.type + '\';filterLeads();" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:4px 10px;font-size:12px;color:#a3a8b8;cursor:pointer;font-family:inherit;">' +
+        icon + ' <strong style="color:#fff;">' + p.n + '</strong> ' + label +
+        '</button>';
+    } else {
+      html += '<span style="opacity:.6;">' + icon + ' ' + p.n + ' ' + label + '</span>';
+    }
+  });
+  // "Show all" reset
+  html += '<button onclick="document.getElementById(\'leadPersonaFilter\').value=\'\';filterLeads();" style="margin-left:auto;background:none;border:none;color:#c8ff00;cursor:pointer;font-size:12px;font-family:inherit;text-decoration:underline;">Show all</button>';
+  html += '</div>';
+  strip.innerHTML = html;
+  strip.style.display = 'block';
 }
 
 function filterLeads() {
