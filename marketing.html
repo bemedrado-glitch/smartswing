@@ -26,12 +26,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
 <!-- SECURITY GATE — 6-digit code required -->
-<div id="securityGate" style="position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;align-items:center;justify-content:center;">
+<div id="securityGate" role="dialog" aria-modal="true" aria-labelledby="securityGateTitle" style="position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;align-items:center;justify-content:center;">
   <div style="text-align:center;max-width:380px;padding:40px;">
     <div style="width:56px;height:56px;background:#c8ff00;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
     </div>
-    <h1 style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:6px;">Marketing Dashboard</h1>
+    <h1 id="securityGateTitle" style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:6px;">Marketing Dashboard</h1>
     <p style="font-size:13px;color:#888;margin-bottom:28px;">Enter the 6-digit security code to continue.</p>
     <div id="gateCodeWrap" role="group" aria-label="Security code, 6 digits" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
       <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="0" aria-label="Security code digit 1 of 6">
@@ -239,7 +239,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="mkt-content">
 
       <!-- ─────────────── TAB: DASHBOARD ─────────────── -->
-      <div class="mkt-tab-panel is-active" id="tab-dashboard">
+      <div class="mkt-tab-panel is-active" id="tab-dashboard" role="region" aria-label="Dashboard">
 
         <!-- ── AI INSIGHTS PANEL ── -->
         <div class="mkt-ai-insights" id="aiInsightsPanel">
@@ -361,7 +361,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-dashboard -->
 
       <!-- ─────────────── TAB: CONTACTS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-contacts">
+      <div class="mkt-tab-panel" id="tab-contacts" role="region" aria-label="Contacts">
 
         <div class="mkt-filters">
           <input type="text" class="mkt-search" id="contactSearch" placeholder="Search contacts…" oninput="filterContacts()">
@@ -456,7 +456,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
                 <div>
                   <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Region</label>
-                  <select class="mkt-filter-select" id="prospectRegion" style="min-width:200px;">
+                  <select class="mkt-filter-select" id="prospectRegion" style="min-width:200px;" aria-label="Prospect egion">
                     <option value="">Select region…</option>
                     <option value="us-northeast">US Northeast</option>
                     <option value="us-southeast">US Southeast</option>
@@ -491,7 +491,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
                 <div>
                   <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Source</label>
-                  <select class="mkt-filter-select" id="prospectFederation" style="min-width:200px;" onchange="updateFederationCategories()">
+                  <select class="mkt-filter-select" id="prospectFederation" style="min-width:200px;" onchange="updateFederationCategories()" aria-label="Prospect ederation">
                     <optgroup label="🎾 Tennis — Pro Rankings">
                       <option value="sofascore">All Rankings (Sofascore)</option>
                       <option value="atp">ATP Men's Pro</option>
@@ -512,7 +512,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div>
                   <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Category</label>
-                  <select class="mkt-filter-select" id="prospectCategory" style="min-width:200px;">
+                  <select class="mkt-filter-select" id="prospectCategory" style="min-width:200px;" aria-label="Prospect ategory">
                     <option value="mens-singles">Men's Singles</option>
                     <option value="womens-singles">Women's Singles</option>
                     <option value="juniors-boys">Juniors Boys</option>
@@ -549,7 +549,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div style="margin-top:24px;padding:20px;background:var(--bg-soft);border-radius:12px;border:1px solid var(--border);">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
               <div>
-                <h3 style="font-size:15px;font-weight:700;color:var(--black);margin:0;">Email Enrichment</h3>
+                <h2 style="font-size:15px;font-weight:700;color:var(--black);margin:0;">Email Enrichment</h2>
                 <p style="font-size:12px;color:var(--muted);margin-top:2px;">Scrape club websites or federation profiles to find contact emails for leads with placeholder addresses.</p>
               </div>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -575,7 +575,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-contacts -->
 
       <!-- ─────────────── TAB: LEADS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-leads">
+      <div class="mkt-tab-panel" id="tab-leads" role="region" aria-label="Leads">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
           <div>
             <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Leads <span id="leadsCountLabel" style="font-weight:400;font-size:14px;color:var(--muted);"></span></h2>
@@ -627,7 +627,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-leads -->
 
       <!-- ─────────────── LEAD TIMELINE DRAWER ─────────────── -->
-      <div class="mkt-modal-overlay" id="leadTimelineModal" style="display:none;">
+      <div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="lead Timeline dialog" id="leadTimelineModal" style="display:none;">
         <div class="mkt-modal mkt-modal--wide" style="max-width:720px;">
           <div class="mkt-modal__header">
             <div class="mkt-modal__title" id="leadTimelineTitle">Enrollment timeline</div>
@@ -641,7 +641,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <!-- ─────────────── MODAL: CAMPAIGN POSTS DRILL-DOWN ─────────────── -->
-      <div class="mkt-modal-overlay" id="campaignPostsModal" style="display:none;">
+      <div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="campaign Posts dialog" id="campaignPostsModal" style="display:none;">
         <div class="mkt-modal mkt-modal--wide" style="max-width:960px;">
           <div class="mkt-modal__header">
             <div class="mkt-modal__title" id="campaignPostsTitle">Campaign posts</div>
@@ -655,7 +655,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <!-- ─────────────── MODAL: CAMPAIGN LEADS DRILL-DOWN ─────────────── -->
-      <div class="mkt-modal-overlay" id="campaignLeadsModal" style="display:none;">
+      <div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="campaign Leads dialog" id="campaignLeadsModal" style="display:none;">
         <div class="mkt-modal mkt-modal--wide" style="max-width:960px;">
           <div class="mkt-modal__header">
             <div class="mkt-modal__title" id="campaignLeadsTitle">Enrolled Leads</div>
@@ -669,7 +669,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <!-- ─────────────── TAB: CADENCES ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-cadences">
+      <div class="mkt-tab-panel" id="tab-cadences" role="region" aria-label="Sales cadences">
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
@@ -685,7 +685,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-cadences -->
 
       <!-- ─────────────── TAB: CONTENT CALENDAR ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-calendar">
+      <div class="mkt-tab-panel" id="tab-calendar" role="region" aria-label="Content calendar">
 
         <div class="mkt-cal-header">
           <div class="mkt-cal-nav">
@@ -776,7 +776,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-calendar -->
 
       <!-- ─────────────── TAB: ENROLLMENTS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-enrollments">
+      <div class="mkt-tab-panel" id="tab-enrollments" role="region" aria-label="Enrollments">
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
@@ -798,7 +798,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-enrollments -->
 
       <!-- ─────────────── TAB: HISTORY ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-history">
+      <div class="mkt-tab-panel" id="tab-history" role="region" aria-label="Activity history">
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
@@ -832,7 +832,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-history -->
 
       <!-- ─────────────── TAB: CONTENT MAP ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-content-map">
+      <div class="mkt-tab-panel" id="tab-content-map" role="region" aria-label="Content map">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
           <div>
             <h2 style="font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.04em;margin:0;">Content Map</h2>
@@ -858,14 +858,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <!-- Category tabs -->
         <div id="cmapCategoryTabs" role="tablist" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;">
-          <button class="cmap-tab is-active" data-cat="tournament" onclick="cmapSetCategory('tournament')">📅 Tournaments</button>
-          <button class="cmap-tab" data-cat="idea" onclick="cmapSetCategory('idea')">💡 Content Ideas</button>
-          <button class="cmap-tab" data-cat="storyboard" onclick="cmapSetCategory('storyboard')">🎬 Storyboards</button>
-          <button class="cmap-tab" data-cat="influencer" onclick="cmapSetCategory('influencer')">⭐ Influencers</button>
-          <button class="cmap-tab" data-cat="pain" onclick="cmapSetCategory('pain')">🩹 Pains</button>
-          <button class="cmap-tab" data-cat="need" onclick="cmapSetCategory('need')">🎯 Needs</button>
-          <button class="cmap-tab" data-cat="desire" onclick="cmapSetCategory('desire')">💖 Desires</button>
-          <button class="cmap-tab" data-cat="challenge" onclick="cmapSetCategory('challenge')">⚡ Challenges</button>
+          <button class="cmap-tab is-active" role="tab" aria-selected="true" data-cat="tournament" onclick="cmapSetCategory('tournament')">📅 Tournaments</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="idea" onclick="cmapSetCategory('idea')">💡 Content Ideas</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="storyboard" onclick="cmapSetCategory('storyboard')">🎬 Storyboards</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="influencer" onclick="cmapSetCategory('influencer')">⭐ Influencers</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="pain" onclick="cmapSetCategory('pain')">🩹 Pains</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="need" onclick="cmapSetCategory('need')">🎯 Needs</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="desire" onclick="cmapSetCategory('desire')">💖 Desires</button>
+          <button class="cmap-tab" role="tab" aria-selected="false" data-cat="challenge" onclick="cmapSetCategory('challenge')">⚡ Challenges</button>
         </div>
         <style>
           .cmap-tab{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--mid);cursor:pointer;font-family:inherit;transition:all .15s;}
@@ -891,7 +891,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-content-map -->
 
       <!-- ─────────────── TAB: AI AGENTS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-agents">
+      <div class="mkt-tab-panel" id="tab-agents" role="region" aria-label="AI agents">
 
         <div style="margin-bottom:20px;">
           <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">AI Marketing Agents</h2>
@@ -1047,8 +1047,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Launch a full agent pipeline. The Marketing Director coordinates all agents automatically based on the workflow type.</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
               <div>
-                <label class="mkt-label">Workflow Type</label>
-                <select class="mkt-input" id="orchType">
+                <label class="mkt-label" for="orchType">Workflow Type</label>
+                <select class="mkt-input" id="orchType" aria-label="Orchestration workflow type">
                   <option value="social_post">📱 Social Post (Copy → Visual → Design → Director)</option>
                   <option value="reel">🎬 Reel / TikTok (Script → Production → Visual → Director)</option>
                   <option value="youtube_video">▶️ YouTube Video (Title/Script → Brief → Thumbnail → Director)</option>
@@ -1059,7 +1059,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               </div>
               <div>
                 <label class="mkt-label">Platform / Target</label>
-                <select class="mkt-input" id="orchPlatform">
+                <select class="mkt-input" id="orchPlatform" aria-label="Orch latform">
                   <option value="instagram">Instagram</option>
                   <option value="tiktok">TikTok</option>
                   <option value="youtube">YouTube</option>
@@ -1112,7 +1112,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                 <input type="text" class="mkt-input" id="stagePlanTopic" placeholder="Topic (e.g. hip-shoulder separation for 3.5 players)">
-                <select class="mkt-select" id="stagePlanPlatform">
+                <select class="mkt-select" id="stagePlanPlatform" aria-label="Stage lan latform">
                   <option value="tiktok">TikTok</option>
                   <option value="instagram">Instagram</option>
                   <option value="youtube">YouTube</option>
@@ -1122,14 +1122,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                   <option value="blog">Blog</option>
                   <option value="facebook">Facebook</option>
                 </select>
-                <select class="mkt-select" id="stagePlanPersona">
+                <select class="mkt-select" id="stagePlanPersona" aria-label="Stage lan ersona">
                   <option value="player">Player</option>
                   <option value="coach">Coach</option>
                   <option value="club">Club</option>
                   <option value="parent">Parent</option>
                   <option value="pickleball">Pickleball</option>
                 </select>
-                <select class="mkt-select" id="stagePlanFormat">
+                <select class="mkt-select" id="stagePlanFormat" aria-label="Stage lan ormat">
                   <option value="">— Auto-pick format —</option>
                   <option value="short_video">Short video</option>
                   <option value="long_video">Long video</option>
@@ -1213,7 +1213,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-agents -->
 
       <!-- ─────────────── TAB: ANALYTICS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-analytics">
+      <div class="mkt-tab-panel" id="tab-analytics" role="region" aria-label="Analytics">
 
         <!-- Live freshness control strip -->
         <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;margin-bottom:16px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;font-size:12px;">
@@ -1458,7 +1458,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div><!-- /tab-analytics -->
 
       <!-- ─────────────── TAB: CMO APPROVALS ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-approvals">
+      <div class="mkt-tab-panel" id="tab-approvals" role="region" aria-label="CMO approvals">
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
           <div>
@@ -1541,7 +1541,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <!-- ─────────────── TAB: SETTINGS ─────────────── -->
       <!-- ─────────────── TAB: PAID MEDIA ─────────────── -->
-      <div class="mkt-tab-panel" id="tab-meta-ads">
+      <div class="mkt-tab-panel" id="tab-meta-ads" role="region" aria-label="Paid media">
 
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -1596,7 +1596,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="mkt-panel__header">
               <div class="mkt-panel__title">📊 Meta Ad Account — Live Metrics</div>
               <div style="display:flex;gap:8px;">
-                <select class="mkt-input mkt-input--sm" id="metaInsightsDays" onchange="loadAdInsights()" style="width:120px;">
+                <select class="mkt-input mkt-input--sm" id="metaInsightsDays" onchange="loadAdInsights()" style="width:120px;" aria-label="Meta nsights ays">
                   <option value="7">Last 7 days</option>
                   <option value="14">Last 14 days</option>
                   <option value="30" selected>Last 30 days</option>
@@ -1638,7 +1638,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
                 <div class="mkt-form-group">
                   <label class="mkt-label">Audience</label>
-                  <select class="mkt-input" id="adCopyAudience">
+                  <select class="mkt-input" id="adCopyAudience" aria-label="Ad opy udience">
                     <option value="tennis_player">Tennis Player (recreational)</option>
                     <option value="tennis_player_comp">Tennis Player (competitive)</option>
                     <option value="pickleball_player">Pickleball Player</option>
@@ -1649,7 +1649,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div class="mkt-form-group">
                   <label class="mkt-label">Objective</label>
-                  <select class="mkt-input" id="adCopyObjective">
+                  <select class="mkt-input" id="adCopyObjective" aria-label="Ad opy bjective">
                     <option value="awareness">Brand Awareness</option>
                     <option value="trial">Free Trial Signup</option>
                     <option value="conversion">Paid Subscription</option>
@@ -1659,7 +1659,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div class="mkt-form-group">
                   <label class="mkt-label">Tone</label>
-                  <select class="mkt-input" id="adCopyTone">
+                  <select class="mkt-input" id="adCopyTone" aria-label="Ad opy one">
                     <option value="bold">Bold &amp; Aspirational (Nike)</option>
                     <option value="clean">Clean &amp; Premium (Apple)</option>
                     <option value="data">Data-Driven &amp; Credible</option>
@@ -1823,7 +1823,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
                 <div class="mkt-form-group">
                   <label class="mkt-label">Objective</label>
-                  <select class="mkt-input" id="metaCampObjective">
+                  <select class="mkt-input" id="metaCampObjective" aria-label="Meta amp bjective">
                     <option value="OUTCOME_TRAFFIC">Traffic</option>
                     <option value="OUTCOME_ENGAGEMENT">Engagement</option>
                     <option value="OUTCOME_AWARENESS">Awareness</option>
@@ -2190,7 +2190,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       </div><!-- /tab-meta-ads -->
 
-      <div class="mkt-tab-panel" id="tab-settings">
+      <div class="mkt-tab-panel" id="tab-settings" role="region" aria-label="Settings">
 
         <div style="margin-bottom:24px;">
           <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">Settings</h2>
@@ -2367,7 +2367,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <!-- Templates list -->
               <div id="waTemplatesSection" style="display:none;margin-bottom:16px;">
                 <label class="mkt-label">Available Templates</label>
-                <select id="waTemplateSelect" class="mkt-input" style="margin-bottom:8px;">
+                <select id="waTemplateSelect" class="mkt-input" style="margin-bottom:8px;" aria-label="Wa emplate elect">
                   <option value="">-- Select a template --</option>
                 </select>
               </div>
@@ -2499,7 +2499,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- ─────────────── MODALS ─────────────── -->
 
 <!-- Google Campaign Tracker Modal -->
-<div class="mkt-modal-overlay" id="googleCampModal">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="google Camp dialog" id="googleCampModal">
   <div class="mkt-modal" style="max-width:560px;">
     <div class="mkt-modal__header">
       <div class="mkt-modal__title">🔍 Track Google Ad Campaign</div>
@@ -2513,7 +2513,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="mkt-form-group">
           <label class="mkt-label">Type</label>
-          <select class="mkt-input" id="gCampType">
+          <select class="mkt-input" id="gCampType" aria-label="G amp ype">
             <option value="search">Search</option>
             <option value="pmax">Performance Max</option>
             <option value="display">Display</option>
@@ -2523,7 +2523,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="mkt-form-group">
           <label class="mkt-label">Status</label>
-          <select class="mkt-input" id="gCampStatus">
+          <select class="mkt-input" id="gCampStatus" aria-label="G amp tatus">
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="planned">Planned</option>
@@ -2535,7 +2535,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="mkt-form-group">
           <label class="mkt-label">Objective</label>
-          <select class="mkt-input" id="gCampObjective">
+          <select class="mkt-input" id="gCampObjective" aria-label="G amp bjective">
             <option value="leads">Leads / Signups</option>
             <option value="traffic">Website Traffic</option>
             <option value="awareness">Brand Awareness</option>
@@ -2568,7 +2568,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <!-- Add Contact Modal -->
-<div class="mkt-modal-overlay" id="addContactModal">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="add Contact dialog" id="addContactModal">
   <div class="mkt-modal">
     <div class="mkt-modal__header">
       <div class="mkt-modal__title">Add Contact</div>
@@ -2596,7 +2596,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="mkt-form-row">
         <div class="mkt-form-group">
           <label class="mkt-label">Persona</label>
-          <select class="mkt-select" id="cPersona">
+          <select class="mkt-select" id="cPersona" aria-label="C ersona">
             <option value="player">Player</option>
             <option value="coach">Coach</option>
             <option value="club">Club</option>
@@ -2605,7 +2605,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="mkt-form-group">
           <label class="mkt-label">Stage</label>
-          <select class="mkt-select" id="cStage">
+          <select class="mkt-select" id="cStage" aria-label="C tage">
             <option value="lead">Lead</option>
             <option value="prospect">Prospect</option>
             <option value="trial">Trial</option>
@@ -2616,7 +2616,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="mkt-form-group">
         <label class="mkt-label">Source</label>
-        <select class="mkt-select" id="cSource">
+        <select class="mkt-select" id="cSource" aria-label="C ource">
           <option value="organic">Organic Search</option>
           <option value="social">Social Media</option>
           <option value="referral">Referral</option>
@@ -2632,7 +2632,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="mkt-form-group">
         <label class="mkt-label">Assign to Cadence</label>
-        <select class="mkt-select" id="cCadence">
+        <select class="mkt-select" id="cCadence" aria-label="C adence">
           <option value="">— No cadence —</option>
           <option value="cadence-players-new-lead">New Lead — Tennis Players</option>
           <option value="cadence-coaches-new-lead">New Lead — Tennis Coaches</option>
@@ -2655,7 +2655,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <!-- Add Content Modal -->
-<div class="mkt-modal-overlay" id="addContentModal">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="add Content dialog" id="addContentModal">
   <div class="mkt-modal">
     <div class="mkt-modal__header">
       <div class="mkt-modal__title">Add Content</div>
@@ -2669,7 +2669,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="mkt-form-row">
         <div class="mkt-form-group">
           <label class="mkt-label">Platform</label>
-          <select class="mkt-select" id="ctPlatform">
+          <select class="mkt-select" id="ctPlatform" aria-label="Ct latform">
             <option value="tiktok">TikTok</option>
             <option value="instagram">Instagram</option>
             <option value="youtube">YouTube</option>
@@ -2682,7 +2682,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="mkt-form-group">
           <label class="mkt-label">Type</label>
-          <select class="mkt-select" id="ctType">
+          <select class="mkt-select" id="ctType" aria-label="Ct ype">
             <option value="post">Post</option>
             <option value="reel">Reel / Short</option>
             <option value="story">Story</option>
@@ -2696,7 +2696,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="mkt-form-row">
         <div class="mkt-form-group">
           <label class="mkt-label">Status</label>
-          <select class="mkt-select" id="ctStatus">
+          <select class="mkt-select" id="ctStatus" aria-label="Ct tatus">
             <option value="draft">Draft</option>
             <option value="approved">Approved</option>
             <option value="scheduled">Scheduled</option>
@@ -2725,7 +2725,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <!-- Add Campaign Modal -->
-<div class="mkt-modal-overlay" id="addCampaignModal">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="add Campaign dialog" id="addCampaignModal">
   <div class="mkt-modal">
     <div class="mkt-modal__header">
       <div class="mkt-modal__title">New Campaign</div>
@@ -2739,7 +2739,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="mkt-form-row">
         <div class="mkt-form-group">
           <label class="mkt-label">Type</label>
-          <select class="mkt-select" id="cpType">
+          <select class="mkt-select" id="cpType" aria-label="Cp ype">
             <option value="email">Email</option>
             <option value="social">Social</option>
             <option value="paid">Paid Ads</option>
@@ -2750,7 +2750,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="mkt-form-group">
           <label class="mkt-label">Target Persona</label>
-          <select class="mkt-select" id="cpPersona">
+          <select class="mkt-select" id="cpPersona" aria-label="Cp ersona">
             <option value="player">Players</option>
             <option value="coach">Coaches</option>
             <option value="club">Clubs</option>
@@ -2761,11 +2761,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="mkt-form-row">
         <div class="mkt-form-group">
-          <label class="mkt-label">Start Date</label>
+          <label class="mkt-label" for="cpStart">Start Date</label>
           <input type="date" class="mkt-input" id="cpStart">
         </div>
         <div class="mkt-form-group">
-          <label class="mkt-label">End Date</label>
+          <label class="mkt-label" for="cpEnd">End Date</label>
           <input type="date" class="mkt-input" id="cpEnd">
         </div>
       </div>
@@ -2793,7 +2793,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <!-- Email Preview Modal -->
-<div class="mkt-modal-overlay" id="emailPreviewModal">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="email Preview dialog" id="emailPreviewModal">
   <div class="mkt-modal mkt-modal--lg">
     <div class="mkt-modal__header">
       <div>
@@ -2815,7 +2815,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <!-- Enroll as Lead Modal -->
-<div class="mkt-modal-overlay" id="assignCadenceModal">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="assign Cadence dialog" id="assignCadenceModal">
   <div class="mkt-modal">
     <div class="mkt-modal__header">
       <div class="mkt-modal__title" id="assignCadenceTitle">Enroll as Lead</div>
@@ -2826,7 +2826,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <input type="hidden" id="assignCadenceContactId">
       <div class="mkt-form-group">
         <label class="mkt-label">Cadence</label>
-        <select class="mkt-select" id="assignCadencePicker">
+        <select class="mkt-select" id="assignCadencePicker" aria-label="Assign adence icker">
           <option value="">⏳ Loading cadences…</option>
         </select>
         <div style="font-size:11px;color:var(--muted);margin-top:4px;">Paid-media campaigns live under <strong>Paid Media</strong>. This flow only assigns sales cadences (email + SMS).</div>
@@ -8736,7 +8736,9 @@ async function loadContentMap() {
 function cmapSetCategory(cat) {
   window.ContentMap.category = cat;
   document.querySelectorAll('.cmap-tab').forEach(function(b) {
-    b.classList.toggle('is-active', b.dataset.cat === cat);
+    var isActive = b.dataset.cat === cat;
+    b.classList.toggle('is-active', isActive);
+    b.setAttribute('aria-selected', String(isActive));
   });
   renderContentMap();
 }
@@ -9200,7 +9202,7 @@ window.renderCampaignPlaybooks = renderCampaignPlaybooks;
 </script>
 
 <!-- CONTENT DETAIL MODAL -->
-<div class="mkt-modal-overlay" id="contentDetailModal" onclick="closeModal('contentDetailModal')">
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="content Detail dialog" id="contentDetailModal" onclick="closeModal('contentDetailModal')">
   <div class="mkt-modal mkt-modal--preview" onclick="event.stopPropagation()">
     <div class="mkt-modal__header">
       <div class="mkt-modal__title" id="cdTitle">Content Preview</div>
@@ -9255,11 +9257,11 @@ window.renderCampaignPlaybooks = renderCampaignPlaybooks;
           <!-- Date/Time editing -->
           <div class="cd-datetime-row">
             <div class="mkt-form-group">
-              <label class="mkt-label">Date</label>
+              <label class="mkt-label" for="cdDate">Date</label>
               <input type="date" class="mkt-input" id="cdDate">
             </div>
             <div class="mkt-form-group">
-              <label class="mkt-label">Time</label>
+              <label class="mkt-label" for="cdTime">Time</label>
               <input type="time" class="mkt-input" id="cdTime">
             </div>
           </div>
