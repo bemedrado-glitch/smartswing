@@ -24,7 +24,7 @@
  */
 
 const { renderCadenceEmail, renderCadenceSms } = require('./cadence-email-render');
-const { resolveChannel } = require('./channel-router');
+const { resolveChannel, resolveTemplateLang } = require('./channel-router');
 
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MINUTES = 30;
@@ -253,7 +253,7 @@ async function runCadenceBatch() {
     const dueQuery =
       `cadence_step_executions?status=eq.pending&scheduled_at=lte.${encodeURIComponent(nowIso)}` +
       `&select=id,enrollment_id,contact_id,cadence_id,step_type,step_num,subject,body,message,attempt_count,scheduled_at,` +
-      `marketing_contacts(id,email,phone,name,stage,preferred_channel)` +
+      `marketing_contacts(id,email,phone,name,stage,preferred_channel,whatsapp_opted_out)` +
       `&order=scheduled_at.asc&limit=${BATCH_SIZE}`;
     const due = await supaGet(dueQuery);
 
@@ -305,7 +305,10 @@ async function runCadenceBatch() {
         }
       } else if (effectiveStepType === 'sms' || effectiveStepType === 'whatsapp') {
         if (!contact.phone) suppressed = 'no_phone';
-        // TODO: check sms_opted_out / whatsapp_opted_out on profiles when those columns are added
+        if (effectiveStepType === 'whatsapp' && contact.whatsapp_opted_out === true) {
+          suppressed = 'whatsapp_opted_out';
+        }
+        // TODO: check sms_opted_out on profiles when that column is added
       }
 
       if (suppressed) {
@@ -333,7 +336,8 @@ async function runCadenceBatch() {
           //   step.message === 'template:<name>'  → template send
           //   else                                 → free-form text (only works in 24h window)
           let templateName = null;
-          let templateLang = 'en_US';
+          // Default to the contact's country-derived language; overridable by explicit cadence_whatsapp.template_lang or step.message suffix.
+          let templateLang = resolveTemplateLang(contact.phone);
           let templateVars = [];
           let freeFormMessage = null;
           if (raw.startsWith('template:')) {

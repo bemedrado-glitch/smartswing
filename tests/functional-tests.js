@@ -1702,6 +1702,47 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('API — WhatsApp template language routing', () => {
+  const { resolveTemplateLang } = require('../api/_lib/channel-router.js');
+
+  test('Brazil (+55) → pt_BR', () => {
+    expect(resolveTemplateLang('+55 11 99999 0000')).toBe('pt_BR');
+  });
+  test('Portugal (+351) → pt_PT', () => {
+    expect(resolveTemplateLang('+351 912 345 678')).toBe('pt_PT');
+  });
+  test('Mexico (+52) → es_LA', () => {
+    expect(resolveTemplateLang('+52 55 1234 5678')).toBe('es_LA');
+  });
+  test('Argentina (+54) → es_LA', () => {
+    expect(resolveTemplateLang('+54 9 11 1234 5678')).toBe('es_LA');
+  });
+  test('Uruguay (+598) → es_LA', () => {
+    expect(resolveTemplateLang('+598 99 123 456')).toBe('es_LA');
+  });
+  test('Spain (+34) → es_ES', () => {
+    expect(resolveTemplateLang('+34 612 345 678')).toBe('es_ES');
+  });
+  test('Italy (+39) → it_IT', () => {
+    expect(resolveTemplateLang('+39 333 1234567')).toBe('it_IT');
+  });
+  test('Germany (+49) → de_DE', () => {
+    expect(resolveTemplateLang('+49 151 23456789')).toBe('de_DE');
+  });
+  test('India (+91) → hi_IN', () => {
+    expect(resolveTemplateLang('+91 98765 43210')).toBe('hi_IN');
+  });
+  test('US (+1) → en_US default', () => {
+    expect(resolveTemplateLang('+1 415 555 1234')).toBe('en_US');
+  });
+  test('UK (+44) → en_US default', () => {
+    expect(resolveTemplateLang('+44 7700 900000')).toBe('en_US');
+  });
+  test('null phone → en_US default', () => {
+    expect(resolveTemplateLang(null)).toBe('en_US');
+  });
+});
+
 describe('API — cadence email merge-tag rendering', () => {
   const mod = require('../api/_lib/cadence-email-render.js');
   const contact = { id: 'c123', name: 'Bernardo Medrado', email: 'bernardo@example.com', stage: 'lead' };

@@ -72,8 +72,48 @@ function resolveChannel(phone, preferred = 'auto') {
   return 'sms';
 }
 
+/**
+ * Derive the best Meta template language code for a phone number.
+ * Meta template `language.code` values we support:
+ *   en_US (default), pt_BR, es_LA (Latin-American Spanish), es_ES (Spain),
+ *   it_IT, de_DE, fr_FR, id_ID, hi_IN, ar_AE, tr_TR, nl_NL
+ *
+ * If you haven't submitted a non-English variant of a template, Meta falls
+ * back to en_US automatically (no error) — but approval for a given locale
+ * must match what's actually submitted.
+ *
+ * @param {string|null|undefined} phone
+ * @returns {string} Meta language code (defaults to 'en_US')
+ */
+function resolveTemplateLang(phone) {
+  if (!phone) return 'en_US';
+  const digits = String(phone).replace(/[^0-9]/g, '');
+  // 3-digit prefixes first
+  const p3 = digits.slice(0, 3);
+  if (p3 === '351') return 'pt_PT';
+  if (p3 === '598' || p3 === '593' || p3 === '591' || p3 === '595' ||
+      p3 === '506' || p3 === '507' || p3 === '502') return 'es_LA';
+  if (p3 === '971' || p3 === '966') return 'ar_AE';
+  // 2-digit
+  const p2 = digits.slice(0, 2);
+  if (p2 === '55') return 'pt_BR';
+  if (p2 === '52' || p2 === '54' || p2 === '56' || p2 === '57' ||
+      p2 === '51' || p2 === '58') return 'es_LA';
+  if (p2 === '34') return 'es_ES';
+  if (p2 === '39') return 'it_IT';
+  if (p2 === '49') return 'de_DE';
+  if (p2 === '31') return 'nl_NL';
+  if (p2 === '90') return 'tr_TR';
+  if (p2 === '91') return 'hi_IN';
+  if (p2 === '62') return 'id_ID';
+  if (p2 === '20') return 'ar_AE';
+  if (p2 === '33') return 'fr_FR';
+  return 'en_US';
+}
+
 module.exports = {
   resolveChannel,
+  resolveTemplateLang,
   // exported for tests / diagnostics
   WA_PREFIXES_2,
   WA_PREFIXES_3
