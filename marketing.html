@@ -165,6 +165,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <svg class="mkt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Content Calendar
         </button>
+        <button class="mkt-nav-item" data-tab="content-map" onclick="switchTab('content-map', this)" aria-label="Content Map — research-driven content planning">
+          <svg class="mkt-nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          Content Map
+        </button>
       </div>
 
       <div class="mkt-sidebar__section">
@@ -826,6 +830,65 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
       </div><!-- /tab-history -->
+
+      <!-- ─────────────── TAB: CONTENT MAP ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-content-map">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h2 style="font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.04em;margin:0;">Content Map</h2>
+            <p style="font-size:13px;color:var(--mid);margin:4px 0 0;">Research-driven planning. Click any item to seed a brief in Pipeline Studio.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <select class="mkt-select" id="cmapRegionFilter" aria-label="Filter Content Map by region" onchange="renderContentMap()" style="max-width:160px;">
+              <option value="">All regions</option>
+              <option value="global">Global</option>
+              <option value="latam">LatAm</option>
+              <option value="usa">USA</option>
+              <option value="europe">Europe</option>
+            </select>
+            <select class="mkt-select" id="cmapSportFilter" aria-label="Filter Content Map by sport" onchange="renderContentMap()" style="max-width:160px;">
+              <option value="">All sports</option>
+              <option value="tennis">Tennis</option>
+              <option value="pickleball">Pickleball</option>
+              <option value="both">Both</option>
+            </select>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="loadContentMap()">↻ Refresh</button>
+          </div>
+        </div>
+
+        <!-- Category tabs -->
+        <div id="cmapCategoryTabs" role="tablist" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:8px;">
+          <button class="cmap-tab is-active" data-cat="tournament" onclick="cmapSetCategory('tournament')">📅 Tournaments</button>
+          <button class="cmap-tab" data-cat="idea" onclick="cmapSetCategory('idea')">💡 Content Ideas</button>
+          <button class="cmap-tab" data-cat="storyboard" onclick="cmapSetCategory('storyboard')">🎬 Storyboards</button>
+          <button class="cmap-tab" data-cat="influencer" onclick="cmapSetCategory('influencer')">⭐ Influencers</button>
+          <button class="cmap-tab" data-cat="pain" onclick="cmapSetCategory('pain')">🩹 Pains</button>
+          <button class="cmap-tab" data-cat="need" onclick="cmapSetCategory('need')">🎯 Needs</button>
+          <button class="cmap-tab" data-cat="desire" onclick="cmapSetCategory('desire')">💖 Desires</button>
+          <button class="cmap-tab" data-cat="challenge" onclick="cmapSetCategory('challenge')">⚡ Challenges</button>
+        </div>
+        <style>
+          .cmap-tab{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--mid);cursor:pointer;font-family:inherit;transition:all .15s;}
+          .cmap-tab:hover{background:var(--bg-soft);color:var(--black);}
+          .cmap-tab.is-active{background:var(--black);color:#fff;border-color:var(--black);}
+          .cmap-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;transition:box-shadow .15s,border-color .15s;}
+          .cmap-card:hover{border-color:#39ff14;box-shadow:0 6px 16px rgba(0,0,0,.06);}
+          .cmap-card__title{font-size:14px;font-weight:700;color:var(--black);margin:0 0 6px;letter-spacing:-.01em;}
+          .cmap-card__body{font-size:13px;color:var(--mid);line-height:1.5;}
+          .cmap-card__meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-size:11px;}
+          .cmap-card__meta span{padding:2px 8px;background:var(--bg-soft);border-radius:6px;color:var(--mid);}
+          .cmap-card__actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+          .cmap-card__seed{background:#39ff14;color:#000;border:none;border-radius:6px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+          .cmap-card__seed:hover{background:#2ee600;}
+          .cmap-tournaments-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+          .cmap-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;}
+        </style>
+
+        <div id="cmapContainer">
+          <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">Loading content map…</div>
+        </div>
+
+      </div><!-- /tab-content-map -->
 
       <!-- ─────────────── TAB: AI AGENTS ─────────────── -->
       <div class="mkt-tab-panel" id="tab-agents">
@@ -2972,7 +3035,7 @@ function switchTab(tabName, triggerEl) {
   // Activate sidebar item
   if (triggerEl) triggerEl.classList.add('is-active');
   // Update topbar title
-  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', enrollments: 'Enrollments', history: 'Activity History', cadences: 'Sales Cadences', calendar: 'Content Calendar', campaigns: 'Campaigns', agents: 'AI Agents', analytics: 'Analytics', 'meta-ads': 'Paid Media', approvals: 'CMO Approvals', settings: 'Settings' };
+  const titles = { dashboard: 'Dashboard', contacts: 'Contacts', enrollments: 'Enrollments', history: 'Activity History', cadences: 'Sales Cadences', calendar: 'Content Calendar', 'content-map': 'Content Map', campaigns: 'Campaigns', agents: 'AI Agents', analytics: 'Analytics', 'meta-ads': 'Paid Media', approvals: 'CMO Approvals', settings: 'Settings' };
   document.getElementById('topbarTitle').textContent = titles[tabName] || tabName;
   MarketingStore.currentTab = tabName;
   closeSidebar();
@@ -2982,6 +3045,7 @@ function switchTab(tabName, triggerEl) {
   // contacts appear without manual page reload.
   if (tabName === 'enrollments' && typeof loadEnrollments === 'function') loadEnrollments();
   if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
+  if (tabName === 'content-map' && typeof loadContentMap === 'function') loadContentMap();
   if (tabName === 'analytics') {
     if (typeof loadAnalytics === 'function') loadAnalytics();
     // Auto-refresh every 15 minutes while analytics tab is active
@@ -8638,6 +8702,198 @@ window.runPipelineReview = runPipelineReview;
 window.runPipelinePublish = runPipelinePublish;
 window.savePackageToCalendar = savePackageToCalendar;
 window.resetPipelineStudio = resetPipelineStudio;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTENT MAP — research-driven content planning panel.
+   Pulls from content_research table. Click-to-seed deep-links into the
+   Pipeline Studio Planner so a research item becomes a brief in 2 clicks.
+   ═══════════════════════════════════════════════════════════════════════════ */
+window.ContentMap = window.ContentMap || { items: [], category: 'tournament' };
+
+async function loadContentMap() {
+  if (!MarketingStore.supabase) {
+    document.getElementById('cmapContainer').innerHTML =
+      '<div style="padding:24px;color:#dc2626;font-size:13px;">Supabase not configured.</div>';
+    return;
+  }
+  try {
+    var res = await MarketingStore.supabase
+      .from('content_research')
+      .select('*')
+      .eq('active', true)
+      .order('category')
+      .order('rank', { ascending: true, nullsFirst: false })
+      .limit(500);
+    if (res.error) throw res.error;
+    window.ContentMap.items = res.data || [];
+    renderContentMap();
+  } catch (e) {
+    document.getElementById('cmapContainer').innerHTML =
+      '<div style="padding:24px;color:#dc2626;font-size:13px;">Could not load content map: ' + escHtml(e.message || String(e)) + '</div>';
+  }
+}
+
+function cmapSetCategory(cat) {
+  window.ContentMap.category = cat;
+  document.querySelectorAll('.cmap-tab').forEach(function(b) {
+    b.classList.toggle('is-active', b.dataset.cat === cat);
+  });
+  renderContentMap();
+}
+
+function renderContentMap() {
+  var c = document.getElementById('cmapContainer');
+  if (!c) return;
+  var cat = window.ContentMap.category;
+  var regionFilter = (document.getElementById('cmapRegionFilter') || {}).value || '';
+  var sportFilter = (document.getElementById('cmapSportFilter') || {}).value || '';
+  var items = (window.ContentMap.items || []).filter(function(i) {
+    if (i.category !== cat) return false;
+    if (regionFilter && i.region !== regionFilter) return false;
+    if (sportFilter && i.sport !== sportFilter && i.sport !== 'both' && i.sport !== 'all') return false;
+    return true;
+  });
+  if (!items.length) {
+    c.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">No items in this category match the current filters.</div>';
+    return;
+  }
+  // Special layout for tournaments — show as date-sorted timeline
+  if (cat === 'tournament') {
+    items.sort(function(a, b) { return (a.start_date || '').localeCompare(b.start_date || ''); });
+    c.innerHTML = '<div class="cmap-tournaments-grid">' + items.map(_cmapRenderTournamentCard).join('') + '</div>';
+    return;
+  }
+  if (cat === 'storyboard') {
+    c.innerHTML = items.map(_cmapRenderStoryboardCard).join('');
+    return;
+  }
+  if (cat === 'influencer') {
+    c.innerHTML = '<div class="cmap-cards-grid">' + items.map(_cmapRenderInfluencerCard).join('') + '</div>';
+    return;
+  }
+  // Default cards (idea, pain, need, desire, challenge)
+  c.innerHTML = '<div class="cmap-cards-grid">' + items.map(_cmapRenderGenericCard).join('') + '</div>';
+}
+
+function _cmapBadge(text) { return '<span>' + escHtml(text) + '</span>'; }
+
+function _cmapRenderTournamentCard(t) {
+  var sd = t.start_date ? new Date(t.start_date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+  var ed = t.end_date ? new Date(t.end_date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  return '<div class="cmap-card">' +
+    '<div class="cmap-card__title">' + escHtml(t.title) + '</div>' +
+    '<div class="cmap-card__body" style="font-size:12.5px;">📅 <strong>' + escHtml(sd) + ' – ' + escHtml(ed) + '</strong> · 📍 ' + escHtml(t.location || '') + '</div>' +
+    '<div class="cmap-card__meta">' +
+      _cmapBadge(t.level || '') + _cmapBadge(t.sport || '') +
+    '</div>' +
+    '<div class="cmap-card__actions">' +
+      '<button class="cmap-card__seed" onclick="cmapSeedFromItem(\'' + t.id + '\', \'tournament\')">→ Plan content for this</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function _cmapRenderStoryboardCard(s) {
+  var meta = s.metadata || {};
+  var scenes = meta.scenes || [];
+  return '<div class="cmap-card" style="margin-bottom:12px;">' +
+    '<div class="cmap-card__title">🎬 ' + escHtml(s.title) + '</div>' +
+    '<div class="cmap-card__body">' + escHtml(s.body || '') + '</div>' +
+    (meta.hook ? '<div style="margin-top:8px;font-style:italic;color:var(--mid);font-size:13px;">"' + escHtml(meta.hook) + '"</div>' : '') +
+    (scenes.length ? '<details style="margin-top:10px;"><summary style="cursor:pointer;font-size:12px;font-weight:600;">📋 ' + scenes.length + ' scenes</summary>' +
+      '<table style="width:100%;font-size:12px;margin-top:8px;border-collapse:collapse;">' +
+        '<thead><tr style="background:var(--bg-soft);text-align:left;"><th style="padding:6px 8px;">Time</th><th style="padding:6px 8px;">Visual</th><th style="padding:6px 8px;">Audio</th></tr></thead>' +
+        '<tbody>' + scenes.map(function(sc) {
+          return '<tr style="border-top:1px solid var(--line);"><td style="padding:6px 8px;font-family:monospace;color:var(--mid);">' + escHtml(sc.timecode || '') + '</td>' +
+            '<td style="padding:6px 8px;">' + escHtml(sc.visual || '') + '</td>' +
+            '<td style="padding:6px 8px;color:var(--mid);">' + escHtml(sc.audio || '') + '</td></tr>';
+        }).join('') + '</tbody></table></details>' : '') +
+    '<div class="cmap-card__meta">' + _cmapBadge(meta.platform || '') + _cmapBadge((meta.duration_seconds || '?') + 's') + (meta.target_pro ? _cmapBadge('Pro: ' + meta.target_pro) : '') + '</div>' +
+    '<div class="cmap-card__actions">' +
+      '<button class="cmap-card__seed" onclick="cmapSeedFromItem(\'' + s.id + '\', \'storyboard\')">→ Plan from storyboard</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function _cmapRenderInfluencerCard(p) {
+  var meta = p.metadata || {};
+  return '<div class="cmap-card">' +
+    '<div class="cmap-card__title">⭐ ' + escHtml(p.title) + (meta.country ? ' <span style="font-weight:400;color:var(--mid);font-size:12px;">— ' + escHtml(meta.country) + '</span>' : '') + '</div>' +
+    '<div class="cmap-card__body">' + escHtml(p.body || '') + '</div>' +
+    '<div class="cmap-card__meta">' +
+      (meta.followers ? _cmapBadge('👥 ' + meta.followers) : '') +
+      _cmapBadge(p.sport || '') +
+      (meta.play_angle ? '<span style="background:#fff3c4;color:#92400e;padding:2px 8px;border-radius:6px;">' + escHtml(meta.play_angle) + '</span>' : '') +
+    '</div>' +
+    '<div class="cmap-card__actions">' +
+      '<button class="cmap-card__seed" onclick="cmapSeedFromItem(\'' + p.id + '\', \'influencer\')">→ Plan partnership content</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function _cmapRenderGenericCard(item) {
+  var meta = item.metadata || {};
+  var rankBadge = item.rank ? '<span style="background:#000;color:#fff;padding:2px 8px;border-radius:6px;font-weight:700;">#' + item.rank + '</span>' : '';
+  return '<div class="cmap-card">' +
+    '<div class="cmap-card__title">' + rankBadge + ' ' + escHtml(item.title) + '</div>' +
+    '<div class="cmap-card__body">' + escHtml(item.body || '') + '</div>' +
+    (meta.hook ? '<div style="margin-top:8px;font-style:italic;color:var(--mid);font-size:13px;">Hook: "' + escHtml(meta.hook) + '"</div>' : '') +
+    '<div class="cmap-card__meta">' +
+      _cmapBadge(item.region || 'global') + _cmapBadge(item.sport || 'both') +
+      (meta.platform ? _cmapBadge('📱 ' + meta.platform) : '') +
+      (meta.format ? _cmapBadge(meta.format) : '') +
+    '</div>' +
+    '<div class="cmap-card__actions">' +
+      '<button class="cmap-card__seed" onclick="cmapSeedFromItem(\'' + item.id + '\', \'' + item.category + '\')">→ Plan this content</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* Click-to-Plan: take a content_research item and seed the Pipeline Studio
+   Planner inputs, then switch to the AI Agents tab so the user is right at
+   the "Run Planner" button. */
+function cmapSeedFromItem(itemId, cat) {
+  var item = (window.ContentMap.items || []).find(function(i) { return i.id === itemId; });
+  if (!item) { showToast('Item not found', 'error'); return; }
+  var meta = item.metadata || {};
+  var topic = '';
+  var platform = meta.platform || 'instagram';
+  var format = meta.format || '';
+  var persona = (item.sport === 'pickleball') ? 'pickleball' : 'player';
+  if (cat === 'tournament') {
+    topic = 'Content tied to ' + item.title + ' (' + (item.location || 'global') + ', ' + (item.start_date || '') + ')';
+  } else if (cat === 'storyboard') {
+    topic = item.title + ' — ' + (meta.hook || (item.body || '').slice(0, 120));
+    format = 'short_video';
+  } else if (cat === 'influencer') {
+    topic = 'Partnership content idea for ' + item.title + ' — ' + (meta.play_angle || (item.body || '').slice(0, 120));
+  } else {
+    // pain / need / desire / challenge / idea
+    topic = item.title + ' — ' + (meta.hook || (item.body || '').slice(0, 200));
+  }
+  // Switch to AI Agents tab
+  var navBtn = document.querySelector('.mkt-nav-item[data-tab="agents"]');
+  if (navBtn && typeof switchTab === 'function') switchTab('agents', navBtn);
+  // Pre-fill Pipeline Studio Planner inputs
+  setTimeout(function() {
+    var topicEl    = document.getElementById('stagePlanTopic');
+    var platformEl = document.getElementById('stagePlanPlatform');
+    var personaEl  = document.getElementById('stagePlanPersona');
+    var formatEl   = document.getElementById('stagePlanFormat');
+    if (topicEl) topicEl.value = topic;
+    if (platformEl && [].slice.call(platformEl.options).some(function(o) { return o.value === platform; })) platformEl.value = platform;
+    if (personaEl && [].slice.call(personaEl.options).some(function(o) { return o.value === persona; })) personaEl.value = persona;
+    if (formatEl && format && [].slice.call(formatEl.options).some(function(o) { return o.value === format; })) formatEl.value = format;
+    // Scroll the studio into view
+    var studio = document.querySelector('#tab-agents .mkt-panel');
+    if (studio) studio.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showToast('✓ Topic seeded into Planner. Click "Run Planner" to generate the brief.', 'success');
+  }, 200);
+}
+
+window.loadContentMap   = loadContentMap;
+window.renderContentMap = renderContentMap;
+window.cmapSetCategory  = cmapSetCategory;
+window.cmapSeedFromItem = cmapSeedFromItem;
 
 /* ── UPDATE INIT to include new features ── */
 var _origInit = document.addEventListener;
