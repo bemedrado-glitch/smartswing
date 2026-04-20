@@ -1657,6 +1657,51 @@ describe('API — email configuration', () => {
   }
 });
 
+describe('API — channel router (WhatsApp vs SMS)', () => {
+  const { resolveChannel } = require('../api/_lib/channel-router.js');
+
+  test('explicit whatsapp preference wins regardless of country', () => {
+    expect(resolveChannel('+14155551234', 'whatsapp')).toBe('whatsapp');
+  });
+
+  test('explicit sms preference wins regardless of country', () => {
+    expect(resolveChannel('+5511999990000', 'sms')).toBe('sms');
+  });
+
+  test('auto routes Brazil (+55) to whatsapp', () => {
+    expect(resolveChannel('+55 11 99999 0000', 'auto')).toBe('whatsapp');
+  });
+
+  test('auto routes Portugal (+351) to whatsapp', () => {
+    expect(resolveChannel('+351 912 345 678', 'auto')).toBe('whatsapp');
+  });
+
+  test('auto routes Germany (+49) to whatsapp', () => {
+    expect(resolveChannel('+49 151 23456789')).toBe('whatsapp');
+  });
+
+  test('auto routes US (+1) to sms', () => {
+    expect(resolveChannel('+1 415 555 1234')).toBe('sms');
+  });
+
+  test('auto routes UK (+44) to sms', () => {
+    expect(resolveChannel('+44 7700 900000')).toBe('sms');
+  });
+
+  test('auto routes Japan (+81) to sms', () => {
+    expect(resolveChannel('+81 90 1234 5678')).toBe('sms');
+  });
+
+  test('missing phone defaults to sms (step will skip anyway)', () => {
+    expect(resolveChannel(null)).toBe('sms');
+    expect(resolveChannel('')).toBe('sms');
+  });
+
+  test('3-digit prefix (+598 Uruguay) beats 2-digit fallback', () => {
+    expect(resolveChannel('+598 99 123 456')).toBe('whatsapp');
+  });
+});
+
 describe('API — cadence email merge-tag rendering', () => {
   const mod = require('../api/_lib/cadence-email-render.js');
   const contact = { id: 'c123', name: 'Bernardo Medrado', email: 'bernardo@example.com', stage: 'lead' };
