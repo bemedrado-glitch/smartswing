@@ -1657,6 +1657,54 @@ describe('API — email configuration', () => {
   }
 });
 
+describe('API — cadence email merge-tag rendering', () => {
+  const mod = require('../api/_lib/cadence-email-render.js');
+  const contact = { id: 'c123', name: 'Bernardo Medrado', email: 'bernardo@example.com', stage: 'lead' };
+
+  test('substitutes {{first_name}} from first word of name', () => {
+    const out = mod._substitute('Hi {{first_name}},', mod._buildVars(contact));
+    expect(out).toBe('Hi Bernardo,');
+  });
+
+  test('falls back to "there" when name missing', () => {
+    const out = mod._substitute('Hi {{first_name}}!', mod._buildVars({ id: 'x', email: 'a@b.c' }));
+    expect(out).toBe('Hi there!');
+  });
+
+  test('replaces unknown tokens with empty string', () => {
+    const out = mod._substitute('X {{mystery}} Y', mod._buildVars(contact));
+    expect(out).toBe('X  Y');
+  });
+
+  test('unsubscribe_url is keyed on contact id', () => {
+    const v = mod._buildVars(contact);
+    expect(v.unsubscribe_url.includes('c=c123')).toBe(true);
+  });
+
+  test('renderCadenceEmail wraps short plain body in shell', () => {
+    const step = { subject: 'Welcome {{first_name}}', body: 'Hi {{first_name}}, thanks for joining.' };
+    const { subject, html } = mod.renderCadenceEmail(step, contact);
+    expect(subject).toBe('Welcome Bernardo');
+    expect(html).toContain('<!DOCTYPE html>');
+    expect(html).toContain('Bernardo');
+    expect(html).toContain('SmartSwing');
+  });
+
+  test('renderCadenceEmail does NOT double-wrap a full HTML doc', () => {
+    const fullDoc = '<!DOCTYPE html><html><body>Hi {{first_name}}</body></html>';
+    const step = { subject: 's', body: fullDoc };
+    const { html } = mod.renderCadenceEmail(step, contact);
+    expect(html.match(/<!DOCTYPE/gi).length).toBe(1);
+    expect(html).toContain('Hi Bernardo');
+  });
+
+  test('renderCadenceSms substitutes tokens without wrapping', () => {
+    const step = { message: 'Hey {{first_name}}, your analysis is ready.' };
+    const { message } = mod.renderCadenceSms(step, contact);
+    expect(message).toBe('Hey Bernardo, your analysis is ready.');
+  });
+});
+
 // ═══════════════════════════════════════════════════════════════════
 // Report
 // ═══════════════════════════════════════════════════════════════════

@@ -23,6 +23,8 @@
  * Schedule: "15 * * * *" (every hour at :15)
  */
 
+const { renderCadenceEmail, renderCadenceSms } = require('./cadence-email-render');
+
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MINUTES = 30;
 const BATCH_SIZE = 50;
@@ -221,14 +223,12 @@ async function runCadenceBatch() {
       // Attempt send
       try {
         if (step.step_type === 'email') {
-          const { id } = await sendEmail({
-            to: contact.email,
-            subject: step.subject || 'A quick note from SmartSwing AI',
-            html: step.body || ''
-          });
+          const { subject, html } = renderCadenceEmail(step, contact);
+          const { id } = await sendEmail({ to: contact.email, subject, html });
           await markSent(step, 'resend', id);
         } else if (step.step_type === 'sms') {
-          const { id } = await sendSms({ phone: contact.phone, message: step.message || '' });
+          const { message } = renderCadenceSms(step, contact);
+          const { id } = await sendSms({ phone: contact.phone, message });
           await markSent(step, 'sms', id);
         } else {
           await skipStep(step, `unknown_step_type_${step.step_type}`);
