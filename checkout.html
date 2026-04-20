@@ -584,14 +584,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   </main>
 
-  <!-- Minimal footer -->
-  <footer class="checkout-footer">
+  <!-- Minimal in-flow checkout-actions strip (was a duplicate <footer> landmark — now a plain div so the page only has ONE contentinfo landmark, the global <footer class="ss-footer"> below) -->
+  <div class="checkout-footer" aria-label="Checkout legal links">
     <a href="./privacy-policy.html">Privacy</a> &middot;
     <a href="./user-agreement.html">Terms</a> &middot;
     <a href="./refund-policy.html">Refund Policy</a> &middot;
     <a href="./contact.html">Support</a>
     <br>&copy; 2026 SmartSwing AI
-  </footer>
+  </div>
 
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>

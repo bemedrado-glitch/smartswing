@@ -33,13 +33,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <h1 style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:6px;">Marketing Dashboard</h1>
     <p style="font-size:13px;color:#888;margin-bottom:28px;">Enter the 6-digit security code to continue.</p>
-    <div id="gateCodeWrap" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
-      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="0">
-      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="1">
-      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="2">
-      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="3">
-      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="4">
-      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="5">
+    <div id="gateCodeWrap" role="group" aria-label="Security code, 6 digits" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="0" aria-label="Security code digit 1 of 6">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="1" aria-label="Security code digit 2 of 6">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="2" aria-label="Security code digit 3 of 6">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="3" aria-label="Security code digit 4 of 6">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="4" aria-label="Security code digit 5 of 6">
+      <input class="gate-digit" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" data-idx="5" aria-label="Security code digit 6 of 6">
     </div>
     <div id="gateError" style="font-size:12px;color:#ff4d4f;min-height:20px;"></div>
     <style>
@@ -545,7 +545,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div style="margin-top:24px;padding:20px;background:var(--bg-soft);border-radius:12px;border:1px solid var(--border);">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
               <div>
-                <h4 style="font-size:15px;font-weight:700;color:var(--black);margin:0;">Email Enrichment</h4>
+                <h3 style="font-size:15px;font-weight:700;color:var(--black);margin:0;">Email Enrichment</h3>
                 <p style="font-size:12px;color:var(--muted);margin-top:2px;">Scrape club websites or federation profiles to find contact emails for leads with placeholder addresses.</p>
               </div>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -612,7 +612,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <th>Last status</th>
                 <th>Next step at</th>
                 <th>Enrolled</th>
-                <th></th>
+                <th><span style="position:absolute;left:-9999px;">Actions</span></th>
               </tr>
             </thead>
             <tbody id="leadsTbody">
@@ -913,7 +913,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </label>
             <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
               <span style="color:var(--muted);">Platform:</span>
-              <select id="agentDraftPlatform" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
+              <select id="agentDraftPlatform" aria-label="Target platform for AI agent draft" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
                 <option value="instagram">Instagram</option>
                 <option value="tiktok">TikTok</option>
                 <option value="youtube">YouTube</option>
@@ -923,7 +923,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <option value="blog">Blog</option>
                 <option value="email">Email</option>
               </select>
-              <select id="agentDraftType" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
+              <select id="agentDraftType" aria-label="Type of content to draft" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
                 <option value="post">Post</option>
                 <option value="reel">Reel</option>
                 <option value="story">Story</option>
@@ -933,7 +933,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <option value="ad">Ad</option>
               </select>
               <span style="color:var(--muted);">Hooks:</span>
-              <select id="agentHookCount" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;" title="Generate multiple hook variants for A/B testing">
+              <select id="agentHookCount" aria-label="Number of hook variants to generate for A/B testing" class="mkt-input" style="padding:4px 8px;font-size:12px;width:auto;">
                 <option value="1">1</option>
                 <option value="3">3 (A/B)</option>
                 <option value="5">5 (A/B)</option>
@@ -2641,11 +2641,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </select>
         </div>
         <div class="mkt-form-group">
-          <label class="mkt-label">Scheduled Date</label>
+          <label class="mkt-label" for="ctDate">Scheduled Date</label>
           <input type="date" class="mkt-input" id="ctDate">
         </div>
         <div class="mkt-form-group">
-          <label class="mkt-label">Time</label>
+          <label class="mkt-label" for="ctTime">Time</label>
           <input type="time" class="mkt-input" id="ctTime">
         </div>
       </div>
