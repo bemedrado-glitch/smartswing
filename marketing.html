@@ -3296,8 +3296,11 @@ async function loadContacts() {
   try {
     // Pull up to 2000 contacts. Leads (stage='lead') have their own tab so
     // we exclude them from the Contacts list to keep things clean.
+    // Use v_contacts_with_billing so Stripe truth (live_billing_tier,
+    // is_paying_customer) is joined in — fixes the "Trial badge for paying
+    // users" bug where mc.stage was set once and never updated by Stripe webhook.
     const { data, error } = await MarketingStore.supabase
-      .from('marketing_contacts')
+      .from('v_contacts_with_billing')
       .select('*')
       .neq('stage', 'lead')
       .order('created_at', { ascending: false })
@@ -3372,7 +3375,10 @@ function renderContacts(contacts) {
       </td>
       <td>${emailDisplay}</td>
       <td><span title="${c.player_type || c.persona || 'player'}">${typeIcon(c.player_type || c.persona)}</span> <span class="mkt-badge mkt-badge--${c.persona || 'player'}">${c.player_type || c.persona || 'player'}</span></td>
-      <td><span class="mkt-badge mkt-badge--${c.stage || 'lead'}">${c.stage || 'lead'}</span></td>
+      <td>
+        <span class="mkt-badge mkt-badge--${c.stage || 'lead'}">${c.stage || 'lead'}</span>
+        ${c.is_paying_customer ? `<span title="Live Stripe status: ${escHtml(c.live_billing_tier)} (${escHtml(c.live_billing_status||'active')})" style="display:inline-block;margin-left:4px;padding:2px 6px;background:#10b98115;color:#059669;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">$ ${escHtml(c.live_billing_tier || 'paid')}</span>` : ''}
+      </td>
       <td><span style="font-size:12px;">${escHtml(country)}</span></td>
       <td>${sourceBadge(c.data_source || c.enrichment_source || c.source)}</td>
       <td>${(c.tags || []).slice(0,3).map(t => `<span style="font-size:11px;background:var(--bg-soft);padding:2px 7px;border-radius:999px;margin-right:3px;">${escHtml(t)}</span>`).join('')}</td>
