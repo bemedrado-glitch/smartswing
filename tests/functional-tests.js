@@ -1657,6 +1657,140 @@ describe('API — email configuration', () => {
   }
 });
 
+describe('API — channel router (WhatsApp vs SMS)', () => {
+  const { resolveChannel } = require('../api/_lib/channel-router.js');
+
+  test('explicit whatsapp preference wins regardless of country', () => {
+    expect(resolveChannel('+14155551234', 'whatsapp')).toBe('whatsapp');
+  });
+
+  test('explicit sms preference wins regardless of country', () => {
+    expect(resolveChannel('+5511999990000', 'sms')).toBe('sms');
+  });
+
+  test('auto routes Brazil (+55) to whatsapp', () => {
+    expect(resolveChannel('+55 11 99999 0000', 'auto')).toBe('whatsapp');
+  });
+
+  test('auto routes Portugal (+351) to whatsapp', () => {
+    expect(resolveChannel('+351 912 345 678', 'auto')).toBe('whatsapp');
+  });
+
+  test('auto routes Germany (+49) to whatsapp', () => {
+    expect(resolveChannel('+49 151 23456789')).toBe('whatsapp');
+  });
+
+  test('auto routes US (+1) to sms', () => {
+    expect(resolveChannel('+1 415 555 1234')).toBe('sms');
+  });
+
+  test('auto routes UK (+44) to sms', () => {
+    expect(resolveChannel('+44 7700 900000')).toBe('sms');
+  });
+
+  test('auto routes Japan (+81) to sms', () => {
+    expect(resolveChannel('+81 90 1234 5678')).toBe('sms');
+  });
+
+  test('missing phone defaults to sms (step will skip anyway)', () => {
+    expect(resolveChannel(null)).toBe('sms');
+    expect(resolveChannel('')).toBe('sms');
+  });
+
+  test('3-digit prefix (+598 Uruguay) beats 2-digit fallback', () => {
+    expect(resolveChannel('+598 99 123 456')).toBe('whatsapp');
+  });
+});
+
+describe('API — WhatsApp template language routing', () => {
+  const { resolveTemplateLang } = require('../api/_lib/channel-router.js');
+
+  test('Brazil (+55) → pt_BR', () => {
+    expect(resolveTemplateLang('+55 11 99999 0000')).toBe('pt_BR');
+  });
+  test('Portugal (+351) → pt_PT', () => {
+    expect(resolveTemplateLang('+351 912 345 678')).toBe('pt_PT');
+  });
+  test('Mexico (+52) → es_LA', () => {
+    expect(resolveTemplateLang('+52 55 1234 5678')).toBe('es_LA');
+  });
+  test('Argentina (+54) → es_LA', () => {
+    expect(resolveTemplateLang('+54 9 11 1234 5678')).toBe('es_LA');
+  });
+  test('Uruguay (+598) → es_LA', () => {
+    expect(resolveTemplateLang('+598 99 123 456')).toBe('es_LA');
+  });
+  test('Spain (+34) → es_ES', () => {
+    expect(resolveTemplateLang('+34 612 345 678')).toBe('es_ES');
+  });
+  test('Italy (+39) → it_IT', () => {
+    expect(resolveTemplateLang('+39 333 1234567')).toBe('it_IT');
+  });
+  test('Germany (+49) → de_DE', () => {
+    expect(resolveTemplateLang('+49 151 23456789')).toBe('de_DE');
+  });
+  test('India (+91) → hi_IN', () => {
+    expect(resolveTemplateLang('+91 98765 43210')).toBe('hi_IN');
+  });
+  test('US (+1) → en_US default', () => {
+    expect(resolveTemplateLang('+1 415 555 1234')).toBe('en_US');
+  });
+  test('UK (+44) → en_US default', () => {
+    expect(resolveTemplateLang('+44 7700 900000')).toBe('en_US');
+  });
+  test('null phone → en_US default', () => {
+    expect(resolveTemplateLang(null)).toBe('en_US');
+  });
+});
+
+describe('API — cadence email merge-tag rendering', () => {
+  const mod = require('../api/_lib/cadence-email-render.js');
+  const contact = { id: 'c123', name: 'Bernardo Medrado', email: 'bernardo@example.com', stage: 'lead' };
+
+  test('substitutes {{first_name}} from first word of name', () => {
+    const out = mod._substitute('Hi {{first_name}},', mod._buildVars(contact));
+    expect(out).toBe('Hi Bernardo,');
+  });
+
+  test('falls back to "there" when name missing', () => {
+    const out = mod._substitute('Hi {{first_name}}!', mod._buildVars({ id: 'x', email: 'a@b.c' }));
+    expect(out).toBe('Hi there!');
+  });
+
+  test('replaces unknown tokens with empty string', () => {
+    const out = mod._substitute('X {{mystery}} Y', mod._buildVars(contact));
+    expect(out).toBe('X  Y');
+  });
+
+  test('unsubscribe_url is keyed on contact id', () => {
+    const v = mod._buildVars(contact);
+    expect(v.unsubscribe_url.includes('c=c123')).toBe(true);
+  });
+
+  test('renderCadenceEmail wraps short plain body in shell', () => {
+    const step = { subject: 'Welcome {{first_name}}', body: 'Hi {{first_name}}, thanks for joining.' };
+    const { subject, html } = mod.renderCadenceEmail(step, contact);
+    expect(subject).toBe('Welcome Bernardo');
+    expect(html).toContain('<!DOCTYPE html>');
+    expect(html).toContain('Bernardo');
+    expect(html).toContain('SmartSwing');
+  });
+
+  test('renderCadenceEmail does NOT double-wrap a full HTML doc', () => {
+    const fullDoc = '<!DOCTYPE html><html><body>Hi {{first_name}}</body></html>';
+    const step = { subject: 's', body: fullDoc };
+    const { html } = mod.renderCadenceEmail(step, contact);
+    expect(html.match(/<!DOCTYPE/gi).length).toBe(1);
+    expect(html).toContain('Hi Bernardo');
+  });
+
+  test('renderCadenceSms substitutes tokens without wrapping', () => {
+    const step = { message: 'Hey {{first_name}}, your analysis is ready.' };
+    const { message } = mod.renderCadenceSms(step, contact);
+    expect(message).toBe('Hey Bernardo, your analysis is ready.');
+  });
+});
+
 // ═══════════════════════════════════════════════════════════════════
 // Report
 // ═══════════════════════════════════════════════════════════════════

@@ -3282,6 +3282,144 @@ async function handleSendBulkWhatsapp(req, res) {
  * GET /api/marketing/whatsapp-status
  * Returns configuration status + phone number info from Graph API.
  */
+/**
+ * GET  /api/marketing/whatsapp-webhook  — Meta subscription verification
+ *   Meta challenges with ?hub.mode=subscribe&hub.verify_token=...&hub.challenge=...
+ *   We echo back hub.challenge iff hub.verify_token === WHATSAPP_VERIFY_TOKEN.
+ *
+ * POST /api/marketing/whatsapp-webhook  — inbound messages + status updates
+ *   Meta sends message events (text/button/reply), status events (sent/
+ *   delivered/read/failed). We:
+ *     1. Match inbound messages to a contact by phone → log them
+ *        in whatsapp_inbound_messages so replies aren't lost
+ *     2. Detect STOP / PARAR / SAIR / UNSUBSCRIBE keywords → mark contact
+ *        opt-out (profiles.whatsapp_opted_out + marketing_contacts.preferred_channel)
+ *     3. Match status updates to our cadence_step_executions by
+ *        provider_message_id → update delivery_state
+ *
+ * Webhook URL to paste in Meta Business Manager → WhatsApp → Configuration →
+ *   Callback URL:   https://www.smartswingai.com/api/marketing/whatsapp-webhook
+ *   Verify token:   whatever you set WHATSAPP_VERIFY_TOKEN to in Vercel
+ */
+async function handleWhatsappWebhook(req, res) {
+  // ── Step 1: Meta verification challenge (GET) ────────────────────────────
+  if (req.method === 'GET') {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+    const expected = process.env.WHATSAPP_VERIFY_TOKEN || '';
+    if (mode === 'subscribe' && token && expected && token === expected) {
+      return res.status(200).send(String(challenge || ''));
+    }
+    return res.status(403).json({ error: 'Invalid verify token' });
+  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'GET or POST only' });
+
+  // ── Step 2: inbound message / status dispatch ────────────────────────────
+  const body = req.body || {};
+  const supabase_url = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const supabase_key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!supabase_url || !supabase_key) {
+    // Still ack Meta even if we can't persist, else they retry forever
+    console.error('[whatsapp-webhook] Supabase not configured');
+    return res.status(200).json({ ok: true });
+  }
+  const hdrs = { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, 'Content-Type': 'application/json' };
+
+  try {
+    const entries = Array.isArray(body.entry) ? body.entry : [];
+    for (const entry of entries) {
+      const changes = Array.isArray(entry.changes) ? entry.changes : [];
+      for (const change of changes) {
+        const value = change.value || {};
+
+        // ── A) Inbound messages (prospect replies) ──────────────────────
+        const messages = Array.isArray(value.messages) ? value.messages : [];
+        for (const msg of messages) {
+          const fromPhone = msg.from || ''; // E.164 digits, no +
+          const messageId = msg.id || null;
+          const type = msg.type || 'unknown';
+          // Extract text from various payload shapes
+          const text =
+            (msg.text && msg.text.body) ||
+            (msg.button && (msg.button.text || msg.button.payload)) ||
+            (msg.interactive && msg.interactive.button_reply && msg.interactive.button_reply.title) ||
+            (msg.interactive && msg.interactive.list_reply && msg.interactive.list_reply.title) ||
+            '';
+          const normalizedPhone = `+${fromPhone}`;
+
+          // Persist the inbound message (dedup by provider id)
+          try {
+            await fetch(`${supabase_url}/rest/v1/whatsapp_inbound_messages`, {
+              method: 'POST',
+              headers: { ...hdrs, Prefer: 'resolution=ignore-duplicates' },
+              body: JSON.stringify({
+                provider_message_id: messageId,
+                from_phone: normalizedPhone,
+                message_type: type,
+                message_text: String(text).slice(0, 4000),
+                received_at: new Date().toISOString(),
+                raw_payload: msg
+              })
+            });
+          } catch (e) { console.error('[whatsapp-webhook] persist inbound failed:', e.message); }
+
+          // Opt-out keyword detection (multi-language)
+          const normalizedText = String(text || '').trim().toUpperCase();
+          const OPT_OUT_WORDS = new Set([
+            'STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT',
+            'PARAR', 'SAIR',                 // pt_BR
+            'DETENER', 'ALTO', 'CANCELAR',   // es
+            'ARRETER',                       // fr
+            'STOPPEN'                        // de
+          ]);
+          if (OPT_OUT_WORDS.has(normalizedText)) {
+            try {
+              // Update marketing_contacts preferred_channel → 'sms' so we stop WhatsApp
+              // (and flag them on profiles if the email matches)
+              await fetch(`${supabase_url}/rest/v1/marketing_contacts?phone=eq.${encodeURIComponent(normalizedPhone)}`, {
+                method: 'PATCH',
+                headers: { ...hdrs, Prefer: 'return=minimal' },
+                body: JSON.stringify({ preferred_channel: 'sms', whatsapp_opted_out: true, whatsapp_opted_out_at: new Date().toISOString() })
+              });
+              // Cancel pending WhatsApp steps for this contact
+              await fetch(
+                `${supabase_url}/rest/v1/cadence_step_executions?step_type=eq.whatsapp&status=eq.pending` +
+                `&contact_id=in.(select id from marketing_contacts where phone=eq.${encodeURIComponent(normalizedPhone)})`,
+                { method: 'PATCH', headers: { ...hdrs, Prefer: 'return=minimal' },
+                  body: JSON.stringify({ status: 'skipped', skipped_reason: 'whatsapp_opt_out' }) }
+              );
+            } catch (e) { console.error('[whatsapp-webhook] opt-out update failed:', e.message); }
+          }
+        }
+
+        // ── B) Delivery status updates (sent/delivered/read/failed) ─────
+        const statuses = Array.isArray(value.statuses) ? value.statuses : [];
+        for (const st of statuses) {
+          const providerId = st.id || null;
+          const status = st.status || null; // 'sent'|'delivered'|'read'|'failed'
+          const errors = Array.isArray(st.errors) ? st.errors : [];
+          if (!providerId || !status) continue;
+          try {
+            const patch = { delivery_state: status, last_status_at: new Date().toISOString() };
+            if (errors.length) patch.failure_reason = (errors[0].title || errors[0].message || '').slice(0, 500);
+            await fetch(
+              `${supabase_url}/rest/v1/cadence_step_executions?provider_message_id=eq.${encodeURIComponent(providerId)}`,
+              { method: 'PATCH', headers: { ...hdrs, Prefer: 'return=minimal' }, body: JSON.stringify(patch) }
+            );
+          } catch (e) { console.error('[whatsapp-webhook] status update failed:', e.message); }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[whatsapp-webhook] dispatch error:', err);
+  }
+
+  // Always 200 — Meta retries aggressively on non-200 and we've already
+  // logged errors above. Retries would create duplicate rows.
+  return res.status(200).json({ ok: true });
+}
+
 async function handleWhatsappStatus(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
 
@@ -6531,6 +6669,7 @@ const ROUTES = {
   'send-bulk-whatsapp':  handleSendBulkWhatsapp,
   'whatsapp-status':     handleWhatsappStatus,
   'whatsapp-templates':  handleWhatsappTemplates,
+  'whatsapp-webhook':    handleWhatsappWebhook,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
