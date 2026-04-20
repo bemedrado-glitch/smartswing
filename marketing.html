@@ -361,7 +361,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="mkt-filters">
           <input type="text" class="mkt-search" id="contactSearch" placeholder="Search contacts…" oninput="filterContacts()">
-          <select class="mkt-filter-select" id="filterPersona" onchange="filterContacts()">
+          <select class="mkt-filter-select" id="filterPersona" aria-label="Filter contacts by persona" onchange="filterContacts()">
             <option value="">All Personas</option>
             <option value="player">Player</option>
             <option value="coach">Coach</option>
@@ -369,7 +369,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="parent">Parent</option>
             <option value="academy">Academy</option>
           </select>
-          <select class="mkt-filter-select" id="filterDataSource" onchange="filterContacts()">
+          <select class="mkt-filter-select" id="filterDataSource" aria-label="Filter contacts by data source" onchange="filterContacts()">
             <option value="">All Sources</option>
             <option value="google_places">Google Places</option>
             <option value="itf_ranking">ITF Rankings</option>
@@ -379,7 +379,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="organic_signup">Organic Signup</option>
             <option value="manual">Manual</option>
           </select>
-          <select class="mkt-filter-select" id="filterStage" onchange="filterContacts()">
+          <select class="mkt-filter-select" id="filterStage" aria-label="Filter contacts by lifecycle stage" onchange="filterContacts()">
             <option value="">All Stages</option>
             <option value="lead">Lead</option>
             <option value="prospect">Prospect</option>
@@ -408,7 +408,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <table class="mkt-table" id="contactsTable">
                 <thead>
                   <tr>
-                    <th style="width:36px;padding-left:12px;"><input type="checkbox" id="selectAllContacts" title="Select all" onchange="toggleSelectAllContacts(this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:#D8FF00;"></th>
+                    <th style="width:36px;padding-left:12px;"><input type="checkbox" id="selectAllContacts" aria-label="Select all contacts" onchange="toggleSelectAllContacts(this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:#D8FF00;"></th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Type</th>
@@ -551,7 +551,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div style="display:flex;align-items:center;gap:6px;">
                   <label style="font-size:12px;font-weight:600;white-space:nowrap;">Enrich:</label>
-                  <select class="mkt-filter-select" id="enrichMode" style="min-width:160px;">
+                  <select class="mkt-filter-select" id="enrichMode" aria-label="Enrichment mode" style="min-width:160px;">
                     <option value="clubs">Clubs (websites)</option>
                     <option value="players">Players (federation profiles)</option>
                     <option value="all">All contacts</option>
@@ -579,14 +579,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <input class="mkt-input" id="leadSearch" placeholder="Search name, email, cadence…" oninput="filterLeads()" style="min-width:200px;">
-            <select class="mkt-select" id="leadStatusFilter" onchange="filterLeads()">
+            <select class="mkt-select" id="leadStatusFilter" aria-label="Filter leads by enrollment status" onchange="filterLeads()">
               <option value="">All statuses</option>
               <option value="active">Active</option>
               <option value="not_enrolled">Not enrolled</option>
               <option value="completed">Completed</option>
               <option value="cancelled">Cancelled</option>
             </select>
-            <select class="mkt-select" id="leadPersonaFilter" onchange="filterLeads()" style="width:auto;">
+            <select class="mkt-select" id="leadPersonaFilter" aria-label="Filter leads by persona" onchange="filterLeads()" style="width:auto;">
               <option value="">All types</option>
               <option value="player">Player</option>
               <option value="coach">Coach</option>
@@ -780,7 +780,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p style="font-size:13px;color:var(--muted);margin-top:2px;">Leads actively running in each sales cadence. Click Opt out to remove a lead; conversion auto-removes on CTA click or checkout.</p>
           </div>
           <div style="display:flex;gap:8px;">
-            <select class="mkt-select" id="enrollmentsCadenceFilter" onchange="renderEnrollments()" style="max-width:260px;">
+            <select class="mkt-select" id="enrollmentsCadenceFilter" aria-label="Filter enrollments by cadence" onchange="renderEnrollments()" style="max-width:260px;">
               <option value="">All cadences</option>
             </select>
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="renderEnrollments()">↻ Refresh</button>
@@ -802,7 +802,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p style="font-size:13px;color:var(--muted);margin-top:2px;">Unified log: cadence steps sent, CTA clicks, opt-outs, conversions, content created, posts published, emails/SMS sent.</p>
           </div>
           <div style="display:flex;gap:8px;">
-            <select class="mkt-select" id="historyEventFilter" onchange="renderHistory()" style="max-width:240px;">
+            <select class="mkt-select" id="historyEventFilter" aria-label="Filter history by event type" onchange="renderHistory()" style="max-width:240px;">
               <option value="">All events</option>
               <option value="cadence_enrolled">Cadence: enrolled</option>
               <option value="cadence_step_sent">Cadence: step sent</option>
