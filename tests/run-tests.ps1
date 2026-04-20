@@ -1,6 +1,11 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# Cross-platform: -WindowStyle Hidden is only valid on Windows PowerShell.
+# On PowerShell Core (Linux/macOS CI runners) the param throws.
+$StartProcessExtraArgs = @{}
+if ($IsWindows -or $null -eq $IsWindows) { $StartProcessExtraArgs.WindowStyle = 'Hidden' }
+
 $port = 8765
 $root = Split-Path $PSScriptRoot -Parent
 $serverScript = Join-Path $root 'serve.ps1'
@@ -98,7 +103,7 @@ try {
     '-ExecutionPolicy', 'Bypass',
     '-File', $serverScript,
     '-Port', $port
-  ) -PassThru -WindowStyle Hidden
+  ) -PassThru @StartProcessExtraArgs
 
   $ready = Wait-Server -Url "http://127.0.0.1:$port/index.html"
   Assert-True -Condition $ready -Message "Local web server starts and serves index page"
@@ -310,7 +315,7 @@ try {
       '-ExecutionPolicy', 'Bypass',
       '-File', $serverScript,
       '-Port', $batchPort
-    ) -PassThru -WindowStyle Hidden
+    ) -PassThru @StartProcessExtraArgs
     try {
       $batchReady = Wait-Server -Url "http://127.0.0.1:$batchPort/index.html"
       Assert-True -Condition $batchReady -Message 'Dedicated batch test server starts'
