@@ -47,6 +47,17 @@ module.exports = async (req, res) => {
     return json(res, 400, { error: 'User id and email are required for paid checkout.' });
   }
 
+  // TENNISFOREVER is restricted to the Player ('pro') plan — first 100 players free forever.
+  // Server-side check (Stripe metadata is just a tag — the API itself doesn't enforce plan restrictions).
+  if (couponCode === 'TENNISFOREVER' && planId !== 'pro') {
+    return json(res, 400, {
+      error: 'TENNISFOREVER is only valid for the Player plan. Choose the Player plan to use this code.',
+      code: 'coupon_plan_mismatch',
+      coupon: 'TENNISFOREVER',
+      requiredPlan: 'pro'
+    });
+  }
+
   let stripe;
   try {
     stripe = getStripeClient();
@@ -74,11 +85,17 @@ module.exports = async (req, res) => {
       // When a specific coupon code is supplied, apply it via discounts (incompatible with allow_promotion_codes).
       // Prefer STRIPE_PROMO_CODE_SWINGAI (promotion code ID e.g. promo_xxx) so Stripe shows "SWINGAI" as the
       // applied code label on the hosted checkout page. Fall back to coupon ID if only that var is set.
-      ...(couponCode === 'SWINGAI' && (process.env.STRIPE_PROMO_CODE_SWINGAI || process.env.STRIPE_COUPON_SWINGAI)
-        ? process.env.STRIPE_PROMO_CODE_SWINGAI
-          ? { discounts: [{ promotion_code: process.env.STRIPE_PROMO_CODE_SWINGAI }] }
-          : { discounts: [{ coupon: process.env.STRIPE_COUPON_SWINGAI }] }
-        : { allow_promotion_codes: true }),
+      // Coupon application:
+      // - SWINGAI (30-day free trial promo): apply via promotion_code env if set, else coupon id env
+      // - TENNISFOREVER (100% off forever, max 100, Player plan only): direct coupon ID — created on Stripe
+      // - Otherwise: allow_promotion_codes:true so users can type any active code on Stripe-hosted checkout
+      ...((couponCode === 'SWINGAI' && (process.env.STRIPE_PROMO_CODE_SWINGAI || process.env.STRIPE_COUPON_SWINGAI))
+        ? (process.env.STRIPE_PROMO_CODE_SWINGAI
+            ? { discounts: [{ promotion_code: process.env.STRIPE_PROMO_CODE_SWINGAI }] }
+            : { discounts: [{ coupon: process.env.STRIPE_COUPON_SWINGAI }] })
+        : couponCode === 'TENNISFOREVER'
+          ? { discounts: [{ coupon: 'TENNISFOREVER' }] }
+          : { allow_promotion_codes: true }),
       metadata: {
         appPlanId: planId,
         billingInterval,

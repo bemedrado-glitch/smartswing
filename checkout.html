@@ -519,6 +519,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
+    <!-- Coupon — prominent above the CTA so customers don't miss it on mobile -->
+    <div class="reveal reveal-d3" id="couponSection" style="margin:18px 0 14px;">
+      <details id="couponDetails" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:14px 16px;">
+        <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:600;font-size:14px;color:#111;">
+          <span style="display:flex;align-items:center;gap:8px;">
+            <span aria-hidden="true">🎟️</span>
+            <span>Have a promo code?</span>
+          </span>
+          <span style="font-size:12px;color:#6b7280;font-weight:500;" id="couponHint">Try <strong style="color:#111;">SWINGAI</strong> for 30 days free</span>
+        </summary>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="text" id="couponInput" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false"
+            placeholder="Enter promo code (e.g. SWINGAI)"
+            aria-label="Promo code"
+            style="flex:1;min-width:140px;padding:12px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:15px;font-family:inherit;text-transform:uppercase;letter-spacing:.04em;">
+          <button type="button" id="couponApplyBtn"
+            style="padding:12px 20px;border:none;border-radius:10px;background:#111;color:#fff;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">
+            Apply
+          </button>
+        </div>
+        <div id="couponFeedback" role="status" aria-live="polite" style="margin-top:10px;font-size:13px;line-height:1.4;display:none;"></div>
+      </details>
+    </div>
+
     <!-- CTA -->
     <div class="reveal reveal-d4">
       <div class="error-banner" id="checkoutError"></div>
@@ -725,9 +749,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           return;
         }
 
-        // Start Stripe session
+        // Start Stripe session — include couponCode if user typed one
         var submitBtn = document.getElementById('submitBtn');
         var errorBanner = document.getElementById('checkoutError');
+        var couponInputEl = document.getElementById('couponInput');
+        var couponCode = couponInputEl ? String(couponInputEl.value || '').trim().toUpperCase() : '';
         errorBanner.classList.remove('visible');
         errorBanner.textContent = '';
         submitBtn.disabled = true;
@@ -738,7 +764,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             billingInterval: billingInterval,
             source: 'checkout-page',
             returnTo: './payment-success.html',
-            cancelTo: './payment-cancelled.html'
+            cancelTo: './payment-cancelled.html',
+            couponCode: couponCode
           });
           window.location.href = session.url;
         } catch (err) {
@@ -749,6 +776,72 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           errorBanner.classList.add('visible');
         }
       });
+
+      // ── Coupon UX ──
+      // - Auto-fill from ?coupon=XXX URL param so marketing links can carry it
+      // - Auto-open the <details> if a coupon was passed so it's immediately visible
+      // - Local validation on Apply: green ✓ for known codes, soft warning for unknown
+      //   (real validation happens server-side in /api/create-checkout-session)
+      (function setupCoupon() {
+        var couponInput = document.getElementById('couponInput');
+        var couponApply = document.getElementById('couponApplyBtn');
+        var couponFeedback = document.getElementById('couponFeedback');
+        var couponDetails = document.getElementById('couponDetails');
+        var couponHint = document.getElementById('couponHint');
+        if (!couponInput || !couponApply) return;
+
+        // 1. Auto-fill from URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlCoupon = (urlParams.get('coupon') || urlParams.get('promo') || '').toUpperCase().trim();
+        if (urlCoupon) {
+          couponInput.value = urlCoupon;
+          couponDetails.open = true;
+          // Auto-apply if it's recognized
+          setTimeout(function() { couponApply.click(); }, 50);
+        }
+
+        // 2. Adjust hint based on selected plan (TENNISFOREVER for Player only)
+        function updateHint() {
+          if (planId === 'pro') {
+            couponHint.innerHTML = 'Try <strong style="color:#111;">SWINGAI</strong> (30 days free) or <strong style="color:#111;">TENNISFOREVER</strong> (free forever, first 100 only)';
+          } else {
+            couponHint.innerHTML = 'Try <strong style="color:#111;">SWINGAI</strong> for 30 days free';
+          }
+        }
+        updateHint();
+
+        // 3. Apply handler — local validation only
+        couponApply.addEventListener('click', function() {
+          var code = String(couponInput.value || '').trim().toUpperCase();
+          couponInput.value = code; // normalize visible value
+          couponFeedback.style.display = 'block';
+          if (!code) {
+            couponFeedback.style.color = '#dc2626';
+            couponFeedback.textContent = 'Type a code first.';
+            return;
+          }
+          if (code === 'SWINGAI') {
+            couponFeedback.style.color = '#059669';
+            couponFeedback.innerHTML = '✓ <strong>SWINGAI</strong> — 30 days free trial will be applied at checkout.';
+          } else if (code === 'TENNISFOREVER') {
+            if (planId === 'pro') {
+              couponFeedback.style.color = '#059669';
+              couponFeedback.innerHTML = '✓ <strong>TENNISFOREVER</strong> — free forever (one of the first 100). Click Continue to lock it in.';
+            } else {
+              couponFeedback.style.color = '#dc2626';
+              couponFeedback.innerHTML = '⚠ <strong>TENNISFOREVER</strong> is for the Player plan only. Switch your selection to Player to use this code.';
+            }
+          } else {
+            couponFeedback.style.color = '#6b7280';
+            couponFeedback.textContent = 'Code will be validated by Stripe at checkout. If it\'s active, the discount will appear on the next screen.';
+          }
+        });
+
+        // Allow Enter to apply
+        couponInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); couponApply.click(); }
+        });
+      })();
 
       // ── Init ──
       store.clearCheckoutIntent && store.clearCheckoutIntent();
