@@ -1072,9 +1072,12 @@ async function runWorkflowChain(chain, title, context, campaignId, apiKey, conte
 
     let userMessage = `Task: ${step.role}\n\nContent title/brief: ${title}\n\n${contextString}`;
     if (previousOutput) userMessage += `\n\nPrevious step output:\n${previousOutput}`;
+    userMessage += '\n\nKEEP YOUR RESPONSE TIGHT: ≤350 words. Skip fluff and meta-commentary; deliver the artifact only.';
 
-    // Use Sonnet for workflow steps — fast enough for 4 steps + image gen within 60s
-    const output = await callClaude(systemPrompt, userMessage, apiKey, 'claude-sonnet-4-20250514');
+    // Use Haiku 4.5 — fastest current model. Sonnet/Opus pushed each step to
+    // 8-12s, hitting Vercel's 60s function timeout for 5-step chains.
+    // Haiku finishes in 2-4s/step → 5 steps + image gen comfortably under 60s.
+    const output = await callClaude(systemPrompt, userMessage, apiKey, 'claude-haiku-4-5-20251001');
     steps.push({ agent: step.agent, role: step.role, output });
 
     if (supabaseUrl && supabaseKey) {
@@ -6154,6 +6157,73 @@ Write the copy object per your system prompt. Return ONLY the JSON.`;
   }
 }
 
+// Visual generation stage — between Copywriter and Assembler. Reads the brief's
+// visual_spec and generates an image (or returns a stock asset URL when the
+// brief calls for kind=stock). Output goes into the package's assets.visuals[].
+async function handlePipelineVisual(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  const { brief, override_prompt } = req.body || {};
+  if (!brief) return res.status(400).json({ error: 'brief (ContentBrief) is required' });
+  const briefErrors = validateContentBrief(brief);
+  if (briefErrors.length) return res.status(400).json({ error: 'Invalid ContentBrief', validation_errors: briefErrors });
+
+  const spec = brief.visual_spec || { kind: 'none' };
+  if (spec.kind === 'none') {
+    return res.status(200).json({ success: true, visuals: [], note: 'Brief specifies no visual.' });
+  }
+  // Stock visuals: don't call image gen, just return a sentinel so the user can
+  // upload their own asset. The Assembler accepts visuals[] of any shape.
+  if (spec.kind === 'stock' || spec.kind === 'screenshot') {
+    return res.status(200).json({
+      success: true,
+      visuals: [{
+        url: '',
+        kind: spec.kind,
+        aspect_ratio: spec.aspect_ratio || '1:1',
+        alt_text: 'Upload or paste a URL for the ' + spec.kind + ' here',
+        source_model: 'manual',
+        needs_upload: true
+      }],
+      note: 'Brief calls for ' + spec.kind + ' — upload manually, then proceed to Assemble.'
+    });
+  }
+
+  // Generated/infographic/banner: call existing generateImage helper
+  // (Pollinations free tier; falls back to DALL-E if OPENAI_API_KEY is set).
+  const promptToUse = (override_prompt && override_prompt.trim()) || spec.prompt;
+  if (!promptToUse) {
+    return res.status(400).json({ error: 'visual_spec.prompt is required when kind != none/stock' });
+  }
+  const aspectToSize = {
+    '1:1':    '1024x1024',
+    '4:5':    '1024x1280',
+    '9:16':   '1024x1792',
+    '16:9':   '1792x1024',
+    '1.91:1': '1792x1024'
+  };
+  const size = aspectToSize[spec.aspect_ratio || '1:1'] || '1024x1024';
+  const count = Math.min(spec.count || 1, 4);
+
+  try {
+    const visuals = [];
+    for (let i = 0; i < count; i++) {
+      const url = await generateImage(promptToUse, size);
+      visuals.push({
+        url,
+        kind: spec.kind,
+        aspect_ratio: spec.aspect_ratio || '1:1',
+        alt_text: (brief.angle || promptToUse).slice(0, 240),
+        source_model: 'pollinations-flux',
+        prompt_used: promptToUse
+      });
+    }
+    return res.status(200).json({ success: true, visuals, brief_id: brief.brief_id });
+  } catch (err) {
+    console.error('[pipeline/visual] error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function handlePipelineAssemble(req, res) {
   // Deterministic assembler — NO LLM call. Takes brief + copy + visuals + video,
   // emits a schema-valid PostPackage. If any required field is missing or a
@@ -6428,6 +6498,7 @@ const ROUTES = {
   'orchestrate':     handleOrchestrate,
   'pipeline-plan':       handlePipelinePlan,
   'pipeline-copy':       handlePipelineCopy,
+  'pipeline-visual':     handlePipelineVisual,
   'pipeline-assemble':   handlePipelineAssemble,
   'pipeline-review':     handlePipelineReview,
   'publish-x':           handlePublishX,

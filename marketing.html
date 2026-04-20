@@ -1094,39 +1094,54 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <pre id="stageCopyOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:240px;overflow:auto;white-space:pre-wrap;"></pre>
             </div>
 
-            <!-- Stage 3: Assemble -->
+            <!-- Stage 3: Visual (NEW) -->
             <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <strong style="font-size:13px;">3. Assembler — build PostPackage (deterministic)</strong>
-                <span id="stageAsmStatus" style="font-size:11px;color:var(--muted);">waiting for copy</span>
+                <strong style="font-size:13px;">3. Visual — generate image from brief</strong>
+                <span id="stageVisualStatus" style="font-size:11px;color:var(--muted);">waiting for brief</span>
               </div>
-              <input type="text" class="mkt-input" id="stageAsmVisualUrl" placeholder="Optional placeholder visual URL (else assembled with no visuals)" style="margin-bottom:8px;">
+              <input type="text" class="mkt-input" id="stageVisualOverride" placeholder="Optional: override the brief's image prompt (else uses brief.visual_spec.prompt)" style="margin-bottom:8px;">
+              <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stageVisualBtn" onclick="runPipelineVisual()" disabled>🎨 Generate Visual</button>
+              <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" id="stageVisualSkipBtn" onclick="runPipelineVisualSkip()" disabled>Skip</button>
+              <div id="stageVisualPreview" style="display:none;margin-top:10px;"></div>
+              <pre id="stageVisualOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:200px;overflow:auto;white-space:pre-wrap;"></pre>
+            </div>
+
+            <!-- Stage 4: Assemble (was 3) -->
+            <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <strong style="font-size:13px;">4. Assembler — build PostPackage (deterministic)</strong>
+                <span id="stageAsmStatus" style="font-size:11px;color:var(--muted);">waiting for visual / copy</span>
+              </div>
               <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stageAsmBtn" onclick="runPipelineAssemble()" disabled>▶ Run Assembler</button>
               <pre id="stageAsmOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:240px;overflow:auto;white-space:pre-wrap;"></pre>
             </div>
 
-            <!-- Stage 4: Review -->
+            <!-- Stage 5: Review (was 4) -->
             <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <strong style="font-size:13px;">4. Editor-in-Chief — score on 6-dim rubric</strong>
+                <strong style="font-size:13px;">5. Editor-in-Chief — score on 6-dim rubric</strong>
                 <span id="stageReviewStatus" style="font-size:11px;color:var(--muted);">waiting for package</span>
               </div>
               <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stageReviewBtn" onclick="runPipelineReview()" disabled>▶ Run Editor</button>
               <pre id="stageReviewOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>
             </div>
 
-            <!-- Stage 5: Publish -->
+            <!-- Stage 6: Preview + Publish (rebuilt) -->
             <div style="border:1px solid var(--line);border-radius:10px;padding:14px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <strong style="font-size:13px;">5. Publisher — post to platform</strong>
-                <span id="stagePublishStatus" style="font-size:11px;color:var(--muted);">waiting for approved package</span>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <strong style="font-size:13px;">6. Preview &amp; Publish</strong>
+                <span id="stagePublishStatus" style="font-size:11px;color:var(--muted);">waiting for package</span>
               </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" id="stagePublishXDryBtn" onclick="runPipelinePublish('x', true)" disabled>👁 Dry-run X</button>
-                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stagePublishXBtn" onclick="runPipelinePublish('x', false)" disabled>📤 Publish to X</button>
-                <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" id="stagePublishLIDryBtn" onclick="runPipelinePublish('linkedin', true)" disabled>👁 Dry-run LinkedIn</button>
-                <button class="mkt-btn mkt-btn--primary mkt-btn--sm" id="stagePublishLIBtn" onclick="runPipelinePublish('linkedin', false)" disabled>📤 Publish to LinkedIn</button>
+
+              <!-- Real post preview mockup — fills in after Assemble -->
+              <div id="stagePostPreview" style="display:none;margin-bottom:14px;"></div>
+
+              <!-- Action buttons — populated dynamically based on brief.platform -->
+              <div id="stagePublishActions" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:12px;color:var(--muted);">Publish + calendar buttons appear after Assemble.</span>
               </div>
+
               <pre id="stagePublishOutput" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;line-height:1.4;max-height:280px;overflow:auto;white-space:pre-wrap;"></pre>
             </div>
           </div>
@@ -8298,14 +8313,19 @@ function _stageEnable(id, enabled) {
 }
 
 function resetPipelineStudio() {
-  window.PipelineStudio = { brief: null, copy: null, package: null, review: null };
-  ['Plan','Copy','Asm','Review','Publish'].forEach(function(p) { _stageWrite(p, 'idle', null); });
-  ['stageCopyBtn','stageAsmBtn','stageReviewBtn','stagePublishXBtn','stagePublishXDryBtn','stagePublishLIBtn','stagePublishLIDryBtn']
+  window.PipelineStudio = { brief: null, copy: null, visuals: [], package: null, review: null };
+  ['Plan','Copy','Visual','Asm','Review','Publish'].forEach(function(p) { _stageWrite(p, 'idle', null); });
+  ['stageCopyBtn','stageVisualBtn','stageVisualSkipBtn','stageAsmBtn','stageReviewBtn']
     .forEach(function(id) { _stageEnable(id, false); });
   document.getElementById('stageCopyStatus').textContent = 'waiting for brief';
-  document.getElementById('stageAsmStatus').textContent  = 'waiting for copy';
+  document.getElementById('stageVisualStatus').textContent = 'waiting for brief';
+  document.getElementById('stageAsmStatus').textContent  = 'waiting for visual / copy';
   document.getElementById('stageReviewStatus').textContent = 'waiting for package';
-  document.getElementById('stagePublishStatus').textContent = 'waiting for approved package';
+  document.getElementById('stagePublishStatus').textContent = 'waiting for package';
+  var pv = document.getElementById('stageVisualPreview'); if (pv) { pv.style.display = 'none'; pv.innerHTML = ''; }
+  var pp = document.getElementById('stagePostPreview');   if (pp) { pp.style.display = 'none'; pp.innerHTML = ''; }
+  var actions = document.getElementById('stagePublishActions');
+  if (actions) actions.innerHTML = '<span style="font-size:12px;color:var(--muted);">Publish + calendar buttons appear after Assemble.</span>';
 }
 
 async function runPipelinePlan() {
@@ -8327,6 +8347,13 @@ async function runPipelinePlan() {
     _stageWrite('Plan', '✓ ' + d.brief.brief_id, d.brief);
     _stageEnable('stageCopyBtn', true);
     document.getElementById('stageCopyStatus').textContent = 'ready';
+    // Visual stage is also unlocked once we have a brief
+    _stageEnable('stageVisualBtn', true);
+    _stageEnable('stageVisualSkipBtn', true);
+    document.getElementById('stageVisualStatus').textContent = 'ready';
+    // Pre-fill visual override input with the brief's prompt so user can edit it
+    var ov = document.getElementById('stageVisualOverride');
+    if (ov && d.brief.visual_spec && d.brief.visual_spec.prompt) ov.value = d.brief.visual_spec.prompt;
   } catch (e) {
     _stageWrite('Plan', '✗ ' + e.message, null);
     showToast('Planner failed: ' + e.message, 'error');
@@ -8346,19 +8373,61 @@ async function runPipelineCopy() {
     window.PipelineStudio.copy = d.copy;
     _stageWrite('Copy', '✓ written', d.copy);
     _stageEnable('stageAsmBtn', true);
-    document.getElementById('stageAsmStatus').textContent = 'ready';
+    document.getElementById('stageAsmStatus').textContent = 'ready (visual is optional)';
   } catch (e) {
     _stageWrite('Copy', '✗ ' + e.message, null);
     showToast('Copywriter failed: ' + e.message, 'error');
   }
 }
 
+async function runPipelineVisual() {
+  if (!window.PipelineStudio.brief) { showToast('Run Planner first', 'error'); return; }
+  var override = document.getElementById('stageVisualOverride').value.trim();
+  _stageWrite('Visual', 'generating image…', null);
+  try {
+    var body = { brief: window.PipelineStudio.brief };
+    if (override) body.override_prompt = override;
+    var r = await fetch('/api/marketing/pipeline-visual', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    var d = await r.json();
+    if (!d.success) throw new Error(d.error || 'visual failed');
+    window.PipelineStudio.visuals = d.visuals || [];
+    _stageWrite('Visual', '✓ ' + (d.visuals || []).length + ' visual(s)', d);
+    // Render thumbnails so user can SEE what was generated
+    var pv = document.getElementById('stageVisualPreview');
+    if (pv) {
+      if (!d.visuals || !d.visuals.length) {
+        pv.style.display = 'block';
+        pv.innerHTML = '<div style="padding:10px;background:#fef3c7;color:#92400e;border-radius:6px;font-size:12px;">' + escHtml(d.note || 'No image returned.') + '</div>';
+      } else {
+        pv.style.display = 'block';
+        pv.innerHTML = d.visuals.map(function(v) {
+          if (!v.url) return '<div style="padding:10px;background:#fef3c7;color:#92400e;border-radius:6px;font-size:12px;">' + escHtml(v.alt_text || 'Manual upload required.') + '</div>';
+          return '<a href="' + escHtml(v.url) + '" target="_blank" rel="noopener" style="display:inline-block;margin-right:8px;">' +
+            '<img src="' + escHtml(v.url) + '" alt="' + escHtml(v.alt_text || '') + '" style="max-height:200px;max-width:200px;border-radius:8px;border:1px solid var(--border);object-fit:cover;">' +
+            '</a>';
+        }).join('');
+      }
+    }
+  } catch (e) {
+    _stageWrite('Visual', '✗ ' + e.message, null);
+    showToast('Visual failed: ' + e.message, 'error');
+  }
+}
+
+function runPipelineVisualSkip() {
+  window.PipelineStudio.visuals = [];
+  _stageWrite('Visual', 'skipped (no visual)', null);
+  var pv = document.getElementById('stageVisualPreview'); if (pv) { pv.style.display = 'none'; pv.innerHTML = ''; }
+}
+
 async function runPipelineAssemble() {
   if (!window.PipelineStudio.copy) { showToast('Run Copywriter first', 'error'); return; }
   _stageWrite('Asm', 'running…', null);
   try {
-    var visualUrl = document.getElementById('stageAsmVisualUrl').value.trim();
-    var visuals = visualUrl ? [{ url: visualUrl, kind: 'image', aspect_ratio: '1:1', alt_text: 'Pipeline Studio test visual', source_model: 'manual' }] : [];
+    // Use whatever the visual stage produced — could be 0 or N visuals
+    var visuals = (window.PipelineStudio.visuals || []).filter(function(v) { return v && v.url; });
     var body = {
       brief: window.PipelineStudio.brief,
       copy: window.PipelineStudio.copy,
@@ -8375,6 +8444,9 @@ async function runPipelineAssemble() {
     _stageWrite('Asm', '✓ ' + d.package.package_id, d.package);
     _stageEnable('stageReviewBtn', true);
     document.getElementById('stageReviewStatus').textContent = 'ready';
+    // Render the post preview AND populate platform-aware publish buttons immediately
+    renderPostPreview(d.package);
+    renderPublishActions(d.package, false);
   } catch (e) {
     _stageWrite('Asm', '✗ ' + e.message, null);
     showToast('Assembler failed: ' + e.message, 'error');
@@ -8394,17 +8466,14 @@ async function runPipelineReview() {
     window.PipelineStudio.review = d.review;
     _stageWrite('Review', '✓ ' + d.review.decision, d.review);
     if (d.review.decision === 'approved') {
-      // Promote the package status so publishers will accept it
       window.PipelineStudio.package.status = 'approved';
       window.PipelineStudio.package.editor_review = d.review;
-      ['stagePublishXBtn','stagePublishXDryBtn','stagePublishLIBtn','stagePublishLIDryBtn']
-        .forEach(function(id) { _stageEnable(id, true); });
       document.getElementById('stagePublishStatus').textContent = '✓ approved — ready to publish';
+      renderPublishActions(window.PipelineStudio.package, true);
     } else {
-      // dry-run still allowed even on revise/reject so the user can preview composed text
-      ['stagePublishXDryBtn','stagePublishLIDryBtn'].forEach(function(id) { _stageEnable(id, true); });
       document.getElementById('stagePublishStatus').textContent =
-        d.review.decision + ' — fix issues then re-run, or dry-run to preview';
+        d.review.decision + ' — fix issues then re-run, or dry-run / save to draft';
+      renderPublishActions(window.PipelineStudio.package, false);
     }
   } catch (e) {
     _stageWrite('Review', '✗ ' + e.message, null);
@@ -8412,9 +8481,132 @@ async function runPipelineReview() {
   }
 }
 
+/* ── Real post-preview mockup per platform ───────────────────────────────── */
+function renderPostPreview(pkg) {
+  var container = document.getElementById('stagePostPreview');
+  if (!container || !pkg) return;
+  var platform = (pkg.platform || 'instagram').toLowerCase();
+  var copy = pkg.copy || {};
+  var firstImg = pkg.assets && pkg.assets.visuals && pkg.assets.visuals[0];
+  var caption = copy.caption || copy.body || '';
+  var headline = copy.headline || '';
+  var ctaLabel = (pkg.brief_id && window.PipelineStudio.brief && window.PipelineStudio.brief.cta && window.PipelineStudio.brief.cta.label) || 'Learn more';
+  var hashtags = (pkg.hashtags || []).slice(0, 6).join(' ');
+
+  var icon = ({
+    instagram: '📷', tiktok: '🎵', youtube: '▶', facebook: '👥', linkedin: '💼',
+    x: '𝕏', blog: '📰', email: '✉'
+  })[platform] || '🌐';
+
+  // Platform-specific aspect + style hints
+  var imgStyle = platform === 'tiktok' || platform === 'reel'
+    ? 'aspect-ratio:9/16;max-height:360px;'
+    : platform === 'youtube'
+      ? 'aspect-ratio:16/9;max-height:240px;'
+      : 'aspect-ratio:1/1;max-height:340px;';
+
+  container.style.display = 'block';
+  container.innerHTML =
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">' + icon + ' Mock preview — what this would look like on <strong>' + escHtml(platform) + '</strong></div>' +
+    '<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;max-width:520px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">' +
+      '<div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0f0f0;">' +
+        '<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#39ff14,#00cc99);display:flex;align-items:center;justify-content:center;color:#000;font-weight:800;">S</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-weight:600;font-size:13px;color:#111;">SmartSwing AI</div>' +
+          '<div style="font-size:11px;color:#888;">smartswingai · ' + escHtml(platform) + '</div>' +
+        '</div>' +
+      '</div>' +
+      (firstImg && firstImg.url
+        ? '<div style="background:#f5f5f7;' + imgStyle + 'overflow:hidden;"><img src="' + escHtml(firstImg.url) + '" alt="' + escHtml(firstImg.alt_text || '') + '" style="width:100%;height:100%;object-fit:cover;display:block;"></div>'
+        : '<div style="background:#f5f5f7;' + imgStyle + 'display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;">No visual — text-only post</div>'
+      ) +
+      '<div style="padding:14px;">' +
+        (headline ? '<div style="font-weight:700;font-size:15px;color:#111;margin-bottom:6px;">' + escHtml(headline) + '</div>' : '') +
+        '<div style="font-size:13.5px;line-height:1.5;color:#222;white-space:pre-wrap;">' + escHtml((caption || '').slice(0, 800)) + ((caption || '').length > 800 ? '…' : '') + '</div>' +
+        (hashtags ? '<div style="font-size:13px;color:#0095f6;margin-top:8px;">' + escHtml(hashtags) + '</div>' : '') +
+        '<button style="margin-top:12px;padding:8px 14px;background:#39ff14;color:#000;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:default;">' + escHtml(ctaLabel) + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ── Platform-aware publish + calendar action buttons ───────────────────── */
+function renderPublishActions(pkg, approved) {
+  var actions = document.getElementById('stagePublishActions');
+  if (!actions || !pkg) return;
+  var platform = (pkg.platform || 'instagram').toLowerCase();
+
+  // Map platform → which publishers exist + which need manual flow
+  var hasApiPublisher = { x: true, linkedin: true };
+  var publishHtml = '';
+
+  if (hasApiPublisher[platform]) {
+    var label = platform === 'x' ? 'X' : 'LinkedIn';
+    publishHtml +=
+      '<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="runPipelinePublish(\'' + platform + '\', true)">👁 Dry-run ' + label + '</button>' +
+      '<button class="mkt-btn mkt-btn--primary mkt-btn--sm"' + (approved ? '' : ' disabled') + ' onclick="runPipelinePublish(\'' + platform + '\', false)">📤 Publish to ' + label + '</button>';
+  } else {
+    // Platforms without an API publisher (Instagram, TikTok, YouTube, Facebook, blog, email)
+    // — direct push isn't built; surface that clearly + offer Save-to-Calendar instead
+    publishHtml +=
+      '<span style="font-size:12px;color:var(--muted);padding:6px 10px;background:#fef3c7;border-radius:6px;">Direct ' + escHtml(platform) + ' publishing isn\'t wired yet — save to Calendar to schedule manually.</span>';
+  }
+
+  // Universal action: Save to Content Calendar
+  publishHtml +=
+    '<button class="mkt-btn mkt-btn--volt mkt-btn--sm" onclick="savePackageToCalendar()">📅 Save to Content Calendar</button>';
+
+  actions.innerHTML = publishHtml;
+}
+
+/* ── Save assembled package to content_calendar ─────────────────────────── */
+async function savePackageToCalendar() {
+  var pkg = window.PipelineStudio.package;
+  if (!pkg) { showToast('Assemble a package first', 'error'); return; }
+  if (!MarketingStore.supabase) { showToast('Supabase not configured', 'error'); return; }
+
+  var brief = window.PipelineStudio.brief || {};
+  var copy = pkg.copy || {};
+  var firstImg = pkg.assets && pkg.assets.visuals && pkg.assets.visuals[0];
+  var platform = pkg.platform || brief.platform || 'instagram';
+  var format = brief.format || 'single_post';
+  // Map our pipeline format → content_calendar.type enum
+  var typeMap = {
+    short_video: 'reel', long_video: 'video', reel: 'reel', story: 'story',
+    carousel: 'post', static_image: 'post', single_post: 'post',
+    blog_post: 'blog', email: 'email', thread: 'post', ad: 'ad'
+  };
+  var calType = typeMap[format] || 'post';
+
+  var scheduled = brief.deadline ? new Date(brief.deadline) : new Date(Date.now() + 24*60*60*1000);
+
+  var row = {
+    title: (copy.headline || (copy.body || '').slice(0, 80) || (brief.angle || '').slice(0, 80) || 'Untitled'),
+    type: calType,
+    platform: platform,
+    status: pkg.status === 'approved' ? 'scheduled' : 'draft',
+    scheduled_date: scheduled.toISOString().slice(0, 10),
+    copy_text: copy.body || copy.caption || '',
+    image_url: firstImg && firstImg.url || null,
+    assigned_agent: 'pipeline_studio',
+    approval_status: pkg.status === 'approved' ? 'approved' : 'pending'
+  };
+
+  _stageWrite('Publish', 'saving to calendar…', null);
+  try {
+    var res = await MarketingStore.supabase.from('content_calendar').insert(row).select().single();
+    if (res.error) throw res.error;
+    _stageWrite('Publish', '✓ saved to calendar', res.data);
+    showToast('✓ Saved to Content Calendar — open the Calendar tab to see it.', 'success');
+    // Refresh the calendar tab data so it shows up next time user switches there
+    if (typeof loadContentItems === 'function') loadContentItems().then(function() { if (typeof renderCalendar === 'function') renderCalendar(); });
+  } catch (e) {
+    _stageWrite('Publish', '✗ save failed: ' + (e.message || e), null);
+    showToast('Calendar save failed: ' + (e.message || e), 'error');
+  }
+}
+
 async function runPipelinePublish(platform, dryRun) {
   if (!window.PipelineStudio.package) { showToast('No package to publish', 'error'); return; }
-  // For dry-runs we don't require approved status
   var pkg = JSON.parse(JSON.stringify(window.PipelineStudio.package));
   if (dryRun && pkg.status !== 'approved' && pkg.status !== 'scheduled') pkg.status = 'approved';
 
@@ -8439,9 +8631,12 @@ async function runPipelinePublish(platform, dryRun) {
 
 window.runPipelinePlan = runPipelinePlan;
 window.runPipelineCopy = runPipelineCopy;
+window.runPipelineVisual = runPipelineVisual;
+window.runPipelineVisualSkip = runPipelineVisualSkip;
 window.runPipelineAssemble = runPipelineAssemble;
 window.runPipelineReview = runPipelineReview;
 window.runPipelinePublish = runPipelinePublish;
+window.savePackageToCalendar = savePackageToCalendar;
 window.resetPipelineStudio = resetPipelineStudio;
 
 /* ── UPDATE INIT to include new features ── */
