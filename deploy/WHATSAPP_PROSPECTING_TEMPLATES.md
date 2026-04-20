@@ -21,10 +21,14 @@ Hi {{1}}, this is the SmartSwing AI team.
 
 We help tennis and pickleball players see exactly what's holding their game back — with 30-second AI swing analysis.
 
-Most players find their #1 fix in the first clip. Want the 2 free analyses on us?
+Most players find their #1 fix in the first clip. Want 2 free analyses on us?
 
-{{2}}
+Try it here: {{2}}
+
+Thanks for checking us out.
 ```
+
+⚠️ Meta rule: **variables cannot be the first or last element of the body**. Always wrap `{{N}}` with text. This template closes with "Thanks for checking us out." — do not remove that line.
 
 **Example variables for Meta preview:**
 - `{{1}}` → `Bernardo`
@@ -124,7 +128,7 @@ Ajudamos jogadores de tênis e beach tennis a ver exatamente o que está travand
 
 A maioria descobre o ponto chave na primeira gravação. Quer fazer 2 análises grátis por nossa conta?
 
-{{2}}
+Confira aqui: {{2}}
 
 Responda PARAR para sair.
 ```
@@ -140,7 +144,7 @@ Ayudamos a tenistas a ver exactamente qué está frenando su juego — con anál
 
 La mayoría encuentra el punto clave en el primer video. ¿Quieres 2 análisis gratis de nuestra parte?
 
-{{2}}
+Mirá acá: {{2}}
 
 Responde ALTO para darte de baja.
 ```
