@@ -3420,6 +3420,90 @@ async function handleWhatsappWebhook(req, res) {
   return res.status(200).json({ ok: true });
 }
 
+/**
+ * POST /api/marketing/whatsapp-register
+ * Body: { pin: "123456" }
+ *
+ * One-time Cloud API registration for the phone number.
+ * Must be called after you verify the number AND set its 2-step
+ * verification PIN in Meta WhatsApp Manager. Without this step,
+ * every send attempt fails with Meta error 133010 "Account not registered".
+ *
+ * Uses server-side WHATSAPP_PHONE_NUMBER_ID + WHATSAPP_ACCESS_TOKEN env vars.
+ */
+async function handleWhatsappRegister(req, res) {
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    return res.status(405).json({ error: 'POST or GET only' });
+  }
+  const pin = String((req.body && req.body.pin) || req.query.pin || '').trim();
+  if (!/^\d{6}$/.test(pin)) {
+    return res.status(400).json({
+      error: 'Missing or invalid pin — must be a 6-digit number.',
+      how_to_pass: 'POST with JSON body { "pin": "123456" } OR GET with ?pin=123456'
+    });
+  }
+
+  const phoneNumberId = String(process.env.WHATSAPP_PHONE_NUMBER_ID || '').trim();
+  const accessToken = String(
+    process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_PAGE_ACCESS_TOKEN || ''
+  ).trim();
+  if (!phoneNumberId || !accessToken) {
+    return res.status(500).json({
+      error: 'WHATSAPP_PHONE_NUMBER_ID or WHATSAPP_ACCESS_TOKEN not configured in Vercel env vars.'
+    });
+  }
+
+  try {
+    const r = await fetch(`https://graph.facebook.com/v25.0/${phoneNumberId}/register`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ messaging_product: 'whatsapp', pin })
+    });
+    const text = await r.text();
+    let body; try { body = JSON.parse(text); } catch { body = { raw: text }; }
+
+    if (!r.ok) {
+      const metaError = body?.error || {};
+      const hint = (() => {
+        if (metaError.code === 133005 || metaError.code === 133006) {
+          return 'Wrong PIN. Check Meta WhatsApp Manager → Phone numbers → Two-step verification. If you forgot it, you may need to reset (requires waiting 7 days unless Meta support helps).';
+        }
+        if (metaError.code === 133009) {
+          return 'Number is already registered — this is actually good. Try your send again; the initial 133010 error should be gone.';
+        }
+        if (metaError.code === 133000) {
+          return 'You need to set a 2-step verification PIN in Meta WhatsApp Manager first.';
+        }
+        if (String(metaError.message || '').toLowerCase().includes('pin mismatch')) {
+          return 'PIN mismatch — the PIN you sent does not match the one set in Meta WhatsApp Manager.';
+        }
+        return 'See Meta error details above; common fix is to confirm PIN and try again.';
+      })();
+      return res.status(r.status).json({
+        ok: false,
+        meta_error: metaError,
+        hint,
+        phone_number_id: phoneNumberId
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Phone number registered for Cloud API. You can now send messages.',
+      phone_number_id: phoneNumberId,
+      meta_response: body
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: err.message || 'Network error calling Meta Graph API'
+    });
+  }
+}
+
 async function handleWhatsappStatus(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
 
@@ -6670,6 +6754,7 @@ const ROUTES = {
   'whatsapp-status':     handleWhatsappStatus,
   'whatsapp-templates':  handleWhatsappTemplates,
   'whatsapp-webhook':    handleWhatsappWebhook,
+  'whatsapp-register':   handleWhatsappRegister,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
