@@ -1786,6 +1786,40 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+describe('API — silent-failure-log helper (S6)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'api/_lib/silent-failure-log.js'), 'utf8');
+  const marketing = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
+
+  test('Helper module exports logSilentFailure', () => {
+    expect(src).toContain('module.exports = { logSilentFailure }');
+  });
+  test('Helper is fire-and-forget (does not throw, does not block)', () => {
+    expect(src).toContain('.catch(()');
+  });
+  test('Helper writes to api_error_log table', () => {
+    expect(src).toContain('/rest/v1/api_error_log');
+  });
+  test('marketing.js imports the helper', () => {
+    expect(marketing).toContain("require('./_lib/silent-failure-log')");
+  });
+  test('persistAgentOutput uses logSilentFailure (was console.warn)', () => {
+    expect(marketing).toContain('logSilentFailure(\'persistAgentOutput.agent_tasks_insert\'');
+    expect(marketing).toContain('logSilentFailure(\'persistAgentOutput.content_calendar_insert\'');
+  });
+  test('capture-lead sync failure now logs to dead-letter', () => {
+    expect(marketing).toContain('logSilentFailure(\'capture-lead.marketing_contacts_sync\'');
+  });
+  test('whatsapp-webhook 3 silent catches now use helper', () => {
+    expect(marketing).toContain('logSilentFailure(\'whatsapp-webhook.persist_inbound\'');
+    expect(marketing).toContain('logSilentFailure(\'whatsapp-webhook.opt_out_update\'');
+    expect(marketing).toContain('logSilentFailure(\'whatsapp-webhook.status_update\'');
+  });
+  test('Error log diagnostic endpoint registered', () => {
+    expect(marketing).toContain("'error-log':");
+    expect(marketing).toContain('async function handleErrorLog');
+  });
+});
+
 describe('HTML — marketing.html ops-visibility batch (M5 M6 M7 M8)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
 
