@@ -1702,6 +1702,33 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('HTML — analyze.html lazy-loads AI runtime (S12)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('No blocking <script src="./assets/vendor/tf.min.js"> in head', () => {
+    // Check that we do NOT have a synchronous script tag loading tf.min.js in head.
+    // It may still appear in the dynamic loader — that's fine.
+    const headSection = src.slice(0, src.indexOf('</head>'));
+    const blockingPattern = '<script src="./assets/vendor/tf.min.js"></script>';
+    expect(headSection.includes(blockingPattern)).toBe(false);
+  });
+  test('No blocking <script> for pose-detection.min.js in head', () => {
+    const headSection = src.slice(0, src.indexOf('</head>'));
+    expect(headSection.includes('<script src="./assets/vendor/pose-detection.min.js"></script>')).toBe(false);
+  });
+  test('Preload links with fetchpriority=low are present (hints browser to fetch during idle)', () => {
+    expect(src).toContain('href="./assets/vendor/tf.min.js" as="script" fetchpriority="low"');
+    expect(src).toContain('href="./assets/vendor/pose-detection.min.js" as="script" fetchpriority="low"');
+  });
+  test('ensurePoseLibraries has local vendor as first fallback', () => {
+    expect(src).toContain("'./assets/vendor/tf.min.js'");
+    expect(src).toContain("'./assets/vendor/pose-detection.min.js'");
+  });
+  test('MediaPipe CDN fallback for users with local vendor stripped', () => {
+    expect(src).toContain('cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js');
+  });
+});
+
 describe('HTML — for-clubs.html Cal.com B2B demo booking', () => {
   const src = fs.readFileSync(path.join(ROOT, 'for-clubs.html'), 'utf8');
 
