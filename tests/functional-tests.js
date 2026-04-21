@@ -1702,6 +1702,54 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('JS — pricing-currency.js multi-currency helper', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'pricing-currency.js'), 'utf8');
+
+  test('Supports the 7 launch currencies', () => {
+    ['USD', 'BRL', 'MXN', 'EUR', 'GBP', 'CAD', 'AUD'].forEach(c => {
+      expect(src).toContain(`'${c}'`);
+    });
+  });
+  test('PRICING_TABLE has entries for starter + pro + performance', () => {
+    expect(src).toContain('starter:');
+    expect(src).toContain('pro:');
+    expect(src).toContain('performance:');
+  });
+  test('COUNTRY_TO_CURRENCY maps BR → BRL, MX → MXN, DE → EUR', () => {
+    expect(src).toContain("BR: 'BRL'");
+    expect(src).toContain("MX: 'MXN'");
+    expect(src).toContain("DE: 'EUR'");
+  });
+  test('Exposes SmartSwingPricing global with getCurrency/setCurrency/getCountry', () => {
+    expect(src).toContain('window.SmartSwingPricing');
+    expect(src).toContain('getCurrency:');
+    expect(src).toContain('setCurrency:');
+    expect(src).toContain('getCountry:');
+  });
+  test('Stores selected currency in localStorage', () => {
+    expect(src).toContain("localStorage.setItem('ss_currency'");
+  });
+});
+
+describe('API — checkout-session accepts currency + country', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'api/create-checkout-session.js'), 'utf8');
+  test('CURRENCY_ALLOWLIST includes USD/BRL/MXN/EUR/GBP/CAD/AUD/CHF/JPY/INR', () => {
+    ['usd', 'brl', 'mxn', 'eur', 'gbp', 'cad', 'aud', 'chf', 'jpy', 'inr'].forEach(c => {
+      expect(src).toContain(`'${c}'`);
+    });
+  });
+  test('sessionPayload only sets currency if not usd (avoids single-currency Price break)', () => {
+    expect(src).toContain("currency !== 'usd'");
+  });
+  test('Country code normalized to 2-letter uppercase', () => {
+    expect(src).toContain('toUpperCase().trim().slice(0, 2)');
+  });
+  test('Locale is mapped for BRL → pt-BR, MXN → es-419', () => {
+    expect(src).toContain("locale: 'pt-BR'");
+    expect(src).toContain("locale: 'es-419'");
+  });
+});
+
 describe('HTML — marketing.html WhatsApp cadence editor', () => {
   const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
 

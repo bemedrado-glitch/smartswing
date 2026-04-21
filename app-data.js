@@ -1355,6 +1355,11 @@
     });
 
     const endpoint = `${getPaymentProviderSettings().stripe.apiBasePath.replace(/\/$/, '')}/create-checkout-session`;
+    // Multi-currency (C6): forward the currency + country the visitor saw on
+    // pricing.html so Stripe charges in the matching currency (iff the Price
+    // has a currency_option for it) and shows region-appropriate payment methods.
+    const displayCurrency = (typeof window !== 'undefined' && window.SmartSwingPricing && window.SmartSwingPricing.getCurrency && window.SmartSwingPricing.getCurrency()) || 'USD';
+    const displayCountry = (typeof window !== 'undefined' && window.SmartSwingPricing && window.SmartSwingPricing.getCountry && window.SmartSwingPricing.getCountry()) || '';
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1367,7 +1372,9 @@
         stripeCustomerId: user.stripeCustomerId || '',
         checkoutId: checkout.id,
         source: options.source || 'checkout-page',
-        couponCode: options.couponCode ? String(options.couponCode).trim().toUpperCase() : ''
+        couponCode: options.couponCode ? String(options.couponCode).trim().toUpperCase() : '',
+        currency: String(displayCurrency).toLowerCase(),
+        country: String(displayCountry).toUpperCase()
       })
     });
 
