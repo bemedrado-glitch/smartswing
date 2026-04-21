@@ -1408,21 +1408,9 @@ async function handleEnrollCadence(req, res) {
     if (!hasPhone     && allWhatsappSteps.length > 0) skippedChannels.push(`WhatsApp (${allWhatsappSteps.length} steps skipped — no phone number)`);
 
     const enrollmentId = generateUUID();
-    // Compute the first step's scheduled_at so next_step_at on the enrollment matches it
-    const firstEmail = emailSteps[0];
-    const firstSms = smsSteps[0];
-    const firstDelayDays = Math.min(
-      firstEmail ? (firstEmail.delay_days || 0) : Number.MAX_SAFE_INTEGER,
-      firstSms   ? (firstSms.delay_days   || 0) : Number.MAX_SAFE_INTEGER
-    );
-    const firstNextAt = isFinite(firstDelayDays) ? addDays(now, firstDelayDays) : now;
 
-    const enrollment = await supabaseInsert(supabase_url, supabase_key, 'contact_cadence_enrollments', {
-      id: enrollmentId, contact_id, cadence_id, status: 'active',
-      current_step: 1, next_step_at: firstNextAt, enrolled_at: now, created_at: now
-    });
-
-    // Build step executions. DB columns: step_type, step_num (NOT type/sequence_num).
+    // Build step executions FIRST so we know what we're committing.
+    // DB columns: step_type, step_num (NOT type/sequence_num).
     const executions = [];
     for (const step of emailSteps) {
       executions.push({
@@ -1457,8 +1445,35 @@ async function handleEnrollCadence(req, res) {
     }
     executions.sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
 
+    // Compute first scheduled_at across ALL channels (not just email + sms — WhatsApp may be earliest).
+    const firstNextAt = executions.length > 0 ? executions[0].scheduled_at : now;
+
+    // Insert enrollment row
+    await supabaseInsert(supabase_url, supabase_key, 'contact_cadence_enrollments', {
+      id: enrollmentId, contact_id, cadence_id, status: 'active',
+      current_step: 1, next_step_at: firstNextAt, enrolled_at: now, created_at: now
+    });
+
+    // Insert steps with rollback safety: if bulk insert fails, delete the enrollment
+    // so we don't leave an orphan that the cron can never advance.
     if (executions.length > 0) {
-      await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_step_executions', executions);
+      try {
+        await supabaseBulkInsert(supabase_url, supabase_key, 'cadence_step_executions', executions);
+      } catch (insertErr) {
+        // Roll back the enrollment row — surface the underlying step-insert error so the caller knows what to fix
+        try {
+          await fetch(`${supabase_url}/rest/v1/contact_cadence_enrollments?id=eq.${enrollmentId}`, {
+            method: 'DELETE',
+            headers: { apikey: supabase_key, Authorization: `Bearer ${supabase_key}`, Prefer: 'return=minimal' }
+          });
+        } catch (cleanupErr) { console.error('[enroll-cadence] cleanup of orphan enrollment failed:', cleanupErr.message); }
+        return res.status(500).json({
+          error: 'Step insertion failed — enrollment rolled back to prevent orphan.',
+          details: insertErr.message,
+          steps_attempted: executions.length,
+          step_breakdown: { email: emailSteps.length, sms: smsSteps.length, whatsapp: whatsappSteps.length }
+        });
+      }
     }
 
     // Promote contact: stage = 'lead' so they move from Contacts tab → Leads tab.
@@ -1494,11 +1509,16 @@ async function handleEnrollCadence(req, res) {
     }));
 
     return res.status(200).json({
-      success: true, enrollment_id: enrollment?.id || enrollmentId,
+      success: true, enrollment_id: enrollmentId,
       contact_id, cadence_id, cadence_name: cadenceName,
       campaign_id: campaign_id || null,
       stage: 'lead',
       steps_scheduled: executions.length,
+      step_breakdown: {
+        email: emailSteps.length,
+        sms: smsSteps.length,
+        whatsapp: whatsappSteps.length
+      },
       skipped_channels: skippedChannels,
       next_step_at: firstNextAt,
       current_step: 1, total_steps: executions.length,
