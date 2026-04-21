@@ -328,6 +328,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="mkt-kpi-card__value" id="kpiLeads">—</div>
             <div class="mkt-kpi-card__sub">All time</div>
           </div>
+
+          <!-- WhatsApp number health (M8) — live from Meta's /phone_number endpoint -->
+          <div class="mkt-kpi-card" title="Click to open WhatsApp Inbox" onclick="switchTab('inbox', document.querySelector('[data-tab=inbox]'))" style="border-left:3px solid #25D366;">
+            <div class="mkt-kpi-icon-badge" style="background:rgba(37,211,102,.15);color:#25D366;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+            <div class="mkt-kpi-card__label">WhatsApp Status</div>
+            <div class="mkt-kpi-card__value" id="kpiWhatsappStatus" style="font-size:14px;font-weight:700;line-height:1.4;">Checking…</div>
+            <div class="mkt-kpi-card__sub" id="kpiWhatsappSub">Loading from Meta…</div>
+          </div>
         </div>
 
         <div class="mkt-grid-2">
@@ -446,6 +456,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     <th>Stage</th>
                     <th>Country</th>
                     <th>Source</th>
+                    <th title="Preferred messaging channel — auto = country-routed, whatsapp = force WhatsApp, sms = force SMS">Channel</th>
                     <th>Tags</th>
                     <th>Actions</th>
                   </tr>
@@ -898,6 +909,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div id="inboxContainer" style="background:var(--bg-soft);border-radius:12px;overflow:hidden;">
           <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading messages…</div>
         </div>
+
+        <!-- M6 — WhatsApp opt-out admin viewer -->
+        <details style="margin-top:24px;padding:16px;background:var(--bg-soft);border-radius:12px;">
+          <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--black);">🛑 Opted-out contacts <span id="optOutCount" style="color:var(--muted);font-weight:500;margin-left:8px;">—</span></summary>
+          <div style="margin-top:12px;">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+              Contacts who replied STOP / PARAR / ALTO / etc. — cadence runner auto-skips any pending WhatsApp steps for them.
+              Click <strong>Restore</strong> if a contact reached out and asked to opt back in (document their consent in writing).
+            </p>
+            <div id="optOutList"><div style="padding:16px;color:var(--muted);font-size:13px;">Loading…</div></div>
+          </div>
+        </details>
+
+        <!-- M7 — per-step delivery monitor -->
+        <details style="margin-top:12px;padding:16px;background:var(--bg-soft);border-radius:12px;" id="deliveryMonitorDetails">
+          <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--black);">📊 Recent send activity (last 50 steps)</summary>
+          <div style="margin-top:12px;">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+              Live view of the 50 most recent cadence steps — sent/delivered/read/failed with reason. Use this when prospects report 'I didn't get it' to verify Meta/Resend actually sent the message.
+            </p>
+            <div id="deliveryMonitorList"><div style="padding:16px;color:var(--muted);font-size:13px;">Click the section header to load.</div></div>
+          </div>
+        </details>
       </div><!-- /tab-inbox -->
 
       <!-- ─────────────── TAB: CONTENT MAP ─────────────── -->
@@ -3045,6 +3079,39 @@ document.addEventListener('DOMContentLoaded', function () {
   loadContacts().then(function() { loadAiInsights(); });
   updateKPIs();
   checkSocialConnections();
+  // WhatsApp number health tile — live from Meta via /whatsapp-status (M8)
+  (async function loadWhatsappHealth(){
+    const valEl = document.getElementById('kpiWhatsappStatus');
+    const subEl = document.getElementById('kpiWhatsappSub');
+    if (!valEl || !subEl) return;
+    try {
+      const r = await fetch('/api/marketing/whatsapp-status');
+      const d = await r.json();
+      if (!d.configured) {
+        valEl.textContent = 'Not configured';
+        valEl.style.color = '#ff9f0a';
+        subEl.textContent = 'Missing env vars in Vercel';
+        return;
+      }
+      if (!d.reachable) {
+        valEl.textContent = 'Token expired';
+        valEl.style.color = '#ff5252';
+        subEl.textContent = String(d.error || '').slice(0, 80);
+        return;
+      }
+      // Quality rating → color-coded display
+      const qualityColor = d.qualityRating === 'GREEN' ? '#25D366'
+                          : d.qualityRating === 'YELLOW' ? '#ffd84d'
+                          : d.qualityRating === 'RED' ? '#ff5252' : '#9aa5b4';
+      valEl.innerHTML = '<span style="color:' + qualityColor + ';">●</span> ' + (d.qualityRating || 'UNKNOWN');
+      subEl.textContent = (d.phoneNumber || '—') + ' · ' + (d.verifiedName || 'Unverified name');
+    } catch (err) {
+      valEl.textContent = 'Error';
+      valEl.style.color = '#ff5252';
+      subEl.textContent = 'Network or API error — check Vercel logs';
+    }
+  })();
+
   // Refresh the inbox badge on load so founders see the unhandled count without clicking into the tab
   (async function loadInboxBadge(){
     try {
@@ -3570,7 +3637,7 @@ function renderContacts(contacts) {
   updateBulkBar();
 
   if (!contacts.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="mkt-empty"><div class="mkt-empty__icon">👥</div><div class="mkt-empty__title">No contacts</div><div class="mkt-empty__text">Add your first contact to get started.</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="mkt-empty"><div class="mkt-empty__icon">👥</div><div class="mkt-empty__title">No contacts</div><div class="mkt-empty__text">Add your first contact to get started.</div></div></td></tr>`;
     return;
   }
 
@@ -3612,6 +3679,14 @@ function renderContacts(contacts) {
       </td>
       <td><span style="font-size:12px;">${escHtml(country)}</span></td>
       <td>${sourceBadge(c.data_source || c.enrichment_source || c.source)}</td>
+      <td>
+        <select class="mkt-input" aria-label="Preferred messaging channel for ${escHtml(c.name || c.email)}" style="font-size:11px;padding:4px 6px;min-width:86px;" onchange="setContactChannel('${cid}', this.value, this)">
+          <option value="auto"${(c.preferred_channel || 'auto') === 'auto' ? ' selected' : ''}>Auto</option>
+          <option value="whatsapp"${c.preferred_channel === 'whatsapp' ? ' selected' : ''}>WhatsApp</option>
+          <option value="sms"${c.preferred_channel === 'sms' ? ' selected' : ''}>SMS</option>
+        </select>
+        ${c.whatsapp_opted_out ? '<div style="font-size:10px;color:#ff5252;margin-top:3px;">🛑 WA opt-out</div>' : ''}
+      </td>
       <td>${(c.tags || []).slice(0,3).map(t => `<span style="font-size:11px;background:var(--bg-soft);padding:2px 7px;border-radius:999px;margin-right:3px;">${escHtml(t)}</span>`).join('')}</td>
       <td>
         <div class="mkt-table__actions">
@@ -4256,6 +4331,30 @@ function openAssignCadenceByIdx(idx) {
   // Open the modal without a pre-selected contact; user picks from contacts list
   // (this path is used from the Cadences tab where we know the cadence but not the contact)
   openAssignCadenceModal(null, null, cadence.id);
+}
+
+// M5 — Per-contact preferred messaging channel override.
+// Saves marketing_contacts.preferred_channel = 'auto' | 'whatsapp' | 'sms'.
+// The cadence runner's resolveChannel() respects this value at send time,
+// overriding the country-based default.
+async function setContactChannel(contactId, value, selectEl) {
+  if (!MarketingStore.supabase) return;
+  if (!['auto', 'whatsapp', 'sms'].includes(value)) return;
+  const original = selectEl ? selectEl.dataset.prev || '' : '';
+  try {
+    const { error } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .update({ preferred_channel: value, updated_at: new Date().toISOString() })
+      .eq('id', contactId);
+    if (error) throw error;
+    showToast('Channel preference saved', 'success');
+    // Update the in-memory contact record too so filters stay consistent
+    const contact = (MarketingStore.contacts || []).find(c => c.id === contactId);
+    if (contact) contact.preferred_channel = value;
+  } catch (err) {
+    showToast('Failed to save channel: ' + err.message, 'error');
+    if (selectEl && original) selectEl.value = original;
+  }
 }
 
 async function openAssignCadenceModal(contactId, contactName, preselectCadenceId) {
@@ -9407,6 +9506,17 @@ async function renderInbox() {
   if (!container) return;
   container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading…</div>';
 
+  // Fire M6 + M7 panels in parallel (non-blocking)
+  renderOptOutList();
+  // Only auto-load delivery monitor when the details element is opened by the user
+  const dmDetails = document.getElementById('deliveryMonitorDetails');
+  if (dmDetails && !dmDetails._wiredToggle) {
+    dmDetails.addEventListener('toggle', function () {
+      if (dmDetails.open) renderDeliveryMonitor();
+    });
+    dmDetails._wiredToggle = true;
+  }
+
   let messages = await loadInboxFromDB();
   messages = await _enrichInboxWithContacts(messages);
 
@@ -9505,6 +9615,129 @@ async function _markInboxHandled(id, handled) {
   } catch (err) {
     showToast('Failed to update: ' + err.message, 'error');
   }
+}
+
+// M6 — WhatsApp opt-out admin viewer. Lists contacts with whatsapp_opted_out=true,
+// offers a Restore button per row (with explicit confirmation prompt to document
+// consent — critical for LGPD/GDPR/TCPA audit trails).
+async function renderOptOutList() {
+  const container = document.getElementById('optOutList');
+  if (!container || !MarketingStore.supabase) return;
+  try {
+    const { data, error } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .select('id,name,email,phone,whatsapp_opted_out_at')
+      .eq('whatsapp_opted_out', true)
+      .order('whatsapp_opted_out_at', { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    const count = (data || []).length;
+    const countEl = document.getElementById('optOutCount');
+    if (countEl) countEl.textContent = '(' + count + ')';
+    if (!count) {
+      container.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:13px;">No opt-outs yet. When a contact replies STOP (or PARAR / ALTO / UNSUBSCRIBE etc.), they appear here.</div>';
+      return;
+    }
+    container.innerHTML = data.map(c => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);">
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:13px;font-weight:700;color:var(--black);">${escHtml(c.name || c.phone || c.email || 'unknown')}</div>
+          <div style="font-size:11px;color:var(--muted);">${escHtml(c.email || '')} · ${escHtml(c.phone || '')} · opted out ${_relativeTime(c.whatsapp_opted_out_at)}</div>
+        </div>
+        <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="_restoreWhatsappConsent('${escHtml(c.id)}', '${escHtml(c.name || c.email || c.phone)}')">Restore consent</button>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<div style="padding:16px;color:#ff5252;font-size:13px;">Failed to load: ' + escHtml(err.message) + '</div>';
+  }
+}
+
+async function _restoreWhatsappConsent(contactId, contactName) {
+  const ok = confirm(
+    `Restore WhatsApp consent for "${contactName}"?\n\n` +
+    'This assumes you have documented evidence that the contact explicitly asked to receive messages again ' +
+    '(email, signed form, recorded call). Restoring without proof may violate LGPD/GDPR/TCPA.\n\n' +
+    'Continue?'
+  );
+  if (!ok) return;
+  try {
+    const { error } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .update({ whatsapp_opted_out: false, whatsapp_opted_out_at: null, preferred_channel: 'auto' })
+      .eq('id', contactId);
+    if (error) throw error;
+    showToast('WhatsApp consent restored for ' + contactName, 'success');
+    renderOptOutList();
+    if (typeof loadContacts === 'function') loadContacts();
+  } catch (err) {
+    showToast('Failed to restore: ' + err.message, 'error');
+  }
+}
+
+// M7 — per-step delivery monitor. Pulls the 50 most recent cadence_step_executions
+// with contact info and current delivery_state.
+async function renderDeliveryMonitor() {
+  const container = document.getElementById('deliveryMonitorList');
+  if (!container || !MarketingStore.supabase) return;
+  container.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:13px;">Loading…</div>';
+  try {
+    const { data, error } = await MarketingStore.supabase
+      .from('cadence_step_executions')
+      .select('id,step_type,status,delivery_state,last_status_at,scheduled_at,sent_at,failure_reason,contact_id,subject,provider_message_id')
+      .order('scheduled_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    if (!data || !data.length) {
+      container.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:13px;">No cadence steps yet. Enroll a contact in a cadence to see activity.</div>';
+      return;
+    }
+    // Enrich with contact info
+    const ids = [...new Set(data.map(s => s.contact_id).filter(Boolean))];
+    let byId = {};
+    if (ids.length) {
+      const { data: contacts } = await MarketingStore.supabase
+        .from('marketing_contacts')
+        .select('id,name,email,phone')
+        .in('id', ids);
+      (contacts || []).forEach(c => { byId[c.id] = c; });
+    }
+    container.innerHTML = `
+      <div style="font-family:monospace;font-size:12px;">
+        <div style="display:grid;grid-template-columns:80px 1fr 90px 100px 120px;gap:8px;padding:8px 12px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border);">
+          <div>Type</div>
+          <div>Contact · Subject/message</div>
+          <div>Status</div>
+          <div>Delivery</div>
+          <div>Time</div>
+        </div>
+        ${data.map(s => _renderDeliveryRow(s, byId[s.contact_id])).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = '<div style="padding:16px;color:#ff5252;font-size:13px;">Failed to load: ' + escHtml(err.message) + '</div>';
+  }
+}
+
+function _renderDeliveryRow(s, contact) {
+  const typeIcon = s.step_type === 'whatsapp' ? '🟢 WA' : s.step_type === 'sms' ? '💬 SMS' : '📧 Email';
+  const who = contact ? escHtml(contact.name || contact.email || contact.phone || 'unknown') : '—';
+  const subject = escHtml((s.subject || '').slice(0, 60) || (s.step_type === 'whatsapp' ? 'template' : ''));
+  const statusColor = s.status === 'sent' ? '#25D366' : s.status === 'failed' ? '#ff5252' : s.status === 'skipped' ? '#ff9f0a' : 'var(--muted)';
+  const deliveryColor = s.delivery_state === 'read' ? '#4285F4' : s.delivery_state === 'delivered' ? '#25D366' : s.delivery_state === 'failed' ? '#ff5252' : 'var(--muted)';
+  const time = s.sent_at ? _relativeTime(s.sent_at) : (s.scheduled_at ? 'sched ' + _relativeTime(s.scheduled_at) : '—');
+  const failureRow = s.failure_reason
+    ? `<div style="grid-column:1/-1;padding:4px 12px;font-size:11px;color:#ff5252;background:rgba(255,82,82,.06);">⚠ ${escHtml(s.failure_reason.slice(0, 160))}</div>`
+    : '';
+  return `
+    <div style="display:grid;grid-template-columns:80px 1fr 90px 100px 120px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);align-items:center;">
+      <div>${typeIcon}</div>
+      <div style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><strong>${who}</strong>${subject ? ' · ' + subject : ''}</div>
+      <div style="color:${statusColor};font-weight:700;">${escHtml(s.status || '')}</div>
+      <div style="color:${deliveryColor};">${escHtml(s.delivery_state || '—')}</div>
+      <div style="color:var(--muted);">${time}</div>
+    </div>
+    ${failureRow}
+  `;
 }
 
 async function _createContactFromInbound(phone) {

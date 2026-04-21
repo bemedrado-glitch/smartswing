@@ -1786,6 +1786,46 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+describe('HTML — marketing.html ops-visibility batch (M5 M6 M7 M8)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
+
+  test('M8: WhatsApp number health tile on dashboard', () => {
+    expect(src).toContain('id="kpiWhatsappStatus"');
+    expect(src).toContain('id="kpiWhatsappSub"');
+    expect(src).toContain('loadWhatsappHealth');
+    expect(src).toContain('/api/marketing/whatsapp-status');
+  });
+  test('M5: contact row has preferred_channel editor', () => {
+    expect(src).toContain('setContactChannel');
+    expect(src).toContain('preferred_channel');
+    expect(src).toContain('<option value="auto"');
+    expect(src).toContain('<option value="whatsapp"');
+    expect(src).toContain('<option value="sms"');
+  });
+  test('M5: setContactChannel validates and PATCHes Supabase', () => {
+    expect(src).toContain("['auto', 'whatsapp', 'sms'].includes(value)");
+    expect(src).toContain("from('marketing_contacts')");
+  });
+  test('M6: opt-out admin viewer with restore action', () => {
+    expect(src).toContain('renderOptOutList');
+    expect(src).toContain('_restoreWhatsappConsent');
+    expect(src).toContain('whatsapp_opted_out');
+    expect(src).toContain('Restore consent');
+  });
+  test('M6: restore flow explicitly prompts for consent documentation', () => {
+    expect(src).toContain('LGPD/GDPR/TCPA');
+  });
+  test('M7: per-step delivery monitor queries cadence_step_executions', () => {
+    expect(src).toContain('renderDeliveryMonitor');
+    expect(src).toContain("from('cadence_step_executions')");
+    expect(src).toContain('delivery_state');
+  });
+  test('M7: delivery monitor is lazy-loaded on details toggle', () => {
+    expect(src).toContain('deliveryMonitorDetails');
+    expect(src).toContain("addEventListener('toggle'");
+  });
+});
+
 describe('HTML — marketing.html WhatsApp Inbox tab', () => {
   const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
 
