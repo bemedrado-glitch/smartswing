@@ -34,6 +34,7 @@ const { persistGeneratedImage, uploadFromUrl } = require('./_lib/media-storage')
 const { runPublishBatch, publishSingleItem } = require('./_lib/publish-runner');
 const { runLeadScoringBatch, scoreContact } = require('./_lib/lead-scoring');
 const { runMetricsFetch, topPerformers } = require('./_lib/content-metrics');
+const { logSilentFailure } = require('./_lib/silent-failure-log');
 const { runWeeklyDigest, buildSummary } = require('./_lib/cmo-digest');
 const { runVariantRotation, getTopHooks } = require('./_lib/ab-rotator');
 const { generateVideo } = require('./_lib/video-gen');
@@ -574,7 +575,9 @@ async function persistAgentOutput(ctx) {
       out.agent_task_id = Array.isArray(rows) ? (rows[0]?.id || null) : (rows?.id || null);
     }
   } catch (err) {
-    console.warn('[persistAgentOutput] agent_tasks insert failed:', err.message);
+    logSilentFailure('persistAgentOutput.agent_tasks_insert', err, {
+      agent: ctx.agent, user_id: ctx.user_id || null
+    }, 'error');
   }
 
   // 2. Insert content_calendar draft row (+ auto-schedule to optimal platform slot)
@@ -625,10 +628,15 @@ async function persistAgentOutput(ctx) {
       const rows = await r.json().catch(() => []);
       out.content_item_id = Array.isArray(rows) ? (rows[0]?.id || null) : (rows?.id || null);
     } else {
-      console.warn('[persistAgentOutput] content_calendar insert failed:', r.status, (await r.text()).slice(0, 200));
+      const body = (await r.text().catch(() => '')).slice(0, 500);
+      logSilentFailure('persistAgentOutput.content_calendar_insert', new Error(`HTTP ${r.status}: ${body}`), {
+        agent: ctx.agent, user_id: ctx.user_id || null, status: r.status
+      }, 'error');
     }
   } catch (err) {
-    console.warn('[persistAgentOutput] content_calendar insert error:', err.message);
+    logSilentFailure('persistAgentOutput.content_calendar_insert', err, {
+      agent: ctx.agent, user_id: ctx.user_id || null
+    }, 'error');
   }
 
   // 3. Optionally generate + attach a branded visual
@@ -1629,6 +1637,38 @@ function verifyMarketingToken(secret, token) {
   catch (_) { return false; }
 }
 
+/**
+ * GET /api/marketing/error-log?limit=50&unresolved_only=1
+ * Returns recent rows from api_error_log so the dashboard can surface
+ * previously-silent failures for triage.
+ */
+async function handleErrorLog(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
+  const url = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!url || !key) return res.status(500).json({ error: 'Supabase not configured' });
+
+  const limit = Math.min(parseInt(String(req.query.limit || '50'), 10) || 50, 500);
+  const unresolvedOnly = String(req.query.unresolved_only || '').match(/^(1|true|yes)$/i);
+
+  let qs = `select=*&order=occurred_at.desc&limit=${limit}`;
+  if (unresolvedOnly) qs += '&resolved=eq.false';
+
+  try {
+    const r = await fetch(`${url}/rest/v1/api_error_log?${qs}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` }
+    });
+    if (!r.ok) {
+      const body = await r.text().catch(() => '');
+      return res.status(r.status).json({ error: 'Supabase query failed', details: body.slice(0, 500) });
+    }
+    const rows = await r.json();
+    return res.status(200).json({ count: rows.length, unresolved_only: !!unresolvedOnly, rows });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
 async function handleVerifyGate(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   const expected = String(process.env.MARKETING_GATE_CODE || '').trim();
@@ -2128,8 +2168,12 @@ async function handleCaptureLead(req, res) {
           await supabaseInsert(supabase_url, serviceKey, 'marketing_contacts', contactRow);
         }
       } catch (syncErr) {
-        // Non-blocking — lead was already captured in lead_captures
-        console.warn('[capture-lead] marketing_contacts sync failed:', syncErr.message);
+        // Non-blocking — lead was already captured in lead_captures, but the
+        // downstream prospecting-funnel table didn't get the contact. We log
+        // this so you can backfill from the Inbox → dead-letter panel.
+        logSilentFailure('capture-lead.marketing_contacts_sync', syncErr, {
+          email, name: name || null, source: source || null
+        }, 'error');
       }
     }
 
@@ -3653,7 +3697,11 @@ async function handleWhatsappWebhook(req, res) {
                 raw_payload: msg
               })
             });
-          } catch (e) { console.error('[whatsapp-webhook] persist inbound failed:', e.message); }
+          } catch (e) {
+            logSilentFailure('whatsapp-webhook.persist_inbound', e, {
+              from_phone: normalizedPhone, provider_message_id: messageId, message_type: type
+            }, 'critical');
+          }
 
           // Opt-out keyword detection (multi-language)
           const normalizedText = String(text || '').trim().toUpperCase();
@@ -3680,7 +3728,11 @@ async function handleWhatsappWebhook(req, res) {
                 { method: 'PATCH', headers: { ...hdrs, Prefer: 'return=minimal' },
                   body: JSON.stringify({ status: 'skipped', skipped_reason: 'whatsapp_opt_out' }) }
               );
-            } catch (e) { console.error('[whatsapp-webhook] opt-out update failed:', e.message); }
+            } catch (e) {
+              logSilentFailure('whatsapp-webhook.opt_out_update', e, {
+                from_phone: normalizedPhone, keyword: normalizedText
+              }, 'critical');
+            }
           }
         }
 
@@ -3698,7 +3750,11 @@ async function handleWhatsappWebhook(req, res) {
               `${supabase_url}/rest/v1/cadence_step_executions?provider_message_id=eq.${encodeURIComponent(providerId)}`,
               { method: 'PATCH', headers: { ...hdrs, Prefer: 'return=minimal' }, body: JSON.stringify(patch) }
             );
-          } catch (e) { console.error('[whatsapp-webhook] status update failed:', e.message); }
+          } catch (e) {
+            logSilentFailure('whatsapp-webhook.status_update', e, {
+              provider_message_id: providerId, status
+            }, 'warn');
+          }
         }
       }
     }
@@ -7048,6 +7104,7 @@ const ROUTES = {
   'whatsapp-webhook':    handleWhatsappWebhook,
   'whatsapp-register':   handleWhatsappRegister,
   'verify-gate':         handleVerifyGate,
+  'error-log':           handleErrorLog,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
