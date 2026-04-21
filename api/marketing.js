@@ -1876,6 +1876,165 @@ async function handleUpdateStep(req, res) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: lite-signup
+// ═══════════════════════════════════════════════════════════════════════════════
+// Email + first name + marketing-consent capture BEFORE first analysis.
+// Lower friction than full signup (no password), captures the lead immediately
+// for prospecting + tracks usage from day 1 + sends a magic link for return.
+//
+// Flow:
+//  1. Validate email + first_name + marketing_consent (LGPD/GDPR clean)
+//  2. Upsert into marketing_contacts (stage='lead', source='analyze_lite_signup')
+//  3. Send magic link via Supabase Auth /auth/v1/otp (creates account if new)
+//  4. Enroll in "New Lead — Tennis Player" cadence so the intro email/WhatsApp
+//     fires within minutes
+//  5. Return contact_id so analyze.html can stash it in sessionStorage and
+//     associate the upcoming analysis with this lead
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const NEW_LEAD_TENNIS_CADENCE_ID = 'a1000001-0000-0000-0000-000000000001';
+
+async function handleLiteSignup(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const {
+    email, first_name,
+    marketing_consent,            // LGPD/GDPR — required to be true
+    persona, source,
+    utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+    page_url, referrer, landing_page, session_id
+  } = req.body || {};
+
+  // Input validation
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanFirstName = String(first_name || '').trim().slice(0, 60);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ error: 'Valid email required.' });
+  }
+  if (!cleanFirstName || cleanFirstName.length < 1) {
+    return res.status(400).json({ error: 'First name required.' });
+  }
+  if (marketing_consent !== true) {
+    return res.status(400).json({
+      error: 'Marketing consent required. Tick the consent box to receive your analysis report and follow-ups.'
+    });
+  }
+
+  const supabase_url = String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+  const anon_key = String(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
+  const service_key = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (!supabase_url || !service_key) {
+    return res.status(500).json({ error: 'Supabase not configured server-side.' });
+  }
+
+  const result = { success: false, contact_id: null, magic_link_sent: false, enrolled: false, errors: {} };
+
+  // 1. Upsert marketing_contacts (idempotent — won't duplicate if email exists)
+  try {
+    const existing = await supabaseGet(
+      `${supabase_url}/rest/v1/marketing_contacts?email=eq.${encodeURIComponent(cleanEmail)}&select=id,stage&limit=1`,
+      service_key
+    );
+    if (existing && existing.length > 0) {
+      result.contact_id = existing[0].id;
+      // Already a contact — just refresh updated_at + ensure stage is at least 'lead'
+      await fetch(`${supabase_url}/rest/v1/marketing_contacts?id=eq.${result.contact_id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: service_key, Authorization: `Bearer ${service_key}`,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({ updated_at: new Date().toISOString() })
+      });
+    } else {
+      const persona_val = persona || 'player';
+      const contactRow = {
+        email: cleanEmail,
+        name: cleanFirstName,
+        persona: persona_val,
+        stage: 'lead',
+        player_type: 'player',
+        data_source: 'analyze_lite_signup',
+        consent_status: 'opt_in',
+        source: source || 'analyze_page',
+        utm_source: utm_source || null,
+        utm_medium: utm_medium || null,
+        utm_campaign: utm_campaign || null,
+        utm_term: utm_term || null,
+        utm_content: utm_content || null,
+        page_url: page_url || null,
+        referrer: referrer || null,
+        landing_page: landing_page || null,
+        session_id: session_id || null,
+        tags: `{lite_signup,analyze,${utm_source || 'direct'}}`,
+        notes: `Lite signup before first analysis. Marketing consent: yes (LGPD/GDPR opt-in).`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      try { contactRow.lead_score = scoreContact(contactRow, {}); contactRow.last_scored_at = new Date().toISOString(); } catch (_) {}
+      const inserted = await supabaseInsert(supabase_url, service_key, 'marketing_contacts', contactRow);
+      result.contact_id = inserted?.id || inserted?.[0]?.id || null;
+    }
+  } catch (err) {
+    result.errors.contact = err.message;
+    return res.status(500).json({ error: 'Failed to create contact', details: err.message });
+  }
+
+  // 2. Send magic link via Supabase Auth (non-blocking — we still return success even if email send fails)
+  if (anon_key) {
+    try {
+      const otpRes = await fetch(`${supabase_url}/auth/v1/otp`, {
+        method: 'POST',
+        headers: { apikey: anon_key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: cleanEmail,
+          create_user: true,
+          data: { first_name: cleanFirstName, marketing_consent: true, source: 'analyze_lite_signup' },
+          options: { emailRedirectTo: 'https://www.smartswingai.com/auth-callback.html' }
+        })
+      });
+      result.magic_link_sent = otpRes.ok;
+      if (!otpRes.ok) {
+        const txt = await otpRes.text().catch(() => '');
+        result.errors.magic_link = `${otpRes.status}: ${txt.slice(0, 200)}`;
+      }
+    } catch (err) {
+      result.errors.magic_link = err.message;
+    }
+  }
+
+  // 3. Enroll in default tennis-player cadence — fires intro email + WhatsApp (auto-routed) within minutes
+  try {
+    const enrollRes = await fetch(
+      `${supabase_url}/rest/v1/contact_cadence_enrollments?contact_id=eq.${result.contact_id}&cadence_id=eq.${NEW_LEAD_TENNIS_CADENCE_ID}&status=eq.active&select=id&limit=1`,
+      { headers: { apikey: service_key, Authorization: `Bearer ${service_key}` } }
+    );
+    const existingEnrollments = await enrollRes.json().catch(() => []);
+    if (Array.isArray(existingEnrollments) && existingEnrollments.length === 0) {
+      const enrollHttpRes = await fetch(`${process.env.PUBLIC_APP_URL || 'https://www.smartswingai.com'}/api/marketing/enroll-cadence`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact_id: result.contact_id, cadence_id: NEW_LEAD_TENNIS_CADENCE_ID })
+      });
+      result.enrolled = enrollHttpRes.ok;
+      if (!enrollHttpRes.ok) {
+        result.errors.enrollment = `${enrollHttpRes.status}: ${(await enrollHttpRes.text().catch(()=>'')).slice(0, 200)}`;
+      }
+    } else {
+      result.enrolled = true; // already enrolled — count as success
+    }
+  } catch (err) {
+    result.errors.enrollment = err.message;
+  }
+
+  result.success = !!result.contact_id;
+  return res.status(200).json(result);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ROUTE: capture-lead
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -6869,6 +7028,7 @@ const ROUTES = {
   'enrollments-list': handleEnrollmentsList,
   'contact-history':  handleContactHistory,
   'capture-lead':    handleCaptureLead,
+  'lite-signup':     handleLiteSignup,
   'next-action':     handleNextAction,
   'export-leads':    handleExportLeads,
   'auto-enroll':     handleAutoEnroll,
