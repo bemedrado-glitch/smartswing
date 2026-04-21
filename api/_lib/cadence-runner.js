@@ -57,6 +57,38 @@ async function supaPatch(path, patch) {
   if (!r.ok) throw new Error(`PATCH ${path} failed ${r.status}: ${(await r.text()).slice(0, 200)}`);
 }
 
+/**
+ * Atomically claim a pending step for processing by THIS runner.
+ *
+ * Without this, two concurrent runs (cron retry, manual trigger, accidental
+ * double-deploy) could both pull the same row from /cadence_step_executions
+ * and both call sendEmail/sendWhatsapp — duplicate sends to the prospect.
+ *
+ * Strategy: PATCH with WHERE filter `status=eq.pending` and Prefer:return=representation.
+ * PostgREST applies the WHERE atomically. The first request flips status to
+ * 'processing' and gets the row back; the second request matches zero rows and
+ * gets back an empty array. Only the first runner proceeds with the send.
+ *
+ * Returns true if this runner won the claim, false if another already claimed.
+ */
+async function claimStep(stepId) {
+  const r = await fetch(`${supaBase()}/rest/v1/cadence_step_executions?id=eq.${stepId}&status=eq.pending`, {
+    method: 'PATCH',
+    headers: { ...supaHeaders(), Prefer: 'return=representation' },
+    body: JSON.stringify({
+      status: 'processing',
+      processing_started_at: new Date().toISOString()
+    })
+  });
+  if (!r.ok) {
+    // Schema mismatch (column missing, RLS) → treat as not-claimed so we don't double-send
+    console.error(`[cadence-runner] claimStep PATCH failed ${r.status} for ${stepId}: ${(await r.text()).slice(0, 200)}`);
+    return false;
+  }
+  const rows = await r.json().catch(() => []);
+  return Array.isArray(rows) && rows.length === 1;
+}
+
 // ── Send via Resend ──────────────────────────────────────────────────────────
 
 async function sendEmail({ to, subject, html }) {
@@ -244,10 +276,32 @@ async function markFailedOrRetry(step, err) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function runCadenceBatch() {
-  const results = { processed: 0, sent: 0, skipped: 0, retried: 0, failed: 0, advanced: 0, errors: [] };
+  const results = { processed: 0, sent: 0, skipped: 0, skipped_concurrent: 0, retried: 0, failed: 0, advanced: 0, recovered: 0, errors: [] };
   const nowIso = new Date().toISOString();
 
   try {
+    // JANITOR: recover steps stuck in 'processing' for >10min (crashed prior runner).
+    // Without this, a runner that died mid-send would leave its claimed steps
+    // permanently stuck — the next runner would skip them forever.
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    try {
+      const recoverRes = await fetch(
+        `${supaBase()}/rest/v1/cadence_step_executions?status=eq.processing&processing_started_at=lt.${encodeURIComponent(tenMinAgo)}`,
+        {
+          method: 'PATCH',
+          headers: { ...supaHeaders(), Prefer: 'return=representation' },
+          body: JSON.stringify({ status: 'pending', processing_started_at: null })
+        }
+      );
+      if (recoverRes.ok) {
+        const recovered = await recoverRes.json().catch(() => []);
+        results.recovered = Array.isArray(recovered) ? recovered.length : 0;
+        if (results.recovered > 0) console.log(`[cadence-runner] recovered ${results.recovered} stuck step(s) from prior crashed runner`);
+      }
+    } catch (recoverErr) {
+      console.warn('[cadence-runner] janitor recovery skipped:', recoverErr.message);
+    }
+
     // Pull due pending steps (with enrollment + contact context in one join shape).
     // PostgREST embedding: step -> contact via contact_id -> marketing_contacts
     const dueQuery =
@@ -259,6 +313,18 @@ async function runCadenceBatch() {
 
     for (const step of due) {
       results.processed++;
+
+      // RACE GUARD: atomically claim the step before doing any work.
+      // If another concurrent runner already grabbed it, claim returns false
+      // and we skip — preventing duplicate sends to the prospect.
+      const claimed = await claimStep(step.id);
+      if (!claimed) {
+        // Quietly skip — another runner is handling this step. NOT a failure.
+        if (!results.skipped_concurrent) results.skipped_concurrent = 0;
+        results.skipped_concurrent++;
+        continue;
+      }
+
       const contact = step.marketing_contacts;
       if (!contact) {
         await skipStep(step, 'contact_missing');

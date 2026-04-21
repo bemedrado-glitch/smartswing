@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found · SmartSwing AI</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"></noscript>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: rgba(28,28,30,.92);
+      --line: rgba(255,255,255,.1);
+      --text: #f5f5f7;
+      --muted: rgba(255,255,255,.55);
+      --volt: #39ff14;
+      --dark: #0e1012;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", -apple-system, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(57,255,20,.06), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,216,77,.04), transparent 28%),
+        linear-gradient(180deg, #050505 0%, #0a0a0a 50%, #101010 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--volt); outline-offset: 3px; border-radius: 4px; }
+
+    .top {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand img { height: 56px; width: auto; display: block; }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .panel {
+      max-width: 640px;
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 56px 40px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .code {
+      display: inline-flex;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(57,255,20,.08);
+      color: var(--volt);
+      border: 1px solid rgba(57,255,20,.22);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(36px, 5vw, 56px);
+      line-height: 1;
+      letter-spacing: -.04em;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    h1 .glyph {
+      color: var(--volt);
+    }
+    p.lead {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 460px;
+      margin: 0 auto 32px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .btn, .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 13px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      transition: transform .18s ease, box-shadow .18s ease;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+    }
+    .btn-primary {
+      border: 1px solid rgba(57,255,20,.35);
+      background: linear-gradient(135deg, var(--volt), #82ff63);
+      color: var(--dark);
+    }
+    .btn:hover, .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    }
+    .quick-links {
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .quick-links strong {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+      margin-bottom: 4px;
+    }
+    .quick-links a {
+      font-size: 14px;
+      color: var(--muted);
+      transition: color .18s ease;
+    }
+    .quick-links a:hover { color: var(--volt); }
+
+    footer {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,.3);
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/" aria-label="SmartSwing AI home">
+      <img src="./assets/logos/logo.png" alt="SmartSwing AI" width="190" height="56">
+    </a>
+  </header>
+
+  <main>
+    <section class="panel" role="region" aria-labelledby="notFoundHeading">
+      <div class="code">Error 404</div>
+      <h1 id="notFoundHeading">This <span class="glyph">point</span> doesn't exist.</h1>
+      <p class="lead">
+        The page you're looking for has moved or never existed. Take a free swing analysis or head back to the homepage.
+      </p>
+
+      <div class="actions">
+        <a class="btn-primary" href="/analyze.html">Try a free analysis →</a>
+        <a class="btn" href="/">Back to home</a>
+      </div>
+
+      <div class="quick-links">
+        <strong>Or jump to</strong>
+        <a href="/pricing.html">Pricing</a>
+        <a href="/how-it-works.html">How SmartSwing works</a>
+        <a href="/contact.html">Contact us</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2026 SmartSwing AI · <a href="/privacy-policy.html">Privacy</a> · <a href="/user-agreement.html">Terms</a>
+  </footer>
+</body>
+</html>
