@@ -2543,6 +2543,12 @@ async function handleCredentialsStatus(req, res) {
       configured: !!process.env.WHATSAPP_ACCESS_TOKEN,
       masked: maskValue(process.env.WHATSAPP_ACCESS_TOKEN, 6),
       env_var: 'WHATSAPP_ACCESS_TOKEN'
+    },
+    whatsapp_verify_token: {
+      label: 'WhatsApp Webhook Verify Token',
+      configured: !!process.env.WHATSAPP_VERIFY_TOKEN,
+      masked: maskValue(process.env.WHATSAPP_VERIFY_TOKEN, 4),
+      env_var: 'WHATSAPP_VERIFY_TOKEN'
     }
   };
 
