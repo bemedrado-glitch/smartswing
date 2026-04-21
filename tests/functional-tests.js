@@ -1702,6 +1702,37 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('HTML — for-clubs.html Cal.com B2B demo booking', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'for-clubs.html'), 'utf8');
+
+  test('Hero CTA uses Cal.com embed via data-cal-link', () => {
+    expect(src).toContain('data-cal-link="smartswing/club-demo"');
+    expect(src).toContain('Book a 15-min club demo');
+  });
+  test('Bottom CTA also uses Cal.com embed (2 placements)', () => {
+    const matches = src.match(/data-cal-link="smartswing\/club-demo"/g) || [];
+    expect(matches.length >= 2).toBe(true);
+  });
+  test('Cal.com loader script is included', () => {
+    expect(src).toContain('https://app.cal.com/embed/embed.js');
+    expect(src).toContain("Cal('init', 'demo'");
+  });
+  test('Fallback to /contact.html if Cal.com fails to load', () => {
+    expect(src).toContain('./contact.html?source=clubs-demo-fallback');
+  });
+  test('Cal booking slug is configurable via PUBLIC_APP_CONFIG', () => {
+    expect(src).toContain('PUBLIC_APP_CONFIG');
+    expect(src).toContain('calBookingSlug');
+  });
+});
+
+describe('Config — public-app-config.js Cal.com slug override', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'public-app-config.js'), 'utf8');
+  test('calBookingSlug default is smartswing/club-demo', () => {
+    expect(src).toContain('smartswing/club-demo');
+  });
+});
+
 describe('HTML — marketing.html WhatsApp Inbox tab', () => {
   const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
 
