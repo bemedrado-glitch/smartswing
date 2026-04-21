@@ -86,7 +86,9 @@ function resolveChannel(phone, preferred = 'auto') {
  * @returns {string} Meta language code (defaults to 'en_US')
  */
 function resolveTemplateLang(phone) {
-  if (!phone) return 'en_US';
+  // Default 'en' matches Meta's actual approved language code for our templates
+  // (not en_US — Meta categorizes "English" submissions as just `en`).
+  if (!phone) return 'en';
   const digits = String(phone).replace(/[^0-9]/g, '');
   // 3-digit prefixes first
   const p3 = digits.slice(0, 3);
@@ -108,7 +110,7 @@ function resolveTemplateLang(phone) {
   if (p2 === '62') return 'id_ID';
   if (p2 === '20') return 'ar_AE';
   if (p2 === '33') return 'fr_FR';
-  return 'en_US';
+  return 'en';
 }
 
 module.exports = {
