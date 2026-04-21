@@ -1702,6 +1702,47 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('API — cadence CTA redirect allowlist', () => {
+  // The allowlist is private to api/marketing.js. We mirror it here for direct testing
+  // of the URL parser logic. If the production allowlist changes, update this list.
+  const ALLOWED = new Set([
+    'www.smartswingai.com', 'smartswingai.com', 'app.smartswingai.com',
+    'analyze.smartswingai.com', 'pay.smartswingai.com',
+    'checkout.stripe.com', 'billing.stripe.com',
+    'cal.com',
+    'youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com'
+  ]);
+  function isAllowed(rawUrl) {
+    try {
+      const p = new URL(rawUrl);
+      if (p.protocol !== 'https:' && p.protocol !== 'http:') return false;
+      return ALLOWED.has(p.hostname.toLowerCase());
+    } catch (_) { return false; }
+  }
+
+  test('SmartSwing-controlled URLs are allowed', () => {
+    expect(isAllowed('https://www.smartswingai.com/pricing.html')).toBe(true);
+    expect(isAllowed('https://app.smartswingai.com/dashboard')).toBe(true);
+  });
+  test('Stripe + Cal.com partner hosts allowed', () => {
+    expect(isAllowed('https://checkout.stripe.com/c/pay/cs_xxx')).toBe(true);
+    expect(isAllowed('https://cal.com/smartswing/demo')).toBe(true);
+  });
+  test('Arbitrary hosts are REJECTED (phishing prevention)', () => {
+    expect(isAllowed('https://evil.example.com/login?session=...')).toBe(false);
+    expect(isAllowed('https://smartswingai.com.attacker.example/x')).toBe(false);
+  });
+  test('javascript: + data: protocols rejected (XSS)', () => {
+    expect(isAllowed('javascript:alert(1)')).toBe(false);
+    expect(isAllowed('data:text/html,<script>alert(1)</script>')).toBe(false);
+  });
+  test('Malformed URLs return false (no exception)', () => {
+    expect(isAllowed('')).toBe(false);
+    expect(isAllowed('not a url')).toBe(false);
+    expect(isAllowed(null)).toBe(false);
+  });
+});
+
 describe('API — WhatsApp template language routing', () => {
   const { resolveTemplateLang } = require('../api/_lib/channel-router.js');
 

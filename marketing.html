@@ -52,14 +52,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 <script>
 (function securityGateInit(){
-  var DEFAULT_CODE = '182410';
-  var storedCode = localStorage.getItem('mkt_security_code') || DEFAULT_CODE;
+  // SERVER-SIDE VALIDATION: the code lives in MARKETING_GATE_CODE env var on Vercel.
+  // We POST the entered code to /api/marketing/verify-gate which compares against the
+  // env value and returns a short-lived session token. The client never sees the code.
+  // Removes the previous hardcoded '182410' default and localStorage override backdoor.
   var gate = document.getElementById('securityGate');
   var digits = gate.querySelectorAll('.gate-digit');
   var errEl = document.getElementById('gateError');
 
-  // If already unlocked this session, skip
-  if (sessionStorage.getItem('mkt_unlocked') === '1') { gate.remove(); return; }
+  // Session token persists for 8 hours (granted by the verify endpoint)
+  var token = sessionStorage.getItem('mkt_session_token');
+  var expiry = parseInt(sessionStorage.getItem('mkt_session_expiry') || '0', 10);
+  if (token && expiry > Date.now()) { gate.remove(); return; }
 
   digits[0].focus();
 
@@ -81,21 +85,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     });
   });
 
+  var verifying = false;
   function checkCode(){
+    if (verifying) return;
     var code = '';
     digits.forEach(function(d){ code += d.value; });
-    if(code.length < 6) return;
-    var target = localStorage.getItem('mkt_security_code') || DEFAULT_CODE;
-    if(code === target){
-      sessionStorage.setItem('mkt_unlocked','1');
-      gate.style.transition='opacity .3s';
-      gate.style.opacity='0';
-      setTimeout(function(){ gate.remove(); },300);
-    } else {
-      errEl.textContent = 'Invalid code. Try again.';
-      digits.forEach(function(d){ d.classList.add('shake'); d.value=''; });
-      setTimeout(function(){ digits.forEach(function(d){ d.classList.remove('shake'); }); digits[0].focus(); },400);
-    }
+    if (code.length < 6) return;
+    verifying = true;
+    errEl.textContent = 'Verifying…';
+
+    fetch('/api/marketing/verify-gate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
+    })
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, body: j }; }); })
+      .then(function(res){
+        verifying = false;
+        if (res.ok && res.body && res.body.token) {
+          sessionStorage.setItem('mkt_session_token', res.body.token);
+          sessionStorage.setItem('mkt_session_expiry', String(res.body.expires_at || (Date.now() + 8 * 3600 * 1000)));
+          gate.style.transition = 'opacity .3s';
+          gate.style.opacity = '0';
+          setTimeout(function(){ gate.remove(); }, 300);
+        } else {
+          errEl.textContent = (res.body && res.body.error) || 'Invalid code. Try again.';
+          digits.forEach(function(d){ d.classList.add('shake'); d.value = ''; });
+          setTimeout(function(){ digits.forEach(function(d){ d.classList.remove('shake'); }); digits[0].focus(); }, 400);
+        }
+      })
+      .catch(function(err){
+        verifying = false;
+        errEl.textContent = 'Network error. Check connection and retry.';
+        console.error('[mkt-gate] verify failed:', err);
+      });
   }
 })();
 </script>

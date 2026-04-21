@@ -1597,10 +1597,109 @@ async function handleOptOutEnrollment(req, res) {
 // logs history), then 302s to the real destination.
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROUTE: verify-gate — server-side check for the marketing.html security gate
+// ═══════════════════════════════════════════════════════════════════════════════
+// Compares the user-entered code against MARKETING_GATE_CODE env var (server-side
+// only — never shipped to client). Issues a short-lived signed token (HMAC-SHA256
+// of payload + MARKETING_GATE_CODE as key) so the client can prove gate passage
+// across requests for ~8h without storing the actual code anywhere reachable.
+//
+// Replaces the previous client-side hardcoded '182410' fallback + localStorage
+// override that any user could read/manipulate from devtools.
+
+const crypto = require('crypto');
+const MARKETING_GATE_TOKEN_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
+
+function signMarketingToken(secret, expiresAt) {
+  const payload = `mkt|${expiresAt}`;
+  const sig = crypto.createHmac('sha256', secret).update(payload).digest('hex').slice(0, 32);
+  return `${payload}|${sig}`;
+}
+
+function verifyMarketingToken(secret, token) {
+  if (!token || typeof token !== 'string') return false;
+  const parts = token.split('|');
+  if (parts.length !== 3 || parts[0] !== 'mkt') return false;
+  const expiresAt = Number(parts[1]);
+  if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
+  const expectedSig = crypto.createHmac('sha256', secret).update(`mkt|${expiresAt}`).digest('hex').slice(0, 32);
+  // Constant-time compare to thwart timing attacks
+  try { return crypto.timingSafeEqual(Buffer.from(parts[2], 'hex'), Buffer.from(expectedSig, 'hex')); }
+  catch (_) { return false; }
+}
+
+async function handleVerifyGate(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
+  const expected = String(process.env.MARKETING_GATE_CODE || '').trim();
+  if (!expected) {
+    return res.status(500).json({
+      error: 'Marketing gate not configured. Set MARKETING_GATE_CODE in Vercel env vars.'
+    });
+  }
+  const submitted = String((req.body && req.body.code) || '').trim();
+  if (!submitted || submitted.length < 4) {
+    return res.status(400).json({ error: 'Code is required.' });
+  }
+  // Constant-time string compare — prevents timing-based brute-force on short codes
+  let match = false;
+  try {
+    const a = Buffer.from(submitted);
+    const b = Buffer.from(expected);
+    match = a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch (_) { match = false; }
+  if (!match) return res.status(401).json({ error: 'Invalid code.' });
+
+  const expiresAt = Date.now() + MARKETING_GATE_TOKEN_TTL_MS;
+  const token = signMarketingToken(expected, expiresAt);
+  return res.status(200).json({ token, expires_at: expiresAt });
+}
+
+// Allowlist for redirect destinations — anything outside these hosts is rejected
+// to prevent SmartSwing-branded URLs from being weaponized for phishing.
+const CTA_REDIRECT_ALLOWED_HOSTS = new Set([
+  'www.smartswingai.com',
+  'smartswingai.com',
+  'app.smartswingai.com',
+  'analyze.smartswingai.com',
+  'pay.smartswingai.com',
+  // Stripe hosted checkout (we sometimes deep-link)
+  'checkout.stripe.com',
+  'billing.stripe.com',
+  // Cal.com booking (B2B demo path)
+  'cal.com',
+  // YouTube + Vimeo for embedded video CTAs
+  'youtube.com',
+  'www.youtube.com',
+  'youtu.be',
+  'vimeo.com'
+]);
+
+function isAllowedRedirectTarget(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    return CTA_REDIRECT_ALLOWED_HOSTS.has(parsed.hostname.toLowerCase());
+  } catch (_) {
+    return false;
+  }
+}
+
 async function handleCadenceCtaRedirect(req, res) {
   const e = req.query.e;
   const u = req.query.u;
   if (!e || !u) return res.status(400).json({ error: 'Missing e (enrollment_id) or u (destination)' });
+
+  // Reject anything outside the SmartSwing-controlled host allowlist.
+  // Without this, anyone can craft https://www.smartswingai.com/api/marketing/cadence-cta-redirect?e=X&u=https://evil.example.com
+  // and the SmartSwing-branded URL will redirect prospects to attacker-controlled domains.
+  if (!isAllowedRedirectTarget(u)) {
+    return res.status(400).json({
+      error: 'Destination URL is not in the allowed redirect host list.',
+      hint: 'Add the host to CTA_REDIRECT_ALLOWED_HOSTS in api/marketing.js if it should be permitted.'
+    });
+  }
+
   const supabase_url = process.env.SUPABASE_URL;
   const supabase_key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
   try {
@@ -1611,7 +1710,7 @@ async function handleCadenceCtaRedirect(req, res) {
       }).catch(err => console.warn('CTA click RPC failed (non-fatal):', err.message));
     }
   } finally {
-    // Always redirect — never strand the user
+    // Always redirect — never strand the user (now safe: target validated above)
     res.writeHead(302, { Location: u });
     res.end();
   }
@@ -6788,6 +6887,7 @@ const ROUTES = {
   'whatsapp-templates':  handleWhatsappTemplates,
   'whatsapp-webhook':    handleWhatsappWebhook,
   'whatsapp-register':   handleWhatsappRegister,
+  'verify-gate':         handleVerifyGate,
   'meta-stats':      handleMetaStats,
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
