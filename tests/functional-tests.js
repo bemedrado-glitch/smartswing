@@ -1702,6 +1702,35 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('HTML — marketing.html WhatsApp cadence editor', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
+
+  test('Cadence loader queries cadence_whatsapp table', () => {
+    expect(src).toContain("from('cadence_whatsapp')");
+  });
+  test('WhatsApp step count is rendered in cadence card header', () => {
+    expect(src).toContain('🟢 ${waCount} WhatsApp');
+  });
+  test('WhatsApp step editor modal exists with required fields', () => {
+    expect(src).toContain('id="whatsappStepModal"');
+    expect(src).toContain('id="waStepTemplateName"');
+    expect(src).toContain('id="waStepTemplateLang"');
+    expect(src).toContain('id="waStepTemplateVars"');
+    expect(src).toContain('id="waStepDelayDays"');
+  });
+  test('Add-WhatsApp-step button present in cadence card actions', () => {
+    expect(src).toContain('+ Add WhatsApp step');
+  });
+  test('openWhatsappStepEditor, saveWhatsappStep, deleteWhatsappStep defined', () => {
+    expect(src).toContain('function openWhatsappStepEditor');
+    expect(src).toContain('async function saveWhatsappStep');
+    expect(src).toContain('async function deleteWhatsappStep');
+  });
+  test('Editor loads approved templates from Meta via /whatsapp-templates', () => {
+    expect(src).toContain('/api/marketing/whatsapp-templates');
+  });
+});
+
 describe('HTML — analyze.html lite-signup modal', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 

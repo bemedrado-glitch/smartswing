@@ -2837,6 +2837,71 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- WhatsApp Step Editor — add/edit a cadence_whatsapp row -->
+<div class="mkt-modal-overlay" role="dialog" aria-modal="true" aria-label="WhatsApp step editor dialog" id="whatsappStepModal">
+  <div class="mkt-modal">
+    <div class="mkt-modal__header" style="background:linear-gradient(135deg,rgba(37,211,102,.12),transparent);">
+      <div>
+        <div class="mkt-modal__title">🟢 <span id="waStepEditorTitle">WhatsApp Cadence Step</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="waStepEditorMeta">New step for cadence</div>
+      </div>
+      <button class="mkt-modal__close" onclick="closeModal('whatsappStepModal')">✕</button>
+    </div>
+    <div class="mkt-modal__body">
+      <div class="mkt-form-group">
+        <label class="mkt-label" for="waStepSequenceNum">Step order (sequence_num)</label>
+        <input type="number" class="mkt-input" id="waStepSequenceNum" value="1" min="1" max="20">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">1 = first step, 2 = second, etc. Controls sort order for this channel only.</div>
+      </div>
+
+      <div class="mkt-form-group">
+        <label class="mkt-label" for="waStepDelayDays">Delay (days from enrollment)</label>
+        <input type="number" class="mkt-input" id="waStepDelayDays" value="0" min="0" max="180">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">0 = fires immediately. 3 = 3 days after enrollment.</div>
+      </div>
+
+      <div class="mkt-form-group">
+        <label class="mkt-label" for="waStepTemplateName">Meta template name</label>
+        <select class="mkt-input" id="waStepTemplateName" aria-label="Meta template name">
+          <option value="">-- Loading approved templates from Meta… --</option>
+        </select>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Only Meta-approved templates can be used. <a href="https://business.facebook.com/wa/manage/message-templates/" target="_blank" rel="noopener" style="color:var(--volt);">Manage templates in Meta →</a></div>
+      </div>
+
+      <div class="mkt-form-group">
+        <label class="mkt-label" for="waStepTemplateLang">Template language code</label>
+        <input type="text" class="mkt-input" id="waStepTemplateLang" value="en" placeholder="en, pt_BR, es_LA, de_DE">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+          Auto-resolved at send time based on contact's phone country. Override here if the template is approved in only one language.
+        </div>
+      </div>
+
+      <div class="mkt-form-group">
+        <label class="mkt-label" for="waStepTemplateVars">Template variables (JSON array, ordered)</label>
+        <textarea class="mkt-input" id="waStepTemplateVars" rows="3" style="font-family:monospace;font-size:12px;" placeholder='["{{first_name}}", "{{analyze_url}}"]'></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+          SmartSwing tokens that get substituted at send time per contact. Supported: <code>{{first_name}}</code>, <code>{{name}}</code>, <code>{{email}}</code>, <code>{{analyze_url}}</code>, <code>{{pricing_url}}</code>, <code>{{dashboard_url}}</code>, <code>{{login_url}}</code>, <code>{{app_url}}</code>, <code>{{unsubscribe_url}}</code>.
+        </div>
+      </div>
+
+      <div class="mkt-form-group">
+        <label class="mkt-label" for="waStepFallbackMessage">Free-form fallback message (optional)</label>
+        <textarea class="mkt-input" id="waStepFallbackMessage" rows="3" placeholder="Only delivered if within 24h customer-service window (after prospect replied). Leave blank to template-only."></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Used for follow-ups after the prospect engages. Outside the 24h window, only approved templates deliver.</div>
+      </div>
+
+      <div id="waStepError" role="alert" style="color:#ff5252;font-size:13px;min-height:18px;margin-top:8px;"></div>
+    </div>
+    <div class="mkt-modal__footer" style="display:flex;justify-content:space-between;">
+      <button class="mkt-btn mkt-btn--ghost" id="waStepDeleteBtn" onclick="deleteWhatsappStep()" style="color:#ff5252;display:none;">🗑️ Delete step</button>
+      <div style="display:flex;gap:8px;">
+        <button class="mkt-btn mkt-btn--ghost" onclick="closeModal('whatsappStepModal')">Cancel</button>
+        <button class="mkt-btn mkt-btn--primary" id="waStepSaveBtn" onclick="saveWhatsappStep()" style="background:#25D366;color:#0a0a0a;">Save step</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Enroll as Lead Modal -->
 <div class="mkt-modal-overlay" id="assignCadenceModal">
   <div class="mkt-modal">
@@ -3985,19 +4050,22 @@ function deleteContact(id) {
 async function loadCadencesFromDB() {
   if (!MarketingStore.supabase) { renderCadences(); return; }
   try {
-    const [cadRes, emailRes, smsRes] = await Promise.all([
+    const [cadRes, emailRes, smsRes, waRes] = await Promise.all([
       MarketingStore.supabase.from('email_cadences').select('*').eq('is_active', true).order('name'),
       MarketingStore.supabase.from('cadence_emails').select('*').order('delay_days'),
-      MarketingStore.supabase.from('cadence_sms').select('*').order('delay_days')
+      MarketingStore.supabase.from('cadence_sms').select('*').order('delay_days'),
+      MarketingStore.supabase.from('cadence_whatsapp').select('*').order('delay_days')
     ]);
     const cadences = cadRes.data || [];
     const emails   = emailRes.data || [];
     const sms      = smsRes.data || [];
+    const whatsapp = waRes.data || [];
     // Attach steps to each cadence
     window.MARKETING_CADENCES = cadences.map(c => ({
       ...c,
-      emails: emails.filter(e => e.cadence_id === c.id),
-      sms:    sms.filter(s => s.cadence_id === c.id)
+      emails:   emails.filter(e => e.cadence_id === c.id),
+      sms:      sms.filter(s => s.cadence_id === c.id),
+      whatsapp: whatsapp.filter(w => w.cadence_id === c.id)
     }));
   } catch(err) {
     console.warn('[cadences] DB load failed:', err.message);
@@ -4016,11 +4084,13 @@ function renderCadences() {
   grid.innerHTML = cads.map((c, idx) => {
     const emailCount = (c.emails || []).length;
     const smsCount = (c.sms || []).length;
+    const waCount = (c.whatsapp || []).length;
     const personaBadge = c.target_persona ? `<span class="mkt-badge mkt-badge--${c.target_persona}">${c.target_persona}</span>` : '';
     const steps = [
       ...(c.emails || []).map(e => ({ type: 'email', ...e })),
-      ...(c.sms || []).map(s => ({ type: 'sms', ...s }))
-    ].sort((a, b) => a.delay_days - b.delay_days);
+      ...(c.sms || []).map(s => ({ type: 'sms', ...s })),
+      ...(c.whatsapp || []).map(w => ({ type: 'whatsapp', ...w, sequence_num: w.sequence_num || 1 }))
+    ].sort((a, b) => (a.delay_days || 0) - (b.delay_days || 0));
 
     return `
       <div class="mkt-cadence-card" id="cadence-card-${idx}">
@@ -4029,7 +4099,7 @@ function renderCadences() {
             <div class="mkt-cadence-card__title">${escHtml(c.name)}</div>
             <div class="mkt-cadence-card__meta">
               ${personaBadge}
-              <span class="mkt-cadence-card__stats">📧 ${emailCount} emails · 💬 ${smsCount} SMS · ${emailCount + smsCount} steps total</span>
+              <span class="mkt-cadence-card__stats">📧 ${emailCount} email · 💬 ${smsCount} SMS · 🟢 ${waCount} WhatsApp · ${emailCount + smsCount + waCount} steps</span>
             </div>
             <div style="font-size:12px;color:var(--muted);margin-top:4px;">${escHtml(c.methodology || '')}</div>
           </div>
@@ -4049,7 +4119,7 @@ function renderCadences() {
                   </div>
                   <span class="mkt-badge mkt-badge--${step.email_type || 'followup'}" style="flex-shrink:0;font-size:10px;">${step.email_type || ''}</span>
                 </div>`;
-            } else {
+            } else if (step.type === 'sms') {
               return `
                 <div class="mkt-cadence-step mkt-cadence-step--sms">
                   <div class="mkt-cadence-step__num">SMS</div>
@@ -4058,10 +4128,26 @@ function renderCadences() {
                     <div class="mkt-cadence-step__subject" style="font-size:13px;">${escHtml((step.message || '').substring(0, 80))}…</div>
                   </div>
                 </div>`;
+            } else {
+              // WhatsApp
+              const wa = step;
+              const tname = wa.template_name || '(no template)';
+              const tlang = wa.template_lang || 'en';
+              const vars = Array.isArray(wa.template_vars) ? wa.template_vars.join(', ') : '';
+              return `
+                <div class="mkt-cadence-step mkt-cadence-step--whatsapp" style="border-left:3px solid #25D366;" onclick="openWhatsappStepEditor(${idx}, ${wa.sequence_num || 1})">
+                  <div class="mkt-cadence-step__num" style="background:#25D366;color:#0a0a0a;">WA</div>
+                  <div class="mkt-cadence-step__info">
+                    <div class="mkt-cadence-step__day">Day ${wa.delay_days} · WhatsApp · <code style="font-size:11px;background:rgba(37,211,102,.1);color:#25D366;padding:2px 6px;border-radius:4px;">${escHtml(tname)}</code> · lang=<code style="font-size:11px;">${escHtml(tlang)}</code></div>
+                    <div class="mkt-cadence-step__subject" style="font-size:12px;color:var(--muted);">${vars ? 'Vars: ' + escHtml(vars) : 'No variables'}${wa.message ? ' · Fallback: ' + escHtml(wa.message.substring(0,60)) + '…' : ''}</div>
+                  </div>
+                  <span class="mkt-badge" style="background:rgba(37,211,102,.15);color:#25D366;font-size:10px;">Edit</span>
+                </div>`;
             }
           }).join('')}
           <div class="mkt-cadence-card__actions">
             <button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="openAssignCadenceByIdx(${idx})">Assign to Contact</button>
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="openWhatsappStepEditor(${idx}, null)" style="border-color:rgba(37,211,102,.35);color:#25D366;">+ Add WhatsApp step</button>
             <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="editCadenceWithAI(${idx})">🤖 Edit with AI</button>
           </div>
         </div>
@@ -4710,6 +4796,137 @@ function editCadenceWithAI(idx) {
   MarketingStore.selectedAgent = 'copywriter';
   document.querySelectorAll('.mkt-agent-card').forEach(c => c.classList.toggle('is-selected', c.dataset.agent === 'copywriter'));
   switchTab('agents', document.querySelector('[data-tab=agents]'));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WhatsApp Cadence Step Editor — UI for cadence_whatsapp CRUD
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Cached list of Meta-approved templates (refreshed on first open of editor)
+window._waApprovedTemplates = null;
+
+async function _loadApprovedWhatsappTemplates() {
+  if (window._waApprovedTemplates) return window._waApprovedTemplates;
+  try {
+    const r = await fetch('/api/marketing/whatsapp-templates');
+    const data = await r.json();
+    const list = (data.templates || []).filter(t => t.status === 'APPROVED');
+    window._waApprovedTemplates = list;
+    return list;
+  } catch (err) {
+    console.warn('[whatsapp-templates] load failed:', err);
+    return [];
+  }
+}
+
+async function openWhatsappStepEditor(cadenceIdx, sequenceNum) {
+  const cadence = window.MARKETING_CADENCES[cadenceIdx];
+  if (!cadence) return;
+  const isEdit = sequenceNum !== null && sequenceNum !== undefined;
+  const existing = isEdit ? (cadence.whatsapp || []).find(w => (w.sequence_num || 1) === sequenceNum) : null;
+
+  MarketingStore._waEditor = { cadenceIdx, cadenceId: cadence.id, existingId: existing?.id || null, isEdit };
+
+  document.getElementById('waStepEditorTitle').textContent = isEdit ? 'Edit WhatsApp Step' : 'New WhatsApp Step';
+  document.getElementById('waStepEditorMeta').textContent = cadence.name;
+  document.getElementById('waStepError').textContent = '';
+  document.getElementById('waStepDeleteBtn').style.display = isEdit ? '' : 'none';
+  document.getElementById('waStepSaveBtn').textContent = isEdit ? 'Update step' : 'Save step';
+
+  // Populate fields
+  document.getElementById('waStepSequenceNum').value = existing?.sequence_num || ((cadence.whatsapp || []).length + 1);
+  document.getElementById('waStepDelayDays').value = existing?.delay_days ?? 0;
+  document.getElementById('waStepTemplateLang').value = existing?.template_lang || 'en';
+  document.getElementById('waStepTemplateVars').value = existing?.template_vars
+    ? JSON.stringify(existing.template_vars, null, 2)
+    : '["{{first_name}}", "{{analyze_url}}"]';
+  document.getElementById('waStepFallbackMessage').value = existing?.message || '';
+
+  // Populate template dropdown from Meta-approved list
+  const sel = document.getElementById('waStepTemplateName');
+  sel.innerHTML = '<option value="">-- Loading approved templates from Meta… --</option>';
+  openModal('whatsappStepModal');
+
+  const templates = await _loadApprovedWhatsappTemplates();
+  if (templates.length === 0) {
+    sel.innerHTML = '<option value="">No approved templates found — create one in Meta Business Manager first</option>';
+  } else {
+    sel.innerHTML = templates.map(t =>
+      `<option value="${escHtml(t.name)}" data-lang="${escHtml(t.language)}"${existing?.template_name === t.name ? ' selected' : ''}>${escHtml(t.name)} (${escHtml(t.language)})</option>`
+    ).join('');
+    // When user picks a template, auto-fill the language code from Meta
+    sel.addEventListener('change', function() {
+      const opt = sel.options[sel.selectedIndex];
+      const lang = opt?.dataset?.lang;
+      if (lang) document.getElementById('waStepTemplateLang').value = lang;
+    }, { once: false });
+  }
+}
+
+async function saveWhatsappStep() {
+  const ctx = MarketingStore._waEditor || {};
+  if (!ctx.cadenceId) return;
+  const errEl = document.getElementById('waStepError');
+  errEl.textContent = '';
+
+  const sequence_num = parseInt(document.getElementById('waStepSequenceNum').value, 10);
+  const delay_days = parseInt(document.getElementById('waStepDelayDays').value, 10);
+  const template_name = document.getElementById('waStepTemplateName').value.trim();
+  const template_lang = document.getElementById('waStepTemplateLang').value.trim() || 'en';
+  const varsRaw = document.getElementById('waStepTemplateVars').value.trim();
+  const message = document.getElementById('waStepFallbackMessage').value.trim() || null;
+
+  // Validation
+  if (!sequence_num || sequence_num < 1) { errEl.textContent = 'Step order must be >= 1.'; return; }
+  if (!Number.isFinite(delay_days) || delay_days < 0) { errEl.textContent = 'Delay must be 0 or more days.'; return; }
+  if (!template_name && !message) { errEl.textContent = 'Pick a template OR provide a fallback message (at least one required).'; return; }
+  let template_vars = [];
+  if (varsRaw) {
+    try {
+      template_vars = JSON.parse(varsRaw);
+      if (!Array.isArray(template_vars)) throw new Error('must be an array');
+    } catch (e) { errEl.textContent = 'Template variables must be a valid JSON array, e.g. ["{{first_name}}"]. ' + e.message; return; }
+  }
+
+  const row = {
+    cadence_id: ctx.cadenceId,
+    sequence_num, delay_days,
+    template_name: template_name || null,
+    template_lang,
+    template_vars,
+    message
+  };
+
+  try {
+    if (!MarketingStore.supabase) { errEl.textContent = 'Supabase not connected.'; return; }
+    if (ctx.isEdit && ctx.existingId) {
+      const { error } = await MarketingStore.supabase.from('cadence_whatsapp').update(row).eq('id', ctx.existingId);
+      if (error) throw error;
+    } else {
+      const { error } = await MarketingStore.supabase.from('cadence_whatsapp').insert(row);
+      if (error) throw error;
+    }
+    closeModal('whatsappStepModal');
+    showToast(ctx.isEdit ? 'WhatsApp step updated' : 'WhatsApp step added', 'success');
+    await loadCadencesFromDB();
+  } catch (err) {
+    errEl.textContent = 'Save failed: ' + (err.message || err);
+  }
+}
+
+async function deleteWhatsappStep() {
+  const ctx = MarketingStore._waEditor || {};
+  if (!ctx.existingId || !ctx.isEdit) return;
+  if (!confirm('Delete this WhatsApp step? Any pending sends on it will be cancelled. Enrollments remain; only the template step is removed from future cadence runs.')) return;
+  try {
+    const { error } = await MarketingStore.supabase.from('cadence_whatsapp').delete().eq('id', ctx.existingId);
+    if (error) throw error;
+    closeModal('whatsappStepModal');
+    showToast('WhatsApp step deleted', 'success');
+    await loadCadencesFromDB();
+  } catch (err) {
+    document.getElementById('waStepError').textContent = 'Delete failed: ' + (err.message || err);
+  }
 }
 
 /* ── CAMPAIGNS ── */
