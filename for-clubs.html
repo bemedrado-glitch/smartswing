@@ -209,7 +209,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h1>Your Program. <em>Elevated.</em></h1>
       <p class="sub" data-i18n="forClubs.hero.body">Give every coach AI-powered reports, every athlete a clear development path, and every parent visibility into what's actually improving.</p>
       <div class="hero-actions">
-        <a href="./contact.html" class="btn-primary" data-i18n="forClubs.hero.cta1">Discuss Rollout</a>
+        <button type="button" class="btn-primary" data-cal-namespace="demo" data-cal-link="smartswing/club-demo" data-cal-config='{"layout":"month_view"}' data-i18n="forClubs.hero.cta1">Book a 15-min club demo</button>
         <a href="./pricing.html" class="btn-ghost" data-i18n="forClubs.hero.cta2">Review Pricing</a>
       </div>
       <div class="stat-chips">
@@ -296,7 +296,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h2 data-i18n="forClubs.cta.heading">Ready to upgrade your program's competitive edge?</h2>
       <p data-i18n="forClubs.cta.body">We'll scope the right entry point for your staff, athlete mix, and rollout timeline. Start with one team — expand when the results are clear.</p>
       <div class="cta-actions">
-        <a href="./contact.html" class="btn-primary" data-i18n="forClubs.cta.primary">Discuss Rollout</a>
+        <button type="button" class="btn-primary" data-cal-namespace="demo" data-cal-link="smartswing/club-demo" data-cal-config='{"layout":"month_view"}' data-i18n="forClubs.cta.primary">Book a 15-min club demo</button>
         <a href="./for-coaches.html" class="btn-secondary" data-i18n="forClubs.cta.secondary">Coach Workflows</a>
       </div>
     </section>
@@ -366,6 +366,66 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <script src="./pwa.js"></script>
   <script src="./i18n.js"></script>
   <script src="./mobile-nav.js"></script>
+
+  <!-- ─── Cal.com embed (B2B demo booking) ─────────────────────────────────
+       Prospect clicks 'Book a 15-min club demo' → Cal.com popup with a 15-min
+       slot picker, email + phone capture, and Google Calendar sync. Configured
+       via CAL_BOOKING_URL env in public-app-config.js; falls back to 'smartswing/club-demo'
+       if missing. Fails gracefully if Cal.com is unreachable (button still
+       navigates to /contact.html). -->
+  <script>
+    (function () {
+      try {
+        var bookingSlug = (window.PUBLIC_APP_CONFIG && window.PUBLIC_APP_CONFIG.calBookingSlug) || 'smartswing/club-demo';
+        // Swap any data-cal-link with the configured slug so you can rebrand without touching HTML
+        document.querySelectorAll('[data-cal-link]').forEach(function (el) {
+          if (bookingSlug && bookingSlug !== 'smartswing/club-demo') el.setAttribute('data-cal-link', bookingSlug);
+        });
+      } catch (_) {}
+    })();
+    // Cal.com embed loader (official snippet)
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal; let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {}; cal.q = cal.q || [];
+          d.head.appendChild(d.createElement('script')).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === 'string') {
+            cal.ns[namespace] = cal.ns[namespace] || api;
+            p(cal.ns[namespace], ar);
+            p(cal, ['initNamespace', namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, 'https://app.cal.com/embed/embed.js', 'init');
+
+    // Graceful fallback: if Cal.com fails to load after 4s, swap buttons back to /contact.html
+    setTimeout(function () {
+      if (typeof Cal === 'function' && Cal.loaded) {
+        // Initialize the 'demo' namespace for our data-cal-namespace buttons
+        Cal('init', 'demo', { origin: 'https://app.cal.com' });
+        Cal.ns.demo('ui', { theme: 'dark', styles: { branding: { brandColor: '#39ff14' } }, hideEventTypeDetails: false, layout: 'month_view' });
+      } else {
+        // Cal.com didn't load — don't strand the user
+        document.querySelectorAll('[data-cal-link]').forEach(function (btn) {
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = './contact.html?source=clubs-demo-fallback';
+          });
+        });
+      }
+    }, 4000);
+  </script>
   <script src="./site-experience.js"></script>
 </body>
 </html>
