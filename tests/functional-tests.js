@@ -1732,14 +1732,14 @@ describe('API — WhatsApp template language routing', () => {
   test('India (+91) → hi_IN', () => {
     expect(resolveTemplateLang('+91 98765 43210')).toBe('hi_IN');
   });
-  test('US (+1) → en_US default', () => {
-    expect(resolveTemplateLang('+1 415 555 1234')).toBe('en_US');
+  test('US (+1) → en default', () => {
+    expect(resolveTemplateLang('+1 415 555 1234')).toBe('en');
   });
-  test('UK (+44) → en_US default', () => {
-    expect(resolveTemplateLang('+44 7700 900000')).toBe('en_US');
+  test('UK (+44) → en default', () => {
+    expect(resolveTemplateLang('+44 7700 900000')).toBe('en');
   });
-  test('null phone → en_US default', () => {
-    expect(resolveTemplateLang(null)).toBe('en_US');
+  test('null phone → en default', () => {
+    expect(resolveTemplateLang(null)).toBe('en');
   });
 });
 

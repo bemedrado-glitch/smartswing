@@ -3130,7 +3130,7 @@ async function handleSendBulkSms(req, res) {
 async function handleSendWhatsapp(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { phone, message, templateName, templateLang } = req.body || {};
+  const { phone, message, templateName, templateLang, templateVars } = req.body || {};
   if (!phone) return res.status(400).json({ error: 'phone is required (E.164 format, e.g. +15551234567)' });
 
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -3149,13 +3149,20 @@ async function handleSendWhatsapp(req, res) {
     let payload;
     if (templateName) {
       // Template message — works outside the 24h window
+      const components = Array.isArray(templateVars) && templateVars.length
+        ? [{
+            type: 'body',
+            parameters: templateVars.map(v => ({ type: 'text', text: String(v) }))
+          }]
+        : undefined;
       payload = {
         messaging_product: 'whatsapp',
         to: toNumber,
         type: 'template',
         template: {
           name: templateName,
-          language: { code: templateLang || 'en_US' }
+          language: { code: templateLang || 'en_US' },
+          ...(components ? { components } : {})
         }
       };
     } else if (message) {
