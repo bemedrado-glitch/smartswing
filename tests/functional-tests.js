@@ -1702,6 +1702,32 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('Auth — magic link passwordless option (M10)', () => {
+  const signup = fs.readFileSync(path.join(ROOT, 'signup.html'), 'utf8');
+  const login  = fs.readFileSync(path.join(ROOT, 'login.html'), 'utf8');
+
+  test('Signup has magic-link button alongside Google + Apple', () => {
+    expect(signup).toContain('id="magicLinkBtn"');
+    expect(signup).toContain('Send me a magic link');
+    expect(signup).toContain('sendMagicLink()');
+  });
+  test('Login has magic-link button alongside Google + Apple', () => {
+    expect(login).toContain('id="magicLinkBtn"');
+    expect(login).toContain('magic link');
+    expect(login).toContain('sendMagicLink()');
+  });
+  test('Signup sends with shouldCreateUser: true (allow new accounts)', () => {
+    expect(signup).toContain('shouldCreateUser: true');
+  });
+  test('Login sends with shouldCreateUser: false (existing accounts only)', () => {
+    expect(login).toContain('shouldCreateUser: false');
+  });
+  test('Redirect points to auth-callback.html on both pages', () => {
+    expect(signup).toContain("'/auth-callback.html'");
+    expect(login).toContain("'/auth-callback.html'");
+  });
+});
+
 describe('HTML — analyze.html lazy-loads AI runtime (S12)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 

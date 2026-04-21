@@ -388,9 +388,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <svg width="20" height="20" viewBox="0 0 814 1000" aria-hidden="true" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 66.6 0 122.2 44.1 164 44.1 40 0 103.3-46.5 179.2-46.5 28.9 0 130.6 2.6 198 99.2z"/><path d="M534.5 70.4C511.5 96.9 460.5 116 421.1 116c-5.1 0-10.2-.5-15.3-1.4 0-49.4 30.1-101.4 61.5-133.1 34.5-36.8 93.1-64.5 141.9-66.7 4.8 46.1-13.7 91.4-74.7 155.6z"/></svg>
           <span data-i18n="auth.signIn.withApple">Continue with Apple</span>
         </button>
+        <button class="oauth-btn" id="magicLinkBtn" type="button" onclick="sendMagicLink()" style="background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.35);color:#39ff14;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <span data-i18n="auth.signIn.magicLink">Email me a magic link</span>
+        </button>
       </div>
 
-      <div class="oauth-divider" data-i18n="auth.signIn.orEmail">or sign in with email</div>
+      <div class="oauth-divider" data-i18n="auth.signIn.orEmail">or sign in with password</div>
 
       <form id="loginForm" autocomplete="on" onsubmit="handleLogin(event)">
         <div class="field">
@@ -546,6 +550,58 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         showAlert(error.message || 'Login failed.');
         loginBtn.disabled = false;
         loginBtn.textContent = 'Sign In';
+      }
+    }
+
+    // Passwordless sign-in via Supabase magic link.
+    async function sendMagicLink() {
+      const btn = document.getElementById('magicLinkBtn');
+      const originalHTML = btn ? btn.innerHTML : '';
+      let email = (document.getElementById('email').value || '').trim().toLowerCase();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        email = (prompt('Enter your email to get a magic link:', '') || '').trim().toLowerCase();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.value = email;
+      }
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">Sending…</span>';
+      }
+      try {
+        let sent = false;
+        if (store && typeof store.sendMagicLink === 'function') {
+          await store.sendMagicLink(email);
+          sent = true;
+        } else if (window.supabase && typeof window.supabase.createClient === 'function') {
+          const cfg = window.SMARTSWING_SUPABASE_CONFIG || {};
+          if (cfg.url && cfg.anonKey) {
+            const client = window.supabase.createClient(cfg.url, cfg.anonKey);
+            const { error } = await client.auth.signInWithOtp({
+              email,
+              options: {
+                emailRedirectTo: window.location.origin + '/auth-callback.html',
+                shouldCreateUser: false  // login page — don't create new accounts here
+              }
+            });
+            if (error) throw error;
+            sent = true;
+          }
+        }
+        if (!sent) throw new Error('Supabase client not configured.');
+        if (btn) {
+          btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 4 12 14.01 9 11.01"/></svg> Check your inbox!';
+          btn.style.cursor = 'default';
+        }
+        showAlert('Magic link sent to ' + email + '. Click it from your inbox to sign in.', 'success');
+      } catch (err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.style.opacity = '';
+          btn.innerHTML = originalHTML;
+        }
+        showAlert(err.message || 'Could not send magic link.');
       }
     }
 
