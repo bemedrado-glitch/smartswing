@@ -176,6 +176,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <button class="mkt-nav-item" data-tab="history" onclick="switchTab('history', this)">
           <span class="mkt-nav-item__icon">📜</span> History
         </button>
+        <button class="mkt-nav-item" data-tab="inbox" onclick="switchTab('inbox', this)" aria-label="WhatsApp inbound messages">
+          <span class="mkt-nav-item__icon">🟢</span> WhatsApp Inbox
+          <span class="mkt-nav-item__badge" id="inboxBadge">0</span>
+        </button>
       </div>
 
       <div class="mkt-sidebar__section">
@@ -853,6 +857,48 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
       </div><!-- /tab-history -->
+
+      <!-- ─────────────── TAB: WHATSAPP INBOX ─────────────── -->
+      <div class="mkt-tab-panel" id="tab-inbox" role="region" aria-label="WhatsApp Inbox panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:800;color:var(--black);letter-spacing:-.04em;">🟢 WhatsApp Inbox</h2>
+            <p style="font-size:13px;color:var(--muted);margin-top:2px;">Every reply from prospects via WhatsApp. Click any row to match it against <code>marketing_contacts</code> and reply (within the 24h customer-service window).</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <select class="mkt-select" id="inboxFilterHandled" aria-label="Filter inbox by handled status" onchange="renderInbox()" style="max-width:160px;">
+              <option value="">All messages</option>
+              <option value="false">Unhandled</option>
+              <option value="true">Handled</option>
+            </select>
+            <input type="text" class="mkt-input" id="inboxPhoneFilter" placeholder="Filter by phone (+1...)" oninput="renderInbox()" style="max-width:200px;">
+            <button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="renderInbox()">↻ Refresh</button>
+          </div>
+        </div>
+
+        <div id="inboxKpiRow" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+          <div class="mkt-kpi-card" style="flex:1;min-width:140px;">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Total today</div>
+            <div id="inboxKpiToday" style="font-size:24px;font-weight:800;color:var(--black);margin-top:4px;">—</div>
+          </div>
+          <div class="mkt-kpi-card" style="flex:1;min-width:140px;">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Unhandled</div>
+            <div id="inboxKpiUnhandled" style="font-size:24px;font-weight:800;color:#ff9f0a;margin-top:4px;">—</div>
+          </div>
+          <div class="mkt-kpi-card" style="flex:1;min-width:140px;">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Opt-outs (STOP)</div>
+            <div id="inboxKpiOptOut" style="font-size:24px;font-weight:800;color:#ff5252;margin-top:4px;">—</div>
+          </div>
+          <div class="mkt-kpi-card" style="flex:1;min-width:140px;">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Last inbound</div>
+            <div id="inboxKpiLast" style="font-size:13px;font-weight:700;color:var(--black);margin-top:4px;">—</div>
+          </div>
+        </div>
+
+        <div id="inboxContainer" style="background:var(--bg-soft);border-radius:12px;overflow:hidden;">
+          <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading messages…</div>
+        </div>
+      </div><!-- /tab-inbox -->
 
       <!-- ─────────────── TAB: CONTENT MAP ─────────────── -->
       <div class="mkt-tab-panel" id="tab-content-map">
@@ -2999,6 +3045,23 @@ document.addEventListener('DOMContentLoaded', function () {
   loadContacts().then(function() { loadAiInsights(); });
   updateKPIs();
   checkSocialConnections();
+  // Refresh the inbox badge on load so founders see the unhandled count without clicking into the tab
+  (async function loadInboxBadge(){
+    try {
+      if (!MarketingStore.supabase) return;
+      const { count, error } = await MarketingStore.supabase
+        .from('whatsapp_inbound_messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('handled', false);
+      if (!error) {
+        const badge = document.getElementById('inboxBadge');
+        if (badge) {
+          badge.textContent = String(count || 0);
+          if ((count || 0) > 0) badge.style.background = '#ff9f0a';
+        }
+      }
+    } catch (_) {}
+  })();
 });
 
 async function loadCampaigns() {
@@ -3133,6 +3196,7 @@ function switchTab(tabName, triggerEl) {
   // contacts appear without manual page reload.
   if (tabName === 'enrollments' && typeof loadEnrollments === 'function') loadEnrollments();
   if (tabName === 'history' && typeof loadHistory === 'function') loadHistory();
+  if (tabName === 'inbox' && typeof renderInbox === 'function') renderInbox();
   if (tabName === 'content-map' && typeof loadContentMap === 'function') loadContentMap();
   if (tabName === 'analytics') {
     if (typeof loadAnalytics === 'function') loadAnalytics();
@@ -9296,6 +9360,174 @@ async function loadHistory() {
     console.warn('loadHistory failed:', e);
     var c1 = document.getElementById('historyContainer');
     if (c1) c1.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Could not load history.</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WHATSAPP INBOX — renders whatsapp_inbound_messages with contact matching
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function loadInboxFromDB() {
+  if (!MarketingStore.supabase) return [];
+  try {
+    const { data, error } = await MarketingStore.supabase
+      .from('whatsapp_inbound_messages')
+      .select('*')
+      .order('received_at', { ascending: false })
+      .limit(200);
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.warn('[inbox] DB load failed:', err.message);
+    return [];
+  }
+}
+
+async function _enrichInboxWithContacts(messages) {
+  if (!messages.length || !MarketingStore.supabase) return messages;
+  const phones = [...new Set(messages.map(m => m.from_phone).filter(Boolean))];
+  if (!phones.length) return messages;
+  try {
+    const { data, error } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .select('id,name,email,phone,stage,persona,whatsapp_opted_out')
+      .in('phone', phones);
+    if (error) throw error;
+    const byPhone = {};
+    (data || []).forEach(c => { byPhone[c.phone] = c; });
+    return messages.map(m => ({ ...m, _contact: byPhone[m.from_phone] || null }));
+  } catch (err) {
+    console.warn('[inbox] contact match failed:', err.message);
+    return messages;
+  }
+}
+
+async function renderInbox() {
+  const container = document.getElementById('inboxContainer');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading…</div>';
+
+  let messages = await loadInboxFromDB();
+  messages = await _enrichInboxWithContacts(messages);
+
+  // Filters
+  const handledFilter = (document.getElementById('inboxFilterHandled') || {}).value;
+  const phoneFilter = ((document.getElementById('inboxPhoneFilter') || {}).value || '').trim();
+  let filtered = messages;
+  if (handledFilter !== '') filtered = filtered.filter(m => String(m.handled) === handledFilter);
+  if (phoneFilter) filtered = filtered.filter(m => (m.from_phone || '').includes(phoneFilter));
+
+  // KPIs
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayCount = messages.filter(m => (m.received_at || '').startsWith(todayKey)).length;
+  const unhandled = messages.filter(m => !m.handled).length;
+  const optOuts = messages.filter(m => /^(STOP|UNSUBSCRIBE|PARAR|SAIR|ALTO|CANCELAR|DETENER|ARRETER|STOPPEN|CANCEL|END|QUIT)$/i.test((m.message_text || '').trim())).length;
+  const lastInbound = messages[0] ? _relativeTime(messages[0].received_at) : '—';
+  document.getElementById('inboxKpiToday').textContent = String(todayCount);
+  document.getElementById('inboxKpiUnhandled').textContent = String(unhandled);
+  document.getElementById('inboxKpiOptOut').textContent = String(optOuts);
+  document.getElementById('inboxKpiLast').textContent = lastInbound;
+  const badge = document.getElementById('inboxBadge');
+  if (badge) badge.textContent = String(unhandled);
+
+  // Update nav badge + make it amber if there are unhandled
+  if (badge) badge.style.background = unhandled > 0 ? '#ff9f0a' : '';
+
+  if (!filtered.length) {
+    container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">No messages match your filters. Prospect replies show up here within 5s of being sent via WhatsApp.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(m => _renderInboxRow(m)).join('');
+}
+
+function _relativeTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return days + 'd ago';
+  return d.toISOString().slice(0, 10);
+}
+
+function _renderInboxRow(m) {
+  const c = m._contact;
+  const who = c
+    ? `<strong>${escHtml(c.name || m.from_phone)}</strong><span style="color:var(--muted);font-size:11px;margin-left:6px;">${escHtml(c.email || m.from_phone)}</span>`
+    : `<strong>${escHtml(m.from_phone || 'unknown')}</strong><span style="color:var(--muted);font-size:11px;margin-left:6px;">(not in CRM yet)</span>`;
+  const stageBadge = c?.stage ? `<span class="mkt-badge mkt-badge--${escHtml(c.stage)}" style="font-size:10px;">${escHtml(c.stage)}</span>` : '';
+  const optOutBadge = c?.whatsapp_opted_out ? `<span class="mkt-badge" style="background:rgba(255,82,82,.15);color:#ff5252;font-size:10px;">OPTED OUT</span>` : '';
+  const isStopKeyword = /^(STOP|UNSUBSCRIBE|PARAR|SAIR|ALTO|CANCELAR|DETENER|ARRETER|STOPPEN|CANCEL|END|QUIT)$/i.test((m.message_text || '').trim());
+  const stopBadge = isStopKeyword ? `<span class="mkt-badge" style="background:rgba(255,82,82,.15);color:#ff5252;font-size:10px;">🛑 OPT-OUT KEYWORD</span>` : '';
+  const handledBadge = m.handled ? `<span class="mkt-badge" style="background:rgba(57,255,20,.15);color:var(--volt);font-size:10px;">✓ handled</span>` : '';
+  const rowStyle = m.handled ? 'opacity:.55;' : '';
+  const text = escHtml((m.message_text || '').trim() || '(no text)');
+  const time = _relativeTime(m.received_at);
+  const toolbar = m.handled
+    ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="_markInboxHandled('${m.id}', false)">Mark unhandled</button>`
+    : `<button class="mkt-btn mkt-btn--primary mkt-btn--sm" onclick="_markInboxHandled('${m.id}', true)">Mark handled</button>`;
+  const crmAction = !c
+    ? `<button class="mkt-btn mkt-btn--ghost mkt-btn--sm" onclick="_createContactFromInbound('${escHtml(m.from_phone)}')">+ Add to CRM</button>`
+    : '';
+
+  return `
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--bg-white);${rowStyle}" data-message-id="${m.id}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;margin-bottom:4px;">${who} ${stageBadge} ${optOutBadge} ${stopBadge} ${handledBadge}</div>
+          <div style="font-size:14px;color:var(--black);white-space:pre-wrap;word-wrap:break-word;">${text}</div>
+        </div>
+        <div style="flex-shrink:0;text-align:right;font-size:11px;color:var(--muted);">${time}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        ${toolbar}
+        ${crmAction}
+        ${m.provider_message_id ? `<span style="font-size:10px;color:var(--muted);font-family:monospace;align-self:center;">id: ${escHtml(m.provider_message_id.slice(0, 18))}…</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+async function _markInboxHandled(id, handled) {
+  if (!MarketingStore.supabase) return;
+  try {
+    const { error } = await MarketingStore.supabase
+      .from('whatsapp_inbound_messages')
+      .update({ handled })
+      .eq('id', id);
+    if (error) throw error;
+    renderInbox();
+  } catch (err) {
+    showToast('Failed to update: ' + err.message, 'error');
+  }
+}
+
+async function _createContactFromInbound(phone) {
+  if (!MarketingStore.supabase) return;
+  const name = prompt('Contact name (optional):', '') || '';
+  try {
+    const { error } = await MarketingStore.supabase
+      .from('marketing_contacts')
+      .insert({
+        name: name.trim() || phone,
+        email: phone.replace(/[^0-9]/g, '') + '@whatsapp-only.smartswingai.com',
+        phone,
+        persona: 'player',
+        stage: 'lead',
+        data_source: 'whatsapp_inbound',
+        source: 'whatsapp_reply',
+        consent_status: 'opt_in'
+      });
+    if (error) throw error;
+    showToast('Contact added to CRM', 'success');
+    renderInbox();
+  } catch (err) {
+    showToast('Failed to add contact: ' + err.message, 'error');
   }
 }
 

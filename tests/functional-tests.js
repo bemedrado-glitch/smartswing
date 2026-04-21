@@ -1702,6 +1702,38 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('HTML — marketing.html WhatsApp Inbox tab', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
+
+  test('Inbox nav item exists under CRM section', () => {
+    expect(src).toContain('data-tab="inbox"');
+    expect(src).toContain('WhatsApp Inbox');
+    expect(src).toContain('id="inboxBadge"');
+  });
+  test('Inbox tab panel rendered with KPI row', () => {
+    expect(src).toContain('id="tab-inbox"');
+    expect(src).toContain('id="inboxKpiToday"');
+    expect(src).toContain('id="inboxKpiUnhandled"');
+    expect(src).toContain('id="inboxKpiOptOut"');
+  });
+  test('renderInbox + helper functions defined', () => {
+    expect(src).toContain('async function renderInbox');
+    expect(src).toContain('function _renderInboxRow');
+    expect(src).toContain('async function _markInboxHandled');
+    expect(src).toContain('async function _createContactFromInbound');
+  });
+  test('Inbox queries whatsapp_inbound_messages table + enriches with contact', () => {
+    expect(src).toContain("from('whatsapp_inbound_messages')");
+    expect(src).toContain("from('marketing_contacts')");
+  });
+  test('switchTab dispatches to renderInbox for inbox tab', () => {
+    expect(src).toContain("tabName === 'inbox'");
+  });
+  test('Badge auto-refreshes on dashboard load', () => {
+    expect(src).toContain('loadInboxBadge');
+  });
+});
+
 describe('JS — pricing-currency.js multi-currency helper', () => {
   const src = fs.readFileSync(path.join(ROOT, 'pricing-currency.js'), 'utf8');
 
