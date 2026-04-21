@@ -1702,6 +1702,45 @@ describe('API — channel router (WhatsApp vs SMS)', () => {
   });
 });
 
+describe('HTML — analyze.html lite-signup modal', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('Lite-signup modal element is present', () => {
+    expect(src).toContain('id="liteSignupModal"');
+    expect(src).toContain('aria-modal="true"');
+  });
+  test('Modal has 3 required fields: first name, email, marketing consent', () => {
+    expect(src).toContain('id="liteSignupFirstName"');
+    expect(src).toContain('id="liteSignupEmail"');
+    expect(src).toContain('id="liteSignupConsent"');
+  });
+  test('Modal posts to /api/marketing/lite-signup', () => {
+    expect(src).toContain("/api/marketing/lite-signup");
+  });
+  test('Upload click is gated by isLiteSignupComplete()', () => {
+    expect(src).toContain('isLiteSignupComplete');
+    expect(src).toContain('openLiteSignupModal');
+  });
+  test('Form includes privacy policy link for LGPD/GDPR clarity', () => {
+    expect(src).toContain('privacy-policy.html');
+  });
+  test('UTM params + session id captured for attribution', () => {
+    expect(src).toContain('utm_source');
+    expect(src).toContain('ss_session_id');
+  });
+});
+
+describe('HTML — index.html hero sends to analyze (not signup)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+
+  test('Primary hero CTA points to analyze.html', () => {
+    expect(src).toContain('href="./analyze.html" class="btn-primary btn-lg" data-i18n="hero.cta.primary"');
+  });
+  test('Big CTA section also routes to analyze.html', () => {
+    expect(src).toContain('href="./analyze.html" class="btn-primary btn-lg" data-i18n="bigcta.primary"');
+  });
+});
+
 describe('API — cadence CTA redirect allowlist', () => {
   // The allowlist is private to api/marketing.js. We mirror it here for direct testing
   // of the URL parser logic. If the production allowlist changes, update this list.
