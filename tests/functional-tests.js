@@ -1786,6 +1786,39 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+describe('JS — shared-footer.js partials (M2)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'shared-footer.js'), 'utf8');
+
+  test('Exposes 2 footer variants: default + minimal', () => {
+    expect(src).toContain('defaultFooter');
+    expect(src).toContain('minimalFooter');
+  });
+  test('Honors data-footer-variant="none" to skip injection', () => {
+    expect(src).toContain("variant === 'none'");
+  });
+  test('Re-runs i18n.applyTranslations after injection', () => {
+    expect(src).toContain('applyTranslations');
+  });
+  test('Exposes window.SmartSwingSharedFooter.inject for manual triggers', () => {
+    expect(src).toContain('window.SmartSwingSharedFooter');
+  });
+});
+
+describe('HTML — accessibility.html migrated to shared footer', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'accessibility.html'), 'utf8');
+
+  test('Uses ss-footer-mount div instead of hardcoded footer', () => {
+    expect(src).toContain('id="ss-footer-mount"');
+    expect(src).toContain('data-footer-variant="default"');
+  });
+  test('Loads shared-footer.js script', () => {
+    expect(src).toContain('<script src="./shared-footer.js"></script>');
+  });
+  test('Does NOT contain hardcoded footer-grid (replaced by mount)', () => {
+    expect(src.includes('class="footer-grid"')).toBe(false);
+  });
+});
+
 describe('API — silent-failure-log helper (S6)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'api/_lib/silent-failure-log.js'), 'utf8');
   const marketing = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
