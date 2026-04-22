@@ -1,0 +1,33 @@
+/**
+ * SmartSwing AI — iOS safe-area inset polish (UX audit, Mobile 68/100 gap).
+ *
+ * The audit flagged 25+ public marketing + legal pages as having no
+ * `env(safe-area-inset-*)` handling, so on iPhone 14+ (notch + home indicator)
+ * the body content slid under the notch and primary CTAs could be clipped by
+ * the home-bar. This file fixes that without touching layout on any other
+ * platform (the env() function resolves to 0 on browsers that don't support it).
+ *
+ * Include on any page:
+ *   <link rel="stylesheet" href="./safe-area.css">
+ */
+
+body {
+  /* Respect the bottom safe-area on iOS so home-bar never clips fixed CTAs. */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  /* Protect horizontal safe-area on landscape iPhones too. */
+  padding-left:  env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* Any element that pins itself to a screen edge via position:fixed should
+   absorb the inset too — opt in by adding the `.ss-safe-bottom` / `-top`
+   utility class. Pages that already handle this keep working. */
+.ss-safe-bottom { padding-bottom: calc(var(--ss-pad-bottom, 0px) + env(safe-area-inset-bottom, 0)); }
+.ss-safe-top    { padding-top:    calc(var(--ss-pad-top,    0px) + env(safe-area-inset-top,    0)); }
+
+/* Sticky site headers commonly need the top inset to keep the logo clear of
+   the notch. Pages can opt in without editing their header markup by adding
+   `class="ss-site-header"` to whatever pinned element they already have. */
+.ss-site-header {
+  padding-top: calc(var(--ss-header-pad-y, 12px) + env(safe-area-inset-top, 0));
+}
