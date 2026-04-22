@@ -1,0 +1,149 @@
+/**
+ * SmartSwing AI — Brand design tokens (M1 + M3 from audit).
+ *
+ * Single source of truth for color + typography + radius + spacing.
+ * Include on any page that wants consistent brand styling:
+ *   <link rel="stylesheet" href="./brand-tokens.css">
+ *
+ * Then use the tokens in CSS:
+ *   .my-btn { border-radius: var(--ss-radius-pill); }
+ *   h1      { font-family: var(--ss-font-display); }
+ *
+ * Why: audit found 9 font families in use, two button systems (pill vs 14px
+ * rounded), and drifted color tokens. This file locks the brand surface
+ * down — future pages opt in by linking the stylesheet, existing pages
+ * migrate incrementally (no forced mass-refactor).
+ */
+
+:root {
+  /* ═══ COLORS ═══════════════════════════════════════════════════════════ */
+  /* Primary palette */
+  --ss-volt:        #39ff14;  /* brand green — CTAs, accents */
+  --ss-volt-soft:   #82ff63;  /* gradient companion */
+  --ss-volt-dark:   #2bcc0f;  /* hover state */
+  --ss-gold:        #ffd84d;  /* badges, eyebrow text */
+  --ss-teal:        #22d3ee;  /* informational accents */
+  --ss-red:         #ff5252;  /* errors, opt-outs */
+  --ss-amber:       #ff9f0a;  /* warnings, unresolved items */
+
+  /* Surfaces (dark theme — inverse set under [data-theme="light"]) */
+  --ss-bg:          #0a0a0a;
+  --ss-bg-soft:     #16161a;
+  --ss-panel:       rgba(28, 28, 30, 0.92);
+  --ss-line:        rgba(255, 255, 255, 0.10);
+  --ss-line-strong: rgba(255, 255, 255, 0.18);
+
+  /* Text */
+  --ss-text:        #f5f5f7;
+  --ss-text-muted:  rgba(255, 255, 255, 0.55);
+  --ss-text-dim:    rgba(255, 255, 255, 0.35);
+
+  /* ═══ TYPOGRAPHY ═══════════════════════════════════════════════════════ */
+  /* CLAUDE.md declares DM Sans as canonical. Sora reserved for display-level
+   * headlines where a stronger visual beat is needed (app pages). */
+  --ss-font-body:    "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ss-font-display: "Sora", "DM Sans", -apple-system, sans-serif;
+  --ss-font-mono:    "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+  /* ═══ RADII ════════════════════════════════════════════════════════════ */
+  /* Two canonical shapes — assign by element type, not by page:
+   *   pill (999px)  → primary CTAs, chips, badges, avatars
+   *   lg (14px)     → panel buttons, cards, form controls on app pages
+   *   md (10px)     → inputs, small controls
+   *   sm (6px)      → tiny chips, tags, code elements */
+  --ss-radius-pill:  999px;
+  --ss-radius-lg:    14px;
+  --ss-radius-md:    10px;
+  --ss-radius-sm:    6px;
+
+  /* ═══ SPACING ══════════════════════════════════════════════════════════ */
+  --ss-space-1:  4px;
+  --ss-space-2:  8px;
+  --ss-space-3:  12px;
+  --ss-space-4:  16px;
+  --ss-space-5:  24px;
+  --ss-space-6:  32px;
+  --ss-space-8:  48px;
+
+  /* ═══ ELEVATION ════════════════════════════════════════════════════════ */
+  --ss-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.18);
+  --ss-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --ss-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.38);
+
+  /* ═══ MOTION ═══════════════════════════════════════════════════════════ */
+  --ss-duration-fast: 120ms;
+  --ss-duration-base: 200ms;
+  --ss-duration-slow: 320ms;
+  --ss-ease:          cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Utility class pattern — opt-in styling using tokens */
+.ss-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font-family: var(--ss-font-body);
+  font-weight: 700;
+  font-size: 15px;
+  border: 1px solid rgba(57, 255, 20, 0.35);
+  border-radius: var(--ss-radius-pill);
+  background: linear-gradient(135deg, var(--ss-volt), var(--ss-volt-soft));
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: transform var(--ss-duration-fast) var(--ss-ease),
+              box-shadow var(--ss-duration-fast) var(--ss-ease);
+  text-decoration: none;
+}
+.ss-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ss-shadow-md);
+}
+
+.ss-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  font-family: var(--ss-font-body);
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid var(--ss-line);
+  border-radius: var(--ss-radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ss-text);
+  cursor: pointer;
+  transition: transform var(--ss-duration-fast) var(--ss-ease),
+              border-color var(--ss-duration-fast) var(--ss-ease);
+  text-decoration: none;
+}
+.ss-btn-ghost:hover {
+  transform: translateY(-2px);
+  border-color: var(--ss-line-strong);
+}
+
+/* App-page buttons (lg rounded, not pill) — use on dashboard, settings, etc. */
+.ss-btn-app {
+  padding: 10px 18px;
+  border-radius: var(--ss-radius-lg);
+  font-family: var(--ss-font-body);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid var(--ss-line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ss-text);
+  cursor: pointer;
+}
+
+/* Reduced motion — kill transform/transitions for a11y */
+@media (prefers-reduced-motion: reduce) {
+  .ss-btn-primary,
+  .ss-btn-ghost,
+  .ss-btn-app {
+    transition: none;
+  }
+  .ss-btn-primary:hover,
+  .ss-btn-ghost:hover {
+    transform: none;
+  }
+}

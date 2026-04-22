@@ -2052,6 +2052,67 @@ describe('_lib — lead-scoring scoreContact', () => {
   });
 });
 
+describe('M1 — Font consolidation to DM Sans', () => {
+  const pages = ['dashboard.html', 'settings.html', 'login.html', 'signup.html', 'marketing.html'];
+
+  pages.forEach(page => {
+    test(page + ' loads DM Sans (not Inter/Plus Jakarta)', () => {
+      const src = fs.readFileSync(path.join(ROOT, page), 'utf8');
+      expect(src).toContain('family=DM+Sans');
+    });
+    test(page + ' does not load Plus Jakarta Sans', () => {
+      const src = fs.readFileSync(path.join(ROOT, page), 'utf8');
+      expect(src.includes('Plus+Jakarta+Sans')).toBe(false);
+    });
+  });
+
+  test('login.html + signup.html no longer reference Inter in CSS', () => {
+    const login = fs.readFileSync(path.join(ROOT, 'login.html'), 'utf8');
+    const signup = fs.readFileSync(path.join(ROOT, 'signup.html'), 'utf8');
+    expect(login.includes("font-family: 'Inter'")).toBe(false);
+    expect(signup.includes("font-family: 'Inter'")).toBe(false);
+  });
+
+  test('dashboard.html + settings.html no longer reference Plus Jakarta in CSS', () => {
+    const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+    const settings = fs.readFileSync(path.join(ROOT, 'settings.html'), 'utf8');
+    expect(dash.includes('"Plus Jakarta Sans"')).toBe(false);
+    expect(settings.includes('"Plus Jakarta Sans"')).toBe(false);
+  });
+});
+
+describe('M3 — Brand tokens CSS', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'brand-tokens.css'), 'utf8');
+
+  test('Defines --ss-radius-pill + lg + md + sm', () => {
+    expect(css.includes('--ss-radius-pill:') && css.includes('999px')).toBe(true);
+    expect(css.includes('--ss-radius-lg:') && css.includes('14px')).toBe(true);
+    expect(css.includes('--ss-radius-md:') && css.includes('10px')).toBe(true);
+    expect(css.includes('--ss-radius-sm:') && css.includes('6px')).toBe(true);
+  });
+
+  test('Defines --ss-font-body + display + mono', () => {
+    expect(css).toContain('--ss-font-body');
+    expect(css).toContain('--ss-font-display');
+    expect(css).toContain('--ss-font-mono');
+  });
+
+  test('Body font is DM Sans (canonical per CLAUDE.md)', () => {
+    expect(css).toContain('"DM Sans"');
+  });
+
+  test('Exports utility classes ss-btn-primary + ss-btn-ghost + ss-btn-app', () => {
+    expect(css).toContain('.ss-btn-primary');
+    expect(css).toContain('.ss-btn-ghost');
+    expect(css).toContain('.ss-btn-app');
+  });
+
+  test('Respects prefers-reduced-motion', () => {
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(css).toContain('transition: none');
+  });
+});
+
 describe('L2 — Meta Graph API version centralization', () => {
   const src = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
 
