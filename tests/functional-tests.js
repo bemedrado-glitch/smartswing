@@ -2607,6 +2607,32 @@ describe('HTML — marketing.html WhatsApp cadence editor', () => {
   });
 });
 
+describe('Social proof — hero trust strip on landing pages (Tier 1 #4)', () => {
+  const index = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const forPlayers = fs.readFileSync(path.join(ROOT, 'for-players.html'), 'utf8');
+
+  test('index.html hero has 3-line trust strip (privacy, elite-level, founders)', () => {
+    expect(index).toContain('class="hero-proof"');
+    expect(index).toContain('video never leaves your device');
+    expect(index).toContain('USTA-certified coach');
+  });
+
+  test('for-players.html hero has trust strip', () => {
+    expect(forPlayers).toContain('class="hero-proof"');
+    expect(forPlayers).toContain('USTA-certified coach');
+  });
+
+  test('Trust strips include privacy claim (critical for cold US prospects)', () => {
+    expect(index).toContain('Private');
+    expect(forPlayers).toContain('Private');
+  });
+
+  test('Trust strips use aria-label region for screen-reader accessibility', () => {
+    expect(index).toContain('aria-label="Trust indicators"');
+    expect(forPlayers).toContain('aria-label="Trust indicators"');
+  });
+});
+
 describe('Paywall — post-analysis tease (Tier 1 #1)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
