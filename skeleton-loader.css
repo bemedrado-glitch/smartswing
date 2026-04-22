@@ -1,0 +1,118 @@
+/**
+ * SmartSwing AI — Skeleton loader primitives (S9 from audit).
+ *
+ * Give users visible feedback during JS hydration instead of blank panels.
+ * Use one of these patterns:
+ *
+ *   <div class="ss-skeleton ss-skeleton--card"></div>
+ *   <div class="ss-skeleton ss-skeleton--list-row"></div>
+ *   <div class="ss-skeleton ss-skeleton--kpi"></div>
+ *   <div class="ss-skeleton ss-skeleton--text" style="width:70%;"></div>
+ *
+ * Shimmer animation respects prefers-reduced-motion.
+ * Colors adapt to both dark + light themes via CSS custom properties.
+ */
+
+:root {
+  --ss-skeleton-bg:      rgba(255, 255, 255, 0.05);
+  --ss-skeleton-shimmer: rgba(255, 255, 255, 0.08);
+}
+
+.ss-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--ss-skeleton-bg);
+  border-radius: 8px;
+  /* Baseline animation — overridden by reduced-motion below */
+  animation: ss-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.ss-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--ss-skeleton-shimmer) 50%,
+    transparent 100%
+  );
+  animation: ss-skeleton-shimmer 1.6s linear infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes ss-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.75; }
+}
+
+@keyframes ss-skeleton-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ── Variants ──────────────────────────────────────────────────────────── */
+
+.ss-skeleton--text {
+  height: 14px;
+  margin: 8px 0;
+  border-radius: 4px;
+}
+
+.ss-skeleton--heading {
+  height: 22px;
+  margin: 10px 0 14px;
+  width: 60%;
+  border-radius: 6px;
+}
+
+.ss-skeleton--card {
+  height: 120px;
+  margin: 0 0 12px;
+  border-radius: 14px;
+}
+
+.ss-skeleton--kpi {
+  height: 96px;
+  border-radius: 14px;
+}
+
+.ss-skeleton--list-row {
+  height: 56px;
+  margin: 0 0 10px;
+  border-radius: 12px;
+}
+
+.ss-skeleton--thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.ss-skeleton--avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Helper to wrap a group of skeleton rows so they have consistent padding */
+.ss-skeleton-group {
+  padding: 8px 0;
+}
+
+/* Reduced motion — kill shimmer + pulse, keep the static placeholder visible */
+@media (prefers-reduced-motion: reduce) {
+  .ss-skeleton,
+  .ss-skeleton::after {
+    animation: none;
+  }
+}
+
+/* Light-theme override (some pages use white bg) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --ss-skeleton-bg:      rgba(0, 0, 0, 0.06);
+    --ss-skeleton-shimmer: rgba(0, 0, 0, 0.04);
+  }
+}
