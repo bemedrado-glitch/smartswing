@@ -2699,6 +2699,50 @@ describe('Alert replacement with toasts (Tier 2 #5 wiring)', () => {
   });
 });
 
+describe('Day-1 onboarding checklist (Tier 2 #8)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+
+  test('Checklist panel is rendered with a11y-friendly labelling', () => {
+    expect(src).toContain('id="onboardingChecklist"');
+    expect(src).toContain('aria-labelledby="onboardingTitle"');
+    expect(src).toContain('id="onboardingTitle"');
+  });
+
+  test('Progress bar + percentage UI present', () => {
+    expect(src).toContain('id="onboardingBar"');
+    expect(src).toContain('id="onboardingPct"');
+  });
+
+  test('All 5 onboarding steps are defined with destinations', () => {
+    expect(src).toContain("id: 'profile'");
+    expect(src).toContain("id: 'analyze'");
+    expect(src).toContain("id: 'share'");
+    expect(src).toContain("id: 'invite'");
+    expect(src).toContain("id: 'plan'");
+    expect(src).toContain('./refer-friends.html');
+    expect(src).toContain('./pricing.html?src=onboarding');
+  });
+
+  test('Dismiss state persists to localStorage (per-user)', () => {
+    expect(src).toContain("'ss:onboarding:dismissed:' + user.id");
+    expect(src).toContain('onboardingDismiss');
+  });
+
+  test('Checklist hides when user has completed all items', () => {
+    expect(src).toContain('doneCount >= items.length');
+  });
+
+  test('Anchored on real store state (plan, assessments, referralStats)', () => {
+    expect(src).toContain('store.getReferralStats');
+    expect(src).toContain('access.plan.id');
+    expect(src).toContain('assessments.length');
+  });
+
+  test('Onboarding block is defensive — never breaks dashboard on error', () => {
+    expect(src).toContain('/* never break dashboard over onboarding UI */');
+  });
+});
+
 describe('Lifecycle emails — D1 + D7 onboarding engine (Tier 1 #2)', () => {
   const tpl = fs.readFileSync(path.join(ROOT, 'api/_lib/email-templates.js'), 'utf8');
   const cron = fs.readFileSync(path.join(ROOT, 'api/cron-win-back.js'), 'utf8');
