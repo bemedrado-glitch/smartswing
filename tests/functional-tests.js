@@ -2759,6 +2759,89 @@ describe('Inbox threading — schema + inbound webhook (Tier 2 #6 slice 1+2)', (
   });
 });
 
+describe('UI/UX consistency sweep — headers, footers, tokens, year', () => {
+  const sharedChrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
+
+  test('Pricing header uses canonical .nav class (was .nav-bar outlier)', () => {
+    const src = fs.readFileSync(path.join(ROOT, 'pricing.html'), 'utf8');
+    expect(src).toContain('<nav class="nav"');
+    expect(src.includes('<nav class="nav-bar"')).toBe(false);
+  });
+
+  test('No page still shows a stale 2025 copyright', () => {
+    const pages = ['index.html', 'pricing.html', 'about.html', 'contact.html',
+      'blog.html', 'for-players.html', 'for-coaches.html', 'privacy-policy.html',
+      'user-agreement.html', 'refund-policy.html', 'settings.html', 'welcome.html'];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src.includes('2025 SmartSwing')).toBe(false);
+    });
+  });
+
+  test('All footer logos use canonical 140x35 dimensions', () => {
+    const pages = ['for-players.html', 'for-coaches.html', 'for-clubs.html', 'for-parents.html'];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src.includes('footer-logo" width="152"')).toBe(false);
+      expect(src).toContain('footer-logo" width="140" height="35"');
+    });
+  });
+
+  test('Shared chrome script exports renderFooter + renderHeader + skipLink', () => {
+    expect(sharedChrome).toContain('function footerHTML');
+    expect(sharedChrome).toContain('function headerHTML');
+    expect(sharedChrome).toContain('ensureSkipLink');
+    expect(sharedChrome).toContain('data-ss-footer');
+    expect(sharedChrome).toContain('data-ss-header');
+  });
+
+  test('Shared footer auto-updates the year from runtime Date', () => {
+    expect(sharedChrome).toContain('new Date().getFullYear()');
+  });
+
+  test('Pages that previously had no header now load shared-chrome.js', () => {
+    const pages = ['cart.html', 'contact.html', 'login.html', 'signup.html',
+      'auth-callback.html', 'post.html'];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('shared-chrome.js');
+      expect(src).toContain('data-ss-header');
+    });
+  });
+
+  test('Brand-tokens.css now linked on 12+ top-of-funnel public pages', () => {
+    const pages = ['index.html', 'pricing.html', 'features.html', 'how-it-works.html',
+      'about.html', 'contact.html', 'blog.html', 'for-players.html',
+      'for-coaches.html', 'for-clubs.html', 'for-parents.html', 'pickleball.html',
+      'dashboard.html'];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('brand-tokens.css');
+    });
+  });
+
+  test('404 page migrated to shared footer placeholder', () => {
+    const src = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
+    expect(src).toContain('data-ss-footer');
+  });
+
+  test('Previously-missing meta descriptions are present', () => {
+    const pages = ['404.html', 'cart.html', 'auth-callback.html'];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('name="description"');
+    });
+  });
+
+  test('Homepage + blog logo dims match the canonical 190x80', () => {
+    const idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
+    expect(idx.includes('brand-logo" width="160"')).toBe(false);
+    expect(blog.includes('brand-logo" width="160"')).toBe(false);
+    expect(idx).toContain('brand-logo" width="190" height="80"');
+  });
+});
+
 describe('UX polish — analyze skeleton + hero video + safe-area + token adoption', () => {
   const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
   const idx     = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
