@@ -411,6 +411,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
+<link rel="stylesheet" href="./toast.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -834,7 +835,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       } catch (error) {
         nextBtn.disabled = false;
         nextBtn.textContent = 'Finish ✓';
-        alert(error.message || 'Unable to save your onboarding quiz right now.');
+        window.SmartSwingToast ? window.SmartSwingToast.error(error.message || 'Unable to save your onboarding quiz right now.') : alert(error.message || 'Unable to save your onboarding quiz right now.');
       }
     }
 
@@ -940,5 +941,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script src="./i18n.js" defer></script>
+<script src="./toast.js" defer></script>
 </body>
 </html>

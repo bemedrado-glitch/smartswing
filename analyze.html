@@ -1077,6 +1077,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
+<link rel="stylesheet" href="./toast.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1858,6 +1859,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     const store = window.SmartSwingStore;
     let currentUser = store ? store.getCurrentUser() : null;
+
+    // Safe toast helper — uses SmartSwingToast (loaded from toast.js) if
+    // available, falls back to console.log so replacement of legacy alert()
+    // calls is bulletproof even if the toast script hasn't hydrated yet.
+    function _ssToast(msg, type) {
+      try {
+        if (window.SmartSwingToast) {
+          var fn = window.SmartSwingToast[type || 'info'] || window.SmartSwingToast.show;
+          fn.call(window.SmartSwingToast, msg);
+          return;
+        }
+      } catch (_) {}
+      console.log('[toast fallback ' + (type || 'info') + ']', msg);
+    }
 
     // Re-check auth periodically — session may restore after page load
     if (store && !currentUser) {
@@ -5898,7 +5913,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     document.getElementById('nextBtn1').addEventListener('click', () => {
       if (!playerProfile.gender || !playerProfile.age || !playerProfile.level) {
-        alert('Please complete all selections');
+        _ssToast('Please complete all selections', 'warn');
         return;
       }
       setStep(2);
@@ -5908,7 +5923,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     document.getElementById('nextBtn2').addEventListener('click', () => {
       if (playerProfile.shots.length === 0) {
-        alert('Please select at least one shot type');
+        _ssToast('Please select at least one shot type', 'warn');
         return;
       }
       setStep(3);
@@ -6030,7 +6045,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     document.getElementById('nextBtn3').addEventListener('click', async () => {
       if (!playerProfile.videoFile) {
-        alert('Please upload a video file or record a swing to continue.');
+        _ssToast('Please upload a video or record a swing to continue.', 'warn');
         return;
       }
       if (playerProfile.videoFile && playerProfile.setupScore < 70) {
@@ -6616,7 +6631,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const video = document.getElementById('videoElement');
       
       if (!detector) {
-        alert('AI not ready yet. Click "Retry AI Setup" and try again.');
+        _ssToast('AI not ready yet. Tap Retry AI Setup and try again.', 'error');
         return;
       }
 
@@ -6865,18 +6880,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const session = getOrBuildSession();
       const persisted = persistSession(session);
 
-      alert('Analysis saved.\n\n' +
-            'Frames: ' + session.summary.framesAnalyzed + '\n' +
-            'Score: ' + session.summary.score + '\n' +
-            'Grade: ' + session.summary.grade +
-            (currentUser ? '\nDashboard updated.' : '\nSign in to keep a history across sessions.'));
+      _ssToast('Analysis saved · Score ' + session.summary.score + ' · Grade ' + session.summary.grade +
+               (currentUser ? ' · Dashboard updated.' : ' · Sign in to keep history.'),
+               'success');
       refreshPlanStrip();
     });
 
     // Generate Report Button
     document.getElementById('generateReportBtn').addEventListener('click', async () => {
       if (analysisData.frames.length < 30) {
-        alert('Analyze at least 30 frames before generating report');
+        _ssToast('Analyze at least 30 frames before generating a report.', 'warn');
         return;
       }
 
@@ -7769,7 +7782,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         // End match
         document.getElementById('mtEndMatchBtn')?.addEventListener('click', () => {
-          if (mt.log.length === 0) { alert('No points logged yet.'); return; }
+          if (mt.log.length === 0) { _ssToast('No points logged yet.', 'info'); return; }
           if (!confirm('End match and show report?')) return;
           mt.matchOver = true;
           mt.finalScore = buildFinalScore();
@@ -7789,7 +7802,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         // Save match to localStorage
         document.getElementById('mtSaveMatchBtn')?.addEventListener('click', () => {
-          if (!store) { alert('Store not available'); return; }
+          if (!store) { _ssToast('Store not available', 'error'); return; }
           try {
             const mWinner = matchWinner() || (mt.log.filter(p => p.winner === 'left').length > mt.log.filter(p => p.winner === 'right').length ? 'left' : 'right');
             const result = mWinner === 'left' ? 'win' : 'loss';
@@ -7807,7 +7820,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             const btn = document.getElementById('mtSaveMatchBtn');
             if (btn) { btn.textContent = 'Saved!'; btn.disabled = true; }
           } catch (err) {
-            alert('Unable to save match: ' + (err.message || err));
+            _ssToast('Unable to save match: ' + (err.message || err));
           }
         });
 
@@ -7988,7 +8001,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       if (shareBtn) {
         shareBtn.addEventListener('click', async () => {
-          if (!navigator.share) { alert('Web Share API not available on this device/browser.'); return; }
+          if (!navigator.share) { _ssToast("Sharing isn't supported in this browser — use Download instead.", 'info'); return; }
           canvas.toBlob(async (blob) => {
             try {
               const file = new File([blob], 'smartswing-scorecard.png', { type: 'image/png' });
@@ -8230,6 +8243,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
+<script src="./toast.js" defer></script>
 <script src="./i18n.js" defer></script>
 </body>
 </html>

@@ -242,6 +242,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./skeleton-loader.css">
+<link rel="stylesheet" href="./toast.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1512,7 +1513,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           store.sendMessage({ toUserId: document.getElementById('messageTarget').value, subject: document.getElementById('messageSubject').value || 'New message', body: document.getElementById('messageBody').value || '' });
           window.location.reload();
         } catch (error) {
-          alert(error.message || 'Unable to send message.');
+          window.SmartSwingToast ? window.SmartSwingToast.error(error.message || 'Unable to send message.') : alert(error.message || 'Unable to send message.');
         }
       });
       if (!access.canMessage) {
@@ -1532,7 +1533,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     function csvEscape(value){return `"${String(value ?? '').replace(/"/g,'""')}"`;}
     window.exportDashboard = function(format){
       if (!access.canExport) {
-        alert('Export unlocks on Player, Performance, and Tournament plans.');
+        window.SmartSwingToast ? window.SmartSwingToast.info('Export unlocks on Player, Performance, and Tournament plans.', { action: { label: 'See plans', href: './pricing.html?utm_source=export_lock' } }) : alert('Export unlocks on Player, Performance, and Tournament plans.');
         window.location.href = './pricing.html';
         return;
       }
@@ -1548,7 +1549,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     };
     window.printDashboard = function(){
       if (!access.canExport) {
-        alert('Print/export unlocks on Player, Performance, and Tournament plans.');
+        window.SmartSwingToast ? window.SmartSwingToast.info('Print/export unlocks on Player, Performance, and Tournament plans.', { action: { label: 'See plans', href: './pricing.html?utm_source=print_lock' } }) : alert('Print/export unlocks on Player, Performance, and Tournament plans.');
         window.location.href = './pricing.html';
         return;
       }
@@ -1827,7 +1828,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       if (shareBtn) {
         shareBtn.addEventListener('click', async () => {
-          if (!navigator.share) { alert('Web Share API not available on this device/browser.'); return; }
+          if (!navigator.share) { (window.SmartSwingToast || { info: alert }).info('Sharing not supported in this browser — use Download instead.'); return; }
           canvas.toBlob(async (blob) => {
             try {
               const file = new File([blob], 'smartswing-scorecard.png', { type: 'image/png' });
@@ -2202,5 +2203,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <script src="./i18n.js" defer></script>
 <script src="./skeleton-loader.js" defer></script>
+<script src="./toast.js" defer></script>
 </body>
 </html>

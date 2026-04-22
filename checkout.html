@@ -444,6 +444,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
+<link rel="stylesheet" href="./toast.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -736,7 +737,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           try {
             store.setCurrentPlan('free', currentUser.id);
           } catch (err) {
-            alert(err.message || 'Unable to activate the free plan.');
+            window.SmartSwingToast ? window.SmartSwingToast.error(err.message || 'Unable to activate the free plan.') : alert(err.message || 'Unable to activate the free plan.');
             return;
           }
           window.location.href = './welcome.html?plan=free';
@@ -924,5 +925,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
+<script src="./toast.js" defer></script>
 </body>
 </html>

@@ -2633,6 +2633,72 @@ describe('Social proof — hero trust strip on landing pages (Tier 1 #4)', () =>
   });
 });
 
+describe('Global toast system (Tier 2 #5)', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'toast.css'), 'utf8');
+  const js = fs.readFileSync(path.join(ROOT, 'toast.js'), 'utf8');
+
+  test('CSS defines success/error/warn/info variants + reduced-motion support', () => {
+    ['--success', '--error', '--warn', '--info'].forEach(v => {
+      expect(css).toContain('.ss-toast' + v);
+    });
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+  });
+
+  test('JS exposes SmartSwingToast with success/error/warn/info + fieldError/Clear', () => {
+    expect(js).toContain('window.SmartSwingToast');
+    expect(js).toContain('success:');
+    expect(js).toContain('error:');
+    expect(js).toContain('fieldError:');
+    expect(js).toContain('fieldClear:');
+  });
+
+  test('Errors use role=alert + aria-live=assertive (vs status+polite for others)', () => {
+    expect(js).toContain("'alert'");
+    expect(js).toContain("'assertive'");
+  });
+
+  test('Stack is capped at MAX_STACK to prevent spam', () => {
+    expect(js).toContain('MAX_STACK');
+    expect(js).toContain('queue.length >= MAX_STACK');
+  });
+
+  test('ESC key dismisses most recent toast', () => {
+    expect(js).toContain("e.key === 'Escape'");
+  });
+
+  test('Idempotent — re-including toast.js does not double-define', () => {
+    expect(js).toContain('if (window.SmartSwingToast) return;');
+  });
+});
+
+describe('Alert replacement with toasts (Tier 2 #5 wiring)', () => {
+  const pages = ['analyze.html', 'checkout.html', 'dashboard.html', 'coach-dashboard.html', 'welcome.html'];
+
+  pages.forEach(page => {
+    test(page + ' loads toast.css + toast.js', () => {
+      const src = fs.readFileSync(path.join(ROOT, page), 'utf8');
+      expect(src).toContain('./toast.css');
+      expect(src).toContain('./toast.js');
+    });
+  });
+
+  test('analyze.html has _ssToast helper + no bare alert() remaining', () => {
+    const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+    expect(src).toContain('function _ssToast');
+    // Every alert() call should now be inside a _ssToast(...) body OR a fallback branch
+    // (simple smoke check: count raw alerts NOT followed by a close paren with nothing but fallback wrapping)
+    const bareAlerts = (src.match(/\balert\(/g) || []).length;
+    // _ssToast uses 'alert' as a string token INSIDE the helper so we allow up to 1
+    expect(bareAlerts <= 1).toBe(true);
+  });
+
+  test('dashboard.html uses toast.info with action link for plan-gated features', () => {
+    const src = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+    expect(src).toContain("utm_source=export_lock");
+    expect(src).toContain('SmartSwingToast.info');
+  });
+});
+
 describe('Lifecycle emails — D1 + D7 onboarding engine (Tier 1 #2)', () => {
   const tpl = fs.readFileSync(path.join(ROOT, 'api/_lib/email-templates.js'), 'utf8');
   const cron = fs.readFileSync(path.join(ROOT, 'api/cron-win-back.js'), 'utf8');
