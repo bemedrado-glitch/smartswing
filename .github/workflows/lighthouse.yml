@@ -1,0 +1,57 @@
+name: Lighthouse CI
+
+# Continuous quality gate: runs Lighthouse against 5 high-traffic pages on
+# every PR that touches HTML/CSS/JS. Fails the check if Performance,
+# Accessibility, Best Practices, or SEO drop below the thresholds defined in
+# `lighthouserc.json`. Replaces point-in-time UX audits with a measured score
+# that ratchets up over time.
+#
+# How it works:
+#   1. Boot a static file server with `npx serve` (no build step needed)
+#   2. Run @lhci/cli@0.13 against the URLs listed in lighthouserc.json
+#   3. Upload the HTML reports as a workflow artifact for forensic review
+
+on:
+  pull_request:
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+      - 'lighthouserc.json'
+      - '.github/workflows/lighthouse.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.13.x
+
+      - name: Run Lighthouse audit
+        run: lhci autorun
+        env:
+          # No upload server — keep results local to the workflow artifact.
+          LHCI_BUILD_CONTEXT__CURRENT_BRANCH: ${{ github.head_ref || github.ref_name }}
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports-${{ github.run_number }}
+          path: .lighthouseci/
+          retention-days: 14

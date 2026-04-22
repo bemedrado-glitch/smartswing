@@ -2759,6 +2759,42 @@ describe('Inbox threading — schema + inbound webhook (Tier 2 #6 slice 1+2)', (
   });
 });
 
+describe('Lighthouse CI quality gate', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'lighthouserc.json'), 'utf8'));
+  const wf = fs.readFileSync(path.join(ROOT, '.github/workflows/lighthouse.yml'), 'utf8');
+
+  test('Audits 5 representative high-traffic pages', () => {
+    const urls = config.ci.collect.url;
+    expect(Array.isArray(urls)).toBe(true);
+    expect(urls.length).toBe(5);
+    expect(urls.some(u => u.includes('/index.html'))).toBe(true);
+    expect(urls.some(u => u.includes('/pricing.html'))).toBe(true);
+  });
+
+  test('Performance + a11y + SEO have hard minimum thresholds', () => {
+    const a = config.ci.assert.assertions;
+    expect(a['categories:performance'][1].minScore).toBeGreaterThanOrEqual(0.85);
+    expect(a['categories:accessibility'][1].minScore).toBeGreaterThanOrEqual(0.90);
+    expect(a['categories:seo'][1].minScore).toBeGreaterThanOrEqual(0.90);
+  });
+
+  test('Critical a11y + SEO single-audit checks are errors not warnings', () => {
+    const a = config.ci.assert.assertions;
+    expect(a['color-contrast']).toBe('error');
+    expect(a['image-alt']).toBe('error');
+    expect(a['html-has-lang']).toBe('error');
+    expect(a['meta-description']).toBe('error');
+    expect(a['document-title']).toBe('error');
+  });
+
+  test('Workflow runs on PR + main and uploads HTML reports as artifact', () => {
+    expect(wf).toContain('lhci autorun');
+    expect(wf).toContain('actions/upload-artifact');
+    expect(wf).toContain('pull_request:');
+    expect(wf).toContain('branches: [main]');
+  });
+});
+
 describe('UI/UX consistency sweep — headers, footers, tokens, year', () => {
   const sharedChrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
 
