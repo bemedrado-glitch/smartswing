@@ -45,9 +45,20 @@
     );
   }
 
+  // Auto-inject the canonical footer stylesheet so pages don't each need to
+  // remember to `<link rel="stylesheet" href="./shared-footer.css">`. Idempotent.
+  function ensureFooterCss() {
+    if (document.querySelector('link[data-ss-footer-css]')) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = './shared-footer.css';
+    link.setAttribute('data-ss-footer-css', '1');
+    document.head.appendChild(link);
+  }
+
   function footerHTML() {
     return (
-      '<footer class="footer" role="contentinfo" aria-label="Site footer">' +
+      '<footer class="footer ss-footer" role="contentinfo" aria-label="Site footer">' +
         '<div class="page">' +
           '<div class="footer-grid">' +
             '<div>' +
@@ -103,6 +114,8 @@
 
   function renderFooter() {
     var slots = document.querySelectorAll('[data-ss-footer]');
+    if (!slots.length) return;
+    ensureFooterCss();
     slots.forEach(function (el) { el.outerHTML = footerHTML(); });
   }
 
