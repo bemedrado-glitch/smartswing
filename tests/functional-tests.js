@@ -2607,6 +2607,42 @@ describe('HTML — marketing.html WhatsApp cadence editor', () => {
   });
 });
 
+describe('Paywall — post-analysis tease (Tier 1 #1)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('isPaidUser helper defined with safe default = false', () => {
+    expect(src).toContain('function isPaidUser()');
+    expect(src).toContain("p !== 'free' && p !== 'starter'");
+  });
+
+  test('Paywall tease section is rendered conditionally for non-paid users', () => {
+    expect(src).toContain('paywall-tease');
+    expect(src).toContain("isPaidUser() ? '' : `");
+  });
+
+  test('Tease includes 3 locked preview benefits with blur filter', () => {
+    expect(src).toContain('Compare to pro benchmarks');
+    expect(src).toContain('personalized drill plan');
+    expect(src).toContain('AI coach narrative');
+    expect(src).toContain('filter:blur(3px)');
+  });
+
+  test('CTA links to pricing with UTM + plan params for attribution', () => {
+    expect(src).toContain('utm_source=post_analysis_paywall');
+    expect(src).toContain('utm_campaign=unlock_report');
+    expect(src).toContain('plan=pro');
+  });
+
+  test('Full Technical Details section is gated with PLAYER PLAN badge for free users', () => {
+    expect(src).toContain('data-paywall-locked="1"');
+    expect(src).toContain('🔒 PLAYER PLAN');
+  });
+
+  test('Paywall click tracked via gtag for funnel analytics', () => {
+    expect(src).toContain("gtag('event', 'paywall_click'");
+  });
+});
+
 describe('HTML — analyze.html lite-signup modal', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
