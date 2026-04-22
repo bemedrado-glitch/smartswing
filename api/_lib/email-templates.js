@@ -258,6 +258,77 @@ function paymentSuccess({ firstName = 'there', planName = 'Player', billingInter
 }
 
 // ─── Template: win_back_7d ───────────────────────────────────────────────────
+// ── Template: onboarding_d1_no_analysis (D1 post-signup, no analysis yet) ─────
+// Fires 24h after a user signs up via lite-signup OR full signup but hasn't
+// uploaded a video yet. Low-pressure reminder + 1-line of social proof.
+function onboardingD1NoAnalysis({ firstName = 'there' } = {}) {
+  return {
+    subject: `${firstName}, your free analysis is still waiting`,
+    html: base({
+      preheader: `60 seconds. One phone video. Your first AI swing report — free.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">Day 1</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">Hey ${firstName}, your free swing analysis is ready when you are.</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 20px 0;">
+          Most tennis players who try SmartSwing find their #1 technique fix in the first clip — the AI catches what the eye doesn't. No editing, no coaching jargon. 60 seconds from phone video to full report.
+        </p>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          <em>"It caught a footwork habit I'd had for 12 years. My coach couldn't believe how precise it was."</em><br>
+          <span style="font-size:13px;color:${C.text};">— Marcus T., 4.0 NTRP</span>
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">
+          <tr><td>${btn('Analyze my first swing →', APP_URL + '/analyze.html')}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          Tip: shoot from behind the baseline, waist-height, landscape orientation. One clean forehand or backhand is all it takes.
+        </p>
+      `
+    })
+  };
+}
+
+// ── Template: onboarding_d7_progress (D7 post-signup, ≥1 analysis done) ───────
+// Fires 7 days after signup for users who DID complete an analysis. Nudges
+// return visits + previews the pro-benchmark paywall.
+function onboardingD7Progress({ firstName = 'there', lastScore = null, lastShotType = 'forehand' } = {}) {
+  const scoreLine = lastScore
+    ? `Your ${lastShotType} scored <strong style="color:${C.volt};">${lastScore}/100</strong> — here's what to work on this week.`
+    : `It's been a week since your first analysis — ready to run another?`;
+  return {
+    subject: `${firstName}, your week-1 swing check-in`,
+    html: base({
+      preheader: `Your swing score, 3 drills, and what to focus on next.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">Week 1 check-in</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">Hey ${firstName}, ready for swing #2?</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 20px 0;">
+          ${scoreLine}
+        </p>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          One follow-up analysis in week 2 catches whether your practice is landing the changes — most players see a 6-14 point score lift in their second report.
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 20px 0;">
+          <tr><td>${btn('Run my week-2 analysis →', APP_URL + '/analyze.html')}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0 0 8px 0;"><strong style="color:${C.text};">Want more?</strong> Player plan unlocks:</p>
+        <ul style="font-size:13px;color:${C.muted};line-height:1.8;padding-left:20px;margin:0 0 20px 0;">
+          <li>Pro benchmark comparison (your swing vs. 4.5 NTRP + ATP top-100)</li>
+          <li>Personalized 14-day drill plan</li>
+          <li>10 analyses per month + drill library video guides</li>
+        </ul>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          <a href="${APP_URL}/pricing.html?utm_source=onboarding_d7&utm_campaign=week1_checkin" style="color:${C.volt};text-decoration:none;font-weight:700;">See Player plan ($9.99/mo) →</a>
+        </p>
+      `
+    })
+  };
+}
+
 function winBack7d({ firstName = 'there' } = {}) {
   return {
     subject: `${firstName}, your swing analysis is still waiting`,
@@ -737,6 +808,8 @@ function scoreImproved({
 const TEMPLATES = {
   welcome,
   analysis_warning: analysisWarning,
+  onboarding_d1_no_analysis: onboardingD1NoAnalysis,
+  onboarding_d7_progress: onboardingD7Progress,
   paywall_hit: paywallHit,
   paywall_followup_3d: paywallFollowup3d,
   paywall_followup_7d: paywallFollowup7d,

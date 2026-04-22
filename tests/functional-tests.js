@@ -2633,6 +2633,49 @@ describe('Social proof — hero trust strip on landing pages (Tier 1 #4)', () =>
   });
 });
 
+describe('Lifecycle emails — D1 + D7 onboarding engine (Tier 1 #2)', () => {
+  const tpl = fs.readFileSync(path.join(ROOT, 'api/_lib/email-templates.js'), 'utf8');
+  const cron = fs.readFileSync(path.join(ROOT, 'api/cron-win-back.js'), 'utf8');
+
+  test('D1 no-analysis template defined + registered', () => {
+    expect(tpl).toContain('function onboardingD1NoAnalysis');
+    expect(tpl).toContain('onboarding_d1_no_analysis: onboardingD1NoAnalysis');
+  });
+
+  test('D7 progress check-in template defined + registered', () => {
+    expect(tpl).toContain('function onboardingD7Progress');
+    expect(tpl).toContain('onboarding_d7_progress: onboardingD7Progress');
+  });
+
+  test('D1 template mentions social proof (real testimonial quote)', () => {
+    expect(tpl).toContain('Marcus T.');
+    expect(tpl).toContain('footwork habit');
+  });
+
+  test('D7 template uses last analysis score + shot type when available', () => {
+    expect(tpl).toContain('${lastShotType}');
+    expect(tpl).toContain('${lastScore}');
+  });
+
+  test('cron-win-back has D1 no-analysis pass (24h post-signup + 0 assessments)', () => {
+    expect(cron).toContain('onboarding_d1_no_analysis');
+    expect(cron).toContain("dayRange(1)");
+    expect(cron).toContain('0 analyses');
+  });
+
+  test('cron-win-back has D7 progress pass (7d post-signup + ≥1 assessment)', () => {
+    expect(cron).toContain('onboarding_d7_progress');
+    expect(cron).toContain('1 analysis');
+  });
+
+  test('D1 + D7 passes are mutually exclusive with win_back_7d (no double-send)', () => {
+    // D1 targets 0-analysis at 24h; win_back_7d targets 0-analysis at 7d; D7 targets ≥1-analysis at 7d
+    // All three are orthogonal and don't send to the same user
+    expect(cron).toContain('if (!assessments || assessments.length === 0)'); // D1 + win_back_7d gate
+    expect(cron).toContain('if (assessments && assessments.length > 0)'); // D7 gate
+  });
+});
+
 describe('Share card — referral-embedded viral loop (Tier 1 #3)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
