@@ -2699,6 +2699,66 @@ describe('Alert replacement with toasts (Tier 2 #5 wiring)', () => {
   });
 });
 
+describe('Inbox threading — schema + inbound webhook (Tier 2 #6 slice 1+2)', () => {
+  const mig = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20260421_inbox_threading.sql'), 'utf8');
+  const hook = fs.readFileSync(path.join(ROOT, 'api/resend-webhook.js'), 'utf8');
+
+  test('Migration creates inbox_threads with a rollup-friendly shape', () => {
+    expect(mig).toContain('create table if not exists public.inbox_threads');
+    expect(mig).toContain('last_message_at');
+    expect(mig).toContain('message_count');
+    expect(mig).toContain('unread_count');
+    expect(mig).toContain('assigned_to');
+    expect(mig).toContain("status text not null default 'open'");
+  });
+
+  test('inbox_messages gains threading + direction + read_at columns', () => {
+    expect(mig).toContain('add column if not exists thread_id uuid');
+    expect(mig).toContain('add column if not exists direction text');
+    expect(mig).toContain('add column if not exists read_at timestamptz');
+    expect(mig).toContain('add column if not exists email_message_id text');
+    expect(mig).toContain("check (direction in ('inbound', 'outbound', 'internal'))");
+  });
+
+  test('Existing rows are backfilled before thread_id becomes NOT NULL', () => {
+    const backfillIdx = mig.indexOf('insert into public.inbox_threads');
+    const notNullIdx = mig.indexOf('alter column thread_id set not null');
+    expect(backfillIdx > 0).toBe(true);
+    expect(notNullIdx > backfillIdx).toBe(true);
+  });
+
+  test('Rollup trigger covers INSERT + read_at transitions', () => {
+    expect(mig).toContain('create or replace function public.inbox_thread_rollup');
+    expect(mig).toContain('trg_inbox_thread_rollup_ins');
+    expect(mig).toContain('trg_inbox_thread_rollup_upd');
+    expect(mig).toContain('greatest(0, t.unread_count - 1)');
+  });
+
+  test('RLS on threads inherits visibility from messages', () => {
+    expect(mig).toContain('inbox_threads enable row level security');
+    expect(mig).toContain('inbox_threads_select_via_messages');
+    expect(mig).toContain('select 1 from public.inbox_messages m');
+  });
+
+  test('Inbound webhook folded into resend-webhook (no new function)', () => {
+    expect(hook).toContain('email.inbound');
+    expect(hook).toContain('handleInboundEmail');
+  });
+
+  test('Inbound handler threads by references first, then subject', () => {
+    expect(hook).toContain('findThreadByReferences');
+    expect(hook).toContain('findThreadBySubject');
+    const refIdx = hook.indexOf('findThreadByReferences(candidateIds)');
+    const subjIdx = hook.indexOf('findThreadBySubject(subject)');
+    expect(refIdx < subjIdx).toBe(true);
+  });
+
+  test('Inbound failures never retry-storm — always 200 back to Resend', () => {
+    expect(hook).toContain('Inbound handler failed');
+    expect(hook).toContain('200 so Resend does not infinitely retry');
+  });
+});
+
 describe('Day-1 onboarding checklist (Tier 2 #8)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
 
