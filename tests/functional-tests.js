@@ -1786,6 +1786,310 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// S11 — HANDLER + _LIB COVERAGE
+// Audit flagged 25+ untested modules. Tests below cover pure functions + key
+// input-validation paths without requiring a running Supabase / Stripe / Meta.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('_lib — stripe-common pure helpers', () => {
+  const s = require('../api/_lib/stripe-common.js');
+
+  test('normalizePlanId lowercases + trims', () => {
+    expect(s.normalizePlanId('  STARTER  ')).toBe('starter');
+    expect(s.normalizePlanId('Pro')).toBe('pro');
+    expect(s.normalizePlanId(null)).toBe('');
+    expect(s.normalizePlanId(undefined)).toBe('');
+  });
+
+  test('normalizeBillingInterval maps annual → yearly', () => {
+    expect(s.normalizeBillingInterval('annual')).toBe('yearly');
+    expect(s.normalizeBillingInterval('Yearly')).toBe('yearly');
+    expect(s.normalizeBillingInterval('monthly')).toBe('monthly');
+    expect(s.normalizeBillingInterval('')).toBe('monthly');
+    expect(s.normalizeBillingInterval(null)).toBe('monthly');
+  });
+
+  test('getPriceEnvKeyForPlan returns expected env var names', () => {
+    expect(s.getPriceEnvKeyForPlan('starter', 'monthly')).toBe('STRIPE_PRICE_STARTER_MONTHLY');
+    expect(s.getPriceEnvKeyForPlan('pro', 'yearly')).toBe('STRIPE_PRICE_PRO_YEARLY');
+    expect(s.getPriceEnvKeyForPlan('elite', 'annual')).toBe('STRIPE_PRICE_ELITE_YEARLY');
+    expect(s.getPriceEnvKeyForPlan('unknown', 'monthly')).toBe('');
+  });
+
+  test('getPublicAppUrl strips trailing slash', () => {
+    process.env.PUBLIC_APP_URL = 'https://example.com/';
+    expect(s.getPublicAppUrl()).toBe('https://example.com');
+    delete process.env.PUBLIC_APP_URL;
+    expect(s.getPublicAppUrl()).toBe('https://www.smartswingai.com');
+  });
+
+  test('buildCheckoutUrls encodes plan id for URL safety', () => {
+    const urls = s.buildCheckoutUrls('pro plus');
+    expect(urls.successUrl).toContain('pro%20plus');
+    expect(urls.cancelUrl).toContain('pro%20plus');
+    expect(urls.successUrl).toContain('{CHECKOUT_SESSION_ID}');
+  });
+
+  test('json helper sets Content-Type and status', () => {
+    let statusCode = 0, body = '', headers = {};
+    const fakeRes = {
+      set statusCode(v) { statusCode = v; },
+      get statusCode() { return statusCode; },
+      setHeader(k, v) { headers[k] = v; },
+      end(b) { body = b; }
+    };
+    s.json(fakeRes, 201, { ok: true });
+    expect(statusCode).toBe(201);
+    expect(headers['Content-Type']).toContain('application/json');
+    expect(body).toBe('{"ok":true}');
+  });
+});
+
+describe('_lib — brand-style prompt wrappers', () => {
+  const b = require('../api/_lib/brand-style.js');
+
+  test('brandImagePrompt prepends the SmartSwing brand prefix', () => {
+    const out = b.brandImagePrompt('tennis court at sunset');
+    expect(out).toContain('tennis court at sunset');
+    expect(out.startsWith(b.BRAND_STYLE.image_prompt_prefix)).toBe(true);
+  });
+
+  test('brandCopyPrompt prepends brand tone rules', () => {
+    const out = b.brandCopyPrompt('Write a post about forehand grip');
+    expect(out).toContain('Write a post about forehand grip');
+    expect(out.startsWith(b.BRAND_STYLE.copy_prompt_prefix)).toBe(true);
+  });
+
+  test('Empty/null input returns just the prefix', () => {
+    expect(b.brandImagePrompt('').length).toBe(b.BRAND_STYLE.image_prompt_prefix.length);
+    expect(b.brandImagePrompt(null).length).toBe(b.BRAND_STYLE.image_prompt_prefix.length);
+  });
+
+  test('BRAND_STYLE exports the core brand tokens', () => {
+    expect(b.BRAND_STYLE.image_prompt_prefix).toContain('matte');
+    expect(b.BRAND_STYLE.copy_prompt_prefix.length > 20).toBe(true);
+  });
+});
+
+describe('_lib — platform-formatter text helpers', () => {
+  const pf = require('../api/_lib/platform-formatter.js');
+
+  test('smartTrim returns input unchanged when under limit', () => {
+    expect(pf.smartTrim('short text', 100)).toBe('short text');
+  });
+
+  test('smartTrim prefers sentence boundaries when available', () => {
+    const text = 'First sentence is short. Second sentence continues longer content here.';
+    const out = pf.smartTrim(text, 30);
+    expect(out.endsWith('.')).toBe(true);
+    expect(out.length <= 30).toBe(true);
+  });
+
+  test('smartTrim falls back to word boundary with ellipsis', () => {
+    const out = pf.smartTrim('This is a fairly long sentence without punctuation breakpoints', 30);
+    expect(out.endsWith('…')).toBe(true);
+    expect(out.length <= 30).toBe(true);
+  });
+
+  test('extractUrls pulls all URLs + exposes first', () => {
+    const r = pf.extractUrls('Check https://a.com and https://b.com/path here.');
+    expect(r.urls.length).toBe(2);
+    expect(r.first).toBe('https://a.com');
+  });
+
+  test('stripUrls removes URLs and collapses whitespace', () => {
+    const out = pf.stripUrls('See https://a.com now.');
+    expect(out.includes('https://')).toBe(false);
+    expect(out.includes('  ')).toBe(false);
+  });
+
+  test('formatForPlatform returns caption + hashtags + link + warnings', () => {
+    const item = { copy_text: 'Great forehand tip. https://smartswingai.com/tip', target_persona: 'player_tennis', title: 'Forehand tip' };
+    const out = pf.formatForPlatform('instagram', item);
+    expect(typeof out.caption === 'string').toBe(true);
+    expect(Array.isArray(out.hashtags)).toBe(true);
+    expect(Array.isArray(out.warnings)).toBe(true);
+  });
+
+  test('formatForPlatform enforces Twitter 280-char limit', () => {
+    const longItem = { copy_text: 'A'.repeat(500), title: 'x' };
+    const out = pf.formatForPlatform('x', longItem);
+    expect(out.caption.length <= 280).toBe(true);
+  });
+
+  test('resolveOptimalSlot returns {date,time} for known platforms', () => {
+    const slot = pf.resolveOptimalSlot('instagram', new Date('2026-04-22T00:00:00Z'));
+    expect(typeof slot).toBe('object');
+    expect(typeof slot.date).toBe('string');
+    expect(typeof slot.time).toBe('string');
+    expect(slot.date.match(/^\d{4}-\d{2}-\d{2}$/) !== null).toBe(true);
+    expect(slot.time.match(/^\d{2}:\d{2}$/) !== null).toBe(true);
+  });
+
+  test('pickHashtags respects platform hashtag policy', () => {
+    // Twitter = 'none' → empty
+    expect(pf.pickHashtags('player_tennis', 'twitter', 't', 'b').length).toBe(0);
+    // Facebook = 'few' → up to 3
+    expect(pf.pickHashtags('player_tennis', 'facebook', 't', 'b').length <= 3).toBe(true);
+    // Instagram = 'many' → up to 8
+    expect(pf.pickHashtags('player_tennis', 'instagram', 'forehand drill', 'backhand slice').length <= 8).toBe(true);
+  });
+
+  test('extractKeywordTags pulls tennis-specific terms as hashtags', () => {
+    const tags = pf.extractKeywordTags('Nailing your forehand and backhand takes footwork work.');
+    expect(tags.includes('#forehand')).toBe(true);
+    expect(tags.includes('#backhand')).toBe(true);
+    expect(tags.includes('#footwork')).toBe(true);
+  });
+});
+
+describe('_lib — link-shortener deterministic wrapping', () => {
+  const ls = require('../api/_lib/link-shortener.js');
+
+  test('makeCode returns same code for same inputs (deterministic)', () => {
+    const a = ls.makeCode('item-123', 'instagram', 'https://a.com');
+    const b = ls.makeCode('item-123', 'instagram', 'https://a.com');
+    expect(a).toBe(b);
+    expect(a.length <= 7).toBe(true);
+    expect(a.length > 0).toBe(true);
+  });
+
+  test('makeCode differs when any input changes', () => {
+    const a = ls.makeCode('item-123', 'instagram', 'https://a.com');
+    const b = ls.makeCode('item-123', 'tiktok', 'https://a.com');
+    expect(a !== b).toBe(true);
+  });
+
+  test('buildUtm includes utm_source + medium', () => {
+    const qs = ls.buildUtm('instagram', { id: 'c1', campaign_id: 'camp1' });
+    expect(qs.includes('utm_source=instagram')).toBe(true);
+    expect(qs.includes('utm_medium=social')).toBe(true);
+    expect(qs.includes('utm_campaign=camp1')).toBe(true);
+    expect(qs.includes('utm_content=c1')).toBe(true);
+  });
+
+  test('wrapLinksWithUtm rewrites absolute URLs', () => {
+    const item = { id: 'c1' };
+    const out = ls.wrapLinksWithUtm('Visit https://example.com/path for more', { platform: 'x', item });
+    expect(out.includes('https://example.com/path')).toBe(false);
+    expect(out.includes(ls.BASE)).toBe(true);
+    expect(out.includes('utm_source=x')).toBe(true);
+  });
+
+  test('wrapLinksWithUtm preserves non-URL text and skips already-wrapped links', () => {
+    const already = `Check ${ls.BASE}/abc123?utm_source=x for deals`;
+    const out = ls.wrapLinksWithUtm(already, { platform: 'x', item: { id: 'c1' } });
+    expect(out).toBe(already);
+  });
+
+  test('wrapLinksWithUtm handles empty / null input without throwing', () => {
+    expect(ls.wrapLinksWithUtm(null)).toBe(null);
+    expect(ls.wrapLinksWithUtm('')).toBe('');
+  });
+});
+
+describe('_lib — lead-scoring scoreContact', () => {
+  const { scoreContact } = require('../api/_lib/lead-scoring.js');
+
+  test('Empty contact yields baseline score of 0', () => {
+    expect(scoreContact({})).toBe(0);
+  });
+
+  test('Contact with real email + phone scores contact completeness', () => {
+    const s = scoreContact({ email: 'a@b.com', phone: '+1...' });
+    expect(s >= 20).toBe(true);
+  });
+
+  test('Pending-enrichment email does NOT count as real', () => {
+    const s = scoreContact({ email: 'foo@pending-enrichment.smartswingai.com' });
+    expect(s).toBe(0);
+  });
+
+  test('Club with size hint + academy keyword gets bonuses', () => {
+    const s = scoreContact({
+      type: 'club',
+      website: 'https://club.com',
+      description: '12 courts high-performance academy'
+    });
+    expect(s >= 40).toBe(true); // 10 website + 15 size + 15 academy
+  });
+
+  test('Top-500 player gets ranking bonus', () => {
+    const s = scoreContact({ type: 'player', ranking_position: 250, email: 'p@x.com' });
+    expect(s >= 35).toBe(true); // 10 email + 25 top-500
+  });
+
+  test('Engagement.clicked adds 20, replied_at adds 40', () => {
+    const base = scoreContact({ email: 'a@b.com' });
+    const clicked = scoreContact({ email: 'a@b.com' }, { clicked: true });
+    expect(clicked - base).toBe(20);
+    const replied = scoreContact({ email: 'a@b.com', replied_at: new Date().toISOString() });
+    expect(replied - base).toBe(40);
+  });
+
+  test('Pricing UTM campaign gets strong intent boost', () => {
+    const s = scoreContact({ email: 'a@b.com', utm_campaign: 'pricing' });
+    expect(s >= 45).toBe(true); // 10 email + 30 pricing + 5 any utm
+  });
+
+  test('Score caps at 100 regardless of inputs', () => {
+    const s = scoreContact({
+      email: 'a@b.com', phone: '+1...',
+      type: 'player', ranking_position: 50,
+      utm_campaign: 'pricing', replied_at: new Date().toISOString()
+    }, { opened: true, clicked: true });
+    expect(s).toBe(100);
+  });
+
+  test('Stale contact (>120 days) loses 15 points total', () => {
+    // Use a high-baseline contact so the penalty isn't clamped by Math.max(0, ...)
+    const base = { email: 'a@b.com', phone: '+1...', type: 'player', ranking_position: 100 };
+    const oldStr = new Date(Date.now() - 150 * 86400000).toISOString();
+    const fresh = scoreContact({ ...base, last_contacted_at: new Date().toISOString() });
+    const stale = scoreContact({ ...base, last_contacted_at: oldStr });
+    expect(fresh - stale).toBe(15);
+  });
+});
+
+describe('_lib — silent-failure-log helper contract', () => {
+  const mod = require('../api/_lib/silent-failure-log.js');
+
+  test('logSilentFailure is exported and callable', () => {
+    expect(typeof mod.logSilentFailure).toBe('function');
+  });
+
+  test('Does not throw when Supabase env missing', () => {
+    const orig = process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_URL;
+    let threw = false;
+    try { mod.logSilentFailure('test', new Error('x'), { a: 1 }); }
+    catch (_) { threw = true; }
+    expect(threw).toBe(false);
+    if (orig) process.env.SUPABASE_URL = orig;
+  });
+
+  test('Does not throw when err is a plain string', () => {
+    let threw = false;
+    try { mod.logSilentFailure('test', 'string error message', {}); }
+    catch (_) { threw = true; }
+    expect(threw).toBe(false);
+  });
+
+  test('Does not throw on null metadata', () => {
+    let threw = false;
+    try { mod.logSilentFailure('test', new Error('x'), null); }
+    catch (_) { threw = true; }
+    expect(threw).toBe(false);
+  });
+
+  test('Returns synchronously (fire-and-forget, non-blocking)', () => {
+    const start = Date.now();
+    mod.logSilentFailure('test', new Error('x'), {});
+    expect(Date.now() - start < 50).toBe(true);
+  });
+});
+
 describe('Meta — token diagnostics for FB/IG reconnect', () => {
   const src = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
   const dash = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');

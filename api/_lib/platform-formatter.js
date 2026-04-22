@@ -198,6 +198,12 @@ function resolveOptimalSlot(platform, reference) {
 module.exports = {
   formatForPlatform,
   resolveOptimalSlot,
+  // Exported for unit testing + potential reuse outside this module
+  smartTrim,
+  extractUrls,
+  stripUrls,
+  pickHashtags,
+  extractKeywordTags,
   PLATFORM_WINDOWS,
   PLATFORM_RULES,
   HASHTAG_BANK
