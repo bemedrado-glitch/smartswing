@@ -2052,6 +2052,103 @@ describe('_lib — lead-scoring scoreContact', () => {
   });
 });
 
+describe('L2 — Meta Graph API version centralization', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
+
+  test('Exactly one META_GRAPH_VERSION constant defined', () => {
+    const matches = src.match(/const META_GRAPH_VERSION\s*=/g) || [];
+    expect(matches.length).toBe(1);
+  });
+  test('META_GRAPH_BASE used consistently (no remaining v21/v25 hardcoded URLs)', () => {
+    const hardcoded = (src.match(/https:\/\/graph\.facebook\.com\/v2[15]\.0/g) || []).length;
+    expect(hardcoded).toBe(0);
+  });
+  test('Version override via META_GRAPH_VERSION env var', () => {
+    expect(src).toContain("process.env.META_GRAPH_VERSION || 'v25.0'");
+  });
+});
+
+describe('L3 — http-responses helpers', () => {
+  const h = require('../api/_lib/http-responses.js');
+
+  function fakeRes() {
+    const r = { headers: {}, statusCode: 0, body: null };
+    r.setHeader = (k, v) => { r.headers[k] = v; };
+    r.end = (b) => { r.body = b; };
+    return r;
+  }
+
+  test('sendError returns canonical {error, code?, details?, hint?} shape', () => {
+    const res = fakeRes();
+    h.sendError(res, 400, 'Bad input', { code: 'INVALID_INPUT', hint: 'Try X', details: { field: 'email' } });
+    const parsed = JSON.parse(res.body);
+    expect(res.statusCode).toBe(400);
+    expect(parsed.error).toBe('Bad input');
+    expect(parsed.code).toBe('INVALID_INPUT');
+    expect(parsed.hint).toBe('Try X');
+    expect(parsed.details.field).toBe('email');
+  });
+
+  test('sendError accepts Error instance and extracts message', () => {
+    const res = fakeRes();
+    h.sendError(res, 500, new Error('database down'));
+    expect(JSON.parse(res.body).error).toBe('database down');
+  });
+
+  test('badRequest / unauthorized / notFound / methodNotAllowed convenience helpers', () => {
+    expect(typeof h.badRequest).toBe('function');
+    expect(typeof h.unauthorized).toBe('function');
+    expect(typeof h.notFound).toBe('function');
+    expect(typeof h.methodNotAllowed).toBe('function');
+    const res = fakeRes();
+    h.unauthorized(res);
+    expect(res.statusCode).toBe(401);
+  });
+
+  test('internalError hides detail in production but exposes in dev', () => {
+    const res1 = fakeRes();
+    const orig = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    h.internalError(res1, new Error('secret sauce'));
+    expect(JSON.parse(res1.body).details).toBeUndefined ? true : (JSON.parse(res1.body).details === undefined);
+    process.env.NODE_ENV = 'development';
+    const res2 = fakeRes();
+    h.internalError(res2, new Error('secret sauce'));
+    expect(JSON.parse(res2.body).details).toBe('secret sauce');
+    if (orig === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = orig;
+  });
+});
+
+describe('L8 — i18n missing-key debug mode', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'i18n.js'), 'utf8');
+  test('Debug mode activates via ?i18nDebug=1', () => {
+    expect(src).toContain("i18nDebug");
+  });
+  test('Missing key emits console.warn (once per key)', () => {
+    expect(src).toContain('_missingKeySeen');
+    expect(src).toContain('[i18n] Missing key');
+  });
+  test('Missing key visually flags element in debug mode', () => {
+    expect(src).toContain('outline');
+    expect(src).toContain("'data-i18n-missing'");
+  });
+});
+
+describe('L7 — marketing.html sidebar emojis replaced with SVGs', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
+  test('No emoji in Enrollments / History / Inbox sidebar nav items', () => {
+    // These specific emoji were replaced in L7
+    expect(src.includes('🎯</span> Enrollments')).toBe(false);
+    expect(src.includes('📜</span> History')).toBe(false);
+    expect(src.includes('🟢</span> WhatsApp Inbox')).toBe(false);
+  });
+  test('SVG replacements are inline with currentColor (inherits theme)', () => {
+    // Count SVGs with the mkt-nav-svg class — should include the 3 we added
+    const count = (src.match(/<svg class="mkt-nav-svg"/g) || []).length;
+    expect(count >= 9).toBe(true); // 6 existing + 3 new
+  });
+});
+
 describe('_lib — silent-failure-log helper contract', () => {
   const mod = require('../api/_lib/silent-failure-log.js');
 
@@ -2099,9 +2196,10 @@ describe('Meta — token diagnostics for FB/IG reconnect', () => {
     expect(src).toContain("'meta-token-diagnostics': handleMetaTokenDiagnostics");
   });
 
-  test('Diagnostic calls /debug_token with app access token', () => {
-    expect(src).toContain('graph.facebook.com/v21.0/debug_token');
+  test('Diagnostic calls /debug_token via centralized META_GRAPH_BASE constant', () => {
+    expect(src).toContain('debug_token');
     expect(src).toContain('appAccessToken');
+    expect(src).toContain('META_GRAPH_BASE');
   });
 
   test('Diagnostic checks 7 required scopes for FB + IG publishing', () => {

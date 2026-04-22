@@ -29,8 +29,10 @@
       --text: #f5f5f7;
       --muted: #eef3f7;
       --green: #39ff14;
-      --cyan: #ffd84d;
-      --orange: #ffd84d;
+      --gold: #ffd84d;
+      /* Back-compat aliases — previous token names didn't match the actual colour (#ffd84d is gold, not cyan/orange). Remove once downstream CSS is migrated. */
+      --cyan: var(--gold);
+      --orange: var(--gold);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
