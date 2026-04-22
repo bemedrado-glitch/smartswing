@@ -5835,6 +5835,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
     function getUtmParams() {
       const p = new URLSearchParams(window.location.search);
+      // M12: capture referral code from ?ref=CODE — falls back to stored pending
+      // referral (set by refer-friends.html share link flow or earlier page visit)
+      let refCode = (p.get('ref') || '').toUpperCase();
+      if (!refCode) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('smartswing_pending_referral') || 'null');
+          if (stored && stored.code) refCode = String(stored.code).toUpperCase();
+        } catch (_) {}
+      }
+      if (refCode && /^[A-Z0-9]{5,8}$/.test(refCode)) {
+        try { localStorage.setItem('smartswing_pending_referral', JSON.stringify({ code: refCode, storedAt: new Date().toISOString() })); } catch (_) {}
+      } else {
+        refCode = '';
+      }
       return {
         utm_source: p.get('utm_source') || null,
         utm_medium: p.get('utm_medium') || null,
@@ -5844,7 +5858,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         page_url: window.location.href,
         referrer: document.referrer || null,
         landing_page: sessionStorage.getItem('ss_landing_page') || window.location.pathname,
-        session_id: sessionStorage.getItem('ss_session_id') || (function(){ var s=Math.random().toString(36).slice(2); sessionStorage.setItem('ss_session_id', s); return s; })()
+        session_id: sessionStorage.getItem('ss_session_id') || (function(){ var s=Math.random().toString(36).slice(2); sessionStorage.setItem('ss_session_id', s); return s; })(),
+        ref_code: refCode || null
       };
     }
     function openLiteSignupModal() {

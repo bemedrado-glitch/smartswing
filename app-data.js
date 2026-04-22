@@ -928,10 +928,23 @@
     if (existing.some((r) => r.referredUserId === referredUserId && r.referrerCode === referrerCode)) {
       return false; // already credited
     }
-    // Award bonus
+
+    // ─── Two-sided referral bonus (M12) ───────────────────────────────────
+    // Before: referrer got +2, referee got nothing extra
+    // After:  BOTH get +2 analyses → referee has 4 total free analyses instead
+    //         of 2. Industry benchmark: two-sided referral converts ~3x better
+    //         than one-sided because the sharer has something real to offer
+    //         ('give 2 free, get 2 free' vs 'just help me out').
+    const REFERRER_BONUS = 2;
+    const REFEREE_BONUS  = 2;
+
     const bonusMap = read(KEYS.referralBonus, {});
-    bonusMap[referrer.id] = (bonusMap[referrer.id] || 0) + 2;
+    bonusMap[referrer.id] = (bonusMap[referrer.id] || 0) + REFERRER_BONUS;
+    if (referredUserId) {
+      bonusMap[referredUserId] = (bonusMap[referredUserId] || 0) + REFEREE_BONUS;
+    }
     write(KEYS.referralBonus, bonusMap);
+
     // Record referral
     existing.push({
       id: uid('ref'),
@@ -939,17 +952,34 @@
       referrerId: referrer.id,
       referredUserId: referredUserId || '',
       completedAt: nowIso(),
-      bonusGranted: 2
+      bonusGranted: REFERRER_BONUS,          // legacy single-value field (backwards compat)
+      referrerBonus: REFERRER_BONUS,
+      refereeBonus: REFEREE_BONUS
     });
     write(KEYS.referrals, existing);
     // Clear pending referral
     localStorage.removeItem(KEYS.pendingReferral);
-    // Fire email event to notify referrer (fire-and-forget)
+
+    // Fire email to referrer ('your friend joined')
     fireEmailEvent('referral_bonus', {
       firstName: (referrer.fullName || '').split(' ')[0] || 'there',
       email: referrer.email,
-      bonusCount: 2
+      bonusCount: REFERRER_BONUS
     });
+
+    // Fire email to referee ('welcome bonus applied')
+    try {
+      const referee = users.find((u) => u.id === referredUserId);
+      if (referee?.email) {
+        fireEmailEvent('referral_welcome_bonus', {
+          firstName: (referee.fullName || '').split(' ')[0] || 'there',
+          email: referee.email,
+          bonusCount: REFEREE_BONUS,
+          referrerName: (referrer.fullName || '').split(' ')[0] || 'a friend'
+        });
+      }
+    } catch (_) { /* non-fatal */ }
+
     return true;
   }
 

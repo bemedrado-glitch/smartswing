@@ -432,6 +432,38 @@ function referralBonus({ firstName = 'there', bonusCount = 2 } = {}) {
   };
 }
 
+// ── Template: referral_welcome_bonus (notify REFEREE on first login after ref signup) ──
+// Pair of `referral_bonus`: this goes to the person who USED the referral link,
+// telling them they got N bonus analyses on top of the standard 2 free.
+// M12 — two-sided referral program (audit finding).
+function referralWelcomeBonus({ firstName = 'there', bonusCount = 2, referrerName = 'a friend' } = {}) {
+  return {
+    subject: `+${bonusCount} bonus analyses from ${referrerName} 🎾`,
+    html: base({
+      preheader: `${referrerName} referred you — enjoy ${bonusCount} bonus analyses on top of your 2 free ones.`,
+      body: `
+        <p style="font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${C.volt};margin:0 0 12px 0;">Welcome bonus</p>
+        <h1 style="font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;color:${C.text};margin:0 0 16px 0;">${referrerName} sent you +${bonusCount} free analyses, ${firstName} 🎾</h1>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 20px 0;">
+          Someone cared enough to hand you a head start. We've added <strong style="color:${C.text};">${bonusCount} bonus analyses</strong> to your account — on top of the 2 free ones every new player gets. That's <strong style="color:${C.volt};">${2 + bonusCount} free analyses total</strong>, no credit card needed.
+        </p>
+        <p style="font-size:15px;color:${C.muted};line-height:1.7;margin:0 0 24px 0;">
+          Upload any tennis or pickleball video — baseline clip works fine. In 30 seconds you'll see exactly what's holding your game back.
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 16px 0;">
+          <tr><td>${btn('Use My Free Analyses →', APP_URL + '/analyze.html')}</td></tr>
+        </table>
+
+        <p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0;">
+          Pay it forward — refer your own friends and <strong style="color:${C.text};">you both get +2 analyses</strong> when they try SmartSwing.<br>
+          <a href="${APP_URL}/refer-friends.html" style="color:${C.volt};text-decoration:none;font-weight:700;">Get your referral link →</a>
+        </p>
+      `
+    })
+  };
+}
+
 // ── Template: coach_report_share ─────────────────────────────────────────────
 function coachReportShare({
   playerName = 'Your player',
@@ -709,6 +741,7 @@ const TEMPLATES = {
   paywall_followup_3d: paywallFollowup3d,
   paywall_followup_7d: paywallFollowup7d,
   referral_bonus: referralBonus,
+  referral_welcome_bonus: referralWelcomeBonus,
   payment_success: paymentSuccess,
   win_back_7d: winBack7d,
   win_back_21d: winBack21d,
