@@ -1786,6 +1786,48 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+describe('Meta — token diagnostics for FB/IG reconnect', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
+  const dash = fs.readFileSync(path.join(ROOT, 'marketing.html'), 'utf8');
+
+  test('meta-token-diagnostics endpoint exists and is registered', () => {
+    expect(src).toContain('async function handleMetaTokenDiagnostics');
+    expect(src).toContain("'meta-token-diagnostics': handleMetaTokenDiagnostics");
+  });
+
+  test('Diagnostic calls /debug_token with app access token', () => {
+    expect(src).toContain('graph.facebook.com/v21.0/debug_token');
+    expect(src).toContain('appAccessToken');
+  });
+
+  test('Diagnostic checks 7 required scopes for FB + IG publishing', () => {
+    ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts',
+     'instagram_basic', 'instagram_manage_insights', 'instagram_content_publish',
+     'business_management'].forEach(scope => {
+      expect(src).toContain("'" + scope + "'");
+    });
+  });
+
+  test('Diagnostic distinguishes TOKEN_EXPIRED vs MISSING_SCOPES vs TOKEN_INVALID', () => {
+    expect(src).toContain("'TOKEN_EXPIRED'");
+    expect(src).toContain("'MISSING_SCOPES'");
+    expect(src).toContain("'TOKEN_INVALID'");
+  });
+
+  test('Marketing dashboard auto-surfaces diagnostic when Meta disconnected', () => {
+    expect(dash).toContain('function loadMetaTokenDiagnostic');
+    expect(dash).toContain('id="metaTokenDiagnostic"');
+    expect(dash).toContain('metaFB && !metaFB.connected');
+  });
+
+  test('Reconnect guide exists', () => {
+    const guide = fs.readFileSync(path.join(ROOT, 'deploy/META_RECONNECT.md'), 'utf8');
+    expect(guide).toContain('Path A');
+    expect(guide).toContain('Path B');
+    expect(guide).toContain('meta-token-diagnostics');
+  });
+});
+
 describe('S9 — skeleton loaders on app pages', () => {
   const css = fs.readFileSync(path.join(ROOT, 'skeleton-loader.css'), 'utf8');
   const js = fs.readFileSync(path.join(ROOT, 'skeleton-loader.js'), 'utf8');

@@ -4109,6 +4109,117 @@ async function handleMetaConversions(req, res) {
 
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * GET /api/marketing/meta-token-diagnostics
+ * Calls Meta's /debug_token endpoint on the current META_PAGE_ACCESS_TOKEN
+ * and returns a human-readable explanation of WHY Facebook/Instagram are
+ * disconnected — expired, missing scopes, wrong app, revoked, etc.
+ *
+ * Reason for existing: /social-health returns Meta's raw error ('object does
+ * not exist' etc) which doesn't tell users WHETHER they need to rotate the
+ * token or re-grant permissions. This endpoint interrogates the token itself
+ * and reports: expires_at, scopes, app_id, user_id, is_valid, error.
+ */
+async function handleMetaTokenDiagnostics(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
+
+  const token = String(process.env.META_PAGE_ACCESS_TOKEN || '').trim();
+  const appId = String(process.env.META_APP_ID || '').trim();
+  const appSecret = String(process.env.META_APP_SECRET || '').trim();
+
+  if (!token) {
+    return res.status(200).json({
+      ok: false,
+      error_code: 'MISSING_TOKEN',
+      message: 'META_PAGE_ACCESS_TOKEN is not set in Vercel env vars.',
+      remediation: 'Generate a Page Access Token via Meta Graph API Explorer, then set META_PAGE_ACCESS_TOKEN in Vercel → redeploy. See /deploy/META_RECONNECT.md for the full flow.'
+    });
+  }
+  if (!appId || !appSecret) {
+    return res.status(200).json({
+      ok: false,
+      error_code: 'MISSING_APP_CREDENTIALS',
+      message: 'META_APP_ID and/or META_APP_SECRET are not set. Required to inspect the token.',
+      remediation: 'Add META_APP_ID and META_APP_SECRET from Meta for Developers → your app → Settings → Basic.'
+    });
+  }
+
+  // Meta's /debug_token requires an app access token (app_id|app_secret) to inspect a user/page token
+  const appAccessToken = `${appId}|${appSecret}`;
+  try {
+    const url = `https://graph.facebook.com/v21.0/debug_token?input_token=${encodeURIComponent(token)}&access_token=${encodeURIComponent(appAccessToken)}`;
+    const r = await fetch(url);
+    const body = await r.json();
+
+    if (!r.ok || body.error) {
+      return res.status(200).json({
+        ok: false,
+        error_code: 'DEBUG_TOKEN_FAILED',
+        message: body?.error?.message || `HTTP ${r.status}`,
+        remediation: 'The app credentials cannot inspect this token. Confirm META_APP_ID + META_APP_SECRET match the app that issued META_PAGE_ACCESS_TOKEN.'
+      });
+    }
+
+    const data = body.data || {};
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = data.expires_at || 0;
+    const isExpired = expiresAt > 0 && expiresAt < now;
+    const expiresAtIso = expiresAt > 0 ? new Date(expiresAt * 1000).toISOString() : 'never (permanent)';
+    const isValid = data.is_valid === true && !isExpired;
+
+    // Scopes needed for our Facebook + Instagram integration
+    const REQUIRED_SCOPES = [
+      'pages_show_list',            // list pages the user manages
+      'pages_read_engagement',      // read page posts + metrics (fixes the error above)
+      'pages_manage_posts',         // publish to the page
+      'instagram_basic',            // read IG account + profile
+      'instagram_manage_insights',  // read IG metrics
+      'instagram_content_publish',  // publish to IG Business account
+      'business_management'         // needed for IG Business Account linked to FB Page
+    ];
+    const presentScopes = Array.isArray(data.scopes) ? data.scopes : [];
+    const missingScopes = REQUIRED_SCOPES.filter(s => !presentScopes.includes(s));
+
+    let errorCode = 'OK';
+    let remediation = null;
+    if (!isValid) {
+      if (isExpired) {
+        errorCode = 'TOKEN_EXPIRED';
+        remediation = 'Token expired ' + new Date(expiresAt * 1000).toLocaleDateString() + '. Run /api/marketing/meta-token-exchange (POST) to mint a new permanent Page Token, then update META_PAGE_ACCESS_TOKEN in Vercel.';
+      } else {
+        errorCode = 'TOKEN_INVALID';
+        remediation = data.error?.message || 'Token is invalid for unknown reason. Regenerate via Meta Graph API Explorer.';
+      }
+    } else if (missingScopes.length > 0) {
+      errorCode = 'MISSING_SCOPES';
+      remediation = 'Token is valid but missing required scopes: ' + missingScopes.join(', ') + '. Regenerate in Graph API Explorer with all required scopes checked.';
+    }
+
+    return res.status(200).json({
+      ok: errorCode === 'OK',
+      error_code: errorCode,
+      is_valid: isValid,
+      is_expired: isExpired,
+      expires_at: expiresAtIso,
+      app_id: data.app_id || null,
+      user_id: data.user_id || null,
+      profile_id: data.profile_id || null,
+      type: data.type || null,
+      scopes_present: presentScopes,
+      scopes_missing: missingScopes,
+      scopes_required: REQUIRED_SCOPES,
+      remediation: remediation,
+      raw: data
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error_code: 'NETWORK_ERROR',
+      message: err.message || 'Network error calling Meta /debug_token'
+    });
+  }
+}
+
 async function handleMetaTokenExchange(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -7135,6 +7246,7 @@ const ROUTES = {
   'meta-publish':    handleMetaPublish,
   'meta-conversions': handleMetaConversions,
   'meta-token-exchange': handleMetaTokenExchange,
+  'meta-token-diagnostics': handleMetaTokenDiagnostics,
   'meta-ads':           handleMetaAds,
   'meta-ad-insights':   handleMetaAdInsights,
   'google-analytics':   handleGoogleAnalytics,
