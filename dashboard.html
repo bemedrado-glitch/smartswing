@@ -11,11 +11,11 @@
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
   <style>
     :root{--bg:#050505;--bg2:#0e1510;--panel:rgba(16,18,17,.94);--line:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#eef3f7;--blue:#ffd84d;--green:#39ff14;--orange:#ffd84d;--deep:#0e1012}
-    *{box-sizing:border-box;margin:0;padding:0} body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(57,255,20,.14),transparent 30%),radial-gradient(circle at 95% 0%,rgba(255,216,77,.12),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom, 0);-webkit-tap-highlight-color:transparent}
+    *{box-sizing:border-box;margin:0;padding:0} body{font-family:"DM Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(57,255,20,.14),transparent 30%),radial-gradient(circle at 95% 0%,rgba(255,216,77,.12),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom, 0);-webkit-tap-highlight-color:transparent}
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -1169,8 +1169,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const [lx, ly] = labelPt(i);
         const anchor = lx < cx - 5 ? 'end' : lx > cx + 5 ? 'start' : 'middle';
         const color = hasData ? (a.value >= 80 ? '#39ff14' : a.value >= 60 ? '#ffd84d' : '#ff7070') : 'rgba(255,255,255,.3)';
-        return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-size="9" font-weight="800" fill="${color}" font-family="Plus Jakarta Sans,sans-serif">${a.label}${hasData ? '\n'+a.value+'%' : ''}</text>
-                ${hasData ? `<text x="${lx}" y="${parseFloat(ly)+10}" text-anchor="${anchor}" dominant-baseline="middle" font-size="8" font-weight="700" fill="${color}" opacity=".7" font-family="Plus Jakarta Sans,sans-serif">${a.value}%</text>` : ''}`;
+        return `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-size="9" font-weight="800" fill="${color}" font-family="DM Sans,sans-serif">${a.label}${hasData ? '\n'+a.value+'%' : ''}</text>
+                ${hasData ? `<text x="${lx}" y="${parseFloat(ly)+10}" text-anchor="${anchor}" dominant-baseline="middle" font-size="8" font-weight="700" fill="${color}" opacity=".7" font-family="DM Sans,sans-serif">${a.value}%</text>` : ''}`;
       }).join('');
 
       // Dots on data polygon
@@ -1812,7 +1812,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(0, 0, 1080, 1080);
         ctx.fillStyle = 'rgba(255,255,255,.35)';
-        ctx.font = '600 32px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.font = '600 32px "DM Sans", system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Run your first analysis to generate a score card.', 540, 540);
       }
@@ -1866,7 +1866,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const topY = isStory ? 220 : 110;
 
       // Logo
-      ctx.font = '800 52px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.font = '800 52px "DM Sans", "Sora", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#f5f5f7';
       ctx.fillText('SmartSwing', cx - 18, topY);
@@ -1877,7 +1877,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ctx.arc(cx - 18 + logoMeasure.width / 2 + 22, topY - 14, 10, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#f5f5f7';
-      ctx.font = '800 52px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.font = '800 52px "DM Sans", "Sora", system-ui, sans-serif';
       ctx.fillText('AI', cx - 18 + logoMeasure.width / 2 + 50, topY);
 
       // Score ring center Y
@@ -1903,14 +1903,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ctx.stroke();
 
       // Score number (large, volt green)
-      ctx.font = '900 ' + (isStory ? '210px' : '190px') + ' "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.font = '900 ' + (isStory ? '210px' : '190px') + ' "DM Sans", "Sora", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#39ff14';
       ctx.fillText(String(score), cx, ringY + (isStory ? 75 : 68));
 
       // "SmartSwing Score" label
       const belowRing = ringY + ringR + 44;
-      ctx.font = '600 32px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.font = '600 32px "DM Sans", system-ui, sans-serif';
       ctx.fillStyle = 'rgba(238,243,247,0.7)';
       ctx.fillText('SmartSwing Score', cx, belowRing);
 
@@ -1922,7 +1922,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ctx.roundRect(cx - gradeW / 2, gradeY - gradeH + 12, gradeW, gradeH, gradeR);
       ctx.fillStyle = 'rgba(255,216,77,0.15)';
       ctx.fill();
-      ctx.font = '800 34px "Plus Jakarta Sans", "Sora", system-ui, sans-serif';
+      ctx.font = '800 34px "DM Sans", "Sora", system-ui, sans-serif';
       ctx.fillStyle = '#ffd84d';
       ctx.fillText(grade, cx, gradeY + 4);
 
@@ -1930,7 +1930,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const shotDateY = gradeY + 58;
       const shotType = cap(item.shotType || 'swing');
       const dateStr  = fmtDateCard(item.analyzedAt || item.createdAt || item.date);
-      ctx.font = '600 28px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.font = '600 28px "DM Sans", system-ui, sans-serif';
       ctx.fillStyle = 'rgba(238,243,247,0.55)';
       ctx.fillText(`${shotType}  ·  ${dateStr}`, cx, shotDateY);
 
@@ -1944,12 +1944,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         const mScore = Math.min(100, m.score || 0);
         const label = cap(m.metric || '');
 
-        ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.font = '700 26px "DM Sans", system-ui, sans-serif';
         ctx.fillStyle = '#f5f5f7';
         ctx.textAlign = 'left';
         ctx.fillText(label, cx - barMaxW / 2, my);
 
-        ctx.font = '700 26px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.font = '700 26px "DM Sans", system-ui, sans-serif';
         ctx.fillStyle = '#39ff14';
         ctx.textAlign = 'right';
         ctx.fillText(String(mScore), cx + barMaxW / 2, my);
@@ -1969,7 +1969,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       // Footer
       const footerY = CH - (isStory ? 80 : 60);
-      ctx.font = '500 24px "Plus Jakarta Sans", system-ui, sans-serif';
+      ctx.font = '500 24px "DM Sans", system-ui, sans-serif';
       ctx.fillStyle = 'rgba(238,243,247,0.3)';
       ctx.textAlign = 'center';
       ctx.fillText('Free AI swing analysis  ·  smartswingai.com', cx, footerY);
