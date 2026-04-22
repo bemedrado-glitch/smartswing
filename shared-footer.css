@@ -1,0 +1,128 @@
+/**
+ * SmartSwing AI — Canonical footer styles.
+ *
+ * Styles the shared footer rendered by shared-chrome.js (`<div data-ss-footer>`
+ * placeholder). Designed to look identical on every page regardless of what
+ * per-page CSS rules for `.footer` exist.
+ *
+ * Scoped with higher specificity and `:where()` tricks so it cleanly overrides
+ * drift from the 16 different legacy `.footer {}` declarations across the app
+ * without breaking pages that haven't migrated yet.
+ *
+ * Include this once per page. shared-chrome.js auto-injects it when rendering
+ * a `<div data-ss-footer>` placeholder — pages don't have to add a <link>.
+ */
+
+/* Use attribute + tag selectors to leapfrog legacy `.footer { ... }` rules.
+   Everything lives under a root marker class `ss-footer` that shared-chrome.js
+   applies to the rendered <footer> element. */
+.ss-footer,
+footer.ss-footer,
+.ss-footer.footer {
+  background: #050505;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 72px 0 32px;
+  margin-top: 80px;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: rgba(245,245,247,0.85);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ss-footer .page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ss-footer .footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 48px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .ss-footer .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 560px) {
+  .ss-footer .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.ss-footer .footer-brand {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ss-footer .footer-logo {
+  display: block;
+  width: 140px;
+  height: 35px;
+  max-width: 140px;
+}
+
+.ss-footer .footer-tagline {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(245,245,247,0.55);
+  max-width: 320px;
+  margin: 0;
+}
+
+.ss-footer .footer-heading {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245,245,247,0.45);
+  margin: 0 0 16px 0;
+}
+
+.ss-footer .footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ss-footer .footer-links a {
+  color: rgba(245,245,247,0.75);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 160ms ease;
+}
+
+.ss-footer .footer-links a:hover,
+.ss-footer .footer-links a:focus-visible {
+  color: #39ff14;
+}
+
+.ss-footer .footer-bottom {
+  padding-top: 28px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: rgba(245,245,247,0.45);
+}
+
+.ss-footer .footer-bottom p {
+  margin: 0;
+}

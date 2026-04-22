@@ -2778,12 +2778,14 @@ describe('UI/UX consistency sweep — headers, footers, tokens, year', () => {
     });
   });
 
-  test('All footer logos use canonical 140x35 dimensions', () => {
+  test('Footer logo dim (140x35) is the shared-chrome canonical', () => {
+    const chrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
+    expect(chrome).toContain('class="footer-logo" width="140" height="35"');
+    // And stale 152x64 should not be anywhere on migrated pages.
     const pages = ['for-players.html', 'for-coaches.html', 'for-clubs.html', 'for-parents.html'];
     pages.forEach(p => {
       const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
       expect(src.includes('footer-logo" width="152"')).toBe(false);
-      expect(src).toContain('footer-logo" width="140" height="35"');
     });
   });
 
@@ -2823,6 +2825,47 @@ describe('UI/UX consistency sweep — headers, footers, tokens, year', () => {
   test('404 page migrated to shared footer placeholder', () => {
     const src = fs.readFileSync(path.join(ROOT, '404.html'), 'utf8');
     expect(src).toContain('data-ss-footer');
+  });
+
+  test('shared-footer.css exists and defines canonical grid layout', () => {
+    const css = fs.readFileSync(path.join(ROOT, 'shared-footer.css'), 'utf8');
+    expect(css).toContain('.ss-footer');
+    expect(css).toContain('grid-template-columns');
+    expect(css).toContain('.ss-footer .footer-heading');
+    expect(css).toContain('.ss-footer .footer-links');
+  });
+
+  test('shared-chrome auto-injects shared-footer.css when rendering', () => {
+    const chrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
+    expect(chrome).toContain('ensureFooterCss');
+    expect(chrome).toContain('shared-footer.css');
+    expect(chrome).toContain("ss-footer"); // class applied
+  });
+
+  test('All 27 public + legal pages now use data-ss-footer placeholder (not inline <footer>)', () => {
+    const pages = [
+      'index.html','pricing.html','features.html','how-it-works.html','about.html',
+      'contact.html','blog.html','for-players.html','for-coaches.html','for-clubs.html',
+      'for-parents.html','pickleball.html','checkout.html','payment-success.html',
+      'payment-cancelled.html','refer-friends.html','login.html','signup.html',
+      'auth-callback.html','privacy-policy.html','user-agreement.html','cookie-policy.html',
+      'california-privacy.html','refund-policy.html','brand-policy.html',
+      'copyright-policy.html','shared-report.html'
+    ];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('data-ss-footer');
+      // No more literal <footer class="footer" role="contentinfo"> in these files —
+      // it's all rendered by shared-chrome at runtime.
+      expect(src.includes('<footer class="footer" role="contentinfo"')).toBe(false);
+    });
+  });
+
+  test('Pages that had no footer at all now have a placeholder (cart/post/accessibility)', () => {
+    ['cart.html', 'post.html', 'accessibility.html'].forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('data-ss-footer');
+    });
   });
 
   test('Previously-missing meta descriptions are present', () => {
