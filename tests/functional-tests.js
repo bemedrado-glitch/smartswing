@@ -2759,6 +2759,65 @@ describe('Inbox threading — schema + inbound webhook (Tier 2 #6 slice 1+2)', (
   });
 });
 
+describe('UX polish — analyze skeleton + hero video + safe-area + token adoption', () => {
+  const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+  const idx     = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const dash    = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+  const safe    = fs.readFileSync(path.join(ROOT, 'safe-area.css'), 'utf8');
+
+  test('Analyze page links skeleton-loader.css + renders AI-load skeleton', () => {
+    expect(analyze).toContain('skeleton-loader.css');
+    expect(analyze).toContain('class="ai-skeleton"');
+    expect(analyze).toContain('sk-canvas');
+    expect(analyze).toContain('sk-stats-panel');
+  });
+
+  test('Skeleton shows by default on step 4, hides once AI ready', () => {
+    expect(analyze).toContain('class="step-content ai-loading" data-step="4"');
+    expect(analyze).toContain("step4.classList.add('ai-loading')");
+    expect(analyze).toContain("step4.classList.remove('ai-loading')");
+  });
+
+  test('Skeleton caption announces progress to screen readers', () => {
+    expect(analyze).toContain('aria-live="polite"');
+    expect(analyze).toContain('id="aiSkeletonStatus"');
+  });
+
+  test('Hero video replaces static img on homepage + uses webp as poster', () => {
+    expect(idx).toContain('hero-visual-video');
+    expect(idx).toContain('poster="./assets/redesign/hero-action.webp"');
+    expect(idx).toContain('src="./assets/hero-animation.mp4"');
+    expect(idx).toContain('autoplay muted loop playsinline');
+  });
+
+  test('Hero video respects prefers-reduced-motion', () => {
+    expect(idx).toContain('prefers-reduced-motion: reduce');
+  });
+
+  test('safe-area.css defines body insets + utility classes', () => {
+    expect(safe).toContain('env(safe-area-inset-bottom, 0)');
+    expect(safe).toContain('.ss-safe-bottom');
+    expect(safe).toContain('.ss-safe-top');
+    expect(safe).toContain('.ss-site-header');
+  });
+
+  test('safe-area.css is linked on the top-of-funnel public pages', () => {
+    const pages = ['index.html', 'pricing.html', 'features.html',
+      'for-players.html', 'for-coaches.html', 'for-clubs.html', 'for-parents.html',
+      'how-it-works.html', 'checkout.html', 'payment-success.html'];
+    pages.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('safe-area.css');
+    });
+  });
+
+  test('Dashboard now consumes --ss-* design tokens (unblocks 0/43 audit gap)', () => {
+    expect(dash).toContain('brand-tokens.css');
+    expect(dash).toContain('var(--ss-volt');
+    expect(dash).toContain('var(--ss-text');
+  });
+});
+
 describe('Day-1 onboarding checklist (Tier 2 #8)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
 
