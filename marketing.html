@@ -2369,6 +2369,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div style="margin-top:16px;padding:12px;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#78350f;line-height:1.6;">
                 <strong>⚠️ Setup required:</strong> Instagram and Facebook publishing require a permanent Page Access Token added to your Vercel environment variables. Follow the step-by-step guide below.
               </div>
+              <!-- Meta token diagnostic surface — auto-populated by loadMetaTokenDiagnostic() -->
+              <div id="metaTokenDiagnostic" style="margin-top:12px;display:none;padding:14px;border-radius:8px;font-size:12px;line-height:1.6;"></div>
             </div>
           </div>
 
@@ -8363,6 +8365,61 @@ function connectSocial(platform) {
   showToast('To connect ' + labels[platform] + ', add your API credentials in the Platform API Credentials section below.', '');
 }
 
+// Meta (Facebook + Instagram) token diagnostic — surfaces the exact reason
+// FB/IG show as disconnected. Called after checkSocialConnections sees a
+// Meta failure. Pulls from /api/marketing/meta-token-diagnostics which runs
+// Meta's /debug_token to report expired / missing-scopes / revoked / etc.
+function loadMetaTokenDiagnostic() {
+  var el = document.getElementById('metaTokenDiagnostic');
+  if (!el) return;
+  fetch('/api/marketing/meta-token-diagnostics').then(function(r) { return r.json(); }).then(function(d) {
+    if (d.ok) {
+      el.style.display = 'none';
+      return;
+    }
+    // Color-coded severity
+    var bg, border, textColor;
+    if (d.error_code === 'TOKEN_EXPIRED' || d.error_code === 'TOKEN_INVALID') {
+      bg = '#fee2e2'; border = '#fca5a5'; textColor = '#991b1b';
+    } else if (d.error_code === 'MISSING_SCOPES') {
+      bg = '#fef3c7'; border = '#fcd34d'; textColor = '#92400e';
+    } else {
+      bg = '#dbeafe'; border = '#93c5fd'; textColor = '#1e40af';
+    }
+    el.style.background = bg;
+    el.style.border = '1px solid ' + border;
+    el.style.color = textColor;
+    el.style.display = 'block';
+
+    var headline = {
+      'TOKEN_EXPIRED': '🔑 Meta Page token EXPIRED',
+      'TOKEN_INVALID': '🚫 Meta Page token is INVALID',
+      'MISSING_SCOPES': '⚠️ Meta token missing required scopes',
+      'MISSING_TOKEN': '⚠️ META_PAGE_ACCESS_TOKEN not set in Vercel',
+      'MISSING_APP_CREDENTIALS': '⚠️ META_APP_ID or META_APP_SECRET missing',
+      'DEBUG_TOKEN_FAILED': '⚠️ App credentials cannot inspect the token',
+      'NETWORK_ERROR': '⚠️ Network error talking to Meta'
+    }[d.error_code] || '⚠️ Meta token issue';
+
+    var missing = Array.isArray(d.scopes_missing) && d.scopes_missing.length
+      ? '<div style="margin-top:8px;"><strong>Missing scopes:</strong> <code style="font-size:11px;">' + d.scopes_missing.join('</code>, <code style="font-size:11px;">') + '</code></div>'
+      : '';
+    var expInfo = d.expires_at ? '<div style="margin-top:6px;font-size:11px;opacity:0.8;">Expires: ' + d.expires_at + '</div>' : '';
+
+    el.innerHTML =
+      '<div style="font-weight:700;font-size:13px;margin-bottom:4px;">' + headline + '</div>' +
+      '<div>' + (d.message || d.remediation || '') + '</div>' +
+      (d.remediation && d.message !== d.remediation ? '<div style="margin-top:6px;"><strong>Fix:</strong> ' + d.remediation + '</div>' : '') +
+      missing + expInfo +
+      '<div style="margin-top:10px;"><a href="./deploy/META_RECONNECT.md" target="_blank" style="color:inherit;text-decoration:underline;font-weight:600;">📖 Full reconnect guide →</a></div>';
+  }).catch(function(err) {
+    el.style.display = 'block';
+    el.style.background = '#fee2e2';
+    el.style.color = '#991b1b';
+    el.textContent = 'Could not run Meta diagnostic: ' + (err.message || err);
+  });
+}
+
 function checkSocialConnections() {
   // Use the /social-health endpoint which tests every platform and surfaces
   // WHY it's broken (expired token, missing env, wrong ID, rate limit, etc.)
@@ -8402,6 +8459,13 @@ function checkSocialConnections() {
     // Also update a summary KPI if present
     var summary = document.getElementById('socialHealthSummary');
     if (summary) summary.textContent = data.connected + ' of ' + data.total + ' connected';
+
+    // If either Meta platform is down, pull the detailed token diagnostic
+    var metaFB = data.platforms.meta_facebook;
+    var metaIG = data.platforms.meta_instagram;
+    if ((metaFB && !metaFB.connected) || (metaIG && !metaIG.connected)) {
+      loadMetaTokenDiagnostic();
+    }
   }).catch(function(e) {
     console.warn('social-health fetch failed:', e);
   });
