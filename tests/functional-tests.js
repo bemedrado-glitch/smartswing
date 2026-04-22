@@ -2566,6 +2566,16 @@ describe('API — checkout-session accepts currency + country', () => {
     expect(src).toContain("locale: 'pt-BR'");
     expect(src).toContain("locale: 'es-419'");
   });
+
+  test('automatic_payment_methods enabled — surfaces Pix/SEPA/iDEAL/BNPL/etc.', () => {
+    // Without this flag, Checkout defaults to card-only regardless of what's
+    // enabled in the Stripe Dashboard. Surfacing regional methods depends on it.
+    expect(src).toContain('automatic_payment_methods: { enabled: true }');
+  });
+
+  test('No hardcoded payment_method_types (would conflict with automatic_payment_methods)', () => {
+    expect(src.includes('payment_method_types:')).toBe(false);
+  });
 });
 
 describe('HTML — marketing.html WhatsApp cadence editor', () => {

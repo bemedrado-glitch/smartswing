@@ -104,9 +104,13 @@ module.exports = async (req, res) => {
       // Only set when different from 'usd' (the default) so we don't force
       // currency on a single-currency Price unnecessarily.
       ...(currency !== 'usd' ? { currency } : {}),
-      // automatic_payment_methods: Stripe auto-shows region-appropriate methods
-      // (Pix for BR, SEPA for DE/NL, iDEAL for NL, Boleto for BR, BECS for AU, etc.)
-      // Keeps `card` always as a fallback. No opt-out needed.
+      // Stripe auto-shows region-appropriate methods (Pix, SEPA, iDEAL,
+      // Bancontact, BLIK, EPS, Klarna, Affirm, Cash App Pay, Apple/Google Pay,
+      // etc.) based on which are enabled in the Stripe Dashboard for this
+      // account AND compatible with the customer's detected country + currency.
+      // Without this flag, Checkout defaults to card-only — which silently
+      // hides every non-card method the account has enabled.
+      automatic_payment_methods: { enabled: true },
       payment_method_collection: 'if_required',
       automatic_tax: { enabled: false },
       // Preferred locale on Stripe Checkout hosted page (translates the UI).
