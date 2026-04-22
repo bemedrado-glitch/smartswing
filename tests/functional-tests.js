@@ -1786,6 +1786,50 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+describe('Referral — two-sided bonus (M12)', () => {
+  const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
+  const emailTpl = fs.readFileSync(path.join(ROOT, 'api/_lib/email-templates.js'), 'utf8');
+  const marketing = fs.readFileSync(path.join(ROOT, 'api/marketing.js'), 'utf8');
+  const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('applyReferralBonus credits both referrer AND referee', () => {
+    expect(appData).toContain('REFERRER_BONUS = 2');
+    expect(appData).toContain('REFEREE_BONUS  = 2');
+    expect(appData).toContain('bonusMap[referredUserId]');
+  });
+
+  test('applyReferralBonus fires welcome email to referee', () => {
+    expect(appData).toContain("fireEmailEvent('referral_welcome_bonus'");
+  });
+
+  test('Referral row records both bonus amounts for audit trail', () => {
+    expect(appData).toContain('referrerBonus:');
+    expect(appData).toContain('refereeBonus:');
+  });
+
+  test('Email template referral_welcome_bonus exists and is registered', () => {
+    expect(emailTpl).toContain('function referralWelcomeBonus');
+    expect(emailTpl).toContain('referral_welcome_bonus: referralWelcomeBonus');
+  });
+
+  test('Welcome email mentions referrer name + bonus count + total free', () => {
+    expect(emailTpl).toContain('${referrerName} sent you');
+    expect(emailTpl).toContain('${2 + bonusCount} free analyses total');
+  });
+
+  test('lite-signup accepts ref_code and validates format', () => {
+    expect(marketing).toContain('ref_code');
+    expect(marketing).toContain("/^[A-Z0-9]{5,8}$/");
+    expect(marketing).toContain('referral_code_used');
+  });
+
+  test('analyze.html captures ref from URL and localStorage', () => {
+    expect(analyze).toContain("p.get('ref')");
+    expect(analyze).toContain('smartswing_pending_referral');
+    expect(analyze).toContain('ref_code: refCode');
+  });
+});
+
 describe('JS — shared-footer.js partials (M2)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'shared-footer.js'), 'utf8');
 

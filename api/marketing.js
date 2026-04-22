@@ -1945,7 +1945,8 @@ async function handleLiteSignup(req, res) {
     marketing_consent,            // LGPD/GDPR — required to be true
     persona, source,
     utm_source, utm_medium, utm_campaign, utm_term, utm_content,
-    page_url, referrer, landing_page, session_id
+    page_url, referrer, landing_page, session_id,
+    ref_code                      // two-sided referral (M12) — propagates bonus to both parties
   } = req.body || {};
 
   // Input validation
@@ -2068,6 +2069,31 @@ async function handleLiteSignup(req, res) {
     }
   } catch (err) {
     result.errors.enrollment = err.message;
+  }
+
+  // Two-sided referral (M12) — if a ref_code was passed, log it in referral_attributions
+  // so the client-side applyReferralBonus() can credit both parties on first-analysis completion.
+  // We don't apply the bonus here because the referee might abandon before their first upload.
+  // The cron-side completion handler (or app-data.js on-client) grants the bonus when the
+  // referred user completes their first real analysis.
+  const cleanRefCode = String(ref_code || '').trim().toUpperCase();
+  if (cleanRefCode && /^[A-Z0-9]{5,8}$/.test(cleanRefCode) && result.contact_id) {
+    try {
+      await fetch(`${supabase_url}/rest/v1/marketing_contacts?id=eq.${result.contact_id}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: service_key, Authorization: `Bearer ${service_key}`,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({
+          referral_code_used: cleanRefCode,
+          notes: `Lite signup via ref=${cleanRefCode}. LGPD/GDPR opt-in.`
+        })
+      });
+      result.referral_code = cleanRefCode;
+    } catch (refErr) {
+      result.errors.referral = refErr.message;
+    }
   }
 
   result.success = !!result.contact_id;
