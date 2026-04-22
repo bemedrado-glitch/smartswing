@@ -35,6 +35,12 @@ const { runPublishBatch, publishSingleItem } = require('./_lib/publish-runner');
 const { runLeadScoringBatch, scoreContact } = require('./_lib/lead-scoring');
 const { runMetricsFetch, topPerformers } = require('./_lib/content-metrics');
 const { logSilentFailure } = require('./_lib/silent-failure-log');
+
+// Single source of truth for Meta Graph API version (L2 from audit).
+// Previously 29 call sites mixed v21.0 + v25.0 — a drift hazard when Meta
+// deprecates an older version. Override at deploy via META_GRAPH_VERSION env.
+const META_GRAPH_VERSION = String(process.env.META_GRAPH_VERSION || 'v25.0').trim();
+const META_GRAPH_BASE = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
 const { runWeeklyDigest, buildSummary } = require('./_lib/cmo-digest');
 const { runVariantRotation, getTopHooks } = require('./_lib/ab-rotator');
 const { generateVideo } = require('./_lib/video-gen');
@@ -3013,8 +3019,8 @@ async function handleSocialHealth(req, res) {
   } else {
     try {
       const [pageR, igR] = await Promise.all([
-        fetch(`https://graph.facebook.com/v21.0/${metaPageId}?fields=name,followers_count,fan_count&access_token=${metaToken}`).then(r => r.json()),
-        fetch(`https://graph.facebook.com/v21.0/${metaIgId}?fields=username,followers_count,media_count&access_token=${metaToken}`).then(r => r.json())
+        fetch(`${META_GRAPH_BASE}/${metaPageId}?fields=name,followers_count,fan_count&access_token=${metaToken}`).then(r => r.json()),
+        fetch(`${META_GRAPH_BASE}/${metaIgId}?fields=username,followers_count,media_count&access_token=${metaToken}`).then(r => r.json())
       ]);
       if (pageR.error) {
         report.meta_facebook = {
@@ -3531,7 +3537,7 @@ async function handleSendWhatsapp(req, res) {
       return res.status(400).json({ error: 'Either message or templateName is required' });
     }
 
-    const apiUrl = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+    const apiUrl = `${META_GRAPH_BASE}/${phoneNumberId}/messages`;
     const waRes = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -3586,7 +3592,7 @@ async function handleSendBulkWhatsapp(req, res) {
     });
   }
 
-  const apiUrl = `https://graph.facebook.com/v25.0/${phoneNumberId}/messages`;
+  const apiUrl = `${META_GRAPH_BASE}/${phoneNumberId}/messages`;
 
   const results = await Promise.allSettled(
     recipients.map(async ({ phone, message, templateName, templateLang }) => {
@@ -3827,7 +3833,7 @@ async function handleWhatsappRegister(req, res) {
   }
 
   try {
-    const r = await fetch(`https://graph.facebook.com/v25.0/${phoneNumberId}/register`, {
+    const r = await fetch(`${META_GRAPH_BASE}/${phoneNumberId}/register`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -3895,7 +3901,7 @@ async function handleWhatsappStatus(req, res) {
 
   try {
     const infoRes = await fetch(
-      `https://graph.facebook.com/v25.0/${phoneNumberId}?fields=display_phone_number,quality_rating,verified_name,code_verification_status`,
+      `${META_GRAPH_BASE}/${phoneNumberId}?fields=display_phone_number,quality_rating,verified_name,code_verification_status`,
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
     );
     const info = await infoRes.json();
@@ -3941,7 +3947,7 @@ async function handleWhatsappTemplates(req, res) {
 
   try {
     const tplRes = await fetch(
-      `https://graph.facebook.com/v25.0/${wabaId}/message_templates?fields=name,status,language,category&limit=50`,
+      `${META_GRAPH_BASE}/${wabaId}/message_templates?fields=name,status,language,category&limit=50`,
       { headers: { 'Authorization': `Bearer ${accessToken}` } }
     );
     const data = await tplRes.json();
@@ -3981,8 +3987,8 @@ async function handleMetaStats(req, res) {
   try {
     // Fetch FB page info (followers, likes) and IG account info in parallel
     const [pageRes, igRes] = await Promise.all([
-      fetch(`https://graph.facebook.com/v21.0/${pageId}?fields=name,followers_count,fan_count,engagement&access_token=${accessToken}`).then(r => r.json()),
-      fetch(`https://graph.facebook.com/v21.0/${igAccountId}?fields=followers_count,media_count,username&access_token=${accessToken}`).then(r => r.json())
+      fetch(`${META_GRAPH_BASE}/${pageId}?fields=name,followers_count,fan_count,engagement&access_token=${accessToken}`).then(r => r.json()),
+      fetch(`${META_GRAPH_BASE}/${igAccountId}?fields=followers_count,media_count,username&access_token=${accessToken}`).then(r => r.json())
     ]);
 
     return res.status(200).json({
@@ -4024,7 +4030,7 @@ async function handleMetaPublish(req, res) {
       const fbPayload = { message, access_token: accessToken };
       if (link) fbPayload.link = link;
 
-      const fbRes = await fetch(`https://graph.facebook.com/v21.0/${pageId}/feed`, {
+      const fbRes = await fetch(`${META_GRAPH_BASE}/${pageId}/feed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fbPayload)
@@ -4036,7 +4042,7 @@ async function handleMetaPublish(req, res) {
     // Publish to Instagram (requires image_url for IG)
     if ((platform === 'instagram' || platform === 'both') && image_url) {
       // Step 1: Create media container
-      const containerRes = await fetch(`https://graph.facebook.com/v21.0/${igAccountId}/media`, {
+      const containerRes = await fetch(`${META_GRAPH_BASE}/${igAccountId}/media`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -4048,7 +4054,7 @@ async function handleMetaPublish(req, res) {
 
       if (containerRes.id) {
         // Step 2: Publish the container
-        const publishRes = await fetch(`https://graph.facebook.com/v21.0/${igAccountId}/media_publish`, {
+        const publishRes = await fetch(`${META_GRAPH_BASE}/${igAccountId}/media_publish`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4094,7 +4100,7 @@ async function handleMetaConversions(req, res) {
       access_token: accessToken
     };
 
-    const result = await fetch(`https://graph.facebook.com/v21.0/${pixelId}/events`, {
+    const result = await fetch(`${META_GRAPH_BASE}/${pixelId}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(eventData)
@@ -4147,7 +4153,7 @@ async function handleMetaTokenDiagnostics(req, res) {
   // Meta's /debug_token requires an app access token (app_id|app_secret) to inspect a user/page token
   const appAccessToken = `${appId}|${appSecret}`;
   try {
-    const url = `https://graph.facebook.com/v21.0/debug_token?input_token=${encodeURIComponent(token)}&access_token=${encodeURIComponent(appAccessToken)}`;
+    const url = `${META_GRAPH_BASE}/debug_token?input_token=${encodeURIComponent(token)}&access_token=${encodeURIComponent(appAccessToken)}`;
     const r = await fetch(url);
     const body = await r.json();
 
@@ -4235,7 +4241,7 @@ async function handleMetaTokenExchange(req, res) {
 
   try {
     // Step 1: Exchange short-lived token for long-lived user token
-    const exchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${currentToken}`;
+    const exchangeUrl = `${META_GRAPH_BASE}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${currentToken}`;
     const exchangeRes = await fetch(exchangeUrl).then(r => r.json());
 
     if (exchangeRes.error) {
@@ -4249,12 +4255,12 @@ async function handleMetaTokenExchange(req, res) {
 
     // Step 2: Get permanent page token from long-lived user token
     const pageId = process.env.META_PAGE_ID || '724180587440946';
-    const pagesUrl = `https://graph.facebook.com/v21.0/${pageId}?fields=access_token&access_token=${longLivedUserToken}`;
+    const pagesUrl = `${META_GRAPH_BASE}/${pageId}?fields=access_token&access_token=${longLivedUserToken}`;
     const pageRes = await fetch(pagesUrl).then(r => r.json());
 
     if (pageRes.error) {
       // If page-specific query fails, try listing all pages
-      const allPagesUrl = `https://graph.facebook.com/v21.0/me/accounts?access_token=${longLivedUserToken}`;
+      const allPagesUrl = `${META_GRAPH_BASE}/me/accounts?access_token=${longLivedUserToken}`;
       const allPagesRes = await fetch(allPagesUrl).then(r => r.json());
 
       return res.status(200).json({
@@ -4296,7 +4302,7 @@ async function handleMetaAds(req, res) {
   if (req.method === 'GET') {
     // List campaigns with insights
     try {
-      const campaignsUrl = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?fields=id,name,status,objective,daily_budget,lifetime_budget,start_time,stop_time,created_time,updated_time&limit=50&access_token=${accessToken}`;
+      const campaignsUrl = `${META_GRAPH_BASE}/${adAccountId}/campaigns?fields=id,name,status,objective,daily_budget,lifetime_budget,start_time,stop_time,created_time,updated_time&limit=50&access_token=${accessToken}`;
       const campaignsRes = await fetch(campaignsUrl).then(r => r.json());
 
       if (campaignsRes.error) {
@@ -4304,7 +4310,7 @@ async function handleMetaAds(req, res) {
       }
 
       // Fetch account-level insights (last 30 days)
-      const insightsUrl = `https://graph.facebook.com/v21.0/${adAccountId}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach,actions&date_preset=last_30d&access_token=${accessToken}`;
+      const insightsUrl = `${META_GRAPH_BASE}/${adAccountId}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach,actions&date_preset=last_30d&access_token=${accessToken}`;
       const insightsRes = await fetch(insightsUrl).then(r => r.json());
 
       return res.status(200).json({
@@ -4338,7 +4344,7 @@ async function handleMetaAds(req, res) {
         access_token: accessToken
       };
 
-      const campaignRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/campaigns`, {
+      const campaignRes = await fetch(`${META_GRAPH_BASE}/${adAccountId}/campaigns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(campaignPayload)
@@ -4373,7 +4379,7 @@ async function handleMetaAds(req, res) {
           access_token: accessToken
         };
 
-        const adSetRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/adsets`, {
+        const adSetRes = await fetch(`${META_GRAPH_BASE}/${adAccountId}/adsets`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(adSetPayload)
@@ -4403,7 +4409,7 @@ async function handleMetaAds(req, res) {
             delete creativePayload.object_story_spec.link_data.image_url;
           }
 
-          const creativeRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/adcreatives`, {
+          const creativeRes = await fetch(`${META_GRAPH_BASE}/${adAccountId}/adcreatives`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(creativePayload)
@@ -4420,7 +4426,7 @@ async function handleMetaAds(req, res) {
               access_token: accessToken
             };
 
-            const adRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}/ads`, {
+            const adRes = await fetch(`${META_GRAPH_BASE}/${adAccountId}/ads`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(adPayload)
@@ -4444,7 +4450,7 @@ async function handleMetaAds(req, res) {
     if (!campaign_id || !newStatus) return res.status(400).json({ error: 'campaign_id and status required' });
 
     try {
-      const updateRes = await fetch(`https://graph.facebook.com/v21.0/${campaign_id}`, {
+      const updateRes = await fetch(`${META_GRAPH_BASE}/${campaign_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, access_token: accessToken })
@@ -4471,8 +4477,8 @@ async function handleMetaAdInsights(req, res) {
   try {
     // Account-level insights with breakdowns
     const [summaryRes, dailyRes] = await Promise.all([
-      fetch(`https://graph.facebook.com/v21.0/${adAccountId}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach,frequency,actions,cost_per_action_type&date_preset=${preset}&access_token=${accessToken}`).then(r => r.json()),
-      fetch(`https://graph.facebook.com/v21.0/${adAccountId}/insights?fields=impressions,clicks,spend,ctr,reach&date_preset=${preset}&time_increment=1&limit=90&access_token=${accessToken}`).then(r => r.json())
+      fetch(`${META_GRAPH_BASE}/${adAccountId}/insights?fields=impressions,clicks,spend,cpc,cpm,ctr,reach,frequency,actions,cost_per_action_type&date_preset=${preset}&access_token=${accessToken}`).then(r => r.json()),
+      fetch(`${META_GRAPH_BASE}/${adAccountId}/insights?fields=impressions,clicks,spend,ctr,reach&date_preset=${preset}&time_increment=1&limit=90&access_token=${accessToken}`).then(r => r.json())
     ]);
 
     return res.status(200).json({
@@ -4906,7 +4912,7 @@ async function handleAutoPublish(req, res) {
 
         if (platform === 'facebook' || platform === 'both') {
           const fbPayload = { message, access_token: accessToken };
-          const fbRes = await fetch('https://graph.facebook.com/v21.0/' + pageId + '/feed', {
+          const fbRes = await fetch(META_GRAPH_BASE + '/' + pageId + '/feed', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(fbPayload)
@@ -4921,14 +4927,14 @@ async function handleAutoPublish(req, res) {
         }
 
         if ((platform === 'instagram' || platform === 'both') && item.image_url) {
-          const containerRes = await fetch('https://graph.facebook.com/v21.0/' + igAccountId + '/media', {
+          const containerRes = await fetch(META_GRAPH_BASE + '/' + igAccountId + '/media', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image_url: item.image_url, caption: message, access_token: accessToken })
           }).then(r => r.json());
 
           if (containerRes.id) {
-            const pubRes = await fetch('https://graph.facebook.com/v21.0/' + igAccountId + '/media_publish', {
+            const pubRes = await fetch(META_GRAPH_BASE + '/' + igAccountId + '/media_publish', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ creation_id: containerRes.id, access_token: accessToken })

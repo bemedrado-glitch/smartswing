@@ -43,18 +43,43 @@
     }, obj);
   }
 
+  // L8 (audit) — when ?i18nDebug=1 is present, surface missing keys so
+  // translators can see gaps instead of silently leaving English text.
+  // Marks missing keys visually AND logs them once per key to console.
+  var i18nDebugMode = (function () {
+    try { return new URLSearchParams(window.location.search).get('i18nDebug') === '1'; }
+    catch (_) { return false; }
+  })();
+  var _missingKeySeen = {};
+  function _reportMissing(key, el) {
+    if (!i18nDebugMode) return;
+    if (!_missingKeySeen[key]) {
+      _missingKeySeen[key] = true;
+      console.warn('[i18n] Missing key: "' + key + '"', el);
+    }
+    el.style.outline = '2px dashed #ff5252';
+    el.setAttribute('data-i18n-missing', '1');
+    el.setAttribute('title', 'i18n missing: ' + key);
+  }
+
   function applyTranslations(t) {
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
-      var val = resolve(t, el.getAttribute('data-i18n'));
+      var key = el.getAttribute('data-i18n');
+      var val = resolve(t, key);
       if (val !== undefined) el.textContent = val;
+      else _reportMissing(key, el);
     });
     document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
-      var val = resolve(t, el.getAttribute('data-i18n-html'));
+      var key = el.getAttribute('data-i18n-html');
+      var val = resolve(t, key);
       if (val !== undefined) el.innerHTML = val;
+      else _reportMissing(key, el);
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
-      var val = resolve(t, el.getAttribute('data-i18n-placeholder'));
+      var key = el.getAttribute('data-i18n-placeholder');
+      var val = resolve(t, key);
       if (val !== undefined) el.placeholder = val;
+      else _reportMissing(key, el);
     });
   }
 
