@@ -117,9 +117,70 @@ module.exports = async (req, res) => {
     return json(res, 200, { skipped: true, reason: 'Email service not configured.' });
   }
 
-  const results = { win_back_7d: { sent: 0, errors: 0 }, win_back_21d: { sent: 0, errors: 0 }, paywall_followup_3d: { sent: 0, errors: 0 }, paywall_followup_7d: { sent: 0, errors: 0 } };
+  const results = {
+    onboarding_d1_no_analysis: { sent: 0, errors: 0 },
+    onboarding_d7_progress: { sent: 0, errors: 0 },
+    win_back_7d: { sent: 0, errors: 0 },
+    win_back_21d: { sent: 0, errors: 0 },
+    paywall_followup_3d: { sent: 0, errors: 0 },
+    paywall_followup_7d: { sent: 0, errors: 0 }
+  };
 
   try {
+    // ── Tier 1 #2 — D1 onboarding nudge: signed up 24h ago, 0 analyses yet ─
+    const range1 = dayRange(1);
+    const profiles1 = await supabaseQuery(
+      `profiles?select=id,email,full_name,created_at` +
+      `&created_at=gte.${range1.start}` +
+      `&created_at=lte.${range1.end}`
+    );
+    for (const profile of (profiles1 || [])) {
+      try {
+        const assessments = await supabaseQuery(
+          `assessments?select=id&user_id=eq.${profile.id}&limit=1`
+        );
+        if (!assessments || assessments.length === 0) {
+          const firstName = (profile.full_name || '').split(' ')[0] || 'there';
+          const sent = await sendEmail('onboarding_d1_no_analysis', { firstName, email: profile.email });
+          if (sent) results.onboarding_d1_no_analysis.sent++;
+        }
+      } catch (err) {
+        results.onboarding_d1_no_analysis.errors++;
+        console.warn('[cron-win-back] onboarding_d1 user error:', profile.id, err?.message);
+      }
+    }
+
+    // ── Tier 1 #2 — D7 progress check-in: signed up 7d ago, ≥1 analysis ────
+    // (Runs parallel to the existing win_back_7d which targets 0-analysis users.
+    // These two queries are mutually exclusive by the assessments check.)
+    const range7check = dayRange(7);
+    const profiles7ck = await supabaseQuery(
+      `profiles?select=id,email,full_name,created_at,subscription_tier` +
+      `&created_at=gte.${range7check.start}` +
+      `&created_at=lte.${range7check.end}` +
+      `&subscription_tier=eq.free`
+    );
+    for (const profile of (profiles7ck || [])) {
+      try {
+        const assessments = await supabaseQuery(
+          `assessments?select=id,shot_type,overall_score&user_id=eq.${profile.id}&order=created_at.desc&limit=1`
+        );
+        if (assessments && assessments.length > 0) {
+          const firstName = (profile.full_name || '').split(' ')[0] || 'there';
+          const sent = await sendEmail('onboarding_d7_progress', {
+            firstName,
+            email: profile.email,
+            lastScore: assessments[0].overall_score || null,
+            lastShotType: assessments[0].shot_type || 'forehand'
+          });
+          if (sent) results.onboarding_d7_progress.sent++;
+        }
+      } catch (err) {
+        results.onboarding_d7_progress.errors++;
+        console.warn('[cron-win-back] onboarding_d7 user error:', profile.id, err?.message);
+      }
+    }
+
     // ── 7-day win-back: signed up 7 days ago, 0 assessments ────────────────
     const range7 = dayRange(7);
     // Fetch profiles created in the 7-day window that are still on free tier
