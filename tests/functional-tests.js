@@ -2759,6 +2759,64 @@ describe('Inbox threading — schema + inbound webhook (Tier 2 #6 slice 1+2)', (
   });
 });
 
+describe('Canonical app-shell (logged-in chrome consolidation)', () => {
+  const css  = fs.readFileSync(path.join(ROOT, 'app-shell.css'), 'utf8');
+  const js   = fs.readFileSync(path.join(ROOT, 'app-shell.js'), 'utf8');
+  const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+
+  test('app-shell.css defines the three canonical surfaces', () => {
+    expect(css).toContain('.app-topbar');
+    expect(css).toContain('.app-topbar-nav');
+    expect(css).toContain('.app-topbar-hamburger');
+    expect(css).toContain('.app-mobile-drawer');
+    expect(css).toContain('.app-bottom-nav');
+  });
+
+  test('app-shell.css respects iOS safe-area on top + bottom', () => {
+    expect(css).toContain('env(safe-area-inset-top');
+    expect(css).toContain('env(safe-area-inset-bottom');
+  });
+
+  test('app-shell.css honors prefers-reduced-motion', () => {
+    expect(css).toContain('prefers-reduced-motion: reduce');
+  });
+
+  test('app-shell.js exports the canonical NAV_ITEMS list', () => {
+    expect(js).toContain('NAV_ITEMS');
+    expect(js).toContain("href: './dashboard.html'");
+    expect(js).toContain("href: './analyze.html'");
+    expect(js).toContain("href: './library.html'");
+    expect(js).toContain("href: './settings.html'");
+  });
+
+  test('app-shell.js renders into placeholders + wires drawer', () => {
+    expect(js).toContain('data-ss-app-topbar');
+    expect(js).toContain('data-ss-app-bottom-nav');
+    expect(js).toContain('wireDrawer');
+    expect(js).toContain("e.key === 'Escape'");
+  });
+
+  test('Active page is marked aria-current=page in both nav surfaces', () => {
+    expect(js).toContain('aria-current="page"');
+  });
+
+  test('Dashboard migrated: links app-shell + uses placeholders + drops legacy chrome', () => {
+    expect(dash).toContain('app-shell.css');
+    expect(dash).toContain('app-shell.js');
+    expect(dash).toContain('data-ss-app-topbar');
+    expect(dash).toContain('data-ss-app-bottom-nav');
+    // Legacy hand-written chrome is gone:
+    expect(dash.includes('<header class="topbar"')).toBe(false);
+    expect(dash.includes('<nav class="app-bottom-nav"')).toBe(false);
+  });
+
+  test('Mobile drawer is a proper modal dialog (a11y)', () => {
+    expect(js).toContain('role="dialog"');
+    expect(js).toContain('aria-modal="true"');
+    expect(js).toContain('aria-controls="ss-mobile-drawer"');
+  });
+});
+
 describe('Lighthouse CI quality gate', () => {
   const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'lighthouserc.json'), 'utf8'));
   const wf = fs.readFileSync(path.join(ROOT, '.github/workflows/lighthouse.yml'), 'utf8');
