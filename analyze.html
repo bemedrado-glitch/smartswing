@@ -7992,10 +7992,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           canvas.toBlob(async (blob) => {
             try {
               const file = new File([blob], 'smartswing-scorecard.png', { type: 'image/png' });
-              await navigator.share({ title: 'My SmartSwing Score', files: [file] });
+              // Pre-compose a share caption with referral URL for viral amplification (Tier 1 #3).
+              // On iOS/Android native share sheets, the text is pre-filled in Messages/WhatsApp/X/etc.
+              const code = _getScoreCardReferralCode();
+              const shareUrl = code
+                ? 'https://www.smartswingai.com/?ref=' + code
+                : 'https://www.smartswingai.com';
+              const shareText = 'I just got my swing analyzed by SmartSwing AI — free breakdown of your backhand / forehand in under a minute. Try it here: ' + shareUrl;
+              await navigator.share({
+                title: 'My SmartSwing Score',
+                text: shareText,
+                url: shareUrl,
+                files: [file]
+              });
+              // Track share event for funnel analytics
+              try { window.gtag && gtag('event', 'scorecard_share', { method: 'web_share_api', has_referral_code: !!code }); } catch (_) {}
             } catch (e) { /* user cancelled */ }
           }, 'image/png');
         });
+      }
+
+      // Resolve the current user's referral code (if signed in). Falls back to
+      // localStorage pending-referral code (propagates chains), then empty.
+      function _getScoreCardReferralCode() {
+        try {
+          if (store && currentUser) {
+            const fn = store.getUserReferralCode;
+            if (typeof fn === 'function') {
+              const code = fn.call(store, currentUser.id);
+              if (code) return String(code).toUpperCase();
+            }
+          }
+          const pending = JSON.parse(localStorage.getItem('smartswing_pending_referral') || 'null');
+          if (pending && pending.code) return String(pending.code).toUpperCase();
+        } catch (_) {}
+        return '';
       }
 
       // Inline canvas renderer (same output as dashboard, self-contained)
@@ -8108,11 +8139,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           ctx.fill();
         });
 
+        // Footer: branded URL with user's referral code embedded (Tier 1 #3).
+        // Viewers who scan / click land on the site with ?ref=CODE pre-attached,
+        // earning BOTH sender and viewer a free analysis on signup (per M12).
+        const refCode = _getScoreCardReferralCode();
+        const footerUrl = refCode
+          ? 'smartswingai.com/?ref=' + refCode
+          : 'smartswingai.com';
         const footerY = CH - (isStory ? 80 : 60);
-        ctx.font = '500 24px "Plus Jakarta Sans", system-ui, sans-serif';
+        ctx.font = '500 24px "DM Sans", "Plus Jakarta Sans", system-ui, sans-serif';
         ctx.fillStyle = 'rgba(238,243,247,0.3)';
         ctx.textAlign = 'center';
-        ctx.fillText('Free AI swing analysis  ·  smartswingai.com', cx, footerY);
+        ctx.fillText('Free AI swing analysis  ·  ' + footerUrl, cx, footerY);
 
         function capStr(s) { return String(s || '').replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()); }
         function fmtDC(iso) { if (!iso) return ''; return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }

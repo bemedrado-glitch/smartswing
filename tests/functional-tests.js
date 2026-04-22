@@ -2633,6 +2633,36 @@ describe('Social proof — hero trust strip on landing pages (Tier 1 #4)', () =>
   });
 });
 
+describe('Share card — referral-embedded viral loop (Tier 1 #3)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('_getScoreCardReferralCode helper defined with localStorage fallback', () => {
+    expect(src).toContain('function _getScoreCardReferralCode');
+    expect(src).toContain('smartswing_pending_referral');
+  });
+
+  test('Score card footer renders URL with embedded referral code when present', () => {
+    expect(src).toContain("'smartswingai.com/?ref=' + refCode");
+    expect(src).toContain('footerUrl = refCode');
+  });
+
+  test('Web Share API caption includes full URL with referral query param', () => {
+    expect(src).toContain('I just got my swing analyzed');
+    expect(src).toContain("'https://www.smartswingai.com/?ref='");
+  });
+
+  test('Share event tracked via gtag for funnel attribution', () => {
+    expect(src).toContain("gtag('event', 'scorecard_share'");
+    expect(src).toContain('has_referral_code');
+  });
+
+  test('Share payload includes files + text + url for maximum client compatibility', () => {
+    expect(src).toContain('files: [file]');
+    expect(src).toContain('text: shareText');
+    expect(src).toContain('url: shareUrl');
+  });
+});
+
 describe('Paywall — post-analysis tease (Tier 1 #1)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
