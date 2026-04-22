@@ -1,0 +1,159 @@
+/**
+ * SmartSwing AI — Global toast + inline form-error system (Tier 2 #5).
+ *
+ * Replaces `alert()` calls across the app with accessible, queued,
+ * auto-dismissing notifications. Respects prefers-reduced-motion.
+ *
+ * Include on any page:
+ *   <link rel="stylesheet" href="./toast.css">
+ *   <script src="./toast.js" defer></script>
+ *
+ * Then anywhere in page JS:
+ *   window.SmartSwingToast.show('Report saved', { type: 'success' });
+ *   window.SmartSwingToast.error('Upload failed — check your connection.');
+ *   window.SmartSwingToast.show('Free analysis used', {
+ *     type: 'info',
+ *     action: { label: 'Upgrade →', href: './pricing.html' }
+ *   });
+ */
+
+.ss-toast-wrap {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: calc(100vw - 48px);
+}
+
+@media (max-width: 640px) {
+  .ss-toast-wrap {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    align-items: center;
+  }
+}
+
+.ss-toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(16, 18, 22, 0.98);
+  color: #f5f5f7;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateX(40px);
+  opacity: 0;
+  animation: ss-toast-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.ss-toast--success { border-left: 3px solid #39ff14; }
+.ss-toast--error   { border-left: 3px solid #ff5252; }
+.ss-toast--warn    { border-left: 3px solid #ff9f0a; }
+.ss-toast--info    { border-left: 3px solid #3b82f6; }
+
+.ss-toast__icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.ss-toast--success .ss-toast__icon { color: #39ff14; }
+.ss-toast--error   .ss-toast__icon { color: #ff5252; }
+.ss-toast--warn    .ss-toast__icon { color: #ff9f0a; }
+.ss-toast--info    .ss-toast__icon { color: #3b82f6; }
+
+.ss-toast__body {
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+}
+
+.ss-toast__title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.ss-toast__action {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(57, 255, 20, 0.12);
+  color: #39ff14;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid rgba(57, 255, 20, 0.28);
+}
+.ss-toast__action:hover { background: rgba(57, 255, 20, 0.2); }
+
+.ss-toast__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 4px;
+  margin-left: 4px;
+  transition: color 120ms;
+}
+.ss-toast__close:hover { color: #f5f5f7; }
+
+.ss-toast.is-leaving {
+  animation: ss-toast-out 180ms cubic-bezier(0.4, 0, 0.68, 0.06) forwards;
+}
+
+@keyframes ss-toast-in {
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes ss-toast-out {
+  to { transform: translateX(40px); opacity: 0; }
+}
+
+/* Inline form-error class — use alongside toasts for field-specific errors */
+.ss-form-error {
+  display: block;
+  font-size: 12px;
+  color: #ff5252;
+  margin-top: 4px;
+  font-family: "DM Sans", sans-serif;
+  min-height: 16px;
+  line-height: 1.4;
+}
+.ss-form-error:empty { min-height: 0; }
+
+input.ss-field-invalid,
+textarea.ss-field-invalid,
+select.ss-field-invalid {
+  border-color: #ff5252 !important;
+  box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-toast,
+  .ss-toast.is-leaving {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+}
