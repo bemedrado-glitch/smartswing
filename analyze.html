@@ -1885,6 +1885,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
     let cachedPlanState = null;
 
+    /**
+     * Returns true if the user is on a paid plan (player / performance / unlimited).
+     * Used by the post-analysis paywall tease (Tier 1 audit item) to decide
+     * whether to render the upgrade CTA or unlock the full technical details.
+     * Safe when called before plan state hydrates — defaults to false (gate on).
+     */
+    function isPaidUser() {
+      try {
+        // Check cached plan state first (most authoritative)
+        if (cachedPlanState && cachedPlanState.plan) {
+          const p = cachedPlanState.plan.id || cachedPlanState.plan;
+          if (p && p !== 'free' && p !== 'starter') return true;
+        }
+        // Fallback to store.getCurrentPlan if available
+        if (store && typeof store.getCurrentPlan === 'function') {
+          const plan = store.getCurrentPlan();
+          if (plan && plan.id && plan.id !== 'free' && plan.id !== 'starter') return true;
+        }
+        // Server-cached profile tier (from Supabase hydration)
+        if (currentUser && (currentUser.subscription_tier === 'player' ||
+            currentUser.subscription_tier === 'performance' ||
+            currentUser.subscription_tier === 'pro' ||
+            currentUser.subscription_tier === 'unlimited')) return true;
+      } catch (_) { /* noop */ }
+      return false;
+    }
+
     let currentStep = 1;
     let detector = null;
     let backend = 'unknown';
@@ -5288,10 +5315,77 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- AI Coach Feedback (GPT fills this) -->
         <div id="gptAnalysisContainer-${s.shotType}" class="gpt-analysis-container" style="display:none;"></div>
 
-        <!-- Full Technical Details (collapsible) -->
-        <details style="margin-top:16px;">
-          <summary style="list-style:none; cursor:pointer; padding:16px 20px; background:rgba(10,22,40,0.58); border:1px solid rgba(255,255,255,0.1); border-radius:14px; display:flex; justify-content:space-between; align-items:center; font-size:15px; font-weight:700;">
-            🔬 Full Technical Details
+        <!-- ═══════════════════════════════════════════════════════════════
+             PAYWALL TEASE (Tier 1 audit item — +25-40% trial→paid)
+             Renders only for free-plan + anonymous users. Shows three
+             locked premium benefits with blurred previews + primary CTA.
+             Paid users skip this block entirely.
+             ═══════════════════════════════════════════════════════════════ -->
+        ${isPaidUser() ? '' : `
+        <div class="paywall-tease" role="region" aria-label="Premium features — upgrade to unlock" style="margin-top:20px;padding:24px;border-radius:20px;background:linear-gradient(135deg,rgba(57,255,20,.06),rgba(255,216,77,.04));border:1px solid rgba(57,255,20,.22);">
+          <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+            <div style="flex-shrink:0;width:48px;height:48px;border-radius:14px;background:#39ff14;display:flex;align-items:center;justify-content:center;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#39ff14;margin-bottom:6px;">Premium unlock</div>
+              <h2 style="font-size:22px;font-weight:800;line-height:1.2;color:var(--text,#f5f5f7);margin-bottom:6px;letter-spacing:-.01em;">Your scorecard is ready. Want the full picture?</h2>
+              <p style="font-size:14px;color:var(--gray,#9aa5b4);line-height:1.55;">Free plan shows your overall score and top 3 metrics. Player and Performance plans unlock pro benchmarks, a personalized drill plan, and AI coach feedback.</p>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;">
+            <!-- Pro benchmark tease -->
+            <div style="position:relative;padding:16px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+              <div style="font-size:13px;font-weight:700;color:var(--text,#f5f5f7);margin-bottom:6px;">🎾 Compare to pro benchmarks</div>
+              <div style="font-size:11px;color:var(--gray,#9aa5b4);line-height:1.5;filter:blur(3px);user-select:none;pointer-events:none;">
+                Your hip rotation: 45° · ATP 4.5 avg: 68° · Top-100: 72°<br>
+                Racket drop depth: 34cm · Benchmark: 48cm<br>
+                Shoulder turn: 72° · Target: 95°
+              </div>
+              <div style="position:absolute;top:12px;right:12px;font-size:16px;">🔒</div>
+            </div>
+            <!-- Drill plan tease -->
+            <div style="position:relative;padding:16px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+              <div style="font-size:13px;font-weight:700;color:var(--text,#f5f5f7);margin-bottom:6px;">📋 14-day personalized drill plan</div>
+              <div style="font-size:11px;color:var(--gray,#9aa5b4);line-height:1.5;filter:blur(3px);user-select:none;pointer-events:none;">
+                Day 1: Hip-lead topspin · 20 reps<br>
+                Day 3: Racket-drop depth trainer<br>
+                Day 5: Contact-point consistency<br>
+                Day 7-14: Progressive integration
+              </div>
+              <div style="position:absolute;top:12px;right:12px;font-size:16px;">🔒</div>
+            </div>
+            <!-- AI coach tease -->
+            <div style="position:relative;padding:16px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+              <div style="font-size:13px;font-weight:700;color:var(--text,#f5f5f7);margin-bottom:6px;">🤖 AI coach narrative + weekly progress</div>
+              <div style="font-size:11px;color:var(--gray,#9aa5b4);line-height:1.5;filter:blur(3px);user-select:none;pointer-events:none;">
+                "Your forehand technique is building well, but 3 specific changes will move you from 72 → 85..."
+                Weekly trend reports · Coach share-links · PDF export
+              </div>
+              <div style="position:absolute;top:12px;right:12px;font-size:16px;">🔒</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);">
+            <div>
+              <div style="font-size:20px;font-weight:800;color:var(--text,#f5f5f7);">$9.99<span style="font-size:13px;font-weight:500;color:var(--gray,#9aa5b4);"> /month · cancel anytime</span></div>
+              <div style="font-size:11px;color:var(--gray,#9aa5b4);margin-top:2px;">10 analyses/mo + drill library + pro benchmarks · 30-day money-back</div>
+            </div>
+            <a href="./pricing.html?utm_source=post_analysis_paywall&utm_medium=in_app&utm_campaign=unlock_report&plan=pro"
+               class="paywall-cta"
+               onclick="try { window.gtag && gtag('event', 'paywall_click', { location: 'post_analysis_tease', plan: 'pro' }); } catch(_) {}"
+               style="display:inline-flex;align-items:center;gap:6px;padding:13px 22px;border-radius:999px;background:linear-gradient(135deg,#39ff14,#82ff63);color:#0a0a0a;font-weight:800;font-size:14px;text-decoration:none;border:1px solid rgba(57,255,20,.35);transition:transform .15s ease;">
+              Unlock full report →
+            </a>
+          </div>
+        </div>
+        `}
+
+        <!-- Full Technical Details (collapsible) — BLURRED for free users (Tier 1 paywall) -->
+        <details style="margin-top:16px;${isPaidUser() ? '' : 'opacity:0.55;pointer-events:none;filter:saturate(.6);'}" ${isPaidUser() ? '' : 'data-paywall-locked="1" aria-hidden="true"'}>
+          <summary style="list-style:none; cursor:${isPaidUser() ? 'pointer' : 'default'}; padding:16px 20px; background:rgba(10,22,40,0.58); border:1px solid rgba(255,255,255,0.1); border-radius:14px; display:flex; justify-content:space-between; align-items:center; font-size:15px; font-weight:700;">
+            🔬 Full Technical Details ${isPaidUser() ? '' : '<span style="font-size:11px;color:#ff6b35;font-weight:800;margin-left:auto;margin-right:10px;">🔒 PLAYER PLAN</span>'}
             <span style="font-size:12px; font-weight:400; color:var(--gray);">For coaches and advanced players ▼</span>
           </summary>
           <div style="margin-top:8px;">
