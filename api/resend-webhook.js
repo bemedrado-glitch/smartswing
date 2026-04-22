@@ -95,6 +95,21 @@ module.exports = async (req, res) => {
 
   console.log(`[resend-webhook] Received "${type}" for ${email || '(no email)'}`);
 
+  // Inbound email replies (Tier 2 #6) are delivered by Resend as the same
+  // webhook type but with a different event name. We fold handling here
+  // instead of adding a new serverless function (Vercel Hobby cap).
+  if (type === 'email.inbound' || type === 'inbound.email') {
+    try {
+      const threadId = await handleInboundEmail(event?.data || {});
+      return json(res, 200, { received: true, type, thread_id: threadId });
+    } catch (err) {
+      console.error('[resend-webhook] Inbound handler failed:', err?.message || err);
+      // 200 so Resend does not infinitely retry on our schema bugs — we log
+      // and move on. A dead-letter queue could be added later for replay.
+      return json(res, 200, { received: true, type, error: String(err?.message || err) });
+    }
+  }
+
   try {
     if (type === 'email.bounced') {
       if (email) {
@@ -176,3 +191,101 @@ module.exports = async (req, res) => {
 
   return json(res, 200, { received: true, type });
 };
+
+// ── Inbound email → inbox_messages threading (Tier 2 #6) ─────────────────────
+// Threads via In-Reply-To / References first, falls back to subject match.
+
+function normaliseMessageId(id) {
+  if (!id || typeof id !== 'string') return '';
+  return id.trim().replace(/^<|>$/g, '');
+}
+
+function collectCandidateIds(data) {
+  const ids = [];
+  const push = (x) => { const v = normaliseMessageId(x); if (v) ids.push(v); };
+  push(data.in_reply_to);
+  if (Array.isArray(data.references)) data.references.forEach(push);
+  return [...new Set(ids)];
+}
+
+async function supabaseGet(pathAndQuery) {
+  const url = `${supabaseBase()}/rest/v1/${pathAndQuery}`;
+  const r = await fetch(url, { headers: supabaseHeaders() });
+  if (!r.ok) throw new Error(`Supabase GET ${pathAndQuery} failed (${r.status})`);
+  return r.json();
+}
+
+async function supabasePost(table, body) {
+  const url = `${supabaseBase()}/rest/v1/${table}`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { ...supabaseHeaders(), Prefer: 'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => '');
+    throw new Error(`Supabase POST ${table} failed (${r.status}): ${t.slice(0, 200)}`);
+  }
+  return r.json();
+}
+
+async function findThreadByReferences(candidateIds) {
+  if (!candidateIds.length) return null;
+  const inList = candidateIds.map(id => `"${id.replace(/"/g, '\\"')}"`).join(',');
+  const q = `inbox_messages?email_message_id=in.(${encodeURIComponent(inList)})&select=thread_id&limit=1`;
+  const rows = await supabaseGet(q);
+  return rows[0]?.thread_id || null;
+}
+
+async function findThreadBySubject(subject) {
+  if (!subject) return null;
+  const normalised = subject.replace(/^\s*(re|fwd|fw)\s*:\s*/i, '').trim();
+  if (!normalised) return null;
+  const q = `inbox_threads?subject=eq.${encodeURIComponent(normalised)}&order=last_message_at.desc&limit=1`;
+  const rows = await supabaseGet(q);
+  return rows[0]?.id || null;
+}
+
+async function findProfileByEmail(email) {
+  if (!email) return null;
+  const q = `profiles?email=eq.${encodeURIComponent(email.toLowerCase())}&select=id&limit=1`;
+  const rows = await supabaseGet(q);
+  return rows[0]?.id || null;
+}
+
+async function handleInboundEmail(data) {
+  const fromEmail = String(data.from || '').toLowerCase().trim();
+  const subject   = (data.subject || '(no subject)').toString().slice(0, 500);
+  const bodyText  = (data.text || data.html || '').toString().slice(0, 50000);
+  const emailMessageId = normaliseMessageId(data.message_id);
+  const candidateIds   = collectCandidateIds(data);
+
+  let threadId  = await findThreadByReferences(candidateIds);
+  if (!threadId) threadId = await findThreadBySubject(subject);
+
+  const fromUserId = await findProfileByEmail(fromEmail);
+
+  if (!threadId) {
+    const [thread] = await supabasePost('inbox_threads', [{
+      subject,
+      owner_user_id: fromUserId,
+      last_message_preview: bodyText.slice(0, 140),
+      status: 'open'
+    }]);
+    threadId = thread.id;
+  }
+
+  await supabasePost('inbox_messages', [{
+    thread_id: threadId,
+    from_user_id: fromUserId,
+    from_name: data.from_name || fromEmail,
+    subject,
+    body: bodyText,
+    channel: 'email',
+    direction: 'inbound',
+    email_message_id: emailMessageId || null,
+    external_id: emailMessageId || null
+  }]);
+
+  return threadId;
+}
