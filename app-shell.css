@@ -1,0 +1,240 @@
+/**
+ * SmartSwing AI — Canonical app-shell styles.
+ *
+ * Single source of truth for the chrome shared across logged-in tool pages
+ * (dashboard, analyze, library, settings, coach-dashboard, marketing). Pairs
+ * with shared-footer.css (for marketing pages) — together they end the era
+ * of every page hand-rolling its own topbar + bottom-nav + hamburger.
+ *
+ * What it provides:
+ *   .app-topbar             — sticky top bar (logo · desktop nav · user menu)
+ *   .app-topbar-nav         — desktop nav row (hidden < 1024px)
+ *   .app-topbar-hamburger   — mobile menu trigger (shown < 1024px)
+ *   .app-mobile-drawer      — slide-in panel triggered by hamburger
+ *   .app-bottom-nav         — fixed bottom tab-bar on mobile (< 1024px)
+ *   .app-bottom-nav a.active — current-page indicator (volt green)
+ *
+ * Pages opt in by:
+ *   1. <link rel="stylesheet" href="./app-shell.css">
+ *   2. Including the canonical markup (see app-shell.js for renderer).
+ *
+ * Tokens: consumes brand-tokens.css `--ss-*` vars when present, falls back
+ * to literal values otherwise — works on pages that haven't migrated yet.
+ */
+
+/* ── Topbar ──────────────────────────────────────────────────────────────── */
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(5, 5, 5, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--ss-line, rgba(255,255,255,0.08));
+  padding: 0 12px;
+  margin-bottom: 0;
+}
+.app-topbar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 8px;
+  min-height: 64px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0));
+}
+.app-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--ss-text, #f5f5f7);
+}
+.app-topbar-brand img {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+}
+
+.app-topbar-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.app-topbar-nav a {
+  text-decoration: none;
+  color: rgba(245, 245, 247, 0.65);
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: color 160ms ease, background 160ms ease;
+}
+.app-topbar-nav a:hover,
+.app-topbar-nav a:focus-visible {
+  color: var(--ss-text, #f5f5f7);
+  background: rgba(255, 255, 255, 0.05);
+}
+.app-topbar-nav a.active {
+  color: var(--ss-volt, #39ff14);
+  background: rgba(57, 255, 20, 0.08);
+}
+
+.app-topbar-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ss-line, rgba(255,255,255,0.08));
+  text-decoration: none;
+  color: var(--ss-text, #f5f5f7);
+  font-size: 13px;
+  font-weight: 700;
+}
+.app-topbar-user .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #39ff14, #ffd84d);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #050505;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* ── Mobile hamburger + drawer ──────────────────────────────────────────── */
+.app-topbar-hamburger {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ss-line, rgba(255,255,255,0.10));
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: var(--ss-text, #f5f5f7);
+  flex-shrink: 0;
+  transition: background 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-topbar-hamburger:hover { background: rgba(255, 255, 255, 0.1); }
+
+.app-mobile-drawer {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 5, 0.96);
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+  z-index: 300;
+  display: none;
+  padding: 24px 20px;
+  padding-top: calc(24px + env(safe-area-inset-top, 0));
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+.app-mobile-drawer.is-open { display: flex; }
+.app-mobile-drawer-close {
+  align-self: flex-end;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0;
+  color: var(--ss-text, #f5f5f7);
+  font-size: 24px;
+  cursor: pointer;
+}
+.app-mobile-drawer a {
+  display: block;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ss-line, rgba(255,255,255,0.08));
+  color: var(--ss-text, #f5f5f7);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  transition: background 160ms ease, color 160ms ease;
+}
+.app-mobile-drawer a:hover,
+.app-mobile-drawer a.active {
+  background: rgba(57, 255, 20, 0.1);
+  color: var(--ss-volt, #39ff14);
+}
+
+@media (max-width: 1024px) {
+  .app-topbar-nav    { display: none !important; }
+  .app-topbar-hamburger { display: inline-flex !important; }
+}
+
+/* ── Bottom nav (fixed tab bar on mobile) ───────────────────────────────── */
+.app-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: rgba(5, 5, 5, 0.97);
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+  border-top: 1px solid var(--ss-line, rgba(255,255,255,0.10));
+  height: 64px;
+  padding: 0 4px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.app-bottom-nav a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: rgba(245, 245, 247, 0.45);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 4px 0;
+  transition: color 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-bottom-nav a svg {
+  opacity: 0.5;
+  transition: opacity 180ms ease;
+}
+.app-bottom-nav a.active        { color: var(--ss-volt, #39ff14); }
+.app-bottom-nav a.active svg    { opacity: 1; }
+
+@media (hover: hover) and (pointer: fine) {
+  .app-bottom-nav a:hover     { color: var(--ss-volt, #39ff14); }
+  .app-bottom-nav a:hover svg { opacity: 1; }
+}
+
+@media (max-width: 1024px) {
+  .app-bottom-nav { display: flex !important; }
+  /* Reserve space at the bottom of the page so content isn't hidden behind
+     the fixed bar. Pages should add `padding-bottom: 80px` to <main>. */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-topbar-nav a,
+  .app-topbar-hamburger,
+  .app-mobile-drawer a,
+  .app-bottom-nav a,
+  .app-bottom-nav a svg {
+    transition: none;
+  }
+}
