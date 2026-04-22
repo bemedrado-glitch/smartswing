@@ -241,6 +241,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
+<link rel="stylesheet" href="./skeleton-loader.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -465,7 +466,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- Recent Reports Strip -->
         <div style="margin-top:18px;">
           <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.3);margin-bottom:10px;" data-i18n="dashboard.recentAnalyses">Recent Reports</div>
-          <div id="recentReportsList"></div>
+          <div id="recentReportsList" data-skeleton="list-row" data-skeleton-count="3"></div>
         </div>
       </article>
 
@@ -484,7 +485,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <h2 style="margin:0;">Recent Matches</h2>
           <button class="btn" style="font-size:12px;padding:6px 12px;" onclick="document.querySelector('[data-tab=matches]').click();">View All</button>
         </div>
-        <div id="overviewMatchList" style="display:grid;gap:8px;"></div>
+        <div id="overviewMatchList" style="display:grid;gap:8px;" data-skeleton="list-row" data-skeleton-count="3"></div>
       </article>
 
       <!-- Free Plan Nudge -->
@@ -517,11 +518,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div id="completedTaskList"></div>
       </article>
       <div class="grid">
-        <article class="panel"><h2>Biomechanics Priorities</h2><div class="list" id="priorityList"></div></article>
+        <article class="panel"><h2>Biomechanics Priorities</h2><div class="list" id="priorityList" data-skeleton="list-row" data-skeleton-count="4"></div></article>
         <article class="panel"><h2>Top 3 AI Feedback</h2><div class="list" id="topFeedback"></div></article>
       </div>
-      <article class="panel"><h2>Performance KPIs</h2><div class="list" id="kpiList"></div></article>
-      <article class="panel"><h2>Session History</h2><div class="list" id="activityList"></div></article>
+      <article class="panel"><h2>Performance KPIs</h2><div class="list" id="kpiList" data-skeleton="list-row" data-skeleton-count="4"></div></article>
+      <article class="panel"><h2>Session History</h2><div class="list" id="activityList" data-skeleton="list-row" data-skeleton-count="5"></div></article>
     </section>
 
     <!-- ── Matches Tab ── -->
@@ -2200,5 +2201,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script src="./i18n.js" defer></script>
+<script src="./skeleton-loader.js" defer></script>
 </body>
 </html>

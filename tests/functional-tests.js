@@ -1786,6 +1786,52 @@ describe('Config — public-app-config.js Cal.com slug override', () => {
   });
 });
 
+describe('S9 — skeleton loaders on app pages', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'skeleton-loader.css'), 'utf8');
+  const js = fs.readFileSync(path.join(ROOT, 'skeleton-loader.js'), 'utf8');
+  const dashboard = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+  const library = fs.readFileSync(path.join(ROOT, 'library.html'), 'utf8');
+
+  test('CSS defines 5 variants: text, heading, card, kpi, list-row', () => {
+    ['--text', '--heading', '--card', '--kpi', '--list-row'].forEach(v => {
+      expect(css).toContain('.ss-skeleton' + v);
+    });
+  });
+
+  test('CSS respects prefers-reduced-motion', () => {
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(css).toContain('animation: none');
+  });
+
+  test('JS has safety timeout so stuck skeletons eventually clear', () => {
+    expect(js).toContain('DEFAULT_TIMEOUT_MS = 10000');
+    expect(js).toContain('Still loading…');
+  });
+
+  test('JS exposes SmartSwingSkeleton global with init/clear/refresh', () => {
+    expect(js).toContain('window.SmartSwingSkeleton');
+    expect(js).toContain('init: init');
+    expect(js).toContain('clear: clear');
+  });
+
+  test('library.html loads skeleton CSS + JS and marks hydration containers', () => {
+    expect(library).toContain('./skeleton-loader.css');
+    expect(library).toContain('./skeleton-loader.js');
+    expect(library).toContain('id="drillList" class="list" data-skeleton="list-row"');
+    expect(library).toContain('id="tacticList" class="list" data-skeleton="list-row"');
+  });
+
+  test('dashboard.html loads skeleton CSS + JS and marks 5 key containers', () => {
+    expect(dashboard).toContain('./skeleton-loader.css');
+    expect(dashboard).toContain('./skeleton-loader.js');
+    expect(dashboard).toContain('id="recentReportsList" data-skeleton=');
+    expect(dashboard).toContain('id="overviewMatchList"');
+    expect(dashboard).toContain('id="priorityList" data-skeleton=');
+    expect(dashboard).toContain('id="kpiList" data-skeleton=');
+    expect(dashboard).toContain('id="activityList" data-skeleton=');
+  });
+});
+
 describe('Referral — two-sided bonus (M12)', () => {
   const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
   const emailTpl = fs.readFileSync(path.join(ROOT, 'api/_lib/email-templates.js'), 'utf8');

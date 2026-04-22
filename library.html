@@ -243,6 +243,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
+<link rel="stylesheet" href="./skeleton-loader.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -302,11 +303,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <section class="grid">
       <article class="panel">
         <h2 data-i18n="library.drillsHeading">Drill Videos</h2>
-        <div id="drillList" class="list"></div>
+        <div id="drillList" class="list" data-skeleton="list-row" data-skeleton-count="5"></div>
       </article>
       <article class="panel">
         <h2 data-i18n="library.tacticsHeading">Tactical Playbooks</h2>
-        <div id="tacticList" class="list"></div>
+        <div id="tacticList" class="list" data-skeleton="list-row" data-skeleton-count="4"></div>
       </article>
     </section>
     </main>
@@ -451,5 +452,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     renderLibrary();
   </script>
   <script src="./i18n.js" defer></script>
+  <script src="./skeleton-loader.js" defer></script>
 </body>
 </html>
