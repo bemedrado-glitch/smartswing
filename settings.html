@@ -16,7 +16,7 @@
   <style>
     :root{--bg:#050505;--bg2:#0e1510;--panel:rgba(16,18,17,.94);--line:rgba(255,255,255,.12);--text: var(--ss-text, #f5f5f7);--muted:#eef3f7;--green: var(--ss-volt, #39ff14);--yellow:#ffd84d;--deep:#0e1012}
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:"DM Sans",sans-serif;color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(57,255,20,.14),transparent 30%),radial-gradient(circle at 95% 0%,rgba(255,216,77,.12),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom, 0);-webkit-tap-highlight-color:transparent}
+    body{font-family: var(--ss-font-body, "DM Sans",sans-serif);color:var(--text);background:radial-gradient(circle at 5% 10%,rgba(57,255,20,.14),transparent 30%),radial-gradient(circle at 95% 0%,rgba(255,216,77,.12),transparent 28%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom, 0);-webkit-tap-highlight-color:transparent}
     @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:0.01ms !important;transition-duration:0.01ms !important}}
     input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--green);outline-offset:2px}
     button:active:not(:disabled){transform:scale(0.98)}
@@ -25,7 +25,7 @@
     .topbar{grid-template-columns:auto 1fr auto;align-items:center;margin-bottom:18px}
     .hero{grid-template-columns:1.05fr .95fr;margin-bottom:18px}
     .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .logo{font-family:"Sora",sans-serif;font-size:30px;font-weight:800;text-decoration:none;color:var(--text)}.logo .dot{color:var(--green)}
+    .logo{font-family: var(--ss-font-display, "Sora",sans-serif);font-size:30px;font-weight:800;text-decoration:none;color:var(--text)}.logo .dot{color:var(--green)}
     .nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
     .btn{border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-weight:700;cursor:pointer;text-decoration:none;padding:12px 16px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
     .btn.primary{border:none;background:linear-gradient(135deg,var(--green),#82ff63);color:var(--deep)}
@@ -33,14 +33,14 @@
     .panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:22px;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
     .card{border-radius:18px;background:rgba(255,255,255,.04);padding:16px}
     .eyebrow,.mini{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--yellow)}
-    h1,h2,h3{font-family:"Sora",sans-serif;line-height:1.06;letter-spacing:-.03em}
+    h1,h2,h3{font-family: var(--ss-font-display, "Sora",sans-serif);line-height:1.06;letter-spacing:-.03em}
     h1{font-size:clamp(38px,6vw,64px);margin:10px 0 12px}
     h2{font-size:24px;margin-bottom:10px;color:var(--green)}
     h3{font-size:18px;margin-bottom:6px;color:var(--green)}
     .muted{color:var(--muted);line-height:1.7}
     .hero-art{min-height:320px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(6,14,28,.16),rgba(6,14,28,.82)),url('./assets/avatar/Persona 3 Tennis.webp') center 18%/cover;display:flex;align-items:flex-end;padding:18px}
     .avatar-shell{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-    .avatar-preview{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);color:var(--deep);font-family:"Sora",sans-serif;font-size:36px;font-weight:800;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.16)}
+    .avatar-preview{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),#82ff63);color:var(--deep);font-family: var(--ss-font-display, "Sora",sans-serif);font-size:36px;font-weight:800;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.16)}
     .stack,.field-grid{display:grid;gap:14px}
     .field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
@@ -794,7 +794,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ── SITE FOOTER ── -->
 <style>
-.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family: var(--ss-font-body, "DM Sans",-apple-system,sans-serif)}
 .ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
 .ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}

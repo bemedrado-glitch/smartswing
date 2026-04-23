@@ -16,7 +16,7 @@
   <style>
     :root{--bg:#0a0a0a;--panel:rgba(28,28,30,.92);--line:rgba(255,255,255,.1);--text:#f5f5f7;--muted: var(--ss-text-muted, #eef3f7);--volt:#39ff14;--accent:#ffd84d;--dark:#0e1012}
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:"DM Sans",sans-serif;color:var(--text);background:radial-gradient(circle at top left, rgba(255,216,77,.06), transparent 24%),linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#101010 100%);min-height:100vh}
+    body{font-family: var(--ss-font-body, "DM Sans",sans-serif);color:var(--text);background:radial-gradient(circle at top left, rgba(255,216,77,.06), transparent 24%),linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#101010 100%);min-height:100vh}
     .page{width:min(920px,calc(100% - 32px));margin:0 auto;padding:28px 0 72px}
     .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
     .brand{text-decoration:none;font-size:26px;font-weight:800;letter-spacing:-.05em;color:var(--volt)}
@@ -113,7 +113,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ── SITE FOOTER ── -->
 <style>
-.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family: var(--ss-font-body, "DM Sans",-apple-system,sans-serif)}
 .ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
 .ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}

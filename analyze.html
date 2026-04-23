@@ -44,7 +44,7 @@
   <script src="./grip-analysis-engine.js"></script>
 <!-- ── Upgrade Modal ──────────────────────────────────────────────── -->
 <div id="upgradeModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); overflow-y:auto; padding:24px 16px;">
-  <div style="max-width:580px; margin:0 auto; background:#0d1b2a; border:1px solid rgba(57,255,20,.22); border-radius:24px; padding:32px; color:#f5f5f7; font-family:'DM Sans',sans-serif;">
+  <div style="max-width:580px; margin:0 auto; background:#0d1b2a; border:1px solid rgba(57,255,20,.22); border-radius:24px; padding:32px; color:#f5f5f7; font-family: var(--ss-font-body, 'DM Sans',sans-serif);">
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
       <div>
         <div style="font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:#39ff14; margin-bottom:6px;">Analysis Limit Reached</div>
@@ -133,7 +133,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      font-family: 'DM Sans', -apple-system, sans-serif;
+      font-family: var(--ss-font-body, 'DM Sans', -apple-system, sans-serif);
       background: var(--void-black);
       color: var(--silver);
       line-height: 1.6;
@@ -893,7 +893,7 @@
       gap: 12px;
     }
     .mt-set-score {
-      font-family: 'Sora', 'DM Sans', sans-serif;
+      font-family: var(--ss-font-display, var(--ss-font-body, 'Sora', 'DM Sans', sans-serif));
       font-size: 32px;
       font-weight: 900;
       color: var(--silver);
@@ -916,7 +916,7 @@
       gap: 16px;
     }
     .mt-game-score {
-      font-family: 'Sora', 'DM Sans', sans-serif;
+      font-family: var(--ss-font-display, var(--ss-font-body, 'Sora', 'DM Sans', sans-serif));
       font-size: 56px;
       font-weight: 900;
       color: var(--silver);
@@ -1027,7 +1027,7 @@
       margin: 10px 0;
     }
     .mt-final-name { font-size: 16px; font-weight: 700; color: var(--silver); }
-    .mt-final-score { font-family: 'Sora', sans-serif; font-size: 40px; font-weight: 900; color: var(--neon-green); }
+    .mt-final-score { font-family: var(--ss-font-display, 'Sora', sans-serif); font-size: 40px; font-weight: 900; color: var(--neon-green); }
     .mt-compare-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 320px; }
     .mt-compare-table th { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.08); }
     .mt-compare-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--silver); }
@@ -1112,7 +1112,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .ai-skeleton__status {
     text-align: center;
     margin-bottom: 16px;
-    font-family: "DM Sans", sans-serif;
+    font-family: var(--ss-font-body, "DM Sans", sans-serif);
     font-size: 14px;
     color: rgba(255, 255, 255, 0.55);
   }
@@ -1135,7 +1135,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
        New Lead — Tennis Player cadence. ──────────────────────────────────── -->
   <div id="liteSignupModal" role="dialog" aria-modal="true" aria-labelledby="liteSignupTitle"
        style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;">
-    <div style="max-width:440px;width:100%;background:#16161a;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:36px 32px;color:#f5f7fa;font-family:'DM Sans',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div style="max-width:440px;width:100%;background:#16161a;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:36px 32px;color:#f5f7fa;font-family: var(--ss-font-body, 'DM Sans',sans-serif);box-shadow:0 20px 60px rgba(0,0,0,.5);">
       <div style="text-align:center;margin-bottom:20px;">
         <div style="display:inline-flex;width:52px;height:52px;border-radius:14px;background:#39ff14;align-items:center;justify-content:center;margin-bottom:14px;">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -1866,7 +1866,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <!-- Score Card Modal -->
         <div id="scoreCardModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);overflow-y:auto;padding:24px 16px;">
-          <div style="max-width:440px;margin:0 auto;background:#0d1b2a;border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:28px;color:#f5f5f7;font-family:'DM Sans',sans-serif;">
+          <div style="max-width:440px;margin:0 auto;background:#0d1b2a;border:1px solid rgba(57,255,20,.22);border-radius:24px;padding:28px;color:#f5f5f7;font-family: var(--ss-font-body, 'DM Sans',sans-serif);">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
               <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#39ff14;">Score Card</div>
               <button id="closeScoreCardBtn" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:24px;cursor:pointer;padding:0 4px;line-height:1;">&times;</button>
@@ -8251,7 +8251,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </main>
 <!-- ── SITE FOOTER ── -->
 <style>
-.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family: var(--ss-font-body, "DM Sans",-apple-system,sans-serif)}
 .ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
 .ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}

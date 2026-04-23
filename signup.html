@@ -25,7 +25,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ss-font-body, 'DM Sans', sans-serif);
       min-height: 100vh;
       min-height: 100dvh;
       color: var(--silver);
@@ -1313,7 +1313,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ── SITE FOOTER ── -->
 <style>
-.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family: var(--ss-font-body, "DM Sans",-apple-system,sans-serif)}
 .ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
 .ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}

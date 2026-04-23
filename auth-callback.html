@@ -12,7 +12,7 @@
     :root { --bg:#050505; --panel:rgba(18,18,20,.92); --line:rgba(255,255,255,.1); --text: var(--ss-text, #f5f5f7); --muted: var(--ss-text-muted, #eef3f7); --green: var(--ss-volt, #39ff14); --yellow: var(--ss-gold, #ffd84d); }
     * { box-sizing:border-box; margin:0; padding:0; }
     body {
-      font-family: "DM Sans", Arial, sans-serif;
+      font-family: var(--ss-font-body, "DM Sans", Arial, sans-serif);
       min-height:100vh;
       min-height:100dvh;
       display:grid;
@@ -166,7 +166,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ── SITE FOOTER ── -->
 <style>
-.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family: var(--ss-font-body, "DM Sans",-apple-system,sans-serif)}
 .ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
 .ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}

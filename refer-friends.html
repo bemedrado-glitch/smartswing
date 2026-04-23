@@ -39,7 +39,7 @@
     html, body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ss-font-body, 'DM Sans', sans-serif);
       font-size: 16px;
       line-height: 1.6;
       min-height: 100vh;
@@ -148,7 +148,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: var(--text);
-      font-family: 'DM Sans', monospace;
+      font-family: var(--ss-font-body, 'DM Sans', monospace);
       font-size: .875rem;
       padding: 12px 16px;
       outline: none;
@@ -168,7 +168,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ss-font-body, 'DM Sans', sans-serif);
       font-weight: 700;
       font-size: .875rem;
       border: none;
@@ -365,7 +365,7 @@
       gap: 6px;
       background: var(--neon-green);
       color: #0a0a0a;
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ss-font-body, 'DM Sans', sans-serif);
       font-weight: 700;
       font-size: .95rem;
       padding: 14px 28px;
@@ -437,7 +437,7 @@
       background: transparent;
       border: 1px solid var(--border);
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--ss-font-body, 'DM Sans', sans-serif);
       font-weight: 600;
       font-size: .95rem;
       padding: 13px 26px;
