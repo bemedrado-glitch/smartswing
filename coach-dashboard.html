@@ -19,13 +19,13 @@
       --panel: rgba(22,22,26,0.94);
       --panel-soft: rgba(255,255,255,0.04);
       --line: rgba(255,255,255,0.1);
-      --text: #f5f7fa;
-      --muted: #8a96a3;
-      --volt: #39ff14;
-      --gold: #ffd84d;
-      --teal: #00d4aa;
-      --red: #ff5252;
-      --orange: #ff6d00;
+      --text: var(--ss-text, #f5f7fa);
+      --muted: var(--ss-text-muted, #8a96a3);
+      --volt: var(--ss-volt, #39ff14);
+      --gold: var(--ss-gold, #ffd84d);
+      --teal: var(--ss-teal, #00d4aa);
+      --red: var(--ss-red, #ff5252);
+      --orange: var(--ss-amber, #ff6d00);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -313,6 +313,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./toast.css">
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

@@ -17,8 +17,8 @@
 :root {
   --bg: #0a0a0a; --bg-soft: #111; --bg-mid: #1a1a1a;
   --panel: rgba(22,22,26,0.92); --line: rgba(255,255,255,0.1);
-  --text: #f5f5f7; --muted: rgba(255,255,255,0.6);
-  --green: #39ff14; --volt: #39ff14; --gold: #ffd84d;
+  --text: var(--ss-text, #f5f5f7); --muted: var(--ss-text-muted, rgba(255,255,255,0.6));
+  --green: var(--ss-volt, #39ff14); --volt: var(--ss-volt, #39ff14); --gold: var(--ss-gold, #ffd84d);
   --page: min(1280px, calc(100% - 48px));
 }
 body {
@@ -73,6 +73,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

@@ -14,7 +14,7 @@
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"></noscript>
   <style>
-    :root{--bg:#0a0a0a;--panel:rgba(28,28,30,.92);--line:rgba(255,255,255,.1);--text:#f5f5f7;--muted:#eef3f7;--volt:#39ff14;--accent:#ffd84d;--dark:#0e1012}
+    :root{--bg:#0a0a0a;--panel:rgba(28,28,30,.92);--line:rgba(255,255,255,.1);--text:#f5f5f7;--muted: var(--ss-text-muted, #eef3f7);--volt:#39ff14;--accent:#ffd84d;--dark:#0e1012}
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:"DM Sans",sans-serif;color:var(--text);background:radial-gradient(circle at top left, rgba(255,216,77,.06), transparent 24%),linear-gradient(180deg,#050505 0%,#0a0a0a 50%,#101010 100%);min-height:100vh}
     .page{width:min(920px,calc(100% - 32px));margin:0 auto;padding:28px 0 72px}
@@ -44,6 +44,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./safe-area.css">
 <script src="./shared-chrome.js" defer></script>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

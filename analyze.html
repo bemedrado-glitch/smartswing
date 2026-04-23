@@ -111,23 +111,23 @@
   
   <style>
     :root {
-      --volt: #39FF14;
-      --neon-green: #39FF14;
-      --gold: #FFD84D;
+      --volt: var(--ss-volt, #39FF14);
+      --neon-green: var(--ss-volt, #39FF14);
+      --gold: var(--ss-gold, #FFD84D);
       --electric-cyan: #FFD84D;
-      --teal: #00d4aa;
+      --teal: var(--ss-teal, #00d4aa);
       --bg: #0a0a0a;
       --void-black: #000000;
       --deep-navy: #0D1B2A;
       --panel: rgba(16,18,17,.94);
       --line: rgba(255,255,255,.12);
-      --text: #f5f5f7;
+      --text: var(--ss-text, #f5f5f7);
       --silver: #F5F5F7;
       --gray: #EEF3F7;
-      --muted: #8a96a3;
+      --muted: var(--ss-text-muted, #8a96a3);
       --success: #10B981;
-      --warning: #F59E0B;
-      --error: #FF3E6C;
+      --warning: var(--ss-amber, #F59E0B);
+      --error: var(--ss-red, #FF3E6C);
     }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1125,6 +1125,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   }
   .ai-skeleton__status strong { color: #39ff14; font-weight: 700; }
 </style>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

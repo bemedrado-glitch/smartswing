@@ -15,11 +15,11 @@
     :root {
       --void-black: #030508;
       --deep-navy: #0d1b2a;
-      --neon-green: #39ff14;
+      --neon-green: var(--ss-volt, #39ff14);
       --electric-cyan: #ffd84d;
       --silver: #e5e5e5;
       --gray: #6c757d;
-      --error: #ff4d73;
+      --error: var(--ss-red, #ff4d73);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -657,6 +657,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
 <script src="./shared-chrome.js" defer></script>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <div data-ss-header></div>
