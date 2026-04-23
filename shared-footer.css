@@ -126,3 +126,26 @@ footer.ss-footer,
 .ss-footer .footer-bottom p {
   margin: 0;
 }
+
+/* Internal/resource links (Marketing, Sales Plan, Tech Docs) — subdued so
+   they read as secondary utilities next to the copyright line. */
+.ss-footer .footer-internal {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+}
+
+.ss-footer .footer-internal a {
+  color: rgba(57, 255, 20, 0.45);
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color 160ms ease;
+}
+
+.ss-footer .footer-internal a:hover,
+.ss-footer .footer-internal a:focus-visible {
+  color: #39ff14;
+}

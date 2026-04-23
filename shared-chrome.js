@@ -106,6 +106,14 @@
           '</div>' +
           '<div class="footer-bottom">' +
             '<p data-i18n="footer.copyright">&copy; ' + CURRENT_YEAR + ' SmartSwing AI. All rights reserved.</p>' +
+            // Internal resource links preserved from the previous per-page
+            // footers (user feedback: marketing/sales/tech-docs disappeared
+            // during the canonical-footer migration in PR #105).
+            '<div class="footer-internal">' +
+              '<a href="./marketing.html">Marketing Dashboard</a>' +
+              '<a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html">Sales Plan</a>' +
+              '<a href="./smartswing-technical-docs.html">Technical Docs</a>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</footer>'

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="You are offline. SmartSwing AI will resume as soon as your connection returns.">
+  <title>You're offline · SmartSwing AI</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <link rel="apple-touch-icon" href="./assets/logos/icon.png">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"></noscript>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: rgba(28,28,30,.92);
+      --line: rgba(255,255,255,.1);
+      --text: var(--ss-text, #f5f5f7);
+      --muted: var(--ss-text-muted, rgba(255,255,255,.55));
+      --volt: var(--ss-volt, #39ff14);
+      --teal: var(--ss-teal, #22d3ee);
+      --dark: #0e1012;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", -apple-system, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(34,211,238,.08), transparent 30%),
+        linear-gradient(180deg, #050505 0%, #0a0a0a 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--volt); outline-offset: 3px; border-radius: 4px; }
+    .top { max-width: 1200px; width: 100%; margin: 0 auto; padding: 24px 24px 0; }
+    .brand img { height: 56px; width: auto; display: block; }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .panel {
+      max-width: 560px;
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 56px 40px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .code {
+      display: inline-flex;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(34,211,238,.08);
+      color: var(--teal);
+      border: 1px solid rgba(34,211,238,.25);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.1;
+      letter-spacing: -.03em;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    h1 .glyph { color: var(--teal); }
+    p.lead {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 420px;
+      margin: 0 auto 28px;
+    }
+    .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .btn, .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 13px 22px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      transition: transform .18s ease;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+    }
+    .btn-primary {
+      border: 1px solid rgba(57,255,20,.35);
+      background: linear-gradient(135deg, var(--volt), #82ff63);
+      color: var(--dark);
+    }
+    .btn:hover, .btn-primary:hover { transform: translateY(-2px); }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal);
+      margin-right: 6px;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: .4; }
+      50%     { opacity: 1;  }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .status-dot { animation: none; }
+    }
+
+    .tips {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .tips strong {
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .tips ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .tips li::before { content: "— "; color: var(--teal); }
+  </style>
+<link rel="stylesheet" href="./brand-tokens.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/" aria-label="SmartSwing AI home">
+      <img src="./assets/logos/logo.png" alt="SmartSwing AI" width="190" height="56">
+    </a>
+  </header>
+
+  <main>
+    <section class="panel" role="region" aria-labelledby="offlineHeading">
+      <div class="code"><span class="status-dot" aria-hidden="true"></span>Offline</div>
+      <h1 id="offlineHeading">You're <span class="glyph">off the court</span>.</h1>
+      <p class="lead">
+        We lost your connection. Your work is preserved locally — it'll sync as soon as you're back online.
+      </p>
+
+      <div class="actions">
+        <button type="button" class="btn-primary" onclick="location.reload()">Retry connection</button>
+      </div>
+
+      <div class="tips">
+        <strong>While you wait</strong>
+        <ul>
+          <li>Cached reports stay viewable from your dashboard</li>
+          <li>New swings you record queue up for analysis once reconnected</li>
+          <li>Saved drill videos work offline inside the library</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Auto-retry when the browser detects connectivity restored. Belt-and-
+    // braces with the manual Retry button — whichever fires first wins.
+    window.addEventListener('online', function () {
+      // Small delay lets the network stack settle before requesting the SPA.
+      setTimeout(function () { location.reload(); }, 400);
+    });
+  </script>
+</body>
+</html>

@@ -2809,6 +2809,86 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Shared footer preserves internal resource links (Marketing/Sales/Tech)', () => {
+  const chrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'shared-footer.css'), 'utf8');
+
+  test('Marketing Dashboard link present', () => {
+    expect(chrome).toContain('./marketing.html');
+    expect(chrome).toContain('Marketing Dashboard');
+  });
+
+  test('Sales Plan link present', () => {
+    expect(chrome).toContain('./deploy/SALES_PLAN_AND_PROJECTIONS.html');
+    expect(chrome).toContain('Sales Plan');
+  });
+
+  test('Technical Docs link present', () => {
+    expect(chrome).toContain('./smartswing-technical-docs.html');
+    expect(chrome).toContain('Technical Docs');
+  });
+
+  test('Internal links grouped in a .footer-internal container + styled', () => {
+    expect(chrome).toContain('class="footer-internal"');
+    expect(css).toContain('.ss-footer .footer-internal');
+  });
+});
+
+describe('Print stylesheets + error-page parity + offline handling', () => {
+  const print = fs.readFileSync(path.join(ROOT, 'print.css'), 'utf8');
+  const p500  = fs.readFileSync(path.join(ROOT, '500.html'), 'utf8');
+  const pOff  = fs.readFileSync(path.join(ROOT, 'offline.html'), 'utf8');
+  const sw    = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+
+  test('print.css wraps every rule in @media print', () => {
+    // Single @media print block opens the file; no unguarded rules after.
+    expect(print).toContain('@media print {');
+    // Hide chrome when printing.
+    expect(print).toContain('.app-bottom-nav');
+    expect(print).toContain('.cookie-banner');
+    expect(print).toContain('.ss-toast');
+  });
+
+  test('print.css expands http/local links next to anchors', () => {
+    expect(print).toContain('content: " (" attr(href) ")"');
+  });
+
+  test('print.css is linked on high-traffic printable pages', () => {
+    ['analyze.html', 'shared-report.html', 'payment-success.html',
+     'privacy-policy.html', 'user-agreement.html'].forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('print.css');
+      expect(src).toContain('media="print"');
+    });
+  });
+
+  test('500.html is branded + reuses shared footer', () => {
+    expect(p500).toContain('<title>Server Error');
+    expect(p500).toContain('Error 500');
+    expect(p500).toContain('data-ss-footer');
+    expect(p500).toContain('Retry');
+    expect(p500).toContain('Contact support');
+  });
+
+  test('offline.html has auto-retry + uses brand tokens', () => {
+    expect(pOff).toContain("window.addEventListener('online'");
+    expect(pOff).toContain('location.reload()');
+    expect(pOff).toContain('var(--ss-teal');
+    expect(pOff).toContain('noindex,nofollow');
+  });
+
+  test('Service worker precaches offline.html and serves it on HTML fail', () => {
+    expect(sw).toContain("const OFFLINE_URL = './offline.html'");
+    expect(sw).toContain("'./offline.html'");
+    expect(sw).toContain("'./500.html'");
+    expect(sw).toContain('caches.match(OFFLINE_URL)');
+  });
+
+  test('Service worker cache version bumped (forces reinstall for new assets)', () => {
+    expect(sw).toContain("CACHE_NAME = 'smartswing-shell-v11'");
+  });
+});
+
 describe('Coach-dashboard app-shell migration (partial — bottom-nav only)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'coach-dashboard.html'), 'utf8');
 
