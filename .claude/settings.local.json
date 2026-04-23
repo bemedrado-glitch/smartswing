@@ -209,7 +209,8 @@
       "Bash(awk '{print $2}')",
       "Bash(node tests/i18n-backfill.js)",
       "Bash(node tests/i18n-locale-backfill.js)",
-      "Bash(sort -t: -k2 -rn)"
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(grep -nA2 \"updateProfile\\({\" settings.html)"
     ]
   }
 }

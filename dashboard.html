@@ -759,7 +759,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         if (localStorage.getItem(DISMISS_KEY) === '1') return;
 
         var refStats = (store.getReferralStats && store.getReferralStats(user.id)) || { bonusCount: 0, code: '', referralLink: '' };
-        var profileDone = !!(user.fullName && user.fullName.trim().length >= 2 && (user.sport || user.primarySport || user.level));
+
+        // ── Bug #2 fix ─────────────────────────────────────────────────────
+        // The previous check looked for `user.sport || user.primarySport ||
+        // user.level` — none of which are fields written by settings.html.
+        // The real saved fields are any of:
+        //   ustaLevel, playingLevel, utrRating, ratingValue, ageRange, gender
+        // Profile counts as "done" once the user has a full name AND at least
+        // one of the real skill-identifying fields populated.
+        var hasSkill = !!(user.ustaLevel || user.playingLevel || user.utrRating || user.ratingValue);
+        var hasIdentity = !!(user.gender || user.ageRange || user.dominantHand || user.preferredHand);
+        var profileDone = !!(user.fullName && user.fullName.trim().length >= 2 && (hasSkill || hasIdentity));
+
         var firstAnalysisDone = assessments.length >= 1;
         var reportSharedDone = localStorage.getItem('ss:onboarding:shared:' + user.id) === '1' || assessments.some(function(a){ return a && a.shared; });
         var friendInvitedDone = (refStats.bonusCount || 0) >= 1 || localStorage.getItem('ss:onboarding:invited:' + user.id) === '1';
@@ -773,23 +784,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           { id: 'plan',      done: planChosenDone,      label: 'Pick a plan that fits',       href: './pricing.html?src=onboarding',    cta: 'See pricing' }
         ];
         var doneCount = items.filter(function(i){ return i.done; }).length;
-        if (doneCount >= items.length) { panel.style.display = 'none'; return; }
+
+        // ── Bug #3 fix (part A) — auto-close on 100% ────────────────────
+        // When everything is done, show a celebratory state for ~3s then
+        // hide the panel entirely, and set the dismiss flag so it stays
+        // hidden on future visits.
+        if (doneCount >= items.length) {
+          panel.innerHTML =
+            '<div style="text-align:center;padding:18px 16px;">' +
+              '<div style="font-size:28px;line-height:1;margin-bottom:6px;">🎉</div>' +
+              '<div style="font-family:\'Sora\',sans-serif;font-size:17px;font-weight:700;color:var(--ss-text,#f5f5f7);">Setup complete — nice work.</div>' +
+              '<div style="font-size:13px;color:var(--ss-text-muted,rgba(255,255,255,0.55));margin-top:4px;">' +
+                'This panel will disappear in a moment. You\'ve unlocked the full SmartSwing AI experience.' +
+              '</div>' +
+            '</div>';
+          panel.style.display = 'block';
+          localStorage.setItem(DISMISS_KEY, '1');
+          setTimeout(function(){ panel.style.display = 'none'; }, 3200);
+          return;
+        }
+
+        // ── Bug #3 fix (part B) — hide completed items from the visible list ──
+        // Previously completed items stayed in the list with a strikethrough,
+        // cluttering the panel. Now they're removed entirely; the progress bar
+        // still reflects that they count toward done.
+        var visibleItems = items.filter(function(i){ return !i.done; });
 
         var list = document.getElementById('onboardingItems');
-        list.innerHTML = items.map(function(it) {
-          var iconDone = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+        list.innerHTML = visibleItems.map(function(it) {
           var iconTodo = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg>';
-          var labelHtml = it.done
-            ? '<span style="color:rgba(255,255,255,0.45);text-decoration:line-through;">' + it.label + '</span>'
-            : '<a href="' + it.href + '" style="color:var(--text);text-decoration:none;">' + it.label + '</a>';
-          var ctaHtml = it.done
-            ? '<span class="mini" style="color:rgba(57,255,20,0.75);">Done</span>'
-            : '<a href="' + it.href + '" class="mini" style="color:var(--green);text-decoration:none;font-weight:700;">' + it.cta + ' →</a>';
           return (
             '<li style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;">' +
-              '<span style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;">' + (it.done ? iconDone : iconTodo) + '</span>' +
-              '<span style="flex:1;font-size:13px;font-weight:600;line-height:1.3;">' + labelHtml + '</span>' +
-              ctaHtml +
+              '<span style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;">' + iconTodo + '</span>' +
+              '<span style="flex:1;font-size:13px;font-weight:600;line-height:1.3;">' +
+                '<a href="' + it.href + '" style="color:var(--text);text-decoration:none;">' + it.label + '</a>' +
+              '</span>' +
+              '<a href="' + it.href + '" class="mini" style="color:var(--green);text-decoration:none;font-weight:700;">' + it.cta + ' →</a>' +
             '</li>'
           );
         }).join('');
@@ -799,6 +829,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         var pctEl = document.getElementById('onboardingPct');
         if (bar) setTimeout(function(){ bar.style.width = pct + '%'; }, 120);
         if (pctEl) pctEl.textContent = pct + '%';
+        // Update the count badge so users can see e.g. "3 of 5 done" progress
+        // even though the completed items have disappeared.
+        var titleEl = document.getElementById('onboardingTitle');
+        if (titleEl && doneCount > 0) {
+          titleEl.textContent = doneCount + ' of ' + items.length + ' done — keep going';
+        }
         panel.style.display = 'block';
 
         var dismiss = document.getElementById('onboardingDismiss');

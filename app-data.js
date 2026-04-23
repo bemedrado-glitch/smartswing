@@ -18,7 +18,8 @@
     referrals: 'smartswing_referrals',               // [{ id, referrerCode, referredUserId, completedAt }]
     pendingReferral: 'smartswing_pending_referral',  // { code } — stored from ?ref= URL param before signup
     matches: 'smartswing_matches',
-    pendingAssessmentSyncs: 'smartswing_pending_assessment_syncs'  // retry queue for failed cloud syncs
+    pendingAssessmentSyncs: 'smartswing_pending_assessment_syncs',  // retry queue for failed cloud syncs
+    profileRetryQueue: 'smartswing_profile_retry_queue'            // bug #1 retry queue for failed profile upserts
   };
 
   const DEFAULT_COACHES = [
@@ -1151,6 +1152,9 @@
     write(KEYS.session, { userId: local.id, loggedInAt: nowIso(), provider: 'supabase' });
     localStorage.removeItem(KEYS.autoSessionOptOut);
     await ensureRemoteProfile(local);
+    // Try to flush any profile upserts that previously failed for transient
+    // reasons (network, RLS race). Non-blocking.
+    flushProfileRetryQueue().catch(() => {});
     if (options.pullLatest !== false) {
       await pullRemoteState(local.id);
     }
@@ -2070,7 +2074,10 @@
   async function ensureRemoteProfile(user) {
     const client = await getSupabaseClient();
     if (!client || !user?.id) return;
-    await client.from('profiles').upsert({
+
+    // Build the payload once so we can both send it and reference it in a
+    // DLQ entry if the upsert fails.
+    const payload = {
       id: user.id,
       email: user.email,
       full_name: user.fullName,
@@ -2110,7 +2117,92 @@
       trial_started_at: user.trialStartedAt || null,
       trial_ends_at: user.trialEndsAt || null,
       trial_history: getTrialHistory(user)
-    }, { onConflict: 'id' });
+    };
+
+    // Bug #1 fix — the previous version never checked the upsert result, so
+    // any RLS denial / schema drift / network flake silently "succeeded" in
+    // localStorage but not in Supabase. Next login pulled the stale remote
+    // over the fresh local → settings appeared to vanish.
+    //
+    // Now: try up to 3 times with backoff, log each attempt, throw on final
+    // failure so callers can surface the error. The retry is defensive for
+    // transient network issues; a consistent RLS failure still propagates.
+    const MAX_ATTEMPTS = 3;
+    let lastError = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const { error } = await client
+          .from('profiles')
+          .upsert(payload, { onConflict: 'id' });
+        if (!error) {
+          if (attempt > 1) {
+            // Mark the moment we recovered so user-facing toasts can confirm.
+            console.log('[profile] persisted on attempt ' + attempt);
+          }
+          return;
+        }
+        lastError = error;
+        console.warn('[profile] upsert attempt ' + attempt + ' failed:', error.message || error);
+      } catch (err) {
+        lastError = err;
+        console.warn('[profile] upsert attempt ' + attempt + ' threw:', err?.message || err);
+      }
+      // Exponential backoff: 0ms, 300ms, 900ms. Total worst-case ~1.2s.
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 300 * Math.pow(3, attempt - 1)));
+      }
+    }
+
+    // Queue the failed payload in localStorage so the next successful write
+    // or page load can retry. The queue is bounded to 20 entries to keep
+    // storage usage sane.
+    try {
+      const key = KEYS.profileRetryQueue || 'smartswing_profile_retry_queue';
+      const raw = localStorage.getItem(key);
+      const queue = raw ? JSON.parse(raw) : [];
+      queue.push({ payload, queuedAt: nowIso(), error: String(lastError?.message || lastError || 'unknown') });
+      // Drop oldest entries if queue grew past the cap.
+      while (queue.length > 20) queue.shift();
+      localStorage.setItem(key, JSON.stringify(queue));
+    } catch (_) {}
+
+    // Throw so callers (settings.html save handler, onboarding completion)
+    // can show an error toast and let the user know the remote save failed.
+    const message = 'Profile did not persist to the server after ' + MAX_ATTEMPTS +
+      ' attempts. Your changes are saved locally and will retry automatically.';
+    const e = new Error(message);
+    e.cause = lastError;
+    throw e;
+  }
+
+  // Retry any queued profile upserts that previously failed. Called on
+  // hydration + after every successful save, so transient outages resolve
+  // themselves without user intervention.
+  async function flushProfileRetryQueue() {
+    try {
+      const key = KEYS.profileRetryQueue || 'smartswing_profile_retry_queue';
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const queue = JSON.parse(raw);
+      if (!Array.isArray(queue) || !queue.length) return;
+      const client = await getSupabaseClient();
+      if (!client) return;
+
+      const remaining = [];
+      for (const entry of queue) {
+        try {
+          const { error } = await client.from('profiles')
+            .upsert(entry.payload, { onConflict: 'id' });
+          if (error) remaining.push(entry);
+        } catch (_) {
+          remaining.push(entry);
+        }
+      }
+      if (remaining.length) localStorage.setItem(key, JSON.stringify(remaining));
+      else localStorage.removeItem(key);
+    } catch (_) {
+      // Best-effort — never block the UI for a retry flush.
+    }
   }
 
   async function pullRemoteState(userId) {
@@ -4039,6 +4131,7 @@
     syncNow,
     isSupabaseConfigured,
     syncNow,
+    flushProfileRetryQueue,
     read,
     write
   };

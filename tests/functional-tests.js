@@ -2813,6 +2813,71 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Settings persistence + onboarding checklist fixes (Bugs 1+2+3)', () => {
+  const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
+  const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+
+  test('Bug 1 — ensureRemoteProfile now checks error + retries with backoff', () => {
+    expect(appData).toContain('MAX_ATTEMPTS');
+    expect(appData).toContain('[profile] upsert attempt');
+    expect(appData).toContain('Profile did not persist');
+    // Exponential backoff signal.
+    expect(appData).toContain('Math.pow(3, attempt - 1)');
+  });
+
+  test('Bug 1 — failed upserts queue to localStorage for retry', () => {
+    expect(appData).toContain('profileRetryQueue');
+    expect(appData).toContain('smartswing_profile_retry_queue');
+    expect(appData).toContain('flushProfileRetryQueue');
+  });
+
+  test('Bug 1 — retry queue auto-flushes on hydration', () => {
+    // Hot-path: after successful session restore, pending upserts are retried.
+    expect(appData).toContain('flushProfileRetryQueue().catch(() => {})');
+  });
+
+  test('Bug 1 — flushProfileRetryQueue is exported on the store', () => {
+    // Declared as a function AND referenced by name in the exports block.
+    expect(appData).toContain('async function flushProfileRetryQueue');
+    expect(/flushProfileRetryQueue\s*,/.test(appData)).toBe(true);
+  });
+
+  test('Bug 2 — profileDone now checks real saved fields', () => {
+    // No more `user.sport || user.primarySport || user.level` phantom check.
+    expect(dash.includes('user.sport || user.primarySport || user.level')).toBe(false);
+    // Real fields the settings page actually writes.
+    expect(dash).toContain('user.ustaLevel || user.playingLevel');
+    expect(dash).toContain('user.utrRating || user.ratingValue');
+  });
+
+  test('Bug 3a — all-done state shows celebratory message + auto-hides', () => {
+    expect(dash).toContain('Setup complete — nice work');
+    expect(dash).toContain('setTimeout(function(){ panel.style.display = \'none\'; }, 3200)');
+    // Dismiss flag set so it stays hidden on reload.
+    expect(dash).toContain("localStorage.setItem(DISMISS_KEY, '1')");
+  });
+
+  test('Bug 3b — completed items disappear from the visible list', () => {
+    expect(dash).toContain("items.filter(function(i){ return !i.done; })");
+    expect(dash).toContain('visibleItems.map');
+  });
+
+  test('Bug 3c — progress title updates to "N of 5 done"', () => {
+    expect(dash).toContain("doneCount + ' of ' + items.length + ' done");
+  });
+
+  test('Bug 3 — no more strikethrough-styled "done" row clutter in checklist', () => {
+    // Scope the check to the onboarding checklist script block — other
+    // .action-item CSS rules in the file are unrelated (task lists etc.).
+    const start = dash.indexOf('onboardingChecklist');
+    const end   = dash.indexOf('// ── Free Plan Referral Nudge');
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const checklistBlock = dash.slice(start, end);
+    expect(checklistBlock.includes('text-decoration:line-through')).toBe(false);
+  });
+});
+
 describe('Library modernization — tabs + filter chips + compact cards', () => {
   const src = fs.readFileSync(path.join(ROOT, 'library.html'), 'utf8');
 
