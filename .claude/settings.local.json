@@ -201,7 +201,8 @@
       "Bash(awk '/<footer /,/<\\\\/footer>/' contact.html)",
       "Bash(awk '/<footer /,/<\\\\/footer>/' 404.html)",
       "Bash(node -e \"require\\('./shared-chrome.js'\\)\")",
-      "Bash(awk 'NR==1207,/^  <\\\\/nav>/' analyze.html)"
+      "Bash(awk 'NR==1207,/^  <\\\\/nav>/' analyze.html)",
+      "Bash(python)"
     ]
   }
 }
