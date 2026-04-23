@@ -170,17 +170,8 @@
     @media (hover: hover) and (pointer: fine) { .analyze-topnav a:hover { color: #39ff14; background: rgba(57,255,20,0.08); } }
     .analyze-topnav .nav-links { display: flex; gap: 4px; }
     @media (max-width: 768px) { .analyze-topnav .nav-links { display: none; } .container { padding: 0 8px 80px; } .wizard-section { padding: 20px 16px; border-radius: 18px; } }
-    /* ── Mobile bottom nav ── */
-    .app-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: rgba(5,5,5,0.97); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); height: 64px; padding: 0 4px; }
-    .app-bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(245,245,247,0.45); text-decoration: none; font-size: 12px; font-weight: 700; padding: 4px 0; transition: color .18s; }
-    .app-bottom-nav a svg { opacity: .5; transition: opacity .18s; }
-    .app-bottom-nav a.active { color: #39ff14; }
-    .app-bottom-nav a.active svg { opacity: 1; }
-    @media (hover: hover) and (pointer: fine) {
-    .app-bottom-nav a:hover { color: #39ff14; }
-    .app-bottom-nav a:hover svg { opacity: 1; }
-    }
-    @media (max-width: 768px) { .app-bottom-nav { display: flex !important; } }
+    /* ── Mobile bottom nav ── */@media (hover: hover) and (pointer: fine) {}
+    @media (max-width: 768px) {}
     
     .wizard-section {
       background: linear-gradient(135deg, var(--deep-navy), var(--void-black));
@@ -1079,6 +1070,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./toast.css">
 <link rel="stylesheet" href="./skeleton-loader.css">
+<link rel="stylesheet" href="./app-shell.css">
+<script src="./app-shell.js" defer></script>
 <style>
   /* AI-load skeleton (UX polish). Shown while the pose detector initialises —
      replaces the previously-blank canvas + empty stats panel with a rich
@@ -1204,12 +1197,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </nav>
 
   <!-- Mobile bottom tab nav -->
-  <nav class="app-bottom-nav" aria-label="App navigation">
-    <a href="./dashboard.html" aria-label="Dashboard"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span data-i18n="appNav.home">Home</span></a>
-    <a href="./analyze.html" class="active" aria-label="Analyzer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span data-i18n="appNav.analyze">Analyze</span></a>
-    <a href="./library.html" aria-label="Drills"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><span data-i18n="appNav.drills">Drills</span></a>
-    <a href="./settings.html" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span data-i18n="appNav.settings">Settings</span></a>
-  </nav>
+  <!-- Canonical app-shell bottom nav (rendered by app-shell.js) -->
+  <div data-ss-app-bottom-nav></div>
 
   <main>
   <div class="container">
