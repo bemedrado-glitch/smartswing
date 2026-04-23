@@ -1217,6 +1217,112 @@
     return getUsers().find((user) => user.id === session.userId) || null;
   }
 
+  // ── User schema normalization (audit fix #4) ─────────────────────────────
+  //
+  // The app historically stored "player level" in FOUR different field names
+  // depending on which surface wrote it:
+  //
+  //   settings.html saves → user.ustaLevel / user.utrRating
+  //   onboarding quiz saves → user.playingLevel / user.ratingValue
+  //   analyzer session → session.profile.level
+  //   legacy dashboard check was reading → user.sport / user.primarySport / user.level
+  //
+  // Each reader made its own best guess about which field to trust, and the
+  // field-name drift was what silently broke the dashboard checklist's
+  // "Complete your profile" tick (fixed in PR #120), the analyzer's ability
+  // to honour saved settings (still partial), and several scoring paths.
+  //
+  // `getNormalizedUserProfile(user)` is the single source of truth: readers
+  // call it, get a stable shape, and never care which legacy field a given
+  // piece of data originally landed in. Each returned value is the first
+  // non-empty source from a precedence-ordered list. Writers still touch
+  // the legacy fields via updateProfile / saveOnboardingQuiz so persistence
+  // is unchanged — this helper only fixes the read side.
+  //
+  // The `isComplete` flag is what the dashboard checklist uses to decide
+  // "Complete your profile" is ticked.
+  function getNormalizedUserProfile(user) {
+    if (!user) return null;
+    const firstNonEmpty = (...candidates) => {
+      for (const v of candidates) {
+        const str = typeof v === 'string' ? v.trim() : v;
+        if (str && str !== '' && str !== null && str !== undefined) return v;
+      }
+      return '';
+    };
+
+    const skillLevel = firstNonEmpty(
+      user.playingLevel,   // onboarding quiz (most recent surface)
+      user.ustaLevel,      // settings page
+      user.level           // legacy fallback
+    );
+
+    const ratingValue = firstNonEmpty(
+      user.ratingValue,    // onboarding quiz (explicit numeric rating)
+      user.utrRating,      // settings page (UTR)
+      user.ustaLevel       // USTA label doubles as rating display
+    );
+
+    const ratingSystem = firstNonEmpty(
+      user.ratingSystem,   // onboarding quiz
+      user.utrRating ? 'utr' : '',
+      user.ustaLevel ? 'usta-ntrp' : ''
+    );
+
+    const primaryShot = firstNonEmpty(
+      user.favoriteShot,   // onboarding quiz
+      user.primaryShot,    // legacy
+      user.favouriteShot   // en-GB spelling guard
+    );
+
+    const ageRange = firstNonEmpty(user.ageRange, user.age);
+
+    const dominantHand = firstNonEmpty(
+      user.dominantHand,
+      user.preferredHand,
+      'right'
+    );
+
+    const identity = firstNonEmpty(
+      user.playerIdentity,
+      user.playingStyle
+    );
+
+    // Completeness gate used by the dashboard checklist. Requires a full
+    // name + at least one real skill identifier OR one identity field.
+    // Tolerant of partially-filled profiles while still meaningful enough
+    // to be earned, not automatic on signup.
+    const hasName = !!(user.fullName && user.fullName.trim().length >= 2);
+    const hasSkill = !!(skillLevel || ratingValue);
+    const hasIdentity = !!(user.gender || ageRange || dominantHand !== 'right' || identity);
+    const isComplete = hasName && (hasSkill || hasIdentity);
+
+    return {
+      // Core identifiers
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName || '',
+      // Normalized playing profile
+      skillLevel,
+      ratingValue,
+      ratingSystem,
+      primaryShot,
+      ageRange,
+      gender: user.gender || '',
+      dominantHand,
+      identity,
+      // Meta
+      isComplete,
+      hasName,
+      hasSkill,
+      hasIdentity,
+      // Raw user kept for callers who still need access to non-normalized
+      // fields (e.g., billing, addresses, avatar). New callers should avoid
+      // reaching into `raw` — that's the whole point of this helper.
+      raw: user
+    };
+  }
+
   function getPlanDefinition(planId) {
     return PLAN_DEFINITIONS[planId] || PLAN_DEFINITIONS.free;
   }
@@ -2015,14 +2121,28 @@
     const existing = getUsers().find((user) => user.id === currentUser.id) || currentUser;
     const nextFullName = String(fields.fullName || existing.fullName || '').trim();
     if (!nextFullName) throw new Error('Full name is required.');
+    // Pre-resolve the normalized level + rating so we can mirror into BOTH
+    // legacy slots (settings: ustaLevel/utrRating, onboarding: playingLevel/
+    // ratingValue). Keeps every downstream reader consistent regardless of
+    // which field they happen to look at (audit fix #4 write-side).
+    const nextLevel  = fields.ustaLevel ?? fields.playingLevel ?? existing.ustaLevel ?? existing.playingLevel ?? '';
+    const nextRating = fields.utrRating ?? fields.ratingValue  ?? existing.utrRating ?? existing.ratingValue ?? '';
+
     const updated = {
       ...existing,
       fullName: nextFullName,
       ageRange: fields.ageRange ?? existing.ageRange ?? '',
       gender: fields.gender ?? existing.gender ?? '',
-      ustaLevel: fields.ustaLevel ?? existing.ustaLevel ?? '',
-      utrRating: fields.utrRating ?? existing.utrRating ?? '',
+      ustaLevel: nextLevel,
+      utrRating: nextRating,
+      // Mirror into the onboarding-quiz fields so the analyzer and the
+      // dashboard checklist stay in sync regardless of which screen wrote
+      // the value last.
+      playingLevel: fields.playingLevel ?? nextLevel,
+      ratingValue:  fields.ratingValue  ?? nextRating,
       preferredHand: fields.preferredHand ?? existing.preferredHand ?? 'right',
+      // Mirror dominantHand since the analyzer reads it preferentially.
+      dominantHand: fields.dominantHand ?? fields.preferredHand ?? existing.dominantHand ?? existing.preferredHand ?? 'right',
       phone: fields.phone ?? existing.phone ?? '',
       addressLine1: fields.addressLine1 ?? existing.addressLine1 ?? '',
       addressLine2: fields.addressLine2 ?? existing.addressLine2 ?? '',
@@ -4044,6 +4164,7 @@
     getProgressEvents,
     getReportUsage,
     getCurrentUser,
+    getNormalizedUserProfile,
     getCurrentSession,
     getPlanDefinition,
     normalizeBillingInterval,
