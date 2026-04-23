@@ -26,10 +26,10 @@
       --bg2: #0e1510;
       --panel: rgba(16, 18, 17, 0.94);
       --line: rgba(255, 255, 255, 0.12);
-      --text: #f5f5f7;
-      --muted: #eef3f7;
-      --green: #39ff14;
-      --gold: #ffd84d;
+      --text: var(--ss-text, #f5f5f7);
+      --muted: var(--ss-text-muted, #eef3f7);
+      --green: var(--ss-volt, #39ff14);
+      --gold: var(--ss-gold, #ffd84d);
       /* Back-compat aliases — previous token names didn't match the actual colour (#ffd84d is gold, not cyan/orange). Remove once downstream CSS is migrated. */
       --cyan: var(--gold);
       --orange: var(--gold);
@@ -246,6 +246,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./skeleton-loader.css">
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

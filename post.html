@@ -18,7 +18,7 @@
   <link rel="icon" href="/assets/favicon.ico">
   <script src="public-app-config.js"></script>
   <style>
-    :root { --ink:#0B1220; --accent:#D8FF00; --surface:#F5F5F7; --muted:#6b7280; --line:#e5e7eb; }
+    :root { --ink:#0B1220; --accent:#D8FF00; --surface:#F5F5F7; --muted: var(--ss-text-muted, #6b7280); --line:#e5e7eb; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--surface); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; }
     .wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 48px; }
@@ -40,6 +40,7 @@
     .error { padding: 60px 24px; text-align: center; color: #b91c1c; }
   </style>
 <script src="./shared-chrome.js" defer></script>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <div data-ss-header></div>

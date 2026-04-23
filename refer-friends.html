@@ -27,11 +27,11 @@
       --bg: #0a0a0a;
       --surface: rgba(22,22,26,.94);
       --border: rgba(255,255,255,.08);
-      --neon-green: #39ff14;
-      --gold: #ffd84d;
-      --teal: #00d4aa;
-      --text: #e8e8e8;
-      --muted: rgba(232,232,232,.5);
+      --neon-green: var(--ss-volt, #39ff14);
+      --gold: var(--ss-gold, #ffd84d);
+      --teal: var(--ss-teal, #00d4aa);
+      --text: var(--ss-text, #e8e8e8);
+      --muted: var(--ss-text-muted, rgba(232,232,232,.5));
       --radius: 20px;
       --radius-sm: 12px;
     }
@@ -548,6 +548,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./safe-area.css">
 <script src="./shared-chrome.js" defer></script>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

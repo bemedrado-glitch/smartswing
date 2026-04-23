@@ -11,11 +11,11 @@
       --panel: #11161d;
       --panel-2: #171e27;
       --line: rgba(255, 255, 255, 0.1);
-      --text: #f4f7fb;
-      --muted: #b8c3d1;
-      --green: #39ff14;
-      --yellow: #ffd84d;
-      --red: #ff6b7a;
+      --text: var(--ss-text, #f4f7fb);
+      --muted: var(--ss-text-muted, #b8c3d1);
+      --green: var(--ss-volt, #39ff14);
+      --yellow: var(--ss-gold, #ffd84d);
+      --red: var(--ss-red, #ff6b7a);
       --blue: #79c7ff;
     }
 
@@ -185,6 +185,7 @@
       .hero, .panel { padding: 20px; }
     }
   </style>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
   <main class="page">

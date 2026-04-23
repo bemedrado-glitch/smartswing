@@ -33,9 +33,9 @@
 :root {
   --bg: #0a0a0a; --bg-soft: #111; --bg-mid: #1a1a1a;
   --panel: rgba(22,22,26,0.92); --line: rgba(255,255,255,0.1);
-  --text: #f5f5f7; --muted: rgba(255,255,255,0.6);
-  --volt: #39ff14; --gold: #ffd84d; --blue: #60a5fa;
-  --purple: #a78bfa; --red: #ff4d6d; --orange: #fb923c;
+  --text: var(--ss-text, #f5f5f7); --muted: var(--ss-text-muted, rgba(255,255,255,0.6));
+  --volt: var(--ss-volt, #39ff14); --gold: var(--ss-gold, #ffd84d); --blue: #60a5fa;
+  --purple: #a78bfa; --red: var(--ss-red, #ff4d6d); --orange: var(--ss-amber, #fb923c);
   --page: min(1280px, calc(100% - 48px));
   --radius: 16px; --radius-sm: 10px;
   --cat-training: #39ff14; --cat-pro: #ffd84d; --cat-science: #60a5fa;

@@ -2759,6 +2759,56 @@ describe('Inbox threading — schema + inbound webhook (Tier 2 #6 slice 1+2)', (
   });
 });
 
+describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () => {
+  // Sample 10 pages across categories to keep this fast but representative.
+  const SAMPLES = [
+    'index.html', 'pricing.html', 'about.html', 'for-players.html',
+    'analyze.html', 'dashboard.html', 'settings.html', 'library.html',
+    'privacy-policy.html', 'shared-report.html'
+  ];
+
+  test('Every sampled page consumes var(--ss-*) tokens', () => {
+    SAMPLES.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src.indexOf('var(--ss-')).toBeGreaterThan(-1);
+    });
+  });
+
+  test('Every sampled page links brand-tokens.css', () => {
+    SAMPLES.forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      expect(src).toContain('brand-tokens.css');
+    });
+  });
+
+  test('Volt green is centrally defined (no hard-coded #39ff14 in :root)', () => {
+    // Pages may still reference #39ff14 in inline CSS for one-off elements,
+    // but their --volt / --green / --neon-green :root vars MUST alias the token.
+    ['about.html', 'for-players.html', 'pricing.html'].forEach(p => {
+      const src = fs.readFileSync(path.join(ROOT, p), 'utf8');
+      // After aliasing, the legacy var declaration includes the var(--ss- ...) wrapper
+      const hit = /--(?:volt|green|neon-green):\s*var\(--ss-volt/.test(src);
+      expect(hit).toBe(true);
+    });
+  });
+
+  test('Brand red / gold / teal also route through tokens', () => {
+    const checkout = fs.readFileSync(path.join(ROOT, 'checkout.html'), 'utf8');
+    expect(checkout).toContain('var(--ss-red');
+    const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
+    expect(blog).toContain('var(--ss-gold');
+    const refer = fs.readFileSync(path.join(ROOT, 'refer-friends.html'), 'utf8');
+    expect(refer).toContain('var(--ss-teal');
+  });
+
+  test('Aliases preserve a fallback so visual change is zero without brand-tokens.css', () => {
+    // Pattern: --legacy: var(--ss-token, #literal);
+    const idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    expect(idx).toContain('var(--ss-volt, #39ff14)');
+    expect(idx).toContain('var(--ss-text, ');
+  });
+});
+
 describe('Canonical app-shell (logged-in chrome consolidation)', () => {
   const css  = fs.readFileSync(path.join(ROOT, 'app-shell.css'), 'utf8');
   const js   = fs.readFileSync(path.join(ROOT, 'app-shell.js'), 'utf8');

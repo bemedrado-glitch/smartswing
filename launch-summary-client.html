@@ -11,10 +11,10 @@
       --bg-soft: #0f141a;
       --panel: rgba(18, 24, 32, 0.92);
       --line: rgba(255, 255, 255, 0.1);
-      --text: #f5f7fb;
-      --muted: #bcc7d4;
-      --green: #39ff14;
-      --yellow: #ffd84d;
+      --text: var(--ss-text, #f5f7fb);
+      --muted: var(--ss-text-muted, #bcc7d4);
+      --green: var(--ss-volt, #39ff14);
+      --yellow: var(--ss-gold, #ffd84d);
       --cyan: #7fd8ff;
       --dark: #081008;
     }
@@ -244,6 +244,7 @@
       }
     }
   </style>
+<link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
   <main class="page">
