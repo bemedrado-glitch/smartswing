@@ -2813,6 +2813,57 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Scoring honesty pass (Bug 5 — remove stacked bonuses)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('levelFloor removed — no more 38-60 floor band locking scores up', () => {
+    // The old code assigned floors like `{ starter: 60, beginner: 55, ... }`.
+    // New code uses a single 25-point noise floor across all levels.
+    expect(src.includes("starter: 60, beginner: 55, intermediate: 50")).toBe(false);
+    expect(src).toContain('NOISE_FLOOR = 25');
+  });
+
+  test('ratingBonus no longer additive to score', () => {
+    // Previously: `const ratingBonus = (() => { if (rs === "usta-ntrp") return 3; ... })();`
+    // Must not add a rating-based amount to the numeric score anymore.
+    expect(src.includes("const ratingBonus = (() =>")).toBe(false);
+    expect(src.includes("rawScore + curve.boost + ratingBonus + ageMotivationBonus")).toBe(false);
+  });
+
+  test('ageMotivationBonus no longer additive to score', () => {
+    expect(src.includes("const ageMotivationBonus = (() =>")).toBe(false);
+    expect(src.includes("if (age >= 55) return 5")).toBe(false);
+  });
+
+  test('Tone hints survive as narrative modifiers, not score inputs', () => {
+    // Seniors / juniors still get softer copy, just not a higher number.
+    expect(src).toContain('toneModifiers');
+    expect(src).toContain("ageGroup:");
+    expect(src).toContain("'senior'");
+    expect(src).toContain("'masters'");
+    expect(src).toContain("'youth'");
+  });
+
+  test('Curve.boost capped at ±3 so it cannot mask mechanical differences', () => {
+    expect(src).toContain('cappedCurveBoost');
+    expect(src).toContain('clamp(Math.round(curve.boost || 0), -3, 3)');
+  });
+
+  test('Overall score is now rawScore + cappedCurveBoost, clamped to [25, 99]', () => {
+    expect(src).toContain('Math.round(rawScore + cappedCurveBoost)');
+    expect(src).toContain('NOISE_FLOOR');
+    expect(/clamp\([^,]+,\s*NOISE_FLOOR,\s*99\s*\)/s.test(src)).toBe(true);
+  });
+
+  test('toneModifiers travel in both scoringMeta and top-level return', () => {
+    expect(src).toContain('scoringMeta: {');
+    // In scoringMeta.
+    expect(/scoringMeta:\s*\{[\s\S]*?toneModifiers[\s\S]*?\}/.test(src)).toBe(true);
+    // AND at the top level of the return object.
+    expect(/\},\s*\n?\s*toneModifiers\s*\n?\s*\}/.test(src)).toBe(true);
+  });
+});
+
 describe('Settings persistence + onboarding checklist fixes (Bugs 1+2+3)', () => {
   const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
   const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');

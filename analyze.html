@@ -4316,10 +4316,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       );
       const readinessScore = Math.round((performanceKpis.readinessIndex * 0.45) + (performanceKpis.trackingReliability * 0.25) + (safeNumber(setupScore, 100) * 0.3));
       const progressContext = getProgressContext(shotType, biomechanicsScore + curve.boost);
-      // Score floors: prevent unrealistically low scores from tracking noise, but keep them
-      // honest. A pro with poor mechanics SHOULD score low — the tighter tolerance already
-      // handles the expectation. Floors only catch noise, not bad swings.
-      const levelFloor = { starter: 60, beginner: 55, intermediate: 50, advanced: 42, competitive: 38, pro: 40 }[profileContext.level] || 45;
+      // ── Scoring honesty pass (Bug 5 from product audit) ──────────────
+      // Coaches reported scores were too generous and that worse swings were
+      // ranked higher than better ones. Root cause: the previous algorithm
+      // stacked 4 separate additive bonuses (curve.boost + ratingBonus +
+      // ageMotivationBonus + progressContext.scoreBonus) on top of a very
+      // high level floor (38-60), compressing all outputs into a narrow band
+      // and hiding real differences in mechanics.
+      //
+      // The fix: keep the motivational tone (age + rating encouragement) in
+      // the *narrative* (milestone + achievement strings), not in the score.
+      // The number reflects mechanics. Players see "great work for your level"
+      // in the header copy; the score stays honest so coaches can trust it.
+
+      // Noise floor only — guard against bad tracking producing an absurdly
+      // low number. A genuinely bad swing scoring 35 is a signal, not noise.
+      const NOISE_FLOOR = 25;
+
       const rawScore = Math.round(
         (biomechanicsScore * 0.62) +
         (performanceKpis.timingConsistency * 0.14) +
@@ -4328,32 +4341,33 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         (readinessScore * 0.08)
       );
 
-      // ── Motivational scoring adjustments ──────────────────────────────
-      // Neuroscience-backed: effort recognition and fair-for-level scoring
-      // prevents demotivation in recreational players while keeping advanced
-      // players accountable. The "progress illusion" effect (Kivetz et al.)
-      // shows that perceived proximity to a goal increases motivation.
-      const ratingBonus = (() => {
-        const rs = String(profileContext?.ratingSystem || '').toLowerCase();
-        // Recreational rated players deserve credit for playing at a measured level
-        if (rs === 'usta-ntrp' || rs === 'utr') return 3;
-        if (rs === 'itf') return 1;
-        if (rs === 'none' || !rs) return 2; // casual players get a small encouragement boost
-        return 0;
-      })();
-      const ageMotivationBonus = (() => {
-        const age = profileContext?.ageMid;
-        if (age == null || !Number.isFinite(age)) return 0;
-        // Masters players (40+) maintaining activity deserve recognition
-        if (age >= 55) return 5;
-        if (age >= 45) return 4;
-        if (age >= 40) return 2;
-        return 0;
-      })();
+      // Narrative modifiers — kept so downstream feedback can soften tone
+      // for juniors + seniors, but NOT added to the score itself. These are
+      // consumed by getMilestoneSummary + getAchievementSummary when
+      // building the copy shown next to the number.
+      const toneModifiers = {
+        ratingSystem: String(profileContext?.ratingSystem || '').toLowerCase(),
+        ageGroup: (() => {
+          const age = profileContext?.ageMid;
+          if (!Number.isFinite(age)) return 'unknown';
+          if (age >= 55) return 'senior';
+          if (age >= 40) return 'masters';
+          if (age < 13) return 'youth';
+          if (age < 18) return 'junior';
+          return 'adult';
+        })(),
+        sessionCount: Number(progressContext?.sessionCount || 0)
+      };
+
+      // Curve.boost is a small level-normalization (e.g., pros are scored
+      // against tighter benchmarks, so a small neutral shift keeps the same
+      // absolute skill at the same final number across levels). Capped at
+      // ±3 so it can't mask real mechanical differences.
+      const cappedCurveBoost = clamp(Math.round(curve.boost || 0), -3, 3);
 
       const overallScore = clamp(
-        Math.round(rawScore + curve.boost + ratingBonus + ageMotivationBonus + progressContext.scoreBonus + (safeNumber(setupScore, 100) >= 90 ? 1 : 0)),
-        levelFloor,
+        Math.round(rawScore + cappedCurveBoost),
+        NOISE_FLOOR,
         99
       );
       const milestone = getMilestoneSummary(overallScore, profileContext.level, progressContext);
@@ -4388,8 +4402,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           ageBucket: adjustments.ageBucket,
           gender: profileContext.gender,
           genderBucket: adjustments.genderBucket,
-          levelExpectation: adjustments.levelExpectation
-        }
+          levelExpectation: adjustments.levelExpectation,
+          // Bug 5 fix — narrative tone hints for downstream feedback. These
+          // travel alongside the score but do NOT inflate it.
+          toneModifiers
+        },
+        toneModifiers
       };
     }
 
