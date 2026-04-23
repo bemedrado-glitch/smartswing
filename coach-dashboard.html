@@ -251,7 +251,33 @@
     .export-desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
 
     /* ── EMPTY STATE ── */
-    .empty-state { padding: 32px; text-align: center; color: var(--muted); font-size: 14px; }
+    /* Coach-dashboard empty-state upgraded to match the canonical .ss-empty
+       visual (dashed border, brand tokens, centered column). All 9 empty
+       sites on this page now render with the same look as .ss-empty across
+       the rest of the app. */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 8px;
+      padding: 28px 24px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed rgba(255, 255, 255, 0.08);
+      color: var(--ss-text-muted, var(--muted, rgba(255,255,255,0.55)));
+      font-family: "DM Sans", -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .empty-state::before {
+      content: "·";
+      font-size: 20px;
+      line-height: 1;
+      color: var(--ss-volt, #39ff14);
+      opacity: 0.6;
+    }
 
     /* ── AI CHAT ── */
     #aiChat { position: fixed; bottom: 24px; right: 24px; z-index: 999; }

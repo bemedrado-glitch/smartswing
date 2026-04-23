@@ -35,6 +35,10 @@ module.exports = defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }], ['list']],
   expect: {
+    // Full-page screenshots of long marketing pages with many images + videos
+    // regularly exceed the 5s default on slower CI runners. Give them 30s
+    // before Playwright bails out.
+    timeout: 30_000,
     toHaveScreenshot: {
       // 1% pixel-difference tolerance for font rendering across runners.
       maxDiffPixelRatio: 0.01,
@@ -64,9 +68,18 @@ module.exports = defineConfig({
     },
     {
       name: 'mobile',
+      // Use Chromium with an iPhone-14-sized viewport instead of the
+      // `devices['iPhone 14']` preset (which would require WebKit). Lets the
+      // CI workflow install only Chromium — smaller download, faster boot.
       use: {
-        ...devices['iPhone 14'],
-        // iPhone 14 preset already sets the right viewport + UA.
+        ...devices['Desktop Chrome'],
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true,
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
       }
     }
   ],

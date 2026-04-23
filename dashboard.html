@@ -558,7 +558,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <a href="./analyze.html" class="btn primary" style="font-size:13px;padding:8px 16px;">New Match</a>
         </div>
         <div id="matchHistoryList" style="display:grid;gap:10px;">
-          <p class="muted" style="text-align:center;padding:28px 0;">No matches tracked yet. Use the Live Match Tracker in the Analyzer to record your first match.</p>
+          <div class="ss-empty">
+            <div class="ss-empty__icon" aria-hidden="true">🏆</div>
+            <h3 class="ss-empty__title">No matches tracked yet</h3>
+            <p class="ss-empty__body">Log your first match point-by-point with the Live Match Tracker and it'll appear here.</p>
+            <a href="./analyze.html?mode=match" class="ss-empty__cta">Start a match →</a>
+          </div>
         </div>
       </article>
     </section>
@@ -888,7 +893,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           return `<div class="focus-bar-item"><div class="focus-bar-label"><span>${label}</span><span style="color:${color};font-weight:800;">${score}%</span></div><div class="focus-bar-track"><div class="focus-bar-fill" style="width:${score}%;background:linear-gradient(90deg,${color},${color}88);"></div></div></div>`;
         }).join('');
       } else {
-        focusBarsEl.innerHTML = '<p class="muted" style="font-size:13px;">Run an analysis to see your biomechanics priorities.</p>';
+        focusBarsEl.innerHTML =
+          '<div class="ss-empty ss-empty--inline">' +
+            '<div class="ss-empty__icon" aria-hidden="true">🎯</div>' +
+            '<h3 class="ss-empty__title">Focus areas unlock after your first analysis</h3>' +
+            '<p class="ss-empty__body">SmartSwing ranks which biomechanics to drill first based on your swing data.</p>' +
+            '<a href="./analyze.html" class="ss-empty__cta">Run an analysis →</a>' +
+          '</div>';
       }
     }
 
@@ -1071,7 +1082,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       const pendingItems = items.filter(i => !planDone[i.id]);
       if (pendingItems.length === 0 && doneCount > 0) {
-        planEl.innerHTML = '<div style="padding:18px;text-align:center;"><p class="muted" style="font-size:14px;font-weight:700;color:var(--green);">All tasks completed this week!</p><p class="muted" style="font-size:13px;margin-top:4px;">Check the Analytics tab to see your completed tasks.</p></div>';
+        planEl.innerHTML =
+          '<div class="ss-empty ss-empty--inline">' +
+            '<div class="ss-empty__icon" aria-hidden="true">✅</div>' +
+            '<h3 class="ss-empty__title">All tasks completed this week</h3>' +
+            '<p class="ss-empty__body">Nice. Your next plan drops after your next analysis — or check the Analytics tab to review what you shipped.</p>' +
+          '</div>';
       } else {
         planEl.innerHTML = pendingItems.map((item) => {
           const pm = PRIORITY_MAP[item.priority] || {cls:'low', time:'15 min'};
@@ -1127,7 +1143,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (!listEl) return;
       countEl.textContent = completedTasks.length;
       if (!completedTasks.length) {
-        listEl.innerHTML = '<p class="muted" style="font-size:13px;padding:12px;">No completed tasks yet. Complete tasks from your Weekly Action Plan to see them here.</p>';
+        listEl.innerHTML =
+          '<div class="ss-empty ss-empty--inline">' +
+            '<div class="ss-empty__icon" aria-hidden="true">📋</div>' +
+            '<h3 class="ss-empty__title">No completed tasks yet</h3>' +
+            '<p class="ss-empty__body">Finish a task from this week\'s Action Plan and it\'ll show up here.</p>' +
+          '</div>';
         return;
       }
       listEl.innerHTML = completedTasks.slice(0, 20).map(task => {
