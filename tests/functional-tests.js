@@ -2866,6 +2866,74 @@ describe('Feedback synthesis per magnitude + tone (Bug 6)', () => {
   });
 });
 
+describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () => {
+  const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  // ── Fix #7: saved-profile fast path ───────────────────────────────
+  test('Fix #7 — step 1 renders a "Using your saved profile" banner', () => {
+    expect(analyze).toContain('id="savedProfileFastPath"');
+    expect(analyze).toContain('Using your saved profile');
+    expect(analyze).toContain('id="useSavedProfileBtn"');
+    expect(analyze).toContain('id="editSavedProfileBtn"');
+  });
+
+  test('Fix #7 — bootstrap reads from the canonical normalizer', () => {
+    expect(analyze).toContain('store.getNormalizedUserProfile(currentUser)');
+    expect(analyze).toContain('function bootstrapSavedProfile');
+  });
+
+  test('Fix #7 — pre-fills playerProfile so nextBtn1 validator passes', () => {
+    expect(analyze).toContain("playerProfile[field] = value");
+    // Helper that selects matching .selection-card + sets playerProfile.
+    expect(analyze).toContain('function pickCard');
+  });
+
+  test('Fix #7 — Continue button jumps straight to step 2', () => {
+    expect(analyze).toContain("continueBtn.addEventListener('click', () => setStep(2))");
+  });
+
+  test('Fix #7 — Edit button lets the user still change the saved values', () => {
+    // Banner hides on Edit, view scrolls to first field so user sees controls.
+    expect(analyze).toContain("editBtn.addEventListener('click'");
+    expect(analyze).toContain("banner.style.display = 'none'");
+  });
+
+  test('Fix #7 — maps onboarding-quiz labels (e.g. "3.5", "utr") to analyzer buckets', () => {
+    expect(analyze).toContain('function toAnalyzerLevel');
+    expect(analyze).toContain("'starter'");
+    expect(analyze).toContain("'atp-pro'");
+    // USTA NTRP-style labels get mapped too (3.5 → intermediate, etc).
+    expect(analyze).toContain('intermediate|3');
+  });
+
+  // ── Fix #8: Coach Snapshot + progressive disclosure ────────────────
+  test('Fix #8 — Coach Snapshot card precedes the Swing Story', () => {
+    expect(analyze).toContain('Coach Snapshot');
+    // Must render BEFORE the first Swing Story section — confirm by index.
+    const snapIdx = analyze.indexOf('Coach Snapshot');
+    const storyIdx = analyze.indexOf('Your Swing Story');
+    expect(snapIdx).toBeGreaterThan(-1);
+    expect(storyIdx).toBeGreaterThan(-1);
+    expect(snapIdx < storyIdx).toBe(true);
+  });
+
+  test('Fix #8 — Snapshot shows big score + grade badge', () => {
+    expect(analyze).toContain('snapshotPriority');
+    expect(analyze).toContain('snapshotStrength');
+    // Large score face.
+    expect(analyze).toContain('font-size:42px;font-weight:900');
+  });
+
+  test('Fix #8 — Snapshot uses data from topMetrics + strengths', () => {
+    expect(analyze).toContain('topMetrics[0]');
+    expect(analyze).toContain('strengths[0]');
+  });
+
+  test('Fix #8 — scroll hint prompts users to keep reading for details', () => {
+    expect(analyze).toContain('Scroll for full report ↓');
+  });
+});
+
 describe('User schema normalization (audit fix #4)', () => {
   const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
   const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
