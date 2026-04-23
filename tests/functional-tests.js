@@ -2866,6 +2866,64 @@ describe('Feedback synthesis per magnitude + tone (Bug 6)', () => {
   });
 });
 
+describe('Blog tournament strip — refreshed for 2026 Apr-Jun window', () => {
+  const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
+
+  test('Concluded tournaments removed from the Upcoming strip', () => {
+    // Monte-Carlo (Apr 6-13), Barcelona (Apr 13-19), and the Stuttgart WTA
+    // (Apr 13-19) have all finished as of 2026-04-23. They must no longer
+    // render as upcoming cards on the strip.
+    const stripStart = blog.indexOf('class="tournament-strip"');
+    const stripEnd = blog.indexOf('</div>', blog.indexOf('us-open-2026'));
+    const stripBlock = blog.slice(stripStart, stripEnd);
+    expect(stripBlock.includes('monte-carlo-2026')).toBe(false);
+    expect(stripBlock.includes('barcelona-2026')).toBe(false);
+    expect(stripBlock.includes('stuttgart-wta-2026')).toBe(false);
+  });
+
+  test('Current + upcoming tournaments present in strip', () => {
+    expect(blog).toContain('data-tid="madrid-2026"');
+    expect(blog).toContain('data-tid="rome-2026"');
+    expect(blog).toContain('data-tid="hamburg-2026"');
+    expect(blog).toContain('data-tid="geneva-2026"');
+    expect(blog).toContain('data-tid="roland-garros-2026"');
+    expect(blog).toContain('data-tid="stuttgart-atp-2026"');
+    expect(blog).toContain('data-tid="libema-2026"');
+  });
+
+  test('Dates updated to the official 2026 calendar', () => {
+    // Madrid: Apr 22 – May 3 (not Apr 27 – May 10)
+    expect(blog).toContain('Apr 22 – May 3');
+    // Rome: May 6 – 17 (not May 12 – 19)
+    expect(blog).toContain('May 6 – 17');
+    // Roland Garros: May 24 – Jun 7 (not May 26 – Jun 8)
+    expect(blog).toContain('May 24 – Jun 7');
+  });
+
+  test('TOURNAMENT_DATA entries exist for the 4 newly added events', () => {
+    expect(blog).toContain("'hamburg-2026'");
+    expect(blog).toContain("'geneva-2026'");
+    expect(blog).toContain("'stuttgart-atp-2026'");
+    expect(blog).toContain("'libema-2026'");
+  });
+
+  test('New clay 500 + 250s have correct surface + category metadata', () => {
+    // Hamburg = clay ATP 500
+    expect(/'hamburg-2026':[\s\S]*?surface: 'clay'[\s\S]*?category: 'ATP 500'/.test(blog)).toBe(true);
+    // Geneva = clay ATP 250
+    expect(/'geneva-2026':[\s\S]*?surface: 'clay'[\s\S]*?category: 'ATP 250'/.test(blog)).toBe(true);
+    // Stuttgart (grass post-Roland) = grass ATP 250
+    expect(/'stuttgart-atp-2026':[\s\S]*?surface: 'grass'[\s\S]*?category: 'ATP 250'/.test(blog)).toBe(true);
+    // Libema = grass ATP 250
+    expect(/'libema-2026':[\s\S]*?surface: 'grass'[\s\S]*?category: 'ATP 250'/.test(blog)).toBe(true);
+  });
+
+  test('Madrid is now marked live (currently in-window)', () => {
+    // Madrid 2026 runs Apr 22 – May 3. Today is in-window.
+    expect(/'madrid-2026':[\s\S]*?status: 'live'/.test(blog)).toBe(true);
+  });
+});
+
 describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () => {
   const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
