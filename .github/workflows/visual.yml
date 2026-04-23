@@ -1,0 +1,90 @@
+name: Visual regression (Playwright)
+
+# Pixel-diff every PR against committed baseline screenshots. Complements the
+# Lighthouse (score) and axe-core (WCAG) workflows: those catch regressions in
+# measurable dimensions; this one catches "I refactored CSS and 4 pages look
+# different now but no metric noticed."
+#
+# Baseline snapshots are committed at tests/visual/__screenshots__/.
+# To intentionally update them on a feature PR:
+#   1. On your branch: `npx playwright test --update-snapshots`
+#   2. Commit the updated PNGs.
+#   3. CI will pass because the new baseline matches.
+#
+# On every PR touching HTML/CSS/JS, workflow boots `npx serve`, runs the
+# visual.spec.js suite at desktop + mobile viewports, and uploads the
+# playwright-report HTML (with diff images) as an artifact.
+
+on:
+  pull_request:
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+      - 'tests/visual/**'
+      - 'playwright.config.js'
+      - '.github/workflows/visual.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        # `npm ci` if lockfile present, else fall back to `npm install`.
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npm install --no-save @playwright/test@1.50.x serve@14
+
+      - name: Install Playwright browsers (Chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run visual regression suite
+        # `--update-snapshots=missing` writes baselines the first time a new
+        # page/viewport is added but still fails the build on any genuine
+        # visual drift. Authors should `npm run test:visual:update` locally
+        # and commit the new PNGs — this flag only prevents CI from crashing
+        # the first time a brand-new page is added to the suite.
+        run: npx playwright test --update-snapshots=missing
+        env:
+          CI: 'true'
+
+      - name: Check for uncommitted baseline additions
+        # If the "missing" flag wrote new baselines, surface them as a
+        # workflow annotation so reviewers know to commit them.
+        run: |
+          if [ -n "$(git status --porcelain tests/visual/__screenshots__/ 2>/dev/null)" ]; then
+            echo "::warning::New baseline screenshots were written. Run 'npm run test:visual:update' locally and commit the PNGs to tests/visual/__screenshots__/"
+            git status --porcelain tests/visual/__screenshots__/
+          fi
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload diff screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs-${{ github.run_number }}
+          path: test-results/
+          retention-days: 14

@@ -2809,6 +2809,67 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Playwright visual regression infrastructure', () => {
+  const config = fs.readFileSync(path.join(ROOT, 'playwright.config.js'), 'utf8');
+  const spec   = fs.readFileSync(path.join(ROOT, 'tests/visual/visual.spec.js'), 'utf8');
+  const wf     = fs.readFileSync(path.join(ROOT, '.github/workflows/visual.yml'), 'utf8');
+  const pkg    = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+
+  test('playwright.config defines desktop + mobile projects', () => {
+    expect(config).toContain("name: 'desktop'");
+    expect(config).toContain("name: 'mobile'");
+    expect(config).toContain("devices['iPhone 14']");
+  });
+
+  test('Tolerates font-smoothing drift between local + CI via maxDiffPixelRatio', () => {
+    expect(config).toContain('maxDiffPixelRatio: 0.01');
+  });
+
+  test('Snapshots use consistent locale + timezone + color-scheme', () => {
+    expect(config).toContain("colorScheme: 'dark'");
+    expect(config).toContain("locale: 'en-US'");
+    expect(config).toContain("timezoneId: 'America/New_York'");
+  });
+
+  test('Visual spec covers 10 representative pages', () => {
+    expect(spec).toContain("'/index.html'");
+    expect(spec).toContain("'/pricing.html'");
+    expect(spec).toContain("'/404.html'");
+    expect(spec).toContain("'/login.html'");
+    expect(spec).toContain("'/signup.html'");
+  });
+
+  test('Visual spec disables animations + awaits fonts for determinism', () => {
+    expect(spec).toContain('animation: none !important');
+    expect(spec).toContain('transition: none !important');
+    expect(spec).toContain('document.fonts.ready');
+  });
+
+  test('Visual spec masks videos + animated progress arc', () => {
+    expect(spec).toContain("pw.locator('video')");
+    expect(spec).toContain("pw.locator('#scoreArc')");
+  });
+
+  test('CI workflow boots serve, runs Playwright, uploads report on failure', () => {
+    expect(wf).toContain('npx playwright test');
+    expect(wf).toContain('npx playwright install');
+    expect(wf).toContain('actions/upload-artifact');
+    expect(wf).toContain("name: visual-diffs-");
+  });
+
+  test('package.json exposes test:visual + update-snapshots scripts', () => {
+    expect(pkg.scripts['test:visual']).toBeTruthy();
+    expect(pkg.scripts['test:visual:update']).toBeTruthy();
+    expect(pkg.devDependencies['@playwright/test']).toBeTruthy();
+  });
+
+  test('README documents the update-baseline workflow', () => {
+    const readme = fs.readFileSync(path.join(ROOT, 'tests/visual/README.md'), 'utf8');
+    expect(readme).toContain('--update-snapshots');
+    expect(readme).toContain('Do NOT update baselines without eyeballing');
+  });
+});
+
 describe('Shared footer preserves internal resource links (Marketing/Sales/Tech)', () => {
   const chrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
   const css = fs.readFileSync(path.join(ROOT, 'shared-footer.css'), 'utf8');
