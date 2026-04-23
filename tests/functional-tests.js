@@ -3714,12 +3714,22 @@ describe('Canonical app-shell (logged-in chrome consolidation)', () => {
     expect(css).toContain('prefers-reduced-motion: reduce');
   });
 
-  test('app-shell.js exports the canonical NAV_ITEMS list', () => {
+  test('app-shell.js exports the canonical NAV_ITEMS list (incl. Blog)', () => {
     expect(js).toContain('NAV_ITEMS');
     expect(js).toContain("href: './dashboard.html'");
     expect(js).toContain("href: './analyze.html'");
     expect(js).toContain("href: './library.html'");
+    expect(js).toContain("href: './blog.html'");
     expect(js).toContain("href: './settings.html'");
+  });
+
+  test('Brand logo in the topbar links to home (./index.html), not dashboard', () => {
+    // User feedback: "Can't come back to the home page from the dashboard."
+    // Fixed by routing the brand/logo click to the marketing home page —
+    // the standard "logo = home" convention across the web.
+    expect(js).toContain("href=\"./index.html\"");
+    // Legacy "./dashboard.html" as the brand target should be gone.
+    expect(js.includes("class=\"app-topbar-brand\" href=\"./dashboard.html\"")).toBe(false);
   });
 
   test('app-shell.js renders into placeholders + wires drawer', () => {
