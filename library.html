@@ -5,370 +5,382 @@
   <link rel="icon" type="image/png" href="./assets/logos/icon.png">
   <link rel="apple-touch-icon" href="./assets/logos/icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartSwing AI Library | Tennis Drills and Tactical Playbooks</title>
-  <meta name="description" content="Browse SmartSwing AI tennis drills and tactical playbooks by level, shot type, and match situation.">
+  <title>Library · SmartSwing AI</title>
+  <meta name="description" content="Tennis drills and tactical playbooks matched to your level, shot type, and on-court context.">
   <meta name="robots" content="noindex,nofollow">
   <link rel="canonical" href="https://www.smartswingai.com/library.html">
   <meta property="og:title" content="SmartSwing AI Library">
-  <meta property="og:description" content="Find tennis drills and tactical playbooks matched to player level, shot type, and on-court context.">
+  <meta property="og:description" content="Tennis drills and tactical playbooks filtered by level, shot type, and match context.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.smartswingai.com/library.html">
   <meta property="og:image" content="https://www.smartswingai.com/assets/logos/logo.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SmartSwing AI Library">
-  <meta name="twitter:description" content="Tennis drills and tactical playbooks filtered by level, shot type, and match context.">
   <link rel="manifest" href="./manifest.json">
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet"></noscript>
+
+  <link rel="stylesheet" href="./brand-tokens.css">
+  <link rel="stylesheet" href="./app-shell.css">
+  <link rel="stylesheet" href="./empty-state.css">
+  <link rel="stylesheet" href="./skeleton-loader.css">
+  <link rel="stylesheet" href="./safe-area.css">
+  <link rel="stylesheet" href="./toast.css">
+  <script src="./app-shell.js" defer></script>
+  <script src="./toast.js" defer></script>
+  <script src="./shared-chrome.js" defer></script>
   <style>
+    /* Library uses the canonical app-shell for chrome + brand-tokens for color.
+       Page-local vars alias --ss-* with safe fallbacks so the page still looks
+       right if brand-tokens.css ever fails to load. */
     :root {
-      --bg: #050505;
-      --bg2: #0e1510;
+      --bg:    #050505;
+      --bg2:   #0e1510;
       --panel: rgba(16, 18, 17, 0.94);
-      --line: rgba(255, 255, 255, 0.12);
-      --text: var(--ss-text, #f5f5f7);
-      --muted: var(--ss-text-muted, #eef3f7);
-      --green: var(--ss-volt, #39ff14);
-      --gold: var(--ss-gold, #ffd84d);
-      /* Back-compat aliases — previous token names didn't match the actual colour (#ffd84d is gold, not cyan/orange). Remove once downstream CSS is migrated. */
-      --cyan: var(--gold);
-      --orange: var(--gold);
+      --line:  rgba(255, 255, 255, 0.10);
+      --text:  var(--ss-text, #f5f5f7);
+      --muted: var(--ss-text-muted, rgba(255,255,255,0.55));
+      --volt:  var(--ss-volt, #39ff14);
+      --gold:  var(--ss-gold, #ffd84d);
+      --teal:  var(--ss-teal, #22d3ee);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--ss-font-body, 'DM Sans', sans-serif);
+      font-family: var(--ss-font-body, "DM Sans", -apple-system, sans-serif);
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(57,255,20,0.12), transparent 25%),
-        radial-gradient(circle at top right, rgba(255,216,77,0.1), transparent 30%),
+        radial-gradient(circle at 5% 0%, rgba(57,255,20,0.10), transparent 26%),
+        radial-gradient(circle at 95% 0%, rgba(255,216,77,0.08), transparent 30%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
       min-height: 100vh;
       min-height: 100dvh;
-      padding-bottom: env(safe-area-inset-bottom, 0);
+      padding-bottom: 80px; /* reserve room for the fixed mobile bottom nav */
       -webkit-tap-highlight-color: transparent;
     }
-
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-      }
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
+    a { color: inherit; text-decoration: none; }
+    :focus-visible { outline: 2px solid var(--volt); outline-offset: 2px; border-radius: 4px; }
 
-    input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
-      outline: 2px solid var(--green); outline-offset: 2px;
+    /* ── Layout ─────────────────────────────────────────────────────────── */
+    .lib-main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 32px; }
+
+    /* ── Page hero — concise, confidence-building ─────────────────────── */
+    .lib-hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
-
-    input, select, textarea {
-      font-size: 16px;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    button:active:not(:disabled) { transform: scale(0.98); }
-    .page { max-width: 1300px; margin: 0 auto; padding: 24px 20px 64px; }
-    .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .logo {
-      text-decoration: none;
-      font-size: 28px;
+    .lib-hero__title {
+      font-family: var(--ss-font-display, "Sora", "DM Sans", sans-serif);
+      font-size: clamp(26px, 3.5vw, 34px);
       font-weight: 800;
-      letter-spacing: -.05em;
-      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 4px;
     }
-    .logo .dot { color: var(--green); }
-    .nav { display: flex; gap: 10px; flex-wrap: wrap; }
-    .btn {
-      text-decoration: none;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      padding: 12px 18px;
-      color: var(--text);
-      font-weight: 800;
-      background: rgba(255, 255, 255, 0.03);
-    }
-    .btn-primary {
-      border: 1px solid rgba(57,255,20,.35);
-      background: linear-gradient(135deg, var(--green), #82ff63);
-      color: #0e1012;
-    }
-    .hero {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 22px;
-      margin-bottom: 16px;
-    }
-    h1 { font-size: 40px; line-height: 1.05; margin-bottom: 10px; }
-    h2 { font-size: 24px; margin-bottom: 10px; color: var(--green); }
-    .muted { color: var(--muted); line-height: 1.7; }
-    .filters {
-      margin-top: 14px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 10px;
-    }
-    select {
-      width: 100%;
-      padding: 11px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      color: var(--text);
-      background: rgba(255,255,255,0.04);
-      font: inherit;
-    }
-    select option { color: #111; }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 18px;
-      min-height: 360px;
-    }
-    .list { display: grid; gap: 10px; }
-    .hero,.panel,.card,.btn{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-    @media (hover: hover) and (pointer: fine) {
-    .hero:hover,.panel:hover,.card:hover,.btn:hover{transform:translateY(-3px);border-color:rgba(57,255,20,.3);box-shadow:0 18px 46px rgba(0,0,0,.28)}
-    }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255,255,255,0.03);
-      overflow: hidden;
-    }
-    .card summary {
-      list-style: none;
-      cursor: pointer;
-      padding: 14px;
-    }
-    .card summary::-webkit-details-marker { display: none; }
-    .detail-body { padding: 0 14px 14px; }
-    .title { font-size: 16px; font-weight: 800; margin-bottom: 4px; color: var(--green); }
-    .meta { font-size: 12px; color: var(--orange); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .lock {
-      margin-top: 8px;
-      border: 1px solid rgba(255, 143, 0, 0.34);
-      background: rgba(255, 143, 0, 0.12);
-      color: #ffd7a0;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 13px;
-    }
-    .footer {
-      margin-top: 18px;
-      display: grid;
-      grid-template-columns: 1.1fr 1fr 1fr 1fr;
-      gap: 16px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    }
-    .footer-col { display: grid; gap: 12px; }
-    .footer-col strong { color: var(--text); }
-    .footer-links { display: flex; flex-wrap: wrap; gap: 10px; }
-    .footer-links a {
-      text-decoration: none;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 10px 14px;
-      background: rgba(255,255,255,0.03);
+    .lib-hero__title .accent { color: var(--volt); }
+    .lib-hero__sub {
+      font-size: 14px;
       color: var(--muted);
+      max-width: 520px;
+    }
+    .lib-hero__plan {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(57,255,20,0.06);
+      border: 1px solid rgba(57,255,20,0.22);
+      font-size: 13px;
       font-weight: 700;
     }
-    .plan-strip {
-      margin: 0 0 20px;
-      padding: 12px 16px;
+    .lib-hero__plan .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--volt);
+    }
+    .lib-hero__plan.locked {
+      background: rgba(255,216,77,0.06);
+      border-color: rgba(255,216,77,0.22);
+    }
+    .lib-hero__plan.locked .dot { background: var(--gold); }
+    .lib-hero__plan a { color: var(--volt); margin-left: 6px; text-decoration: underline; }
+
+    /* ── Tabs — Drills / Tactics segmented control ──────────────────── */
+    .lib-tabs {
+      display: inline-flex;
+      padding: 4px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
+    .lib-tab {
+      padding: 9px 18px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 160ms, color 160ms;
+    }
+    .lib-tab.is-active {
+      background: var(--volt);
+      color: #0a0a0a;
+    }
+    .lib-tab .count {
+      margin-left: 6px;
+      opacity: 0.75;
+      font-weight: 600;
+    }
+
+    /* ── Filter chips row (horizontal scroll on mobile) ────────────── */
+    .lib-filters {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 8px;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .lib-filters::-webkit-scrollbar { display: none; }
+    .lib-filters__group {
+      display: inline-flex;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
       border-radius: 12px;
-      border: 1px solid rgba(57, 255, 20, 0.22);
-      background: rgba(57, 255, 20, 0.07);
+      padding: 4px;
+      gap: 2px;
+    }
+    .lib-chip {
+      padding: 7px 13px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
       font-size: 13px;
-      line-height: 1.6;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 140ms, color 140ms;
+    }
+    .lib-chip.is-active {
+      background: rgba(57,255,20,0.12);
+      color: var(--volt);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .lib-chip:not(.is-active):hover { color: var(--text); }
+    }
+
+    /* ── Card list ─────────────────────────────────────────────────── */
+    .lib-list { display: grid; gap: 10px; }
+
+    .lib-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 160ms, transform 160ms;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .lib-card:hover { border-color: rgba(57,255,20,0.25); transform: translateY(-1px); }
+    }
+    .lib-card__head {
       display: flex;
       align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
     }
-    .plan-strip .avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      display: grid; place-items: center;
-      background: linear-gradient(135deg, var(--green), #82ff63);
-      font-weight: 800; font-size: 14px; color: #0a0a0a;
+    .lib-card__icon {
       flex-shrink: 0;
-      background-size: cover; background-position: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(57,255,20,0.08);
+      color: var(--volt);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
     }
-    .plan-strip strong { color: var(--green); }
-    .plan-strip a { color: var(--green); font-weight: 700; }
-    @media (max-width: 980px) {
-      .grid, .filters, .footer { grid-template-columns: 1fr; }
-      h1 { font-size: 32px; }
+    .lib-card__body { flex: 1; min-width: 0; }
+    .lib-card__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+      /* Prevent very long titles from blowing the layout on mobile. */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    @media (max-width: 768px) {
-      .page { padding: 16px 14px 80px; }
-      .top { flex-direction: column; align-items: flex-start; gap: 12px; }
-      .nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; gap: 8px; }
-      .btn { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
-      h1 { font-size: 28px; }
-      h2 { font-size: 20px; }
-      .hero { padding: 16px; border-radius: 16px; }
-      .panel { padding: 14px; min-height: auto; border-radius: 16px; }
-      .card summary { padding: 12px; }
-      .title { font-size: 15px; }
-      .meta { font-size: 12px; }
-      .plan-strip { font-size: 12px; padding: 10px 12px; flex-direction: column; align-items: flex-start; }
+    .lib-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
-    @media (max-width: 480px) {
-      .page { padding: 10px 10px 80px; }
-      h1 { font-size: 24px; }
-      h2 { font-size: 18px; }
-      .hero { padding: 14px; border-radius: 14px; }
-      .btn { padding: 8px 12px; font-size: 12px; border-radius: 12px; }
-      .panel { padding: 12px; border-radius: 14px; }
-      .card { border-radius: 12px; }
-      .card summary { padding: 10px; }
-      .title { font-size: 14px; }
-      .footer { gap: 12px; padding-top: 14px; }
-      .footer-links { gap: 6px; }
-      .footer-links a { padding: 8px 10px; font-size: 12px; }
+    .lib-card__meta span {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
     }
-  .brand-logo, .footer-logo { display: block; height: auto; max-width: 100%; }
-.brand-logo { height: 80px; width: auto; }
-.footer-logo { height: 64px; width: auto; }
-    </style>
+    .lib-card__meta .lvl-beginner   { color: #8ac9ff; }
+    .lib-card__meta .lvl-intermediate { color: var(--volt); }
+    .lib-card__meta .lvl-advanced   { color: var(--gold); }
+    .lib-card__meta .lvl-pro        { color: #ff7a7a; }
 
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
-<!-- End Google Tag Manager -->
-<link rel="stylesheet" href="./skeleton-loader.css">
-<link rel="stylesheet" href="./empty-state.css">
-<link rel="stylesheet" href="./brand-tokens.css">
+    .lib-card__chevron {
+      flex-shrink: 0;
+      color: var(--muted);
+      transition: transform 180ms, color 180ms;
+    }
+    .lib-card.is-open .lib-card__chevron { transform: rotate(90deg); color: var(--volt); }
+    .lib-card__detail {
+      display: none;
+      padding: 0 16px 16px 70px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .lib-card.is-open .lib-card__detail { display: block; }
+    @media (max-width: 560px) {
+      .lib-card__detail { padding: 0 16px 16px; }
+    }
+    .lib-card__summary { margin-bottom: 10px; color: var(--text); }
+    .lib-card__row { margin-top: 8px; }
+    .lib-card__row strong { color: var(--text); margin-right: 4px; }
+    .lib-card__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: var(--volt);
+      color: #0a0a0a;
+      font-weight: 800;
+      font-size: 13px;
+      text-decoration: none;
+      transition: transform 160ms;
+    }
+    .lib-card__cta:hover { transform: translateY(-1px); }
+    .lib-card__lock {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255,216,77,0.06);
+      border: 1px solid rgba(255,216,77,0.22);
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .lib-card__lock a { color: var(--volt); text-decoration: underline; margin-left: auto; font-weight: 800; }
+
+    /* ── Tab panel switching ──────────────────────────────────────── */
+    .lib-panel[hidden] { display: none; }
+
+    /* ── Mobile tuning ────────────────────────────────────────────── */
+    @media (max-width: 560px) {
+      .lib-hero { align-items: flex-start; }
+      .lib-hero__plan { width: 100%; justify-content: center; }
+      .lib-tab { padding: 9px 14px; font-size: 13px; }
+    }
+  </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K67BDXDX"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-  <div class="page">
-    <header class="top">
-      <a class="logo" href="./index.html"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="brand-logo" width="190" height="80"></a>
-      <nav class="nav">
-        <a class="btn" href="./for-players.html">For Players</a>
-        <a class="btn" href="./for-coaches.html">For Coaches</a>
-        <a class="btn" href="./for-clubs.html">For Clubs</a>
-        <a class="btn" href="./pricing.html">Pricing</a>
-        <a class="btn" href="./blog.html">Blog</a>
-        <a class="btn btn-primary" href="./analyze.html">Start Free Analysis</a>
-      </nav>
+  <!-- Canonical app-shell chrome (rendered by app-shell.js) -->
+  <div data-ss-app-topbar></div>
+
+  <main class="lib-main" id="main-content">
+    <!-- ── Hero ─────────────────────────────────────────────────── -->
+    <header class="lib-hero">
+      <div>
+        <h1 class="lib-hero__title" data-i18n="library.title">
+          Drills &amp; <span class="accent">Tactics</span>
+        </h1>
+        <p class="lib-hero__sub" data-i18n="library.subtitle">
+          Filter by level and shot to find the exact drill or tactical pattern you need.
+        </p>
+      </div>
+      <div id="planPill" class="lib-hero__plan" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="planPillText">Loading plan…</span>
+      </div>
     </header>
 
-    <main>
-    <div class="plan-strip" id="planStrip"></div>
+    <!-- ── Tabs ─────────────────────────────────────────────────── -->
+    <div role="tablist" aria-label="Library sections" class="lib-tabs">
+      <button type="button" role="tab" aria-selected="true"  aria-controls="drillsPanel"  id="drillsTab"  class="lib-tab is-active" data-tab="drills">
+        Drills <span class="count" id="drillsCount"></span>
+      </button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="tacticsPanel" id="tacticsTab" class="lib-tab" data-tab="tactics">
+        Tactics <span class="count" id="tacticsCount"></span>
+      </button>
+    </div>
 
-    <section class="hero">
-      <h1 data-i18n="library.title">Drills and Tactics Library</h1>
-      <p class="muted" data-i18n="library.subtitle">Browse the drill and tactic catalog publicly, then upgrade when you want protected external video links, saved reports, and the full player workflow.</p>
-      <div class="filters">
-        <select id="levelFilter" aria-label="Filter library by player level">
-          <option value="" data-i18n="library.allLevels">All levels</option>
-          <option value="beginner" data-i18n="library.beginner">Beginner</option>
-          <option value="intermediate" data-i18n="library.intermediate">Intermediate</option>
-          <option value="advanced" data-i18n="library.advanced">Advanced</option>
-          <option value="pro" data-i18n="library.pro">Pro</option>
-        </select>
-        <select id="shotFilter" aria-label="Filter library by shot type">
-          <option value="" data-i18n="library.allShotTypes">All shot types</option>
-          <option value="forehand">Forehand</option>
-          <option value="backhand">Backhand</option>
-          <option value="serve">Serve</option>
-          <option value="volley">Volley</option>
-          <option value="slice">Slice</option>
-          <option value="drop-shot">Drop Shot</option>
-          <option value="lob">Lob</option>
-          <option value="return">Return</option>
-        </select>
-        <select id="contextFilter" aria-label="Filter library by context">
-          <option value="" data-i18n="library.allContexts">All tactic contexts</option>
-          <option value="serve">Serve</option>
-          <option value="baseline">Baseline</option>
-          <option value="net">Net</option>
-          <option value="defense">Defense</option>
-          <option value="point-construction">Point construction</option>
-          <option value="general">General match play</option>
-        </select>
+    <!-- ── Filter chips ─────────────────────────────────────────── -->
+    <div class="lib-filters" aria-label="Filter library">
+      <div class="lib-filters__group" role="group" aria-label="Player level">
+        <button type="button" class="lib-chip is-active" data-filter="level" data-value="">All levels</button>
+        <button type="button" class="lib-chip" data-filter="level" data-value="beginner">Beginner</button>
+        <button type="button" class="lib-chip" data-filter="level" data-value="intermediate">Intermediate</button>
+        <button type="button" class="lib-chip" data-filter="level" data-value="advanced">Advanced</button>
+        <button type="button" class="lib-chip" data-filter="level" data-value="pro">Pro</button>
       </div>
+      <div class="lib-filters__group" role="group" aria-label="Shot type" id="shotChipGroup">
+        <button type="button" class="lib-chip is-active" data-filter="shot" data-value="">All shots</button>
+        <button type="button" class="lib-chip" data-filter="shot" data-value="forehand">Forehand</button>
+        <button type="button" class="lib-chip" data-filter="shot" data-value="backhand">Backhand</button>
+        <button type="button" class="lib-chip" data-filter="shot" data-value="serve">Serve</button>
+        <button type="button" class="lib-chip" data-filter="shot" data-value="volley">Volley</button>
+        <button type="button" class="lib-chip" data-filter="shot" data-value="slice">Slice</button>
+      </div>
+      <!-- Context chips only appear on the Tactics tab via CSS toggle below. -->
+      <div class="lib-filters__group" role="group" aria-label="Match situation" id="contextChipGroup" hidden>
+        <button type="button" class="lib-chip is-active" data-filter="context" data-value="">All contexts</button>
+        <button type="button" class="lib-chip" data-filter="context" data-value="baseline">Baseline</button>
+        <button type="button" class="lib-chip" data-filter="context" data-value="net">Net</button>
+        <button type="button" class="lib-chip" data-filter="context" data-value="defense">Defense</button>
+        <button type="button" class="lib-chip" data-filter="context" data-value="point-construction">Point construction</button>
+      </div>
+    </div>
+
+    <!-- ── Drills panel ─────────────────────────────────────────── -->
+    <section role="tabpanel" aria-labelledby="drillsTab" id="drillsPanel" class="lib-panel">
+      <div id="drillList" class="lib-list" data-skeleton="list-row" data-skeleton-count="5" aria-live="polite"></div>
     </section>
 
-    <section class="grid">
-      <article class="panel">
-        <h2 data-i18n="library.drillsHeading">Drill Videos</h2>
-        <div id="drillList" class="list" data-skeleton="list-row" data-skeleton-count="5"></div>
-      </article>
-      <article class="panel">
-        <h2 data-i18n="library.tacticsHeading">Tactical Playbooks</h2>
-        <div id="tacticList" class="list" data-skeleton="list-row" data-skeleton-count="4"></div>
-      </article>
+    <!-- ── Tactics panel ────────────────────────────────────────── -->
+    <section role="tabpanel" aria-labelledby="tacticsTab" id="tacticsPanel" class="lib-panel" hidden>
+      <div id="tacticList" class="lib-list" data-skeleton="list-row" data-skeleton-count="5" aria-live="polite"></div>
     </section>
-    </main>
+  </main>
 
-    <footer class="footer" role="contentinfo" aria-label="Site footer">
-      <div class="page">
-        <div class="footer-grid">
-          <div>
-            <div class="footer-brand"><img src="./assets/logos/logo.png" alt="SmartSwing AI" class="footer-logo" width="140" height="35"></div>
-            <p class="footer-tagline">AI-powered tennis analysis for players, coaches, and clubs.</p>
-          </div>
-          <div class="footer-col">
-            <strong>Product</strong>
-            <div class="footer-links">
-              <a href="./features.html">Features</a>
-              <a href="./pricing.html">Pricing</a>
-              <a href="./how-it-works.html">How It Works</a>
-              <a href="./analyze.html">Analyze a Swing</a>
-            </div>
-          </div>
-          <div class="footer-col">
-            <strong>For You</strong>
-            <div class="footer-links">
-              <a href="./for-players.html">Players</a>
-              <a href="./for-coaches.html">Coaches</a>
-              <a href="./for-clubs.html">Clubs</a>
-              <a href="./for-parents.html">Parents</a>
-            </div>
-          </div>
-          <div class="footer-col">
-            <strong>Trust &amp; Legal</strong>
-            <div class="footer-links">
-              <a href="./refund-policy.html">Refund Policy</a>
-              <a href="./user-agreement.html">User Agreement</a>
-              <a href="./privacy-policy.html">Privacy Policy</a>
-              <a href="./cookie-policy.html">Cookie Policy</a>
-              <a href="./accessibility.html">Accessibility</a>
-              <a href="https://www.instagram.com/smartswing_ai/" target="_blank" rel="noopener">Instagram</a>
-              <a href="https://www.youtube.com/@SmartSwing_AI" target="_blank" rel="noopener">YouTube</a>
-              <a href="https://www.tiktok.com/@smartswingai" target="_blank" rel="noopener">TikTok</a>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>&copy; 2026 SmartSwing AI. All rights reserved.</p>
-          <div class="footer-bottom-links">
-            <a href="./privacy-policy.html">Privacy</a>
-            <a href="./user-agreement.html">Terms</a>
-            <a href="./cookie-policy.html">Cookies</a>
-            <a href="./marketing.html" style="color:rgba(57,255,20,.35)">Marketing</a>
-            <a href="./deploy/SALES_PLAN_AND_PROJECTIONS.html" style="color:rgba(57,255,20,.35)">Sales Plan</a>
-            <a href="./smartswing-technical-docs.html" style="color:rgba(57,255,20,.35)">Tech Docs</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  </div>
+  <!-- Canonical app-shell bottom nav (rendered by app-shell.js) -->
+  <div data-ss-app-bottom-nav></div>
+
+  <!-- Canonical footer (rendered by shared-chrome.js) -->
+  <div data-ss-footer></div>
 
   <script src="./public-app-config.js"></script>
   <script src="./analytics.js" defer></script>
@@ -376,96 +388,223 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <script src="./app-data.js"></script>
   <script src="./pwa.js"></script>
   <script>
+    // ── Library state ──────────────────────────────────────────────
     const store = window.SmartSwingStore;
     const user = store.getCurrentUser();
     const plan = store.getCurrentPlan();
     const hasLibrary = store.canAccessLibrary();
 
-    function renderPlanSummary() {
-      const strip = document.getElementById('planStrip');
-      if (!strip) return;
-      const usage = user ? store.canGenerateReport(user.id) : { used: 0, limit: 1 };
-      const usageText = Number.isFinite(usage.limit) ? `${usage.used}/${usage.limit}` : `${usage.used}/Unlimited`;
-      const remainingLabel = Number.isFinite(usage.remaining) ? usage.remaining : 'Unlimited';
-      const initial = (user?.fullName || 'Guest').charAt(0).toUpperCase();
-      const avatarStyle = user?.avatarDataUrl ? `background:url(${user.avatarDataUrl}) center/cover no-repeat;color:transparent;` : '';
-      const name = user?.fullName || 'Guest';
-      strip.innerHTML = `
-        <div class="avatar" style="${avatarStyle}">${avatarStyle ? '' : initial}</div>
-        <div>
-          <strong>${name}</strong> · ${plan.name} · Reports: ${usageText} · Remaining: ${remainingLabel}
-          ${hasLibrary ? ' · <span style="color:#39ff14;">Library unlocked</span>' : ' · <a href="./pricing.html">Upgrade to unlock video links</a>'}
-        </div>
+    // Filter state — kept as a single object so the renderer is pure.
+    const filters = { level: '', shot: '', context: '', tab: 'drills' };
+
+    // Map raw level → CSS class for the colored skill-level pill.
+    function levelClass(level) {
+      const k = String(level || '').toLowerCase();
+      if (k.startsWith('begin')) return 'lvl-beginner';
+      if (k.startsWith('inter')) return 'lvl-intermediate';
+      if (k.startsWith('adv'))   return 'lvl-advanced';
+      if (k === 'pro' || k.includes('atp')) return 'lvl-pro';
+      return 'lvl-intermediate';
+    }
+
+    function prettyDuration(d) {
+      if (!d) return '';
+      const s = String(d).trim();
+      return s ? s : '';
+    }
+
+    // ── Plan pill ──────────────────────────────────────────────────
+    function renderPlanPill() {
+      const pill = document.getElementById('planPill');
+      const txt  = document.getElementById('planPillText');
+      if (!pill || !txt) return;
+      const name = user?.fullName?.split(' ')[0] || 'Guest';
+      if (hasLibrary) {
+        pill.classList.remove('locked');
+        txt.innerHTML = `Hey <strong>${name}</strong> — full library unlocked`;
+      } else {
+        pill.classList.add('locked');
+        txt.innerHTML = `Previewing · <a href="./pricing.html?src=library">Upgrade to unlock videos</a>`;
+      }
+    }
+
+    // ── Card HTML builders ────────────────────────────────────────
+    function drillIcon() {
+      return '🎾';
+    }
+    function tacticIcon() {
+      return '🧭';
+    }
+
+    function renderDrillCard(drill, idx) {
+      const duration = prettyDuration(drill.duration);
+      const targetsLine = drill.targets?.length
+        ? `<div class="lib-card__row"><strong>Targets:</strong> ${drill.targets.slice(0, 3).join(' · ')}</div>`
+        : '';
+      const gainLine = drill.expectedImprovement && Object.keys(drill.expectedImprovement).length
+        ? `<div class="lib-card__row"><strong>Expected gain:</strong> ${Object.values(drill.expectedImprovement).slice(0, 2).join(' · ')}</div>`
+        : '';
+      const cta = hasLibrary
+        ? `<a class="lib-card__cta" href="${drill.videoUrl}" target="_blank" rel="noopener">Open video →</a>`
+        : `<div class="lib-card__lock">
+             <span>🔒 Video locked on free plan</span>
+             <a href="./pricing.html?src=library_drill">Upgrade</a>
+           </div>`;
+
+      return `
+        <article class="lib-card" data-idx="${idx}">
+          <div class="lib-card__head" role="button" tabindex="0" aria-expanded="false">
+            <div class="lib-card__icon" aria-hidden="true">${drillIcon()}</div>
+            <div class="lib-card__body">
+              <div class="lib-card__title">${drill.title || 'Untitled drill'}</div>
+              <div class="lib-card__meta">
+                <span class="${levelClass(drill.skillLevel)}">${drill.skillLevel || 'All levels'}</span>
+                <span>${drill.strokeType || 'All strokes'}</span>
+                ${duration ? `<span>${duration}</span>` : ''}
+              </div>
+            </div>
+            <svg class="lib-card__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="lib-card__detail">
+            ${drill.focus ? `<div class="lib-card__summary">${drill.focus}</div>` : ''}
+            ${targetsLine}
+            ${gainLine}
+            ${cta}
+          </div>
+        </article>
       `;
     }
 
-    function renderLibrary() {
-      const level = document.getElementById('levelFilter').value;
-      const shot = document.getElementById('shotFilter').value;
-      const context = document.getElementById('contextFilter').value;
+    function renderTacticCard(tactic, idx) {
+      const focusLine = tactic.tacticalFocus?.length
+        ? `<div class="lib-card__row"><strong>Focus:</strong> ${tactic.tacticalFocus.slice(0, 3).join(' · ')}</div>`
+        : '';
+      const gainLine = tactic.expectedImprovement
+        ? `<div class="lib-card__row"><strong>Expected impact:</strong> ${Object.values(tactic.expectedImprovement).slice(0, 2).join(' · ')}</div>`
+        : '';
+      const cta = hasLibrary
+        ? `<a class="lib-card__cta" href="${tactic.videoUrl}" target="_blank" rel="noopener">Watch breakdown →</a>`
+        : `<div class="lib-card__lock">
+             <span>🔒 Video locked on free plan</span>
+             <a href="./pricing.html?src=library_tactic">Upgrade</a>
+           </div>`;
 
-      const drills = store.getDrillLibrary({ level, shotType: shot }).slice(0, 40);
-      const tactics = store.getTacticLibrary({ level, situation: context }).slice(0, 40);
+      return `
+        <article class="lib-card" data-idx="${idx}">
+          <div class="lib-card__head" role="button" tabindex="0" aria-expanded="false">
+            <div class="lib-card__icon" aria-hidden="true">${tacticIcon()}</div>
+            <div class="lib-card__body">
+              <div class="lib-card__title">${tactic.title || 'Untitled tactic'}</div>
+              <div class="lib-card__meta">
+                <span class="${levelClass(tactic.skillLevel)}">${tactic.skillLevel || 'All levels'}</span>
+                <span>${tactic.situation || 'General'}</span>
+              </div>
+            </div>
+            <svg class="lib-card__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="lib-card__detail">
+            ${tactic.summary ? `<div class="lib-card__summary">${tactic.summary}</div>` : ''}
+            ${focusLine}
+            ${gainLine}
+            ${cta}
+          </div>
+        </article>
+      `;
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────
+    function renderLists() {
+      const drills  = store.getDrillLibrary({ level: filters.level,  shotType: filters.shot   }).slice(0, 40);
+      const tactics = store.getTacticLibrary({ level: filters.level, situation: filters.context }).slice(0, 40);
+
+      // Tab counts ride along with each filter change.
+      document.getElementById('drillsCount').textContent  = drills.length ? drills.length : '';
+      document.getElementById('tacticsCount').textContent = tactics.length ? tactics.length : '';
 
       const drillList = document.getElementById('drillList');
-      if (!drills.length) {
-        // Canonical empty state (empty-state.css) — replaces the prior bare
-        // grey text with an actionable suggestion to widen the filters.
+      if (drills.length) {
+        drillList.innerHTML = drills.map(renderDrillCard).join('');
+      } else {
         drillList.innerHTML =
-          '<div class="ss-empty ss-empty--inline">' +
+          '<div class="ss-empty">' +
             '<div class="ss-empty__icon" aria-hidden="true">🎾</div>' +
             '<h3 class="ss-empty__title">No drills match these filters</h3>' +
-            '<p class="ss-empty__body">Try a different skill level or shot type — or clear the filters to browse the full library.</p>' +
+            '<p class="ss-empty__body">Try a different skill level or shot type — or clear the filters to browse the full catalog.</p>' +
           '</div>';
-      } else {
-        drillList.innerHTML = drills.map((drill, index) => `
-          <details class="card" ${index === 0 ? 'open' : ''}>
-            <summary>
-              <div class="title">${drill.title}</div>
-              <div class="meta">${drill.channel} | ${drill.skillLevel} | ${drill.strokeType} | ${drill.duration || ''}</div>
-              <div class="muted">${drill.focus}</div>
-            </summary>
-            <div class="detail-body">
-              ${drill.targets?.length ? `<div class="muted" style="margin-top:8px;"><strong>Targets:</strong> ${drill.targets.slice(0, 3).join(' | ')}</div>` : ''}
-              ${drill.expectedImprovement && Object.keys(drill.expectedImprovement).length ? `<div class="muted" style="margin-top:8px;"><strong>Expected gain:</strong> ${Object.values(drill.expectedImprovement).slice(0, 2).join(' | ')}</div>` : ''}
-              ${hasLibrary ? `<div style="margin-top:10px;"><a href="${drill.videoUrl}" target="_blank" rel="noopener">Open video</a></div>` : '<div class="lock">Upgrade required to open external drill video links.</div>'}
-            </div>
-          </details>
-        `).join('');
       }
 
       const tacticList = document.getElementById('tacticList');
-      if (!tactics.length) {
+      if (tactics.length) {
+        tacticList.innerHTML = tactics.map(renderTacticCard).join('');
+      } else {
         tacticList.innerHTML =
-          '<div class="ss-empty ss-empty--inline">' +
+          '<div class="ss-empty">' +
             '<div class="ss-empty__icon" aria-hidden="true">🧭</div>' +
             '<h3 class="ss-empty__title">No tactics match these filters</h3>' +
             '<p class="ss-empty__body">Switch skill level or match situation to see tactical playbooks for different scenarios.</p>' +
           '</div>';
-      } else {
-        tacticList.innerHTML = tactics.map((tactic, index) => `
-          <details class="card" ${index === 0 ? 'open' : ''}>
-            <summary>
-              <div class="title">${tactic.title}</div>
-              <div class="meta">${tactic.channel} | ${tactic.skillLevel} | ${tactic.situation}</div>
-              <div class="muted">${tactic.summary}</div>
-            </summary>
-            <div class="detail-body">
-              ${tactic.tacticalFocus?.length ? `<div class="muted" style="margin-top:8px;"><strong>Focus:</strong> ${tactic.tacticalFocus.slice(0, 3).join(' | ')}</div>` : ''}
-              ${tactic.expectedImprovement ? `<div class="muted" style="margin-top:8px;"><strong>Expected impact:</strong> ${Object.values(tactic.expectedImprovement).slice(0, 2).join(' | ')}</div>` : ''}
-              ${hasLibrary ? `<div style="margin-top:10px;"><a href="${tactic.videoUrl}" target="_blank" rel="noopener">Open tactical video</a></div>` : '<div class="lock">Upgrade required to open tactical video links.</div>'}
-            </div>
-          </details>
-        `).join('');
       }
     }
 
-    document.getElementById('levelFilter').addEventListener('change', renderLibrary);
-    document.getElementById('shotFilter').addEventListener('change', renderLibrary);
-    document.getElementById('contextFilter').addEventListener('change', renderLibrary);
+    // ── Wire card expand / collapse (delegated for freshly rendered cards) ──
+    function wireCardClicks(panelId) {
+      const panel = document.getElementById(panelId);
+      if (!panel) return;
+      panel.addEventListener('click', (e) => {
+        const head = e.target.closest('.lib-card__head');
+        if (!head) return;
+        // Don't toggle when the user clicks the video CTA inside the detail.
+        if (e.target.closest('.lib-card__cta, .lib-card__lock a')) return;
+        const card = head.closest('.lib-card');
+        const open = card.classList.toggle('is-open');
+        head.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      panel.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const head = e.target.closest('.lib-card__head');
+        if (!head) return;
+        e.preventDefault();
+        head.click();
+      });
+    }
 
-    renderPlanSummary();
-    renderLibrary();
+    // ── Wire tabs ──────────────────────────────────────────────────
+    function activateTab(name) {
+      filters.tab = name;
+      const drills  = name === 'drills';
+      document.getElementById('drillsTab').classList.toggle('is-active', drills);
+      document.getElementById('tacticsTab').classList.toggle('is-active', !drills);
+      document.getElementById('drillsTab').setAttribute('aria-selected',  drills);
+      document.getElementById('tacticsTab').setAttribute('aria-selected', !drills);
+      document.getElementById('drillsPanel').hidden  = !drills;
+      document.getElementById('tacticsPanel').hidden = drills;
+      // The shot-type chip group is more useful for drills; the context chip
+      // group only makes sense for tactics. Swap visibility on tab change.
+      document.getElementById('shotChipGroup').hidden    = !drills;
+      document.getElementById('contextChipGroup').hidden =  drills;
+    }
+
+    document.getElementById('drillsTab').addEventListener('click',  () => activateTab('drills'));
+    document.getElementById('tacticsTab').addEventListener('click', () => activateTab('tactics'));
+
+    // ── Wire filter chips ─────────────────────────────────────────
+    document.querySelectorAll('.lib-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const filter = chip.dataset.filter;
+        const value  = chip.dataset.value;
+        filters[filter] = value;
+        // Visually toggle within the chip's group.
+        const group = chip.closest('.lib-filters__group');
+        group.querySelectorAll('.lib-chip').forEach((c) => c.classList.toggle('is-active', c === chip));
+        renderLists();
+      });
+    });
+
+    // ── Init ──────────────────────────────────────────────────────
+    renderPlanPill();
+    renderLists();
+    wireCardClicks('drillsPanel');
+    wireCardClicks('tacticsPanel');
   </script>
   <script src="./i18n.js" defer></script>
   <script src="./skeleton-loader.js" defer></script>

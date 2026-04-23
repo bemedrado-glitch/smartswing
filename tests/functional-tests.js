@@ -2322,8 +2322,12 @@ describe('S9 — skeleton loaders on app pages', () => {
   test('library.html loads skeleton CSS + JS and marks hydration containers', () => {
     expect(library).toContain('./skeleton-loader.css');
     expect(library).toContain('./skeleton-loader.js');
-    expect(library).toContain('id="drillList" class="list" data-skeleton="list-row"');
-    expect(library).toContain('id="tacticList" class="list" data-skeleton="list-row"');
+    // Modernized library (PR library-modernize) uses `.lib-list` instead of
+    // the generic `.list` class. Both markup patterns still mark themselves
+    // as skeleton-hydration containers, which is what matters here.
+    // The test runner doesn't ship toMatch, so we use a regex .test() instead.
+    expect(/id="drillList"[^>]*data-skeleton="list-row"/.test(library)).toBe(true);
+    expect(/id="tacticList"[^>]*data-skeleton="list-row"/.test(library)).toBe(true);
   });
 
   test('dashboard.html loads skeleton CSS + JS and marks 5 key containers', () => {
@@ -2809,6 +2813,82 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Library modernization — tabs + filter chips + compact cards', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'library.html'), 'utf8');
+
+  test('Uses canonical app-shell chrome (drops marketing nav + inline footer)', () => {
+    expect(src).toContain('data-ss-app-topbar');
+    expect(src).toContain('data-ss-app-bottom-nav');
+    expect(src).toContain('data-ss-footer');
+    expect(src.includes('<nav class="nav">')).toBe(false);
+    expect(src.includes('<footer class="footer"')).toBe(false);
+  });
+
+  test('Drills/Tactics tabs replace side-by-side panels', () => {
+    expect(src).toContain('role="tablist"');
+    expect(src).toContain('id="drillsTab"');
+    expect(src).toContain('id="tacticsTab"');
+    expect(src).toContain('role="tabpanel"');
+    expect(src).toContain('aria-selected');
+  });
+
+  test('Filter chips replace the legacy <select> dropdowns', () => {
+    // Modernized UX — chip buttons, not dropdowns.
+    expect(src).toContain('class="lib-chip');
+    expect(src).toContain('data-filter="level"');
+    expect(src).toContain('data-filter="shot"');
+    expect(src).toContain('data-filter="context"');
+    // Old selects should be gone.
+    expect(src.includes('<select id="levelFilter"')).toBe(false);
+    expect(src.includes('<select id="shotFilter"')).toBe(false);
+    expect(src.includes('<select id="contextFilter"')).toBe(false);
+  });
+
+  test('Tactic context chips only show when Tactics tab is active', () => {
+    // The context group is hidden via logic that swaps on tab change.
+    expect(src).toContain('id="contextChipGroup"');
+    expect(src).toContain("contextChipGroup').hidden =  drills");
+  });
+
+  test('Compact cards use div-based expand (not <details>/<summary>)', () => {
+    expect(src).toContain('class="lib-card"');
+    expect(src).toContain('class="lib-card__head"');
+    expect(src).toContain('class="lib-card__detail"');
+    // Accessible expand pattern.
+    expect(src).toContain('aria-expanded');
+    expect(src).toContain('tabindex="0"');
+    // Legacy <details> pattern should be gone.
+    expect(src.includes('<details class="card"')).toBe(false);
+  });
+
+  test('Cards are colour-coded by skill level', () => {
+    expect(src).toContain('lvl-beginner');
+    expect(src).toContain('lvl-intermediate');
+    expect(src).toContain('lvl-advanced');
+    expect(src).toContain('lvl-pro');
+    expect(src).toContain('function levelClass');
+  });
+
+  test('Locked video CTA explicitly links to pricing with library UTM', () => {
+    expect(src).toContain('pricing.html?src=library_drill');
+    expect(src).toContain('pricing.html?src=library_tactic');
+  });
+
+  test('Empty states link to empty-state.css + use .ss-empty markup', () => {
+    expect(src).toContain('empty-state.css');
+    expect(src).toContain('class="ss-empty"');
+    expect(src).toContain('No drills match these filters');
+    expect(src).toContain('No tactics match these filters');
+  });
+
+  test('Plan pill in hero adapts for locked vs unlocked library', () => {
+    expect(src).toContain('id="planPill"');
+    expect(src).toContain('hasLibrary');
+    expect(src).toContain('Previewing');
+    expect(src).toContain('full library unlocked');
+  });
+});
+
 describe('Font-family unification — var(--ss-font-body) / var(--ss-font-display)', () => {
   const htmlFiles = fs.readdirSync(ROOT).filter(f => f.endsWith('.html'));
 
@@ -2820,7 +2900,10 @@ describe('Font-family unification — var(--ss-font-body) / var(--ss-font-displa
       const re = /font-family\s*:\s*[^;}]*["']DM Sans["'][^;}]*/gi;
       let m;
       while ((m = re.exec(src)) !== null) {
-        if (!/var\(\s*--ss-font-body/.test(m[0])) {
+        // "DM Sans" nested inside var(--ss-font-display, ...) is fine — Sora
+        // fallbacks legitimately end with DM Sans. Only flag the bare case
+        // (no var(--ss-font-*) wrapper at all).
+        if (!/var\(\s*--ss-font-(body|display)/.test(m[0])) {
           offenders.push(`${f}: ${m[0].slice(0, 80)}`);
         }
       }
