@@ -45,3 +45,9 @@ supabase/migrations/*_smartflip_*.sql
 tests/run-smartflip-tests.ps1
 tests/smartflip-*.test.js
 fix-encoding.js
+
+# Playwright visual regression
+/playwright-report/
+/test-results/
+/playwright/.cache/
+
