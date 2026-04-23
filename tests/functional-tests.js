@@ -2813,6 +2813,59 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Feedback synthesis per magnitude + tone (Bug 6)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('Static one-paragraph feedback template is gone', () => {
+    // The old template was a single mega-string with "Why this matters:
+    // ${TRACKER_DEFINITIONS[metric]}... How to interpret: This priority is
+    // large enough... What to do next: Use the first drill recommendation".
+    // All three were identical across every player. Must be gone.
+    expect(src.includes("'This priority is large enough to change consistency and ball quality'")).toBe(false);
+    expect(src.includes('"This priority is large enough to change consistency and ball quality"')).toBe(false);
+  });
+
+  test('Magnitude-bucketing varies the feedback copy', () => {
+    expect(src).toContain('_magnitudeBucket');
+    // Three buckets reflect different-sized deltas.
+    expect(src).toContain("if (a >= 18) return 'large'");
+    expect(src).toContain("if (a >= 8)  return 'medium'");
+  });
+
+  test('Session-count bucketing tailors advice to experience', () => {
+    expect(src).toContain('_sessionBucket');
+    expect(src).toContain("return 'first'");
+    expect(src).toContain("return 'seasoned'");
+  });
+
+  test('Trend direction flows into "How to interpret" copy', () => {
+    expect(src).toContain("trend === 'improving'");
+    expect(src).toContain("trend === 'regressing'");
+    expect(src).toContain('moving in the right direction');
+    expect(src).toContain('has slipped since your last sessions');
+  });
+
+  test('Tone group from toneModifiers varies "Why this matters" for seniors + juniors', () => {
+    expect(src).toContain("toneGroup === 'senior'");
+    expect(src).toContain("toneGroup === 'youth'");
+    expect(src).toContain('mobility or setup issue');
+    expect(src).toContain('movement pattern to rebuild');
+  });
+
+  test('First-session user gets bespoke "What to do next"', () => {
+    expect(src).toContain('This is your first analyzed swing');
+  });
+
+  test('Seasoned user gets different "What to do next" than first-timers', () => {
+    expect(src).toContain("sessionBucket === 'seasoned'");
+    expect(src).toContain('pattern recognition');
+  });
+
+  test('High-urgency + large delta yields stronger language', () => {
+    expect(src).toContain('high urgency means the next 3 practice blocks');
+  });
+});
+
 describe('Scoring honesty pass (Bug 5 — remove stacked bonuses)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
