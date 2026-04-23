@@ -1237,7 +1237,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <!-- Step 1: Profile -->
       <div class="step-content active" data-step="1">
         <h2 class="step-title">Tell us about yourself</h2>
-        
+
+        <!--
+          Saved-profile fast path (audit fix #7). When we detect all three
+          step-1 fields are already filled from the user's settings / quiz,
+          we pre-select the cards AND show this banner letting them jump
+          straight to step 2 without re-confirming. The cards remain editable
+          for users analysing a different person's swing. Hidden by default
+          and unhidden by the bootstrap script that does the detection.
+        -->
+        <div id="savedProfileFastPath" style="display:none;margin-bottom:28px;padding:14px 16px;background:linear-gradient(135deg,rgba(57,255,20,0.10),rgba(57,255,20,0.04));border:1px solid rgba(57,255,20,0.30);border-radius:14px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+              <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#39ff14;margin-bottom:4px;">Using your saved profile</div>
+              <div id="savedProfileSummary" style="font-size:14px;font-weight:600;color:#f5f5f7;line-height:1.4;"></div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+              <button type="button" class="btn" id="editSavedProfileBtn" style="font-size:13px;padding:10px 16px;">Edit</button>
+              <button type="button" class="btn btn-primary" id="useSavedProfileBtn" style="font-size:13px;padding:10px 18px;">Continue →</button>
+            </div>
+          </div>
+        </div>
+
         <div style="margin-bottom: 40px;">
           <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Gender</h3>
           <div class="selection-grid" style="grid-template-columns: repeat(2, 1fr);">
@@ -5256,6 +5277,50 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const drill = (s.tailoredDrills || [])[0];
       const topFix = topMetrics[0] ? formatMetricName(topMetrics[0].metric) : 'consistency';
 
+      // ── Coach Snapshot (audit fix #8) ─────────────────────────────────
+      // First-paint summary card. Users reported the full report felt
+      // "overwhelming — too much to digest". The Snapshot answers the only
+      // three questions most players open the report for:
+      //   1. How did I do?         → score + grade + level band
+      //   2. What's the #1 fix?    → formatted top priority + 1-line why
+      //   3. What's going well?    → top strength
+      // Everything deeper still lives below; this card is a concise lead
+      // that stands alone even if the user scrolls no further.
+      const snapshotPriority = topMetrics[0]
+        ? { name: formatMetricName(topMetrics[0].metric), score: Math.min(100, Math.round(topMetrics[0].score || 0)) }
+        : null;
+      const snapshotStrength = strengths[0]
+        ? { name: formatMetricName(strengths[0].metric), score: Math.min(100, Math.round(strengths[0].score || 0)) }
+        : null;
+      const snapshotHtml = `
+        <div class="report-section" style="background:linear-gradient(135deg,rgba(57,255,20,0.06),rgba(57,255,20,0.01));border-left:4px solid #39ff14;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#39ff14;">Coach Snapshot</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.45);">Scroll for full report ↓</div>
+          </div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;">
+            <div style="text-align:center;padding:12px 18px;border-radius:14px;background:${band.color}14;border:1px solid ${band.color}44;">
+              <div style="font-size:42px;font-weight:900;line-height:1;color:${band.color};">${s.score}</div>
+              <div style="font-size:11px;font-weight:700;color:${band.color};margin-top:4px;text-transform:uppercase;letter-spacing:0.06em;">${s.grade} · ${band.label}</div>
+            </div>
+            <div style="display:grid;gap:10px;min-width:0;">
+              ${snapshotPriority ? `
+                <div style="font-size:13px;line-height:1.5;">
+                  <span style="color:#ff6d00;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Top priority</span>
+                  <div style="color:var(--text,#f5f5f7);margin-top:2px;font-weight:600;">${snapshotPriority.name} — ${snapshotPriority.score}% of target</div>
+                </div>
+              ` : ''}
+              ${snapshotStrength ? `
+                <div style="font-size:13px;line-height:1.5;">
+                  <span style="color:#00c853;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Strength</span>
+                  <div style="color:var(--text,#f5f5f7);margin-top:2px;font-weight:600;">${snapshotStrength.name} — ${snapshotStrength.score}% of target</div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+
       const html = `
         <!-- 1. Score Card -->
         <div class="report-header" style="text-align:center;">
@@ -5264,6 +5329,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div style="font-size:13px; color:var(--gray); margin-top:10px;">${session.profile.level} · Age ${session.profile.age} · ${s.shotType} · ${new Date(session.timestamp).toLocaleDateString()}</div>
           <div style="font-size:11px; color:rgba(255,255,255,.35); margin-top:4px;">${s.focusFramesAnalyzed} frames analyzed${s.shotWindowsDetected ? ' · ' + s.shotWindowsDetected + ' shot window' + (s.shotWindowsDetected > 1 ? 's' : '') + ' detected' : ''}</div>
         </div>
+
+        ${snapshotHtml}
 
         <!-- Swing Story -->
         <div class="report-section" style="border-left:4px solid var(--electric-cyan);">
@@ -6136,6 +6203,81 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       }
       setStep(2);
     });
+
+    // ── Saved-profile fast path (audit fix #7) ─────────────────────────
+    // Read the normalized user profile. If the user already gave us gender,
+    // age range, and skill level via Settings or the onboarding quiz,
+    // pre-select the step 1 cards + surface a banner letting them jump
+    // straight to step 2 with one click. Users analysing a friend's swing
+    // can still tap "Edit" to change anything.
+    (function bootstrapSavedProfile() {
+      try {
+        if (!store || !store.getNormalizedUserProfile) return;
+        const norm = store.getNormalizedUserProfile(currentUser);
+        if (!norm) return;
+
+        // Map saved fields to step-1 card values. The analyzer's step-1
+        // labels are gender ("male"/"female"), age ("5-10".."50+"), and
+        // level ("starter"/"beginner"/"intermediate"/"advanced"/"atp-pro").
+        const savedGender = String(norm.gender || '').toLowerCase();
+        const savedAge = String(norm.ageRange || '').toLowerCase();
+        const savedLevel = String(norm.skillLevel || '').toLowerCase();
+
+        // Normalise onboarding-quiz labels (e.g. "usta-ntrp", "utr") to the
+        // analyzer's level buckets. Anything we don't recognise stays null
+        // so the user confirms it manually.
+        function toAnalyzerLevel(raw) {
+          if (!raw) return '';
+          if (/starter|new/.test(raw)) return 'starter';
+          if (/beginner|2\.0|2\.5/.test(raw)) return 'beginner';
+          if (/intermediate|3\.0|3\.5|4\.0/.test(raw)) return 'intermediate';
+          if (/advanced|4\.5|5\.0/.test(raw)) return 'advanced';
+          if (/pro|atp|college/.test(raw)) return 'atp-pro';
+          // Exact match against our known ids (Settings writes these directly).
+          if (['starter','beginner','intermediate','advanced','atp-pro'].indexOf(raw) >= 0) return raw;
+          return '';
+        }
+        const mappedLevel = toAnalyzerLevel(savedLevel);
+
+        const haveAll = !!(savedGender && savedAge && mappedLevel);
+        if (!haveAll) return;
+
+        // Select the corresponding cards visually + populate playerProfile
+        // so nextBtn1's validator is satisfied.
+        function pickCard(field, value) {
+          const match = document.querySelector('.selection-card[data-field="' + field + '"][data-value="' + value + '"]');
+          if (!match) return false;
+          document.querySelectorAll('[data-field="' + field + '"]').forEach((c) => c.classList.remove('selected'));
+          match.classList.add('selected');
+          playerProfile[field] = value;
+          return true;
+        }
+        const genderOk = pickCard('gender', savedGender);
+        const ageOk = pickCard('age', savedAge);
+        const levelOk = pickCard('level', mappedLevel);
+        if (!(genderOk && ageOk && levelOk)) return;
+
+        // Build the summary line + reveal the banner.
+        const fmtLevel = mappedLevel === 'atp-pro' ? 'ATP Pro' : mappedLevel.charAt(0).toUpperCase() + mappedLevel.slice(1);
+        const summaryEl = document.getElementById('savedProfileSummary');
+        const banner = document.getElementById('savedProfileFastPath');
+        if (summaryEl) {
+          summaryEl.textContent = fmtLevel + ' · ' + savedAge + ' · ' + savedGender.charAt(0).toUpperCase() + savedGender.slice(1) +
+            ' — we pre-filled your profile below.';
+        }
+        if (banner) banner.style.display = 'block';
+
+        const continueBtn = document.getElementById('useSavedProfileBtn');
+        if (continueBtn) continueBtn.addEventListener('click', () => setStep(2));
+        const editBtn = document.getElementById('editSavedProfileBtn');
+        if (editBtn) editBtn.addEventListener('click', () => {
+          if (banner) banner.style.display = 'none';
+          // Scroll past the banner to the first field so users see they can edit.
+          const firstField = document.querySelector('.selection-card[data-field="gender"]');
+          if (firstField) firstField.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      } catch (_) { /* fast path is optional — never block the wizard */ }
+    })();
 
     document.getElementById('backBtn1').addEventListener('click', () => setStep(1));
 
