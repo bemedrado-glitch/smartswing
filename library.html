@@ -246,6 +246,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./skeleton-loader.css">
+<link rel="stylesheet" href="./empty-state.css">
 <link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
@@ -408,7 +409,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       const drillList = document.getElementById('drillList');
       if (!drills.length) {
-        drillList.innerHTML = '<div class="muted">No drills match your current filters.</div>';
+        // Canonical empty state (empty-state.css) — replaces the prior bare
+        // grey text with an actionable suggestion to widen the filters.
+        drillList.innerHTML =
+          '<div class="ss-empty ss-empty--inline">' +
+            '<div class="ss-empty__icon" aria-hidden="true">🎾</div>' +
+            '<h3 class="ss-empty__title">No drills match these filters</h3>' +
+            '<p class="ss-empty__body">Try a different skill level or shot type — or clear the filters to browse the full library.</p>' +
+          '</div>';
       } else {
         drillList.innerHTML = drills.map((drill, index) => `
           <details class="card" ${index === 0 ? 'open' : ''}>
@@ -428,7 +436,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       const tacticList = document.getElementById('tacticList');
       if (!tactics.length) {
-        tacticList.innerHTML = '<div class="muted">No tactics match your current filters.</div>';
+        tacticList.innerHTML =
+          '<div class="ss-empty ss-empty--inline">' +
+            '<div class="ss-empty__icon" aria-hidden="true">🧭</div>' +
+            '<h3 class="ss-empty__title">No tactics match these filters</h3>' +
+            '<p class="ss-empty__body">Switch skill level or match situation to see tactical playbooks for different scenarios.</p>' +
+          '</div>';
       } else {
         tacticList.innerHTML = tactics.map((tactic, index) => `
           <details class="card" ${index === 0 ? 'open' : ''}>

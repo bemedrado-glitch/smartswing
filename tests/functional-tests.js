@@ -2809,6 +2809,43 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Empty-state rollout — library + dashboard + coach', () => {
+  const lib   = fs.readFileSync(path.join(ROOT, 'library.html'), 'utf8');
+  const dash  = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+  const coach = fs.readFileSync(path.join(ROOT, 'coach-dashboard.html'), 'utf8');
+
+  test('Library links empty-state.css + uses .ss-empty for drills + tactics', () => {
+    expect(lib).toContain('empty-state.css');
+    expect(lib).toContain('No drills match these filters');
+    expect(lib).toContain('No tactics match these filters');
+    expect(lib).toContain('class="ss-empty');
+  });
+
+  test('Dashboard adopts .ss-empty on 4 panels (focus, plan, completed, matches)', () => {
+    expect(dash).toContain('Focus areas unlock after your first analysis');
+    expect(dash).toContain('All tasks completed this week');
+    expect(dash).toContain('No completed tasks yet');
+    expect(dash).toContain('No matches tracked yet');
+  });
+
+  test('Dashboard empty states include actionable CTAs where relevant', () => {
+    expect(dash).toContain('Run an analysis →');
+    expect(dash).toContain('Start a match →');
+  });
+
+  test('Coach-dashboard .empty-state CSS upgraded to canonical visual', () => {
+    expect(coach).toContain('Coach-dashboard empty-state upgraded');
+    expect(coach).toContain('border: 1px dashed rgba(255, 255, 255, 0.08)');
+    expect(coach).toContain('var(--ss-volt');
+  });
+
+  test('Legacy grey-muted empty patterns retired on migrated surfaces', () => {
+    // No more "class=\"muted\".*No drills match" style bare paragraphs
+    expect(lib.includes('class="muted">No drills match')).toBe(false);
+    expect(lib.includes('class="muted">No tactics match')).toBe(false);
+  });
+});
+
 describe('Playwright visual regression infrastructure', () => {
   const config = fs.readFileSync(path.join(ROOT, 'playwright.config.js'), 'utf8');
   const spec   = fs.readFileSync(path.join(ROOT, 'tests/visual/visual.spec.js'), 'utf8');
@@ -2867,6 +2904,23 @@ describe('Playwright visual regression infrastructure', () => {
     const readme = fs.readFileSync(path.join(ROOT, 'tests/visual/README.md'), 'utf8');
     expect(readme).toContain('--update-snapshots');
     expect(readme).toContain('Do NOT update baselines without eyeballing');
+  });
+
+  test('20 baseline PNGs committed (10 pages × 2 viewports, win32)', () => {
+    const dir = path.join(ROOT, 'tests/visual/visual.spec.js-snapshots');
+    const files = fs.readdirSync(dir).filter(f => f.endsWith('.png'));
+    expect(files.length).toBeGreaterThanOrEqual(20);
+    // Verify both viewports present for a sampled page.
+    const home = files.filter(f => f.startsWith('home-'));
+    expect(home.some(f => f.includes('desktop'))).toBe(true);
+    expect(home.some(f => f.includes('mobile'))).toBe(true);
+  });
+
+  test('Mobile project uses Chromium with iPhone viewport (not WebKit)', () => {
+    // Ensures CI only needs Chromium installed, saving ~40% install time.
+    expect(config).toContain("devices['Desktop Chrome']");
+    expect(config).toContain('viewport: { width: 390, height: 844 }');
+    expect(config).toContain('isMobile: true');
   });
 });
 
