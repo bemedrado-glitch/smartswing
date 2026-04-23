@@ -2312,13 +2312,73 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return Number.isFinite(direct) ? direct : null;
     }
 
+    // ── Metric display labels (honest naming — v1 scoring fix) ─────────────
+    // Earlier versions used marketing labels like "Leg Push" and "Wrist
+    // Pronation" that sounded more sophisticated than the underlying
+    // measurement. A user audit flagged this: the label implied we measured
+    // motion / rotation through contact when we actually measured a single
+    // static angle at the peak-activation frame. New labels describe what
+    // the current v1 algorithm literally computes, so scores are defensible
+    // to coaches. When Phase 2 ships velocity + ROM + sequence timing
+    // (angular velocity landed in v1.1), these labels will evolve per-metric
+    // to reflect the deeper measurement.
+    var HONEST_METRIC_LABELS = {
+      shoulder:      'Shoulder Angle',
+      elbow:         'Elbow Angle',
+      hip:           'Hip Angle',
+      knee:          'Knee Bend',
+      trunk:         'Trunk Lean',
+      wrist:         'Wrist Angle',
+      stanceWidth:   'Stance Width',
+      contactHeight: 'Contact Height',
+      reach:         'Reach',
+      balance:       'Balance'
+    };
+
     function formatMetricName(metric) {
-      return String(metric || '')
+      var key = String(metric || '');
+      if (HONEST_METRIC_LABELS[key]) return HONEST_METRIC_LABELS[key];
+      return key
         .replace(/([A-Z])/g, ' $1')
         .replace(/[-_]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
-        .replace(/\b\w/g, (char) => char.toUpperCase());
+        .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    }
+
+    // ── Angular velocity computation (Phase 1 scoring accuracy) ────────────
+    // Walks the frame sequence for each tracked joint and computes the peak
+    // angular velocity in degrees/second. Two players with the same knee
+    // angle at contact can have very different swings — one exploded into
+    // that angle, the other drifted. Velocity captures the difference and
+    // is blended into the score at 30% weight (see `scoreMetricAgainstBenchmark`).
+    //
+    // Returns { knee: 420, shoulder: 850, ... } with peak positive values.
+    // Frames without a timestamp use a 33ms default (30fps) so we don't
+    // divide by zero. Any joint without ≥2 valid frames is simply omitted.
+    function computeAngularVelocities(frames, keys) {
+      if (!Array.isArray(frames) || frames.length < 2 || !Array.isArray(keys)) return {};
+      var velocities = {};
+      keys.forEach(function (key) {
+        var peak = 0;
+        for (var i = 1; i < frames.length; i++) {
+          var prev = frames[i - 1];
+          var curr = frames[i];
+          var prevAngle = prev && prev.angles ? prev.angles[key] : null;
+          var currAngle = curr && curr.angles ? curr.angles[key] : null;
+          if (prevAngle == null || currAngle == null ||
+              !Number.isFinite(prevAngle) || !Number.isFinite(currAngle)) continue;
+          var dtMs = (curr.timestamp && prev.timestamp)
+            ? (curr.timestamp - prev.timestamp)
+            : 33; // ~30fps fallback
+          if (dtMs <= 0) dtMs = 33;
+          var deltaDeg = Math.abs(currAngle - prevAngle);
+          var degPerSec = deltaDeg / (dtMs / 1000);
+          if (degPerSec > peak) peak = degPerSec;
+        }
+        if (peak > 0) velocities[key] = Math.round(peak);
+      });
+      return velocities;
     }
 
     function calculateLineTilt(a, b) {
@@ -3294,6 +3354,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     // Weights are relative — each metric's contribution is its weight divided
     // by the sum of weights in the shot. Adding the `wrist` channel reduces
     // every other weight slightly so the total stays balanced.
+    //
+    // ── PEAK ANGULAR VELOCITY BENCHMARKS (Phase 1) ──────────────────────
+    // Per-shot, per-joint peak rotational speed in degrees/sec. Derived from
+    // biomechanics literature + observed pro footage:
+    //   Serve kinetic chain peaks in sequence with wrist fastest (pronation):
+    //     knee 400°/s → hip 520°/s → shoulder 1200°/s → elbow 1400°/s → wrist 1800°/s
+    //   Forehand chain ramps through hip + shoulder with wrist as the late-stage
+    //     whip; knee pushes explosively but less than a serve. Values here are
+    //     calibrated against the current scoring band (soft window = ±28% of
+    //     the range) so modest velocities still score 70s, and explosive ones
+    //     earn the high-90s.
+    //
+    // Blended into scoreMetricAgainstBenchmark at 30% weight when a velocity
+    // is present — static-angle score contributes 70%. Phase 2 will add ROM,
+    // Phase 3 will add sequence timing.
+    var VELOCITY_BENCHMARKS = {
+      forehand: { knee: { min: 180, max: 360, optimal: 270 }, hip: { min: 240, max: 480, optimal: 360 }, shoulder: { min: 480, max: 900, optimal: 690 }, elbow: { min: 520, max: 980, optimal: 750 }, wrist: { min: 780, max: 1400, optimal: 1080 }, trunk: { min: 200, max: 400, optimal: 300 } },
+      backhand: { knee: { min: 180, max: 340, optimal: 260 }, hip: { min: 220, max: 440, optimal: 330 }, shoulder: { min: 440, max: 820, optimal: 630 }, elbow: { min: 480, max: 900, optimal: 690 }, wrist: { min: 720, max: 1300, optimal: 1010 }, trunk: { min: 180, max: 380, optimal: 280 } },
+      serve:    { knee: { min: 260, max: 540, optimal: 400 }, hip: { min: 340, max: 700, optimal: 520 }, shoulder: { min: 820, max: 1600, optimal: 1200 }, elbow: { min: 940, max: 1860, optimal: 1400 }, wrist: { min: 1200, max: 2400, optimal: 1800 }, trunk: { min: 280, max: 560, optimal: 420 } },
+      volley:   { knee: { min: 100, max: 220, optimal: 160 }, hip: { min: 140, max: 300, optimal: 220 }, shoulder: { min: 260, max: 520, optimal: 390 }, elbow: { min: 300, max: 580, optimal: 440 }, wrist: { min: 420, max: 780, optimal: 600 }, trunk: { min: 120, max: 240, optimal: 180 } },
+      slice:    { knee: { min: 140, max: 280, optimal: 210 }, hip: { min: 180, max: 360, optimal: 270 }, shoulder: { min: 360, max: 680, optimal: 520 }, elbow: { min: 400, max: 760, optimal: 580 }, wrist: { min: 560, max: 1000, optimal: 780 }, trunk: { min: 160, max: 320, optimal: 240 } },
+      'drop-shot': { knee: { min: 100, max: 220, optimal: 160 }, hip: { min: 120, max: 260, optimal: 190 }, shoulder: { min: 240, max: 480, optimal: 360 }, elbow: { min: 280, max: 560, optimal: 420 }, wrist: { min: 380, max: 720, optimal: 550 }, trunk: { min: 100, max: 220, optimal: 160 } },
+      lob:      { knee: { min: 200, max: 400, optimal: 300 }, hip: { min: 240, max: 480, optimal: 360 }, shoulder: { min: 500, max: 940, optimal: 720 }, elbow: { min: 540, max: 1020, optimal: 780 }, wrist: { min: 800, max: 1440, optimal: 1120 }, trunk: { min: 220, max: 440, optimal: 330 } }
+    };
+
     const SHOT_SCORING_MODELS = {
       forehand: {
         weights: { shoulder: 17, elbow: 13, hip: 17, knee: 11, trunk: 13, wrist: 9, stanceWidth: 6, contactHeight: 6, reach: 4, balance: 4 },
@@ -4019,41 +4104,76 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       };
     }
 
-    function scoreMetricAgainstBenchmark(metricName, currentValue, benchmark, toleranceMultiplier = 1, shotType = 'forehand', profileContext = null) {
-      const current = safeNumber(currentValue, null);
+    // Re-usable windowed deviation scorer. Given a current value + benchmark
+    // { min, max, optimal }, returns a 18-100 score using the same soft/good/
+    // fair-window mapping the static-angle scorer has always used. Extracted
+    // so angle-score AND velocity-score share the same curve.
+    function _windowedScore(current, benchmark, toleranceMultiplier) {
       if (current == null || !benchmark) return null;
-
-      const adjustedBenchmark = getAdjustedBenchmark(metricName, benchmark, profileContext);
-      const range = Math.max(1, safeNumber(adjustedBenchmark.max) - safeNumber(adjustedBenchmark.min));
-      const target = safeNumber(adjustedBenchmark.optimal);
-      const deviation = Math.abs(current - target);
-      const softWindow = Math.max(4, range * 0.28 * toleranceMultiplier);
-      const goodWindow = Math.max(8, range * 0.55 * toleranceMultiplier);
-      const fairWindow = Math.max(12, range * 0.95 * toleranceMultiplier);
-
-      let score;
+      var range = Math.max(1, safeNumber(benchmark.max) - safeNumber(benchmark.min));
+      var target = safeNumber(benchmark.optimal);
+      var deviation = Math.abs(current - target);
+      var softWindow = Math.max(4, range * 0.28 * toleranceMultiplier);
+      var goodWindow = Math.max(8, range * 0.55 * toleranceMultiplier);
+      var fairWindow = Math.max(12, range * 0.95 * toleranceMultiplier);
+      var score;
       if (deviation <= softWindow) score = 100 - ((deviation / softWindow) * 8);
       else if (deviation <= goodWindow) score = 92 - (((deviation - softWindow) / Math.max(1, goodWindow - softWindow)) * 14);
       else if (deviation <= fairWindow) score = 78 - (((deviation - goodWindow) / Math.max(1, fairWindow - goodWindow)) * 18);
       else score = 60 - Math.min(42, ((deviation - fairWindow) / Math.max(1, fairWindow)) * 28);
+      return { rawScore: clamp(Math.round(score), 18, 100), deviation: deviation, target: target, softWindow: softWindow, goodWindow: goodWindow, fairWindow: fairWindow };
+    }
 
-      const roundedScore = clamp(Math.round(score), 18, 100);
+    function scoreMetricAgainstBenchmark(metricName, currentValue, benchmark, toleranceMultiplier = 1, shotType = 'forehand', profileContext = null, currentVelocity = null) {
+      const current = safeNumber(currentValue, null);
+      if (current == null || !benchmark) return null;
+
+      const adjustedBenchmark = getAdjustedBenchmark(metricName, benchmark, profileContext);
+      const angleResult = _windowedScore(current, adjustedBenchmark, toleranceMultiplier);
+      if (!angleResult) return null;
+
+      // ── Phase 1 velocity blending ────────────────────────────────────
+      // If we have a peak angular velocity for this joint on this shot,
+      // compute a second score and blend. Static angle = 70%, velocity = 30%.
+      // The 30% weight is conservative — velocity benchmarks are estimates
+      // that will calibrate to real ATP footage in Phase 4.
+      const velocityBench = (VELOCITY_BENCHMARKS[shotType] || {})[metricName];
+      let velocityScoreResult = null;
+      if (currentVelocity != null && Number.isFinite(currentVelocity) && velocityBench) {
+        velocityScoreResult = _windowedScore(currentVelocity, velocityBench, toleranceMultiplier);
+      }
+
+      let blendedScore = angleResult.rawScore;
+      if (velocityScoreResult) {
+        blendedScore = Math.round(angleResult.rawScore * 0.70 + velocityScoreResult.rawScore * 0.30);
+      }
+      const roundedScore = clamp(blendedScore, 18, 100);
+
+      // Status reflects the BLENDED score so feedback tone matches the number.
       let status = 'needs-work';
-      if (deviation <= softWindow) status = 'excellent';
-      else if (deviation <= goodWindow) status = 'good';
-      else if (deviation <= fairWindow) status = 'workable';
+      const combinedDev = velocityScoreResult
+        ? Math.max(angleResult.deviation, velocityScoreResult.deviation * (angleResult.softWindow / Math.max(1, velocityScoreResult.softWindow)))
+        : angleResult.deviation;
+      if (combinedDev <= angleResult.softWindow) status = 'excellent';
+      else if (combinedDev <= angleResult.goodWindow) status = 'good';
+      else if (combinedDev <= angleResult.fairWindow) status = 'workable';
 
       return {
         metric: metricName,
         current: roundMetric(current),
-        target,
+        target: angleResult.target,
         min: adjustedBenchmark.min,
         max: adjustedBenchmark.max,
-        delta: roundMetric(current - target),
-        deviation: roundMetric(deviation, 1),
+        delta: roundMetric(current - angleResult.target),
+        deviation: roundMetric(angleResult.deviation, 1),
         score: roundedScore,
         status,
-        category: Object.prototype.hasOwnProperty.call(PRO_BENCHMARKS[shotType] || {}, metricName) ? 'angle' : 'movement'
+        category: Object.prototype.hasOwnProperty.call(PRO_BENCHMARKS[shotType] || {}, metricName) ? 'angle' : 'movement',
+        // Velocity telemetry travels alongside for UI to render on cards.
+        angleScore: angleResult.rawScore,
+        velocityScore: velocityScoreResult ? velocityScoreResult.rawScore : null,
+        velocity: currentVelocity,
+        velocityTarget: velocityBench ? velocityBench.optimal : null
       };
     }
 
@@ -4323,12 +4443,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       let weightedTotal = 0;
       let weightCount = 0;
 
+      // ── Phase 1: compute peak angular velocity per joint across the frame
+      // window so it can be blended into the angle-based score (30% weight).
+      // Keys = any joint that has a velocity benchmark for this shot type.
+      const velocityKeys = Object.keys(VELOCITY_BENCHMARKS[shotType] || {});
+      const peakVelocities = computeAngularVelocities(focusFrames, velocityKeys);
+
       Object.entries(weights).forEach(([metric, weight]) => {
         const current = Object.prototype.hasOwnProperty.call(avgAngles || {}, metric)
           ? avgAngles[metric]
           : avgDerivedMetrics?.[metric];
         const benchmark = angleBenchmarks[metric] || derivedBenchmarks[metric];
-        const comparison = scoreMetricAgainstBenchmark(metric, current, benchmark, toleranceMultiplier, shotType, profileContext);
+        const velocity = peakVelocities[metric] != null ? peakVelocities[metric] : null;
+        const comparison = scoreMetricAgainstBenchmark(metric, current, benchmark, toleranceMultiplier, shotType, profileContext, velocity);
         if (!comparison) return;
         comparisons.push(comparison);
         weightedTotal += comparison.score * weight;
@@ -6017,11 +6144,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 : 'playable, but still leaving points on the table';
           const direction = diff > 0 ? 'above' : diff < 0 ? 'below' : 'on';
 
+          // ── Phase 1: surface the raw measurement + velocity breakdown ──
+          // Previously the report only showed a score like "35%". Coaches
+          // asked "what is a 35 being compared against?" — now every card
+          // shows the actual angle (or velocity) in degrees and against
+          // what target window. A Phase 1 enhancement: when velocity data
+          // exists, the card also shows the peak angular velocity vs its
+          // target. This is the "honest accuracy" upgrade users requested.
+          const hasVelocity = comparison && comparison.velocity != null && comparison.velocityTarget != null;
+          const velocityLine = hasVelocity
+            ? `<br><strong>Peak angular velocity:</strong> <strong>${comparison.velocity} deg/sec</strong> (target <strong>${comparison.velocityTarget} deg/sec</strong>). Score contributions → angle <strong>${comparison.angleScore}</strong>, velocity <strong>${comparison.velocityScore}</strong>, blended at 70% / 30%.`
+            : '<br><em>Velocity data unavailable on this clip (need 2+ frames with angle readings).</em>';
+
           return buildExpandableInsight(
             `${formatMetricName(metric)}`,
             score,
-            `${current} deg. Personalized target window ${minRange} to ${maxRange} deg. This sits ${direction} the center target and is ${fitLabel}.`,
-            `<strong>What it means:</strong> ${TRACKER_DEFINITIONS[metric] || 'This angle affects how the stroke transfers force and stays repeatable.'}<br><br><strong>How to interpret it:</strong> Your average was <strong>${current} deg</strong>, while your current target is <strong>${optimal} deg</strong>. That is a difference of <strong>${diff > 0 ? '+' : ''}${diff} deg</strong>.<br><br><strong>Why it matters:</strong> The farther this drifts from the target window, the more likely you are to compensate with timing, balance, or contact quality.<br><br><strong>Best next move:</strong> Use the first drill recommendation attached to this report and re-test the same shot from the same camera angle.`,
+            `Your angle: <strong>${current}°</strong> · Target: <strong>${optimal}°</strong> · Off by <strong>${diff > 0 ? '+' : ''}${diff}°</strong>. Acceptable window ${minRange}°–${maxRange}°. This sits ${direction} the center target and is ${fitLabel}.`,
+            `<strong>What it means:</strong> ${TRACKER_DEFINITIONS[metric] || 'This angle affects how the stroke transfers force and stays repeatable.'}<br><br><strong>How we measured it:</strong> Average joint angle across the shot window, then compared to the level-adjusted target. Your average was <strong>${current}°</strong>, target was <strong>${optimal}°</strong>, difference <strong>${diff > 0 ? '+' : ''}${diff}°</strong>.${velocityLine}<br><br><strong>Why it matters:</strong> The farther this drifts from the target window, the more likely you are to compensate with timing, balance, or contact quality.<br><br><strong>Best next move:</strong> Use the first drill recommendation attached to this report and re-test the same shot from the same camera angle.`,
             'cyan'
           );
         });
