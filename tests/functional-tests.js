@@ -2809,6 +2809,29 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Analyze page app-shell migration', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('Analyze links app-shell CSS + JS', () => {
+    expect(src).toContain('app-shell.css');
+    expect(src).toContain('app-shell.js');
+  });
+
+  test('Analyze uses the canonical bottom-nav placeholder', () => {
+    expect(src).toContain('data-ss-app-bottom-nav');
+  });
+
+  test('Inline <nav class="app-bottom-nav"> markup removed', () => {
+    expect(src.includes('<nav class="app-bottom-nav"')).toBe(false);
+  });
+
+  test('Duplicated .app-bottom-nav inline CSS rules stripped', () => {
+    // The shared stylesheet now owns these rules — no per-page copy.
+    expect(src.includes('.app-bottom-nav { display: none;')).toBe(false);
+    expect(src.includes('.app-bottom-nav a { flex: 1;')).toBe(false);
+  });
+});
+
 describe('Canonical app-shell (logged-in chrome consolidation)', () => {
   const css  = fs.readFileSync(path.join(ROOT, 'app-shell.css'), 'utf8');
   const js   = fs.readFileSync(path.join(ROOT, 'app-shell.js'), 'utf8');
