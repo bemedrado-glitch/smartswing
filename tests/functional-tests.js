@@ -2867,6 +2867,33 @@ describe('Canonical app-shell (logged-in chrome consolidation)', () => {
   });
 });
 
+describe('Form UX — contact wires toast.fieldError per field', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'contact.html'), 'utf8');
+
+  test('Contact loads toast.js + toast.css', () => {
+    expect(src).toContain('toast.js');
+    expect(src).toContain('toast.css');
+  });
+
+  test('Per-field validation calls fieldError + fieldClear', () => {
+    expect(src).toContain('T.fieldError');
+    expect(src).toContain('T.fieldClear');
+  });
+
+  test('Email format validated beyond required (regex check)', () => {
+    expect(src).toContain('EMAIL_RE');
+    expect(src.indexOf('@\]+@')).toBeGreaterThan(-1);
+  });
+
+  test('Focus lands on the first invalid field for keyboard users', () => {
+    expect(src).toContain('firstInvalid.focus()');
+  });
+
+  test('Toast warn fires when any field is invalid', () => {
+    expect(src).toContain("T.warn('Please fix");
+  });
+});
+
 describe('Empty-state utility + axe-core CI', () => {
   const empty = fs.readFileSync(path.join(ROOT, 'empty-state.css'), 'utf8');
   const axe = fs.readFileSync(path.join(ROOT, '.github/workflows/a11y.yml'), 'utf8');
