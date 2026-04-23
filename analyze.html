@@ -5729,11 +5729,108 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       `;
     }
 
+    // ── Feedback synthesis (Bug 6 from product audit) ─────────────────
+    // Previously every priority with the same metric name got identical
+    // "Why this matters / How to interpret / What to do next" paragraphs —
+    // regardless of magnitude, urgency, player level, or session history.
+    // Users saw the same three paragraphs on their 1st and their 20th
+    // analysis. Now we vary each paragraph by:
+    //   - magnitude bucket   (small / medium / large absolute delta)
+    //   - urgency            (high / medium / low readiness-indexed)
+    //   - session count      (first / early / established / seasoned)
+    //   - tone group         (youth / junior / adult / masters / senior)
+    //   - trend direction    (improving / flat / regressing vs. prior)
+
+    function _magnitudeBucket(delta) {
+      const a = Math.abs(Number(delta) || 0);
+      if (a >= 18) return 'large';
+      if (a >= 8)  return 'medium';
+      return 'small';
+    }
+
+    function _sessionBucket(count) {
+      const n = Number(count) || 0;
+      if (n <= 1)  return 'first';
+      if (n <= 4)  return 'early';
+      if (n <= 15) return 'established';
+      return 'seasoned';
+    }
+
+    // Copy variants — one cell per (magnitude × session × tone) combination
+    // where the message genuinely differs. The helper falls back to adjacent
+    // buckets when a combination isn't explicitly declared.
+    function _buildWhyParagraph(metric, delta, magnitude, toneGroup, sessionBucket) {
+      const def = TRACKER_DEFINITIONS[metric] || 'Drives stroke quality and repeatability.';
+      const metricName = formatMetricName(metric);
+
+      if (magnitude === 'small') {
+        if (sessionBucket === 'first' || sessionBucket === 'early') {
+          return `<strong>${metricName}</strong> is very close to target — ${def} ` +
+                 `The priority flag is more of a consistency checkpoint than a fix.`;
+        }
+        return `Your ${metricName.toLowerCase()} is already tracking near target. ` +
+               `${def} Hold the pattern and spend your effort elsewhere.`;
+      }
+      if (magnitude === 'medium') {
+        return `<strong>${metricName}</strong> is the single biggest lever in this session. ` +
+               `${def} Closing this gap will change ball quality, not just the score.`;
+      }
+      // large
+      if (toneGroup === 'senior' || toneGroup === 'masters') {
+        return `<strong>${metricName}</strong> shows a pronounced gap. ${def} ` +
+               `At your experience level this is usually a mobility or setup issue — worth filming from the non-dominant side next session.`;
+      }
+      if (toneGroup === 'youth' || toneGroup === 'junior') {
+        return `<strong>${metricName}</strong> is well off target. ${def} ` +
+               `Treat this as a movement pattern to rebuild, not a small correction.`;
+      }
+      return `<strong>${metricName}</strong> is the priority that matters most. ${def} ` +
+             `The gap is large enough that a fundamental reset will pay off more than incremental tweaks.`;
+    }
+
+    function _buildHowParagraph(magnitude, urgency, trend) {
+      if (trend === 'improving' && magnitude !== 'large') {
+        return `<strong>How to interpret:</strong> You are already moving in the right direction on this — hold the cue.`;
+      }
+      if (trend === 'regressing') {
+        return `<strong>How to interpret:</strong> This metric has slipped since your last sessions — worth a close second look before today's practice.`;
+      }
+      if (magnitude === 'small') {
+        return `<strong>How to interpret:</strong> This is a refinement priority — the mechanics are sound, the edge is in consistency.`;
+      }
+      if (magnitude === 'large') {
+        return urgency === 'High'
+          ? `<strong>How to interpret:</strong> Large gap + high urgency means the next 3 practice blocks should be built around this single focus.`
+          : `<strong>How to interpret:</strong> Large gap that is currently bleeding ball quality — prioritize it before adding match-intensity work.`;
+      }
+      return `<strong>How to interpret:</strong> This is a meaningful gap — closing it changes shot outcomes, not just aesthetics.`;
+    }
+
+    function _buildWhatNowParagraph(magnitude, sessionBucket, urgency) {
+      if (sessionBucket === 'first') {
+        return `<strong>What to do next:</strong> This is your first analyzed swing — use the top drill once, re-record, and watch for the same priority repeating.`;
+      }
+      if (sessionBucket === 'seasoned') {
+        return `<strong>What to do next:</strong> You've accumulated enough sessions for pattern recognition. ` +
+               (magnitude === 'small'
+                 ? `Flag this for the coach chat and keep routine drills — no dedicated block needed.`
+                 : `Dedicate a full practice block to this one cue, then re-capture from the same camera angle.`);
+      }
+      if (magnitude === 'large' && urgency === 'High') {
+        return `<strong>What to do next:</strong> Run the first drill recommendation for 2 consecutive sessions, then re-capture — this deserves immediate focus.`;
+      }
+      if (magnitude === 'large') {
+        return `<strong>What to do next:</strong> Use the top drill for the next 2 sessions, then re-record from the same camera angle and compare.`;
+      }
+      return `<strong>What to do next:</strong> Add the top drill to your warm-up for a week, then re-analyze the same shot to verify the correction held.`;
+    }
+
     function generateCoachReadySummaryHtml(summary) {
       const ranked = [...(summary.metricComparisons || [])]
         .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
         .slice(0, 3);
-      const urgency = summary.performanceKpis?.readinessIndex < 65 ? 'High' : summary.performanceKpis?.readinessIndex < 80 ? 'Medium' : 'Low';
+      const readiness = summary.performanceKpis?.readinessIndex;
+      const urgency = readiness < 65 ? 'High' : readiness < 80 ? 'Medium' : 'Low';
       const nextSessionFocus = ranked[0]
         ? `${formatMetricName(ranked[0].metric)} correction and contact timing`
         : `${summary.shotType} repeatability under pressure`;
@@ -5741,8 +5838,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         ? 'Capture quality dropped below 80/100. Re-record with corrected setup before coach review.'
         : 'Capture quality is reliable enough for coach progression checks.';
 
+      // Context for feedback variation
+      const tone = summary.toneModifiers || summary.scoringMeta?.toneModifiers || {};
+      const sessionBucket = _sessionBucket(tone.sessionCount);
+      const toneGroup = tone.ageGroup || 'adult';
+      const progress = summary.progressContext || {};
+      const trend = progress.delta > 2 ? 'improving' : progress.delta < -2 ? 'regressing' : 'flat';
+
       const intro = `<div class="metric-card" style="margin-bottom:12px;"><div class="metric-title">Coach snapshot</div><div class="metric-label">Urgency: ${urgency} | Session mode: ${summary.sessionMode || 'stroke-tune-up'} | Player goal: ${summary.sessionGoal || 'General improvement'} | Next coach focus: ${nextSessionFocus}</div><div class="metric-label" style="margin-top:10px;">${accountability}</div></div>`;
-      const priorities = ranked.length ? ranked.map((item, index) => buildExpandableInsight(`Priority ${index + 1}: ${formatMetricName(item.metric)}`, Math.min(100, Math.round(item.score || 0)), `${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees.`, `Why this matters: ${TRACKER_DEFINITIONS[item.metric] || 'This metric drives stroke quality.'}<br><br><strong>How to interpret:</strong> This priority is large enough to change consistency and ball quality, not just aesthetics.<br><br><strong>What to do next:</strong> Use the first drill recommendation, then re-check the same shot from the same camera angle before the next coach review.`, 'green')).join('') : '<div class="metric-card"><div class="metric-label">No high-risk deltas detected in this session.</div></div>';
+
+      const priorities = ranked.length ? ranked.map((item, index) => {
+        const magnitude = _magnitudeBucket(item.delta);
+        const why = _buildWhyParagraph(item.metric, item.delta, magnitude, toneGroup, sessionBucket);
+        const how = _buildHowParagraph(magnitude, urgency, trend);
+        const what = _buildWhatNowParagraph(magnitude, sessionBucket, urgency);
+        return buildExpandableInsight(
+          `Priority ${index + 1}: ${formatMetricName(item.metric)}`,
+          Math.min(100, Math.round(item.score || 0)),
+          `${item.delta > 0 ? 'Above' : 'Below'} target by ${Math.abs(item.delta || 0)} degrees.`,
+          `${why}<br><br>${how}<br><br>${what}`,
+          'green'
+        );
+      }).join('') : '<div class="metric-card"><div class="metric-label">No high-risk deltas detected in this session.</div></div>';
+
       return `${intro}${priorities}`;
     }
 
