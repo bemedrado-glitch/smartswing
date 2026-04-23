@@ -2924,6 +2924,63 @@ describe('Blog tournament strip — refreshed for 2026 Apr-Jun window', () => {
   });
 });
 
+describe('Scoring-changed one-time notice (Bug 5 mitigation)', () => {
+  const js  = fs.readFileSync(path.join(ROOT, 'scoring-changed-notice.js'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'scoring-changed-notice.css'), 'utf8');
+  const dash    = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+  const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('Only shows for users who had assessments before the scoring change', () => {
+    expect(js).toContain("SCORING_CHANGE_AT = '2026-04-23T17:35:47Z'");
+    expect(js).toContain('assessments.some');
+    expect(js).toContain('ts < cutoff');
+  });
+
+  test('Dismiss persists per-user to localStorage', () => {
+    expect(js).toContain("DISMISS_PREFIX = 'ss:scoring-changed-dismissed:'");
+    expect(js).toContain('localStorage.setItem(DISMISS_PREFIX + userId');
+  });
+
+  test('Modal is a proper dialog (role + aria-modal + ESC)', () => {
+    expect(js).toContain('role="dialog"');
+    expect(js).toContain('aria-modal="true"');
+    expect(js).toContain("e.key === 'Escape'");
+    // Focus management — primary CTA gets focus on open.
+    expect(js).toContain('cta.focus()');
+  });
+
+  test('Copy explains lower scores + honest rankings + personal feedback', () => {
+    expect(js).toContain('We improved how scores are calculated');
+    expect(js).toContain('Scores may look lower');
+    expect(js).toContain('Rankings are more accurate');
+    expect(js).toContain('Feedback is more personal');
+  });
+
+  test('Respects prefers-reduced-motion', () => {
+    expect(css).toContain('prefers-reduced-motion: reduce');
+    expect(css).toContain('animation: none !important');
+  });
+
+  test('Wired into dashboard + analyze (the two surfaces showing scores)', () => {
+    expect(dash).toContain('scoring-changed-notice.js');
+    expect(dash).toContain('scoring-changed-notice.css');
+    expect(analyze).toContain('scoring-changed-notice.js');
+    expect(analyze).toContain('scoring-changed-notice.css');
+  });
+
+  test('Exports a public API for QA + programmatic trigger', () => {
+    expect(js).toContain('window.SmartSwingScoringNotice');
+    expect(js).toContain('forceShow:');
+    expect(js).toContain('showIfEligible:');
+    expect(js).toContain('dismiss:');
+  });
+
+  test('Idempotent — cannot open two copies of the modal', () => {
+    expect(js).toContain("document.querySelector('.ss-scoring-changed')");
+    expect(js).toContain('if (window.SmartSwingScoringNotice) return;');
+  });
+});
+
 describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () => {
   const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
