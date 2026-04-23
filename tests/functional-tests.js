@@ -2809,6 +2809,36 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Coach-dashboard app-shell migration (partial — bottom-nav only)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'coach-dashboard.html'), 'utf8');
+
+  test('Coach-dashboard links app-shell CSS + JS', () => {
+    expect(src).toContain('app-shell.css');
+    expect(src).toContain('app-shell.js');
+  });
+
+  test('Bottom-nav migrated to canonical placeholder', () => {
+    expect(src).toContain('data-ss-app-bottom-nav');
+    expect(src.includes('<nav class="app-bottom-nav"')).toBe(false);
+  });
+
+  test('Legacy mobile drawer removed (coach nav lives in topbar)', () => {
+    expect(src.includes('<div id="appMobileDrawer"')).toBe(false);
+  });
+
+  test('Duplicated chrome CSS rules stripped', () => {
+    expect(src.includes('.app-bottom-nav { display: none')).toBe(false);
+    expect(src.includes('#appMobileDrawer {')).toBe(false);
+  });
+
+  test('Coach-specific topbar preserved (intentional — coach nav differs)', () => {
+    // Coach-dashboard keeps its own topbar because its nav inventory differs
+    // from the player app-shell NAV_ITEMS list.
+    expect(src).toContain('class="topbar"');
+    expect(src).toContain('data-i18n="appNav.coachHub"');
+  });
+});
+
 describe('Settings page app-shell migration', () => {
   const src = fs.readFileSync(path.join(ROOT, 'settings.html'), 'utf8');
 
