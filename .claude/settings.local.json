@@ -204,7 +204,11 @@
       "Bash(awk 'NR==1207,/^  <\\\\/nav>/' analyze.html)",
       "Bash(python)",
       "Bash(grep -nA3 \"\\\\.empty-state\\\\s*{\" coach-dashboard.html)",
-      "Bash(npx --version)"
+      "Bash(npx --version)",
+      "Bash(node tests/i18n-audit.js)",
+      "Bash(awk '{print $2}')",
+      "Bash(node tests/i18n-backfill.js)",
+      "Bash(node tests/i18n-locale-backfill.js)"
     ]
   }
 }

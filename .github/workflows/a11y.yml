@@ -53,7 +53,7 @@ jobs:
           done
           echo "server failed to boot"; cat /tmp/serve.log; exit 1
 
-      - name: Run axe-core on 8 representative pages
+      - name: Run axe-core on 8 representative pages (WCAG 2.1 AA)
         run: |
           set -e
           PAGES=(
@@ -80,6 +80,33 @@ jobs:
           if [ -n "$EXIT" ] && [ "$EXIT" -ne 0 ]; then
             echo "::error::axe-core found WCAG 2.1 AA violations — see uploaded reports"
             exit "$EXIT"
+          fi
+
+      - name: Run axe-core AAA on auth + checkout flows (stricter)
+        # These pages are the most accessibility-sensitive — form-heavy, error-
+        # prone, and carry real-money risk. Elevate to WCAG 2.1 AAA for them,
+        # which adds rules like enhanced contrast (7:1 instead of 4.5:1) and
+        # larger touch targets. Marketing pages stay at AA because AAA can
+        # block legitimate brand decisions.
+        run: |
+          set -e
+          CRITICAL=(
+            "login.html"
+            "signup.html"
+            "checkout.html"
+          )
+          mkdir -p .a11y-reports/aaa
+          for page in "${CRITICAL[@]}"; do
+            echo "::group::axe AAA http://localhost:8080/$page"
+            axe "http://localhost:8080/$page" \
+              --tags wcag2a,wcag2aa,wcag2aaa,wcag21aa,wcag21aaa \
+              --exit \
+              --save ".a11y-reports/aaa/${page%.html}.json" || AAA_EXIT=$?
+            echo "::endgroup::"
+          done
+          if [ -n "$AAA_EXIT" ] && [ "$AAA_EXIT" -ne 0 ]; then
+            echo "::error::axe-core found WCAG 2.1 AAA violations on auth/checkout — see uploaded reports"
+            exit "$AAA_EXIT"
           fi
 
       - name: Upload axe reports
