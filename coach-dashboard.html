@@ -29,7 +29,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: "DM Sans", sans-serif;
+      font-family: var(--ss-font-body, "DM Sans", sans-serif);
       color: var(--text);
       background:
         radial-gradient(circle at 5% 5%, rgba(57,255,20,0.1), transparent 28%),
@@ -102,7 +102,7 @@
     }
     @media (hover: hover) and (pointer: fine) { .kpi-card:hover { transform: translateY(-2px); border-color: rgba(57,255,20,0.2); } }
     .kpi-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 8px; }
-    .kpi-value { font-family: "Sora", sans-serif; font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+    .kpi-value { font-family: var(--ss-font-display, "Sora", sans-serif); font-size: 36px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
     .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
     .kpi-card.urgent .kpi-value { color: var(--red); }
     .kpi-card.sessions .kpi-value { color: var(--gold); }
@@ -161,7 +161,7 @@
     .athlete-name { font-size: 14px; font-weight: 700; }
     .athlete-meta { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .athlete-score {
-      font-family: "Sora", sans-serif; font-size: 22px; font-weight: 800;
+      font-family: var(--ss-font-display, "Sora", sans-serif); font-size: 22px; font-weight: 800;
       line-height: 1; min-width: 44px; text-align: right;
     }
     .score-bar { height: 4px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; margin-top: 6px; }
@@ -267,7 +267,7 @@
       background: rgba(255, 255, 255, 0.02);
       border: 1px dashed rgba(255, 255, 255, 0.08);
       color: var(--ss-text-muted, var(--muted, rgba(255,255,255,0.55)));
-      font-family: "DM Sans", -apple-system, sans-serif;
+      font-family: var(--ss-font-body, "DM Sans", -apple-system, sans-serif);
       font-size: 14px;
       line-height: 1.5;
     }
@@ -714,7 +714,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div class="priority-name">${name}</div>
               <div class="priority-issue">${shot} · ${grade} · ${date}</div>
             </div>
-            <div style="font-family:'Sora',sans-serif;font-size:22px;font-weight:800;color:${c};">${score}</div>
+            <div style="font-family: var(--ss-font-display, 'Sora',sans-serif);font-size:22px;font-weight:800;color:${c};">${score}</div>
           </div>
           ${r.recommendations ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">${Array.isArray(r.recommendations) ? r.recommendations.slice(0,2).join(' · ') : String(r.recommendations).slice(0,120)}</div>` : ''}
         </div>`;
@@ -906,7 +906,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ── SITE FOOTER ── -->
 <style>
-.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family:"DM Sans",-apple-system,sans-serif}
+.ss-footer{padding:60px 0 32px;background:#050505;border-top:1px solid rgba(255,255,255,.07);font-family: var(--ss-font-body, "DM Sans",-apple-system,sans-serif)}
 .ss-footer-inner{max-width:1280px;margin:0 auto;padding:0 24px}
 .ss-footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .ss-footer-brand{margin-bottom:12px}.ss-footer-brand img{height:44px;width:auto;display:block;max-width:100%;mix-blend-mode:screen}

@@ -2809,6 +2809,59 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Font-family unification — var(--ss-font-body) / var(--ss-font-display)', () => {
+  const htmlFiles = fs.readdirSync(ROOT).filter(f => f.endsWith('.html'));
+
+  test('No page declares a bare font-family: "DM Sans" without var(--ss-font-body) fallback', () => {
+    const offenders = [];
+    for (const f of htmlFiles) {
+      const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      // Find CSS font-family declarations containing DM Sans.
+      const re = /font-family\s*:\s*[^;}]*["']DM Sans["'][^;}]*/gi;
+      let m;
+      while ((m = re.exec(src)) !== null) {
+        if (!/var\(\s*--ss-font-body/.test(m[0])) {
+          offenders.push(`${f}: ${m[0].slice(0, 80)}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  test('No page declares a bare font-family: "Sora" without var(--ss-font-display) fallback', () => {
+    const offenders = [];
+    for (const f of htmlFiles) {
+      const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      const re = /font-family\s*:\s*[^;}]*["']Sora["'][^;}]*/gi;
+      let m;
+      while ((m = re.exec(src)) !== null) {
+        if (!/var\(\s*--ss-font-display/.test(m[0])) {
+          offenders.push(`${f}: ${m[0].slice(0, 80)}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  test('Canvas ctx.font strings left untouched (JS is not CSS)', () => {
+    // The migration intentionally skipped canvas drawing calls that embed
+    // font-family syntax inside a quoted string literal — those are
+    // JavaScript, not CSS.
+    const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+    const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+    // Should still contain the JS-style font setter with literal quotes.
+    const hasJsFont = /ctx\.font\s*=\s*["'][^"']*["']/.test(dash) || /ctx\.font\s*=\s*["'][^"']*["']/.test(analyze);
+    // At minimum one of the two uses canvas fonts.
+    expect(hasJsFont).toBe(true);
+  });
+
+  test('Brand-tokens.css exposes --ss-font-body + --ss-font-display', () => {
+    const tokens = fs.readFileSync(path.join(ROOT, 'brand-tokens.css'), 'utf8');
+    expect(tokens).toContain('--ss-font-body');
+    expect(tokens).toContain('--ss-font-display');
+  });
+});
+
 describe('Quality-gate ratchet — i18n audit + stricter Lighthouse + AAA axe', () => {
   const lhrc = JSON.parse(fs.readFileSync(path.join(ROOT, 'lighthouserc.json'), 'utf8'));
   const a11yWf = fs.readFileSync(path.join(ROOT, '.github/workflows/a11y.yml'), 'utf8');
