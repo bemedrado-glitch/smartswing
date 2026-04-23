@@ -2381,6 +2381,43 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return velocities;
     }
 
+    // ── Range-of-motion (ROM) computation (Phase 2 scoring accuracy) ──────
+    // For each tracked joint, walks the shot-window frames and returns the
+    // observed angular range: `max(angle) - min(angle)` across the sequence.
+    //
+    // Why ROM matters: static-angle scoring (Phase 0) only sees the contact
+    // frame. Velocity (Phase 1) captures explosiveness between frames. ROM
+    // is the third piece — the *loading depth*. A knee that flexes 55°
+    // from trophy pose to drive is properly loaded; a knee that barely
+    // bends 15° across the whole swing is arm-only regardless of what the
+    // contact-frame angle says.
+    //
+    // ROM is blended into the score at 25% weight (see scoreMetricAgainstBenchmark).
+    // Final mix: angle 50% + velocity 25% + ROM 25%.
+    //
+    // Returns { knee: 42, shoulder: 118, ... } degrees of swing-window range.
+    // Joints with fewer than 3 valid frames are omitted (not enough signal
+    // to distinguish ROM from noise).
+    function computeAngularROM(frames, keys) {
+      if (!Array.isArray(frames) || frames.length < 3 || !Array.isArray(keys)) return {};
+      var rom = {};
+      keys.forEach(function (key) {
+        var min = Infinity;
+        var max = -Infinity;
+        var n = 0;
+        for (var i = 0; i < frames.length; i++) {
+          var f = frames[i];
+          var a = f && f.angles ? f.angles[key] : null;
+          if (a == null || !Number.isFinite(a)) continue;
+          if (a < min) min = a;
+          if (a > max) max = a;
+          n++;
+        }
+        if (n >= 3 && max > min) rom[key] = Math.round(max - min);
+      });
+      return rom;
+    }
+
     function calculateLineTilt(a, b) {
       if (!a || !b) return null;
       let angle = Math.abs(Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI));
@@ -3379,6 +3416,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       lob:      { knee: { min: 200, max: 400, optimal: 300 }, hip: { min: 240, max: 480, optimal: 360 }, shoulder: { min: 500, max: 940, optimal: 720 }, elbow: { min: 540, max: 1020, optimal: 780 }, wrist: { min: 800, max: 1440, optimal: 1120 }, trunk: { min: 220, max: 440, optimal: 330 } }
     };
 
+    // ── ROM BENCHMARKS (Phase 2) ─────────────────────────────────────────
+    // Per-shot, per-joint range of motion (max − min angle in degrees)
+    // across the swing window. ROM captures loading depth: a knee that
+    // flexes 55° from trophy pose → drive is loaded properly; a knee that
+    // barely moves 15° across the swing is arm-only regardless of what
+    // the contact-frame angle happens to be.
+    //
+    // Serve knees show the biggest range (deep trophy bend + explosive
+    // extension). Wrists show the largest ROM on groundstrokes (pronation
+    // + lag → supination). Volleys are intentionally tight — punch-block
+    // motions have modest ROM across the board.
+    //
+    // Blended at 25% weight in scoreMetricAgainstBenchmark. Final mix
+    // after Phase 2 lands: angle 50% + velocity 25% + ROM 25%.
+    var ROM_BENCHMARKS = {
+      forehand: { knee: { min: 18, max: 48, optimal: 32 }, hip: { min: 32, max: 70, optimal: 52 }, shoulder: { min: 52, max: 110, optimal: 82 }, elbow: { min: 58, max: 118, optimal: 88 }, wrist: { min: 64, max: 140, optimal: 100 }, trunk: { min: 22, max: 50, optimal: 36 } },
+      backhand: { knee: { min: 16, max: 46, optimal: 30 }, hip: { min: 28, max: 64, optimal: 46 }, shoulder: { min: 48, max: 102, optimal: 74 }, elbow: { min: 56, max: 114, optimal: 84 }, wrist: { min: 58, max: 126, optimal: 90 }, trunk: { min: 20, max: 46, optimal: 32 } },
+      serve:    { knee: { min: 35, max: 80, optimal: 55 }, hip: { min: 30, max: 70, optimal: 50 }, shoulder: { min: 90, max: 170, optimal: 130 }, elbow: { min: 80, max: 160, optimal: 120 }, wrist: { min: 70, max: 140, optimal: 105 }, trunk: { min: 30, max: 64, optimal: 46 } },
+      volley:   { knee: { min:  8, max: 24, optimal: 14 }, hip: { min: 10, max: 30, optimal: 18 }, shoulder: { min: 22, max: 50, optimal: 34 }, elbow: { min: 24, max: 52, optimal: 36 }, wrist: { min: 20, max: 48, optimal: 32 }, trunk: { min: 10, max: 28, optimal: 18 } },
+      slice:    { knee: { min: 12, max: 36, optimal: 22 }, hip: { min: 20, max: 50, optimal: 34 }, shoulder: { min: 38, max: 82, optimal: 58 }, elbow: { min: 42, max: 90, optimal: 64 }, wrist: { min: 50, max: 110, optimal: 78 }, trunk: { min: 16, max: 38, optimal: 26 } },
+      'drop-shot': { knee: { min: 10, max: 30, optimal: 18 }, hip: { min: 16, max: 40, optimal: 26 }, shoulder: { min: 28, max: 64, optimal: 44 }, elbow: { min: 32, max: 72, optimal: 50 }, wrist: { min: 38, max: 86, optimal: 60 }, trunk: { min: 12, max: 32, optimal: 22 } },
+      lob:      { knee: { min: 22, max: 54, optimal: 36 }, hip: { min: 30, max: 64, optimal: 46 }, shoulder: { min: 60, max: 120, optimal: 90 }, elbow: { min: 56, max: 116, optimal: 86 }, wrist: { min: 54, max: 118, optimal: 84 }, trunk: { min: 24, max: 54, optimal: 38 } }
+    };
+
     const SHOT_SCORING_MODELS = {
       forehand: {
         weights: { shoulder: 17, elbow: 13, hip: 17, knee: 11, trunk: 13, wrist: 9, stanceWidth: 6, contactHeight: 6, reach: 4, balance: 4 },
@@ -4124,7 +4185,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return { rawScore: clamp(Math.round(score), 18, 100), deviation: deviation, target: target, softWindow: softWindow, goodWindow: goodWindow, fairWindow: fairWindow };
     }
 
-    function scoreMetricAgainstBenchmark(metricName, currentValue, benchmark, toleranceMultiplier = 1, shotType = 'forehand', profileContext = null, currentVelocity = null) {
+    function scoreMetricAgainstBenchmark(metricName, currentValue, benchmark, toleranceMultiplier = 1, shotType = 'forehand', profileContext = null, currentVelocity = null, currentROM = null) {
       const current = safeNumber(currentValue, null);
       if (current == null || !benchmark) return null;
 
@@ -4132,31 +4193,45 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const angleResult = _windowedScore(current, adjustedBenchmark, toleranceMultiplier);
       if (!angleResult) return null;
 
-      // ── Phase 1 velocity blending ────────────────────────────────────
-      // If we have a peak angular velocity for this joint on this shot,
-      // compute a second score and blend. Static angle = 70%, velocity = 30%.
-      // The 30% weight is conservative — velocity benchmarks are estimates
-      // that will calibrate to real ATP footage in Phase 4.
+      // ── Phase 1 velocity ────────────────────────────────────────────
       const velocityBench = (VELOCITY_BENCHMARKS[shotType] || {})[metricName];
       let velocityScoreResult = null;
       if (currentVelocity != null && Number.isFinite(currentVelocity) && velocityBench) {
         velocityScoreResult = _windowedScore(currentVelocity, velocityBench, toleranceMultiplier);
       }
 
+      // ── Phase 2 range-of-motion ─────────────────────────────────────
+      // Loading depth across the swing window. See ROM_BENCHMARKS comment.
+      const romBench = (ROM_BENCHMARKS[shotType] || {})[metricName];
+      let romScoreResult = null;
+      if (currentROM != null && Number.isFinite(currentROM) && romBench) {
+        romScoreResult = _windowedScore(currentROM, romBench, toleranceMultiplier);
+      }
+
+      // ── Blend ───────────────────────────────────────────────────────
+      // Target weights: angle 0.50 / velocity 0.25 / ROM 0.25.
+      // When a sub-signal is missing we re-weight the remaining pieces so
+      // the composition stays balanced (still sums to 1.0) — this lets
+      // velocity-only or ROM-only scenarios degrade gracefully without
+      // punishing a joint just because its frame coverage is thin.
       let blendedScore = angleResult.rawScore;
-      if (velocityScoreResult) {
-        blendedScore = Math.round(angleResult.rawScore * 0.70 + velocityScoreResult.rawScore * 0.30);
+      const partWeights = { angle: 0.50, velocity: 0.25, rom: 0.25 };
+      const activeParts = [{ weight: partWeights.angle, score: angleResult.rawScore }];
+      if (velocityScoreResult) activeParts.push({ weight: partWeights.velocity, score: velocityScoreResult.rawScore });
+      if (romScoreResult)      activeParts.push({ weight: partWeights.rom,      score: romScoreResult.rawScore });
+      if (activeParts.length > 1) {
+        const totalWeight = activeParts.reduce((acc, p) => acc + p.weight, 0);
+        blendedScore = Math.round(
+          activeParts.reduce((acc, p) => acc + p.score * p.weight, 0) / Math.max(1e-6, totalWeight)
+        );
       }
       const roundedScore = clamp(blendedScore, 18, 100);
 
       // Status reflects the BLENDED score so feedback tone matches the number.
       let status = 'needs-work';
-      const combinedDev = velocityScoreResult
-        ? Math.max(angleResult.deviation, velocityScoreResult.deviation * (angleResult.softWindow / Math.max(1, velocityScoreResult.softWindow)))
-        : angleResult.deviation;
-      if (combinedDev <= angleResult.softWindow) status = 'excellent';
-      else if (combinedDev <= angleResult.goodWindow) status = 'good';
-      else if (combinedDev <= angleResult.fairWindow) status = 'workable';
+      if (roundedScore >= 90) status = 'excellent';
+      else if (roundedScore >= 78) status = 'good';
+      else if (roundedScore >= 60) status = 'workable';
 
       return {
         metric: metricName,
@@ -4169,11 +4244,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         score: roundedScore,
         status,
         category: Object.prototype.hasOwnProperty.call(PRO_BENCHMARKS[shotType] || {}, metricName) ? 'angle' : 'movement',
-        // Velocity telemetry travels alongside for UI to render on cards.
+        // Sub-signal telemetry for UI to render on cards.
         angleScore: angleResult.rawScore,
         velocityScore: velocityScoreResult ? velocityScoreResult.rawScore : null,
         velocity: currentVelocity,
-        velocityTarget: velocityBench ? velocityBench.optimal : null
+        velocityTarget: velocityBench ? velocityBench.optimal : null,
+        romScore: romScoreResult ? romScoreResult.rawScore : null,
+        rom: currentROM,
+        romTarget: romBench ? romBench.optimal : null
       };
     }
 
@@ -4443,11 +4521,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       let weightedTotal = 0;
       let weightCount = 0;
 
-      // ── Phase 1: compute peak angular velocity per joint across the frame
-      // window so it can be blended into the angle-based score (30% weight).
-      // Keys = any joint that has a velocity benchmark for this shot type.
+      // ── Phase 1 velocity + Phase 2 ROM per joint ───────────────────
+      // Both are pre-computed once over the full focus-frame window so the
+      // scoring loop below can look them up in O(1).
       const velocityKeys = Object.keys(VELOCITY_BENCHMARKS[shotType] || {});
       const peakVelocities = computeAngularVelocities(focusFrames, velocityKeys);
+      const romKeys = Object.keys(ROM_BENCHMARKS[shotType] || {});
+      const jointROMs = computeAngularROM(focusFrames, romKeys);
 
       Object.entries(weights).forEach(([metric, weight]) => {
         const current = Object.prototype.hasOwnProperty.call(avgAngles || {}, metric)
@@ -4455,7 +4535,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           : avgDerivedMetrics?.[metric];
         const benchmark = angleBenchmarks[metric] || derivedBenchmarks[metric];
         const velocity = peakVelocities[metric] != null ? peakVelocities[metric] : null;
-        const comparison = scoreMetricAgainstBenchmark(metric, current, benchmark, toleranceMultiplier, shotType, profileContext, velocity);
+        const rom = jointROMs[metric] != null ? jointROMs[metric] : null;
+        const comparison = scoreMetricAgainstBenchmark(metric, current, benchmark, toleranceMultiplier, shotType, profileContext, velocity, rom);
         if (!comparison) return;
         comparisons.push(comparison);
         weightedTotal += comparison.score * weight;
@@ -6144,23 +6225,40 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 : 'playable, but still leaving points on the table';
           const direction = diff > 0 ? 'above' : diff < 0 ? 'below' : 'on';
 
-          // ── Phase 1: surface the raw measurement + velocity breakdown ──
-          // Previously the report only showed a score like "35%". Coaches
-          // asked "what is a 35 being compared against?" — now every card
-          // shows the actual angle (or velocity) in degrees and against
-          // what target window. A Phase 1 enhancement: when velocity data
-          // exists, the card also shows the peak angular velocity vs its
-          // target. This is the "honest accuracy" upgrade users requested.
+          // ── Phase 1 + Phase 2: surface raw measurement + sub-signal
+          // breakdown on every card. Coaches asked "what is a 35 being
+          // compared against?" — the report now shows the actual angle
+          // in degrees (Phase 0), the peak angular velocity in deg/sec
+          // (Phase 1), AND the range of motion across the swing window
+          // in degrees (Phase 2), each with its target value.
+          // Final blend: angle 50% + velocity 25% + ROM 25%.
           const hasVelocity = comparison && comparison.velocity != null && comparison.velocityTarget != null;
+          const hasROM = comparison && comparison.rom != null && comparison.romTarget != null;
+
+          // Compose the sub-signal breakdown line, showing only the signals
+          // we actually have data for.
+          const subSignalPieces = ['angle <strong>' + (comparison ? comparison.angleScore : score) + '</strong>'];
+          if (hasVelocity) subSignalPieces.push('velocity <strong>' + comparison.velocityScore + '</strong>');
+          if (hasROM)      subSignalPieces.push('ROM <strong>'      + comparison.romScore      + '</strong>');
+          const blendLabel = subSignalPieces.length === 3
+            ? ' blended at 50% / 25% / 25%.'
+            : subSignalPieces.length === 2
+              ? ' blended (angle-weighted).'
+              : '.';
+
           const velocityLine = hasVelocity
-            ? `<br><strong>Peak angular velocity:</strong> <strong>${comparison.velocity} deg/sec</strong> (target <strong>${comparison.velocityTarget} deg/sec</strong>). Score contributions → angle <strong>${comparison.angleScore}</strong>, velocity <strong>${comparison.velocityScore}</strong>, blended at 70% / 30%.`
-            : '<br><em>Velocity data unavailable on this clip (need 2+ frames with angle readings).</em>';
+            ? '<br><strong>Peak angular velocity:</strong> <strong>' + comparison.velocity + ' deg/sec</strong> (target <strong>' + comparison.velocityTarget + ' deg/sec</strong>).'
+            : '<br><em>Velocity unavailable on this clip (need 2+ frames with angle readings).</em>';
+          const romLine = hasROM
+            ? '<br><strong>Range of motion:</strong> <strong>' + comparison.rom + '°</strong> across the swing window (target <strong>' + comparison.romTarget + '°</strong>).'
+            : '';
+          const blendLine = '<br>Score contributions → ' + subSignalPieces.join(', ') + blendLabel;
 
           return buildExpandableInsight(
             `${formatMetricName(metric)}`,
             score,
             `Your angle: <strong>${current}°</strong> · Target: <strong>${optimal}°</strong> · Off by <strong>${diff > 0 ? '+' : ''}${diff}°</strong>. Acceptable window ${minRange}°–${maxRange}°. This sits ${direction} the center target and is ${fitLabel}.`,
-            `<strong>What it means:</strong> ${TRACKER_DEFINITIONS[metric] || 'This angle affects how the stroke transfers force and stays repeatable.'}<br><br><strong>How we measured it:</strong> Average joint angle across the shot window, then compared to the level-adjusted target. Your average was <strong>${current}°</strong>, target was <strong>${optimal}°</strong>, difference <strong>${diff > 0 ? '+' : ''}${diff}°</strong>.${velocityLine}<br><br><strong>Why it matters:</strong> The farther this drifts from the target window, the more likely you are to compensate with timing, balance, or contact quality.<br><br><strong>Best next move:</strong> Use the first drill recommendation attached to this report and re-test the same shot from the same camera angle.`,
+            `<strong>What it means:</strong> ${TRACKER_DEFINITIONS[metric] || 'This angle affects how the stroke transfers force and stays repeatable.'}<br><br><strong>How we measured it:</strong> Average joint angle across the shot window, then compared to the level-adjusted target. Your average was <strong>${current}°</strong>, target was <strong>${optimal}°</strong>, difference <strong>${diff > 0 ? '+' : ''}${diff}°</strong>.${velocityLine}${romLine}${blendLine}<br><br><strong>Why it matters:</strong> The farther this drifts from the target window, the more likely you are to compensate with timing, balance, or contact quality.<br><br><strong>Best next move:</strong> Use the first drill recommendation attached to this report and re-test the same shot from the same camera angle.`,
             'cyan'
           );
         });
