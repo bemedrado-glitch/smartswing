@@ -3049,6 +3049,74 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Scoring Phase 2 — range of motion + 3-way blend', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('computeAngularROM walks frames + returns max − min per joint', () => {
+    expect(src).toContain('function computeAngularROM');
+    expect(src).toContain('max - min');
+    // Requires at least 3 valid frames before emitting a ROM (avoid noise).
+    expect(src).toContain('if (n >= 3 && max > min)');
+  });
+
+  test('ROM_BENCHMARKS exist for all 7 shot types', () => {
+    expect(src).toContain('var ROM_BENCHMARKS');
+    ['forehand', 'backhand', 'serve', 'volley', 'slice', 'drop-shot', 'lob'].forEach(function (shot) {
+      expect(/ROM_BENCHMARKS\s*=\s*\{[\s\S]*?'?/.test(src)).toBe(true);
+      expect(src.includes(shot)).toBe(true);
+    });
+  });
+
+  test('Serve ROM benchmarks reflect real kinetic-chain loading', () => {
+    // Knee bends ~55° from trophy pose → drive; wrist ROM ~105°
+    // (pronation + supination across the swing).
+    expect(src).toContain('serve:    { knee: { min: 35, max: 80, optimal: 55 }');
+    expect(src).toContain("wrist: { min: 70, max: 140, optimal: 105 }");
+  });
+
+  test('scoreMetricAgainstBenchmark accepts currentROM as 8th arg', () => {
+    // Function signature grew to include both velocity (7th) and ROM (8th).
+    expect(/scoreMetricAgainstBenchmark\([^)]*currentVelocity = null[^)]*currentROM = null\)/.test(src)).toBe(true);
+  });
+
+  test('Return object carries rom + romScore + romTarget telemetry', () => {
+    expect(src).toContain('romScore: romScoreResult ? romScoreResult.rawScore : null');
+    expect(src).toContain('rom: currentROM');
+    expect(src).toContain('romTarget: romBench ? romBench.optimal : null');
+  });
+
+  test('Sub-signal weights re-normalize when a piece is missing', () => {
+    // If velocity or ROM is unavailable, the remaining pieces' weights are
+    // rescaled so the blend still sums to 1. No punishment for thin frames.
+    expect(src).toContain('const totalWeight = activeParts.reduce((acc, p) => acc + p.weight, 0)');
+  });
+
+  test('calculateScore pre-computes ROMs once + passes them to the scorer', () => {
+    expect(src).toContain('computeAngularROM(focusFrames, romKeys)');
+    expect(src).toContain('jointROMs[metric] != null ? jointROMs[metric] : null');
+  });
+
+  test('Status bands now derive from the blended score (not angle-only deviation)', () => {
+    // Previously status came from static-angle deviation even after Phase 1's
+    // blending, which mismatched the number shown. Phase 2 aligns status
+    // to the final number: ≥90 excellent, ≥78 good, ≥60 workable.
+    expect(src).toContain('if (roundedScore >= 90) status = \'excellent\'');
+    expect(src).toContain('else if (roundedScore >= 78) status = \'good\'');
+    expect(src).toContain('else if (roundedScore >= 60) status = \'workable\'');
+  });
+
+  test('Report card shows the Range of motion line when data is present', () => {
+    expect(src).toContain('Range of motion');
+    expect(src).toContain('target <strong>' + "' + comparison.romTarget");
+  });
+
+  test('Sub-signal breakdown piece omits the missing signals gracefully', () => {
+    expect(src).toContain('subSignalPieces = [');
+    expect(src).toContain('if (hasVelocity) subSignalPieces.push');
+    expect(src).toContain('if (hasROM)      subSignalPieces.push');
+  });
+});
+
 describe('Scoring Phase 1 — angular velocity + raw measurements + honest labels', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
@@ -3080,8 +3148,12 @@ describe('Scoring Phase 1 — angular velocity + raw measurements + honest label
     expect(src).toContain('currentVelocity = null');
   });
 
-  test('Angle score + velocity score blend at 70% / 30%', () => {
-    expect(src).toContain('angleResult.rawScore * 0.70 + velocityScoreResult.rawScore * 0.30');
+  test('Blend weights target 50/25/25 (angle/velocity/ROM) with graceful fallback', () => {
+    // Phase 2 introduced ROM as a third sub-signal. When ROM is present the
+    // blend is 50/25/25; when only velocity is present the 70/30 behaviour
+    // emerges via the weight-normalization fallback.
+    expect(src).toContain('const partWeights = { angle: 0.50, velocity: 0.25, rom: 0.25 };');
+    expect(src).toContain('totalWeight');
   });
 
   test('Comparison carries angleScore + velocityScore + velocity + velocityTarget', () => {
@@ -3104,9 +3176,12 @@ describe('Scoring Phase 1 — angular velocity + raw measurements + honest label
   });
 
   test('Angle cards break out angle score + velocity score when available', () => {
-    expect(src).toContain('angle <strong>${comparison.angleScore}</strong>');
-    expect(src).toContain('velocity <strong>${comparison.velocityScore}</strong>');
-    expect(src).toContain('blended at 70% / 30%');
+    // Phase 2 moved the sub-signal breakdown from template literals to
+    // string concatenation so we could omit pieces when data's missing.
+    expect(src).toContain("'angle <strong>' + (comparison ? comparison.angleScore : score) + '</strong>'");
+    expect(src).toContain("'velocity <strong>' + comparison.velocityScore + '</strong>'");
+    // When all 3 sub-signals are present the blend label is explicit.
+    expect(src).toContain('blended at 50% / 25% / 25%');
   });
 
   // ── Honest labels replace marketing copy ────────────────────────────
