@@ -247,6 +247,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K67BDXDX');</script>
 <!-- End Google Tag Manager -->
 <link rel="stylesheet" href="./safe-area.css">
+<link rel="stylesheet" href="./toast.css">
+<script src="./toast.js" defer></script>
 <script src="./shared-chrome.js" defer></script>
 <link rel="stylesheet" href="./brand-tokens.css">
 </head>
@@ -377,9 +379,36 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         createdAt: new Date().toISOString()
       };
 
-      if (!entry.name || !entry.email || !entry.topic || !entry.message) {
-        notice.className = 'notice warn';
-        notice.textContent = 'Please complete all fields before submitting.';
+      // Per-field validation with inline errors via toast.fieldError().
+      // Replaces the previous single-notice "complete all fields" message
+      // with specific feedback at each field that failed validation.
+      var T = window.SmartSwingToast;
+      var firstInvalid = null;
+      var fields = [
+        { id: 'name',    value: entry.name,    msg: 'Please tell us your name.' },
+        { id: 'email',   value: entry.email,   msg: 'A valid email helps us reply.' },
+        { id: 'topic',   value: entry.topic,   msg: 'Pick the topic that fits best.' },
+        { id: 'message', value: entry.message, msg: 'Add a short message describing your need.' }
+      ];
+      // Email shape check beyond `required`.
+      var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (entry.email && !EMAIL_RE.test(entry.email)) {
+        fields[1].value = '';
+        fields[1].msg = 'That email doesn\'t look right — double-check it?';
+      }
+      fields.forEach(function (f) {
+        var el = document.getElementById(f.id);
+        if (!f.value) {
+          if (T && T.fieldError) T.fieldError(el, f.msg);
+          else { notice.className = 'notice warn'; notice.textContent = f.msg; }
+          if (!firstInvalid) firstInvalid = el;
+        } else if (T && T.fieldClear) {
+          T.fieldClear(el);
+        }
+      });
+      if (firstInvalid) {
+        firstInvalid.focus();
+        if (T) T.warn('Please fix the highlighted fields before submitting.', { duration: 4000 });
         return;
       }
 
