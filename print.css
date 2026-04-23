@@ -1,0 +1,150 @@
+/**
+ * SmartSwing AI — Canonical print stylesheet.
+ *
+ * Users commonly print-to-PDF:
+ *   - swing analysis reports (analyze.html, shared-report.html)
+ *   - coach-shared player summaries
+ *   - legal docs (privacy-policy, user-agreement, refund-policy)
+ *   - payment receipts (payment-success)
+ *
+ * This file scopes the rules under `@media print` so zero visual change
+ * on screen. Include on any page that should print cleanly:
+ *   <link rel="stylesheet" href="./print.css" media="print">
+ *
+ * Design goals:
+ *   - Ink-friendly: black text on white, no gradients, no backdrops
+ *   - Chrome-free: hide nav, bottom-nav, toasts, cookie banners, sticky CTAs
+ *   - Page-break discipline: headings don't orphan; cards never split
+ *   - Expand links: show URLs next to anchors so printed pages stay useful
+ */
+
+@media print {
+  /* ── Reset the dark canvas to ink-friendly white ─────────────────────── */
+  :root,
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  /* Kill every dark/blurred layer — prints consume 4× ink otherwise. */
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+            backdrop-filter: none !important;
+    color: inherit;
+  }
+
+  /* Preserve brand-accent color for headings + primary-ish highlights,
+     but ensure contrast on white background. */
+  h1, h2, h3, h4, h5, h6 {
+    color: #0b1d08 !important;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  p, li, td { color: #1a1a1a !important; }
+
+  a { color: #0066cc !important; text-decoration: underline; }
+  /* Expand links next to anchors so the printed paper is useful offline. */
+  a[href^="http"]::after,
+  a[href^="./"]::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #555 !important;
+    word-break: break-all;
+  }
+  /* But skip the expansion for logos + link-only images. */
+  a:has(> img)::after,
+  a[aria-label]::after,
+  nav a::after,
+  .brand::after,
+  .footer-brand::after { content: ""; }
+
+  /* ── Hide chrome + transient UI ──────────────────────────────────────── */
+  header,
+  nav,
+  .nav,
+  .topbar,
+  .app-topbar,
+  .app-bottom-nav,
+  .app-mobile-drawer,
+  .footer,
+  footer,
+  .ss-footer,
+  .ss-skip-link,
+  .skip-link,
+  .skip-nav,
+  .cookie-banner,
+  .ss-toast-wrap,
+  .ss-toast,
+  [data-ss-footer],
+  [data-ss-header],
+  [data-ss-app-topbar],
+  [data-ss-app-bottom-nav],
+  .pricing-cta,
+  .hero-visual-video,
+  video,
+  iframe,
+  #gtm-banner,
+  [role="dialog"]:not([aria-modal="false"]) {
+    display: none !important;
+  }
+
+  /* ── Layout simplification ───────────────────────────────────────────── */
+  main,
+  .page,
+  .page-wrap,
+  section,
+  article,
+  .panel,
+  .report-section,
+  .stat-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 0 12pt 0 !important;
+    padding: 0 0 8pt 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  img,
+  canvas,
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Always start major reports on a fresh page. */
+  .report-section + .report-section,
+  article + article {
+    page-break-before: auto;
+  }
+
+  /* Orphan/widow control */
+  p, li, blockquote {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Tables should never split a row across pages. */
+  table { border-collapse: collapse !important; width: 100% !important; }
+  tr    { page-break-inside: avoid; break-inside: avoid; }
+  th, td {
+    border: 1px solid #999 !important;
+    padding: 6pt 8pt !important;
+    color: #111 !important;
+  }
+
+  /* Page margins: Letter-safe with room for browser default headers/footers. */
+  @page {
+    margin: 14mm;
+  }
+}

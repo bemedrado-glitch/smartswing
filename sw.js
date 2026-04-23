@@ -1,4 +1,5 @@
-const CACHE_NAME = 'smartswing-shell-v10';
+const CACHE_NAME = 'smartswing-shell-v11';
+const OFFLINE_URL = './offline.html';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -17,6 +18,8 @@ const APP_ASSETS = [
   './checkout.html',
   './payment-success.html',
   './payment-cancelled.html',
+  './offline.html',
+  './500.html',
   './manifest.json',
   './pwa.js',
   './app-data.js',
@@ -87,7 +90,14 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cached = await caches.match(event.request);
           if (cached) return cached;
-          if (htmlRequest) return caches.match('./index.html');
+          // For HTML navigations, serve the dedicated offline page (a
+          // friendly, branded "you lost connection" panel with auto-retry)
+          // instead of silently falling back to index.html.
+          if (htmlRequest) {
+            const offline = await caches.match(OFFLINE_URL);
+            if (offline) return offline;
+            return caches.match('./index.html');
+          }
           return new Response('Offline resource unavailable.', { status: 503, statusText: 'Offline' });
         })
     );
