@@ -2809,6 +2809,36 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Settings page app-shell migration', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'settings.html'), 'utf8');
+
+  test('Settings links app-shell CSS + JS', () => {
+    expect(src).toContain('app-shell.css');
+    expect(src).toContain('app-shell.js');
+  });
+
+  test('Both topbar + bottom-nav placeholders present', () => {
+    expect(src).toContain('data-ss-app-topbar');
+    expect(src).toContain('data-ss-app-bottom-nav');
+  });
+
+  test('Legacy hand-written chrome removed', () => {
+    expect(src.includes('<header class="topbar"')).toBe(false);
+    expect(src.includes('<div id="appMobileDrawer"')).toBe(false);
+    expect(src.includes('<nav class="app-bottom-nav"')).toBe(false);
+  });
+
+  test('Duplicated chrome CSS rules stripped', () => {
+    expect(src.includes('.app-bottom-nav{display:none')).toBe(false);
+    expect(src.includes('#appMobileDrawer{position:fixed')).toBe(false);
+    expect(src.includes('.topbar-hamburger{')).toBe(false);
+  });
+
+  test('Sign-out control preserved as page-specific control', () => {
+    expect(src).toContain('id="signOutBtn"');
+  });
+});
+
 describe('Analyze page app-shell migration', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
