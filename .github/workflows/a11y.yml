@@ -1,0 +1,91 @@
+name: Accessibility (axe-core)
+
+# Systematic WCAG enforcement. Pairs with the Lighthouse CI workflow:
+# Lighthouse gives an aggregate accessibility score; axe-core gives the
+# specific violations + element selectors. Together they make a11y
+# regressions impossible to merge silently.
+#
+# Runs on every PR touching HTML/CSS/JS and on every push to main.
+# Scans 8 representative pages with @axe-core/cli against the static site
+# served by `npx serve`. Fails on any violation rated 'serious' or 'critical'
+# (WCAG 2.1 AA).
+
+on:
+  pull_request:
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+      - '.github/workflows/a11y.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**.html'
+      - '**.css'
+      - '**.js'
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install -g @axe-core/cli@4.10.x serve@14.x
+
+      - name: Boot static server
+        run: |
+          serve -l 8080 . > /tmp/serve.log 2>&1 &
+          # Wait until the server actually answers — fail fast if not.
+          for i in {1..20}; do
+            if curl -sf http://localhost:8080/index.html > /dev/null; then
+              echo "server up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "server failed to boot"; cat /tmp/serve.log; exit 1
+
+      - name: Run axe-core on 8 representative pages
+        run: |
+          set -e
+          PAGES=(
+            "index.html"
+            "pricing.html"
+            "for-players.html"
+            "how-it-works.html"
+            "contact.html"
+            "blog.html"
+            "login.html"
+            "signup.html"
+          )
+          mkdir -p .a11y-reports
+          # --exit returns non-zero on any violation; we filter to serious/critical
+          # by passing --tags wcag2a,wcag2aa (the WCAG 2.1 AA conformance set).
+          for page in "${PAGES[@]}"; do
+            echo "::group::axe http://localhost:8080/$page"
+            axe "http://localhost:8080/$page" \
+              --tags wcag2a,wcag2aa \
+              --exit \
+              --save ".a11y-reports/${page%.html}.json" || EXIT=$?
+            echo "::endgroup::"
+          done
+          if [ -n "$EXIT" ] && [ "$EXIT" -ne 0 ]; then
+            echo "::error::axe-core found WCAG 2.1 AA violations — see uploaded reports"
+            exit "$EXIT"
+          fi
+
+      - name: Upload axe reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-reports-${{ github.run_number }}
+          path: .a11y-reports/
+          retention-days: 14

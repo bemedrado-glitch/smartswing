@@ -259,6 +259,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link rel="stylesheet" href="./app-shell.css">
 <link rel="stylesheet" href="./skeleton-loader.css">
 <link rel="stylesheet" href="./toast.css">
+<link rel="stylesheet" href="./empty-state.css">
 <script src="./app-shell.js" defer></script>
 </head>
 <body>
@@ -1331,7 +1332,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (!el) return;
       const recent = assessments.slice(0, 4);
       if (!recent.length) {
-        el.innerHTML = '<div class="report-card"><div class="report-info"><div class="report-title" style="color:rgba(255,255,255,.35);">No reports yet — run your first analysis</div></div></div>';
+        // Canonical empty state (empty-state.css). Replaces the prior bare grey
+        // text with an icon + title + body + CTA — friendly + actionable.
+        el.innerHTML =
+          '<div class="ss-empty">' +
+            '<div class="ss-empty__icon" aria-hidden="true">📊</div>' +
+            '<h3 class="ss-empty__title">No reports yet</h3>' +
+            '<p class="ss-empty__body">Run your first analysis to start tracking trends, scores, and biomechanics insights here.</p>' +
+            '<a href="./analyze.html" class="ss-empty__cta">Try a free analysis →</a>' +
+          '</div>';
         return;
       }
       const SHOT_COLORS = {forehand:'#39ff14',backhand:'#ffd84d',serve:'#00d4aa',volley:'#818cf8',slice:'#fb923c'};

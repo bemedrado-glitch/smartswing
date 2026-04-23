@@ -2867,6 +2867,52 @@ describe('Canonical app-shell (logged-in chrome consolidation)', () => {
   });
 });
 
+describe('Empty-state utility + axe-core CI', () => {
+  const empty = fs.readFileSync(path.join(ROOT, 'empty-state.css'), 'utf8');
+  const axe = fs.readFileSync(path.join(ROOT, '.github/workflows/a11y.yml'), 'utf8');
+  const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+
+  test('empty-state.css defines title/body/CTA structure + variants', () => {
+    expect(empty).toContain('.ss-empty');
+    expect(empty).toContain('.ss-empty__icon');
+    expect(empty).toContain('.ss-empty__title');
+    expect(empty).toContain('.ss-empty__body');
+    expect(empty).toContain('.ss-empty__cta');
+    expect(empty).toContain('.ss-empty--inline');
+  });
+
+  test('Empty-state honors prefers-reduced-motion + uses brand tokens', () => {
+    expect(empty).toContain('prefers-reduced-motion: reduce');
+    expect(empty).toContain('var(--ss-volt');
+    expect(empty).toContain('var(--ss-text');
+  });
+
+  test('Dashboard adopts empty-state for the recent reports tile', () => {
+    expect(dash).toContain('empty-state.css');
+    expect(dash).toContain('class="ss-empty"');
+    expect(dash).toContain('No reports yet');
+  });
+
+  test('axe-core CI runs on PRs touching HTML/CSS/JS', () => {
+    expect(axe).toContain('@axe-core/cli');
+    expect(axe).toContain('pull_request:');
+    expect(axe).toContain("branches: [main]");
+  });
+
+  test('axe-core enforces WCAG 2.1 AA + uploads reports', () => {
+    expect(axe).toContain('wcag2a,wcag2aa');
+    expect(axe).toContain('--exit');
+    expect(axe).toContain('actions/upload-artifact');
+  });
+
+  test('axe-core scans 8 representative pages including auth surfaces', () => {
+    expect(axe).toContain('"index.html"');
+    expect(axe).toContain('"login.html"');
+    expect(axe).toContain('"signup.html"');
+    expect(axe).toContain('"pricing.html"');
+  });
+});
+
 describe('Lighthouse CI quality gate', () => {
   const config = JSON.parse(fs.readFileSync(path.join(ROOT, 'lighthouserc.json'), 'utf8'));
   const wf = fs.readFileSync(path.join(ROOT, '.github/workflows/lighthouse.yml'), 'utf8');
