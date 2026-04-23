@@ -3049,6 +3049,78 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Scoring Phase 1 — angular velocity + raw measurements + honest labels', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  // ── Velocity computation ────────────────────────────────────────────
+  test('computeAngularVelocities walks frames + computes peak deg/sec', () => {
+    expect(src).toContain('function computeAngularVelocities');
+    // Uses frame timestamps when available, falls back to 30fps default.
+    expect(src).toContain('dtMs = (curr.timestamp && prev.timestamp)');
+    expect(src).toContain('33; // ~30fps fallback');
+    expect(src).toContain('degPerSec');
+  });
+
+  test('VELOCITY_BENCHMARKS exist for all 7 shot types', () => {
+    expect(src).toContain('var VELOCITY_BENCHMARKS');
+    ['forehand', 'backhand', 'serve', 'volley', 'slice', 'drop-shot', 'lob'].forEach(function (shot) {
+      expect(src).toContain("'" + shot + "'");
+    });
+  });
+
+  test('Serve velocities follow kinetic-chain sequence (knee < hip < shoulder < elbow < wrist)', () => {
+    // Sanity check on the benchmark values — peak velocities should rise
+    // along the chain: legs are slower than wrists.
+    expect(src).toContain('serve:    { knee: { min: 260, max: 540, optimal: 400 }');
+    expect(src).toContain('wrist: { min: 1200, max: 2400, optimal: 1800 }');
+  });
+
+  // ── Blended scorer ──────────────────────────────────────────────────
+  test('scoreMetricAgainstBenchmark accepts currentVelocity as 7th argument', () => {
+    expect(src).toContain('currentVelocity = null');
+  });
+
+  test('Angle score + velocity score blend at 70% / 30%', () => {
+    expect(src).toContain('angleResult.rawScore * 0.70 + velocityScoreResult.rawScore * 0.30');
+  });
+
+  test('Comparison carries angleScore + velocityScore + velocity + velocityTarget', () => {
+    expect(src).toContain('angleScore: angleResult.rawScore');
+    expect(src).toContain('velocityScore: velocityScoreResult ? velocityScoreResult.rawScore : null');
+    expect(src).toContain('velocity: currentVelocity');
+    expect(src).toContain('velocityTarget: velocityBench ? velocityBench.optimal : null');
+  });
+
+  test('calculateScore computes per-joint velocities + passes them to the scorer', () => {
+    expect(src).toContain('computeAngularVelocities(focusFrames, velocityKeys)');
+    expect(src).toContain('peakVelocities[metric] != null ? peakVelocities[metric] : null');
+  });
+
+  // ── Report card shows raw measurements (honest labels + context) ────
+  test('Angle comparison cards surface the raw measurement line', () => {
+    expect(src).toContain('Your angle: <strong>${current}°</strong>');
+    expect(src).toContain('Target: <strong>${optimal}°</strong>');
+    expect(src).toContain('Off by <strong>${diff > 0 ?');
+  });
+
+  test('Angle cards break out angle score + velocity score when available', () => {
+    expect(src).toContain('angle <strong>${comparison.angleScore}</strong>');
+    expect(src).toContain('velocity <strong>${comparison.velocityScore}</strong>');
+    expect(src).toContain('blended at 70% / 30%');
+  });
+
+  // ── Honest labels replace marketing copy ────────────────────────────
+  test('Metric labels now describe what is measured, not marketing framing', () => {
+    expect(src).toContain('HONEST_METRIC_LABELS');
+    expect(src).toContain("knee:          'Knee Bend'");
+    expect(src).toContain("wrist:         'Wrist Angle'");
+  });
+
+  test('formatMetricName prefers the honest label map over the generic split', () => {
+    expect(src).toContain('if (HONEST_METRIC_LABELS[key]) return HONEST_METRIC_LABELS[key]');
+  });
+});
+
 describe('User schema normalization (audit fix #4)', () => {
   const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
   const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
