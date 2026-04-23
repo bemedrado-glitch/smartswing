@@ -31,6 +31,7 @@
     { href: './dashboard.html',       label: 'Dashboard',  match: 'dashboard.html',       icon: 'home'    },
     { href: './analyze.html',         label: 'Analyze',    match: 'analyze.html',         icon: 'play'    },
     { href: './library.html',         label: 'Library',    match: 'library.html',         icon: 'book'    },
+    { href: './blog.html',            label: 'Blog',       match: 'blog.html',            icon: 'news'    },
     { href: './refer-friends.html',   label: 'Refer',      match: 'refer-friends.html',   icon: 'gift'    },
     { href: './settings.html',        label: 'Settings',   match: 'settings.html',        icon: 'gear'    }
   ];
@@ -40,6 +41,7 @@
       home: '<path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/>',
       play: '<polygon points="5 3 19 12 5 21 5 3"/>',
       book: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4V4z"/><path d="M4 16a4 4 0 0 1 4-4h12"/>',
+      news: '<path d="M4 4h12a2 2 0 0 1 2 2v14l-3-2-3 2-3-2-3 2V6a2 2 0 0 1 2-2z"/><line x1="8" y1="9"  x2="14" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/>',
       gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
       gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
     };
@@ -61,7 +63,11 @@
     return (
       '<header class="app-topbar" role="banner">' +
         '<div class="app-topbar-inner">' +
-          '<a class="app-topbar-brand" href="./dashboard.html" aria-label="SmartSwing AI - Dashboard">' +
+          // Logo → home page (standard web convention). Users reported being
+          // unable to return to the public homepage from within the app;
+          // previously this linked to ./dashboard.html which just kept them
+          // in the app-shell. Now one click on the logo exits to marketing.
+          '<a class="app-topbar-brand" href="./index.html" aria-label="SmartSwing AI — back to home">' +
             '<img src="./assets/logos/logo.png" alt="SmartSwing AI">' +
           '</a>' +
           '<nav class="app-topbar-nav" aria-label="Main navigation">' + navHtml + '</nav>' +
