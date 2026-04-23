@@ -2866,6 +2866,65 @@ describe('Feedback synthesis per magnitude + tone (Bug 6)', () => {
   });
 });
 
+describe('User schema normalization (audit fix #4)', () => {
+  const appData = fs.readFileSync(path.join(ROOT, 'app-data.js'), 'utf8');
+  const dash = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
+  const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+  const settings = fs.readFileSync(path.join(ROOT, 'settings.html'), 'utf8');
+
+  test('getNormalizedUserProfile defined + exported on the store', () => {
+    expect(appData).toContain('function getNormalizedUserProfile');
+    // Falls through the 3 legacy level fields in precedence order.
+    expect(appData).toContain('user.playingLevel');
+    expect(appData).toContain('user.ustaLevel');
+    // Exported for every surface to use.
+    expect(/getNormalizedUserProfile\s*,/.test(appData)).toBe(true);
+  });
+
+  test('Normalizer produces an isComplete flag for the checklist', () => {
+    expect(appData).toContain('isComplete');
+    expect(appData).toContain('hasName && (hasSkill || hasIdentity)');
+  });
+
+  test('updateProfile write-side mirrors level + rating into both legacy slots', () => {
+    // Previously settings wrote ustaLevel/utrRating; onboarding wrote
+    // playingLevel/ratingValue. Writes now populate both so every reader
+    // sees the same value no matter which surface called updateProfile.
+    expect(appData).toContain('playingLevel: fields.playingLevel ?? nextLevel');
+    expect(appData).toContain('ratingValue:  fields.ratingValue  ?? nextRating');
+    // dominantHand is also mirrored so analyzer (reads dominantHand) and
+    // settings (writes preferredHand) stay in sync.
+    expect(appData).toContain("dominantHand: fields.dominantHand ?? fields.preferredHand");
+  });
+
+  test('Dashboard checklist reads profileDone from the normalizer', () => {
+    expect(dash).toContain('store.getNormalizedUserProfile');
+    expect(dash).toContain('profileNorm.isComplete');
+  });
+
+  test('Analyzer getProfileContext pulls from the normalizer', () => {
+    expect(analyze).toContain('store.getNormalizedUserProfile');
+    expect(analyze).toContain('norm.skillLevel');
+    expect(analyze).toContain('norm.ratingValue');
+    expect(analyze).toContain('norm.dominantHand');
+  });
+
+  test('Session profile values still win over saved settings when present', () => {
+    // User can override their saved level per-session via step 1 of the
+    // analyzer wizard. The normalizer fills in blanks only.
+    expect(analyze).toContain('profile?.level || norm.skillLevel');
+    expect(analyze).toContain('profile?.age || norm.ageRange');
+    expect(analyze).toContain('profile?.gender || norm.gender');
+  });
+
+  test('Settings form prefills through the normalizer so quiz values appear', () => {
+    expect(settings).toContain('store.getNormalizedUserProfile');
+    expect(settings).toContain('norm.skillLevel');
+    expect(settings).toContain('norm.ratingValue');
+    expect(settings).toContain('norm.dominantHand');
+  });
+});
+
 describe('Scoring honesty pass (Bug 5 — remove stacked bonuses)', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
@@ -2946,12 +3005,13 @@ describe('Settings persistence + onboarding checklist fixes (Bugs 1+2+3)', () =>
     expect(/flushProfileRetryQueue\s*,/.test(appData)).toBe(true);
   });
 
-  test('Bug 2 — profileDone now checks real saved fields', () => {
+  test('Bug 2 — profileDone goes through the canonical normalizer (audit fix #4)', () => {
     // No more `user.sport || user.primarySport || user.level` phantom check.
     expect(dash.includes('user.sport || user.primarySport || user.level')).toBe(false);
-    // Real fields the settings page actually writes.
-    expect(dash).toContain('user.ustaLevel || user.playingLevel');
-    expect(dash).toContain('user.utrRating || user.ratingValue');
+    // Dashboard now consults getNormalizedUserProfile() — the single source
+    // of truth added in fix #4, which itself checks the real saved fields.
+    expect(dash).toContain('store.getNormalizedUserProfile');
+    expect(dash).toContain('profileNorm.isComplete');
   });
 
   test('Bug 3a — all-done state shows celebratory message + auto-hides', () => {

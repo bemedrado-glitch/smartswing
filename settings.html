@@ -522,14 +522,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     window.addEventListener('smartswing:sync-failure', renderSyncStatus);
 
     function fillForm(profile) {
+      // Use the normalizer so the form reflects saved data regardless of
+      // which legacy surface wrote it. Before this, a user who completed
+      // the onboarding quiz would see blanks in Settings because the quiz
+      // wrote to playingLevel / ratingValue while Settings read ustaLevel /
+      // utrRating — same concept, different field names (audit fix #4).
+      const norm = (store.getNormalizedUserProfile && store.getNormalizedUserProfile(profile)) || {};
       document.getElementById('fullName').value = profile.fullName || '';
       document.getElementById('email').value = profile.email || '';
       document.getElementById('phone').value = profile.phone || '';
-      document.getElementById('ageRange').value = profile.ageRange || '';
+      document.getElementById('ageRange').value = norm.ageRange || profile.ageRange || '';
       document.getElementById('gender').value = profile.gender || '';
-      document.getElementById('ustaLevel').value = profile.ustaLevel || '';
-      document.getElementById('utrRating').value = profile.utrRating || '';
-      document.getElementById('preferredHand').value = profile.preferredHand || 'right';
+      document.getElementById('ustaLevel').value = norm.skillLevel || profile.ustaLevel || '';
+      document.getElementById('utrRating').value = norm.ratingValue || profile.utrRating || '';
+      document.getElementById('preferredHand').value = norm.dominantHand || profile.preferredHand || 'right';
       document.getElementById('addressLine1').value = profile.addressLine1 || '';
       document.getElementById('addressLine2').value = profile.addressLine2 || '';
       document.getElementById('city').value = profile.city || '';

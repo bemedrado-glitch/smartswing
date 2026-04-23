@@ -3852,14 +3852,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     }
 
     function getProfileContext(profile) {
+      // Pull a normalized snapshot of the user's saved profile so the
+      // analyzer never has to duplicate the 4-way legacy-field drift logic.
+      // Session values from the step-1 profile form still win when present
+      // (user is stating "this swing's context"), but saved settings fill
+      // in every blank rather than forcing a re-entry.
+      const norm = (store && store.getNormalizedUserProfile)
+        ? store.getNormalizedUserProfile(currentUser) || {}
+        : {};
       return {
-        level: normalizeLevel(profile?.level || currentUser?.playingLevel || currentUser?.ustaLevel || 'intermediate'),
-        ageMid: parseAgeMidpoint(profile?.age || currentUser?.ageRange || ''),
-        gender: String(profile?.gender || currentUser?.gender || 'unspecified').toLowerCase(),
-        preferredHand: String(currentUser?.dominantHand || currentUser?.preferredHand || 'right').toLowerCase(),
-        identity: String(currentUser?.playerIdentity || '').toLowerCase(),
-        ratingSystem: String(currentUser?.ratingSystem || '').toLowerCase(),
-        ratingValue: String(currentUser?.ratingValue || '').toLowerCase(),
+        level: normalizeLevel(profile?.level || norm.skillLevel || 'intermediate'),
+        ageMid: parseAgeMidpoint(profile?.age || norm.ageRange || ''),
+        gender: String(profile?.gender || norm.gender || 'unspecified').toLowerCase(),
+        preferredHand: String(norm.dominantHand || 'right').toLowerCase(),
+        identity: String(norm.identity || '').toLowerCase(),
+        ratingSystem: String(norm.ratingSystem || '').toLowerCase(),
+        ratingValue: String(norm.ratingValue || '').toLowerCase(),
         playingStyle: String(currentUser?.playingStyle || '').toLowerCase()
       };
     }

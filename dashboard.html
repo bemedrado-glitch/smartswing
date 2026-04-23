@@ -760,16 +760,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         var refStats = (store.getReferralStats && store.getReferralStats(user.id)) || { bonusCount: 0, code: '', referralLink: '' };
 
-        // ── Bug #2 fix ─────────────────────────────────────────────────────
-        // The previous check looked for `user.sport || user.primarySport ||
-        // user.level` — none of which are fields written by settings.html.
-        // The real saved fields are any of:
-        //   ustaLevel, playingLevel, utrRating, ratingValue, ageRange, gender
-        // Profile counts as "done" once the user has a full name AND at least
-        // one of the real skill-identifying fields populated.
-        var hasSkill = !!(user.ustaLevel || user.playingLevel || user.utrRating || user.ratingValue);
-        var hasIdentity = !!(user.gender || user.ageRange || user.dominantHand || user.preferredHand);
-        var profileDone = !!(user.fullName && user.fullName.trim().length >= 2 && (hasSkill || hasIdentity));
+        // Profile-complete check now goes through the canonical normalizer
+        // (audit fix #4) instead of reaching into individual legacy fields.
+        // Any future field-name change only has to be taught to
+        // getNormalizedUserProfile — the checklist picks it up for free.
+        var profileNorm = (store.getNormalizedUserProfile && store.getNormalizedUserProfile(user)) || { isComplete: false };
+        var profileDone = !!profileNorm.isComplete;
 
         var firstAnalysisDone = assessments.length >= 1;
         var reportSharedDone = localStorage.getItem('ss:onboarding:shared:' + user.id) === '1' || assessments.some(function(a){ return a && a.shared; });
