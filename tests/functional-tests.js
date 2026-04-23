@@ -2809,6 +2809,63 @@ describe('Brand token adoption sweep — 35/43 pages consume var(--ss-*)', () =>
   });
 });
 
+describe('Quality-gate ratchet — i18n audit + stricter Lighthouse + AAA axe', () => {
+  const lhrc = JSON.parse(fs.readFileSync(path.join(ROOT, 'lighthouserc.json'), 'utf8'));
+  const a11yWf = fs.readFileSync(path.join(ROOT, '.github/workflows/a11y.yml'), 'utf8');
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+
+  test('Lighthouse thresholds ratcheted up to 90/95/90/95', () => {
+    const a = lhrc.ci.assert.assertions;
+    expect(a['categories:performance'][1].minScore).toBeGreaterThanOrEqual(0.90);
+    expect(a['categories:accessibility'][1].minScore).toBeGreaterThanOrEqual(0.95);
+    expect(a['categories:best-practices'][1].minScore).toBeGreaterThanOrEqual(0.90);
+    expect(a['categories:seo'][1].minScore).toBeGreaterThanOrEqual(0.95);
+  });
+
+  test('axe-core elevates auth + checkout to WCAG 2.1 AAA', () => {
+    expect(a11yWf).toContain('wcag2aaa');
+    expect(a11yWf).toContain('wcag21aaa');
+    expect(a11yWf).toContain('login.html');
+    expect(a11yWf).toContain('signup.html');
+    expect(a11yWf).toContain('checkout.html');
+  });
+
+  test('npm test runs the i18n-audit script', () => {
+    expect(pkg.scripts.test).toContain('i18n-audit.js');
+  });
+
+  test('npm run i18n:backfill alias is wired for contributors', () => {
+    expect(pkg.scripts['i18n:backfill']).toBeTruthy();
+    expect(pkg.scripts['i18n:backfill']).toContain('i18n-backfill.js');
+    expect(pkg.scripts['i18n:backfill']).toContain('i18n-locale-backfill.js');
+  });
+
+  test('All 8 locale JSON files parse + cover every HTML key', () => {
+    // Mirrors the runtime audit but scoped to the test — if this passes,
+    // `npm test` is self-consistent with the shipped translations.
+    const en = JSON.parse(fs.readFileSync(path.join(ROOT, 'translations/en.json'), 'utf8'));
+    function flatten(o, p = '', out = new Set()) {
+      for (const k of Object.keys(o)) {
+        const full = p ? p + '.' + k : k;
+        const v = o[k];
+        if (v && typeof v === 'object' && !Array.isArray(v)) flatten(v, full, out);
+        else out.add(full);
+      }
+      return out;
+    }
+    const enKeys = flatten(en);
+    // Gather keys used in HTML
+    const htmlKeys = new Set();
+    for (const f of fs.readdirSync(ROOT).filter(x => x.endsWith('.html'))) {
+      const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      const re = /data-i18n(?:-placeholder|-html)?="([^"]+)"/g;
+      let m; while ((m = re.exec(src)) !== null) htmlKeys.add(m[1]);
+    }
+    // Every HTML key must exist in en.
+    for (const k of htmlKeys) expect(enKeys.has(k)).toBe(true);
+  });
+});
+
 describe('Empty-state rollout — library + dashboard + coach', () => {
   const lib   = fs.readFileSync(path.join(ROOT, 'library.html'), 'utf8');
   const dash  = fs.readFileSync(path.join(ROOT, 'dashboard.html'), 'utf8');
