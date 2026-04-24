@@ -802,13 +802,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </div>
   <script>
+    // Promo banner — opt-in instead of default-on (2026-04-24 product call).
+    // Previously shown to every pricing visitor unless dismissed; now hidden
+    // unless the operator explicitly surfaces it via:
+    //   1. URL query param ?promo=1  — shareable link for targeted audiences
+    //      (paid-ads landing, email campaigns, influencer drops)
+    //   2. window.SMARTSWING_SHOW_PROMO = true  — set in runtime-config for
+    //      blanket rollout during launches
+    //   3. localStorage ss_promo_banner_force='1' — for QA / preview
+    // Dismiss still works + persists so a user who chose to close it doesn't
+    // see it again even if they come back through a promo link.
     (function() {
-      var dismissed = localStorage.getItem('ss_promo_banner_dismissed_v1') === '1';
       var banner = document.getElementById('promoBanner');
-      if (banner && !dismissed) banner.style.display = 'block';
+      if (!banner) return;
+      var params = new URLSearchParams(window.location.search);
+      var urlWants = params.get('promo') === '1' || params.has('coupon');
+      var runtimeWants = !!window.SMARTSWING_SHOW_PROMO;
+      var forcedByQa = (function(){ try { return localStorage.getItem('ss_promo_banner_force') === '1'; } catch(_) { return false; } })();
+      var dismissed = (function(){ try { return localStorage.getItem('ss_promo_banner_dismissed_v1') === '1'; } catch(_) { return false; } })();
+      var shouldShow = (urlWants || runtimeWants || forcedByQa) && !dismissed;
+      if (shouldShow) banner.style.display = 'block';
       window.dismissPromoBanner = function() {
-        if (banner) banner.style.display = 'none';
-        localStorage.setItem('ss_promo_banner_dismissed_v1', '1');
+        banner.style.display = 'none';
+        try { localStorage.setItem('ss_promo_banner_dismissed_v1', '1'); } catch(_) {}
       };
     })();
   </script>
