@@ -107,26 +107,44 @@
     if (document.getElementById('ss-i18n-style')) return;
     var style = document.createElement('style');
     style.id = 'ss-i18n-style';
+    // 2026-04-24 fix: language dropdown was getting clipped by parent
+    // stacking contexts (sticky nav z:100, currency dropdown next door)
+    // and truncated off-screen when the switcher sat near the viewport
+    // edge. The bumped z-index + overflow reset + positioning guards
+    // below keep it fully visible on every page and every width.
     style.textContent = [
-      '#ss-lang-switcher{position:relative;display:inline-flex;align-items:center;}',
+      // Reset overflow on the host chain so nothing upstream clips the
+      // absolutely-positioned dropdown.
+      '#ss-lang-switcher,#ss-lang-switcher *{overflow:visible!important;}',
+      '#ss-lang-switcher{position:relative;display:inline-flex;align-items:center;isolation:auto;}',
       '#ss-lang-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:999px;',
         'border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04);',
         'color:#f5f5f7;font:700 13px/1 "DM Sans","Inter",sans-serif;cursor:pointer;',
         'transition:border-color 180ms,background 180ms;white-space:nowrap;}',
       '#ss-lang-btn:hover{border-color:rgba(57,255,20,0.35);background:rgba(57,255,20,0.08);}',
       '#ss-lang-btn .ss-flag{font-size:16px;line-height:1;}',
-      '#ss-lang-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:168px;',
+      // Dropdown: high z-index (above every nav + any currency widget),
+      // right-aligned to the button but with a max-height + scroll so
+      // 8 language options always fit on short viewports without
+      // running off the bottom of the screen.
+      '#ss-lang-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;',
+        'min-width:200px;max-height:70vh;overflow-y:auto!important;',
         'background:rgba(10,14,20,0.98);border:1px solid rgba(255,255,255,0.1);border-radius:16px;',
-        'padding:8px;z-index:999;backdrop-filter:blur(18px);box-shadow:0 16px 40px rgba(0,0,0,0.5);}',
+        'padding:8px;z-index:100000;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);',
+        'box-shadow:0 16px 40px rgba(0,0,0,0.5);}',
       '#ss-lang-dropdown.open{display:block;}',
-      '.ss-lang-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;',
+      '.ss-lang-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;',
         'cursor:pointer;font:600 14px/1.3 "DM Sans","Inter",sans-serif;color:#eef3f7;',
-        'transition:background 140ms;}',
+        'transition:background 140ms;white-space:nowrap;}',
       '.ss-lang-opt:hover{background:rgba(57,255,20,0.1);}',
       '.ss-lang-opt.ss-active{background:rgba(57,255,20,0.14);color:#39ff14;}',
       '.ss-lang-opt .ss-opt-flag{font-size:18px;}',
       '.ss-lang-opt .ss-opt-code{font-size:12px;color:rgba(255,255,255,0.4);margin-left:auto;}',
-      '@media(max-width:1024px){#ss-lang-switcher{z-index:998!important;}}'
+      '#ss-lang-switcher{z-index:100000;}',
+      // Narrow viewports: dropdown can extend past the right edge of the
+      // button; keep it within 8px of the viewport right. Also left-anchor
+      // instead of right-anchor so small screens don\'t clip it.
+      '@media(max-width:560px){#ss-lang-dropdown{right:auto;left:0;min-width:min(240px,calc(100vw - 24px));max-width:calc(100vw - 24px);}}'
     ].join('');
     document.head.appendChild(style);
   }
