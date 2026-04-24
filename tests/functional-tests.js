@@ -5556,9 +5556,12 @@ describe('Lighthouse CI quality gate', () => {
 describe('UI/UX consistency sweep — headers, footers, tokens, year', () => {
   const sharedChrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
 
-  test('Pricing header uses canonical .nav class (was .nav-bar outlier)', () => {
+  test('Pricing header uses the canonical data-ss-header placeholder', () => {
+    // Post-2026-04-24: all marketing pages delegate their header to
+    // shared-chrome.js via a <div data-ss-header> placeholder. No page
+    // should ship its own custom <nav class="nav"> anymore.
     const src = fs.readFileSync(path.join(ROOT, 'pricing.html'), 'utf8');
-    expect(src).toContain('<nav class="nav"');
+    expect(src).toContain('data-ss-header');
     expect(src.includes('<nav class="nav-bar"')).toBe(false);
   });
 
@@ -5670,12 +5673,18 @@ describe('UI/UX consistency sweep — headers, footers, tokens, year', () => {
     });
   });
 
-  test('Homepage + blog logo dims match the canonical 190x80', () => {
+  test('Homepage + blog use canonical data-ss-header (logo dims live in shared-chrome.js)', () => {
     const idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
     const blog = fs.readFileSync(path.join(ROOT, 'blog.html'), 'utf8');
-    expect(idx.includes('brand-logo" width="160"')).toBe(false);
-    expect(blog.includes('brand-logo" width="160"')).toBe(false);
-    expect(idx).toContain('brand-logo" width="190" height="80"');
+    // Post-2026-04-24 unification: both pages delegate header rendering
+    // to shared-chrome.js. Logo dimensions are a single source of truth
+    // inside that file (currently 140x35 as a consistent canonical
+    // header size — smaller than the old 190x80 footer logo since
+    // headers are denser).
+    expect(idx).toContain('data-ss-header');
+    expect(blog).toContain('data-ss-header');
+    const chrome = fs.readFileSync(path.join(ROOT, 'shared-chrome.js'), 'utf8');
+    expect(chrome).toContain('width="140"');
   });
 });
 
