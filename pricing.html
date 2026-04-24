@@ -311,17 +311,21 @@
       border-color: rgba(57,255,20,0.25);
       box-shadow: 0 24px 60px rgba(0,0,0,0.4);
     }
+    /* Featured (Performance) card — dark variant with volt-green accent
+       border + inner glow. Matches the homepage pricing aesthetic and
+       keeps the ★-highlighted bullets readable (green text on dark bg
+       instead of the previous green-on-green which rendered invisible). */
     .pricing-card.featured {
-      background: var(--volt);
-      border-color: var(--volt);
-      color: #0a0a0a;
+      background: linear-gradient(180deg, rgba(57,255,20,0.08), rgba(57,255,20,0.02)), var(--bg-soft);
+      border: 2px solid var(--volt);
+      color: var(--text);
       transform: translateY(-12px);
-      box-shadow: 0 32px 80px rgba(57,255,20,0.25);
+      box-shadow: 0 32px 80px rgba(57,255,20,0.25), inset 0 0 0 1px rgba(57,255,20,0.12);
     }
     .pricing-card.featured:hover {
       transform: translateY(-16px);
       border-color: var(--volt);
-      box-shadow: 0 40px 100px rgba(57,255,20,0.35);
+      box-shadow: 0 40px 100px rgba(57,255,20,0.35), inset 0 0 0 1px rgba(57,255,20,0.2);
     }
     .card-badge {
       position: absolute;
@@ -347,7 +351,9 @@
       color: var(--volt);
       margin-bottom: 12px;
     }
-    .featured .card-name { color: #0a0a0a; }
+    /* Featured card is now dark — revert the color overrides that
+       assumed a green background. Keep the volt accent on name/price. */
+    .featured .card-name { color: var(--volt); }
     .card-price {
       font-size: clamp(42px, 5vw, 58px);
       font-weight: 800;
@@ -356,28 +362,28 @@
       margin-bottom: 4px;
       color: var(--text);
     }
-    .featured .card-price { color: #0a0a0a; }
+    .featured .card-price { color: var(--text); }
     .card-price small {
       font-size: 16px;
       font-weight: 500;
       letter-spacing: 0;
       color: var(--muted);
     }
-    .featured .card-price small { color: rgba(0,0,0,0.55); }
+    .featured .card-price small { color: var(--muted); }
     .card-note {
       font-size: 13px;
       color: var(--muted);
       margin-bottom: 8px;
       line-height: 1.5;
     }
-    .featured .card-note { color: rgba(0,0,0,0.6); }
+    .featured .card-note { color: var(--muted); }
     .card-billing-copy {
       font-size: 12px;
       font-weight: 700;
       color: var(--volt);
       margin-bottom: 20px;
     }
-    .featured .card-billing-copy { color: rgba(0,0,0,0.65); }
+    .featured .card-billing-copy { color: var(--volt); }
     .card-features {
       list-style: none;
       display: grid;
@@ -392,7 +398,8 @@
       color: var(--muted);
       line-height: 1.4;
     }
-    .featured .card-features li { color: rgba(0,0,0,0.7); }
+    .featured .card-features li { color: rgba(255,255,255,0.85); }
+    .featured .card-features li.hl { color: var(--volt); font-weight: 700; }
     .card-features li::before {
       content: "";
       display: block;
@@ -403,7 +410,7 @@
       flex-shrink: 0;
       margin-top: 4px;
     }
-    .featured .card-features li::before { background: #0a0a0a; }
+    .featured .card-features li::before { background: var(--volt); }
     .card-btn {
       display: block;
       text-align: center;
@@ -420,11 +427,11 @@
     }
     .card-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-2px); }
     .featured .card-btn {
-      background: #0a0a0a;
-      color: var(--volt);
-      border-color: rgba(0,0,0,0.2);
+      background: var(--volt);
+      color: #0a0a0a;
+      border-color: var(--volt);
     }
-    .featured .card-btn:hover { background: #111; }
+    .featured .card-btn:hover { background: #50ff30; transform: translateY(-2px); }
     .card-anchor {
       font-size: 12px;
       color: var(--subtle);
@@ -908,15 +915,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="card-billing-copy" data-plan-billing-copy="pro">Cancel anytime | Save 15% yearly</div>
           <ul class="card-features">
             <li data-i18n="pricingPage.performanceEverythingInPlayer">Everything in Player, plus:</li>
+            <li class="hl" data-i18n="pricingPage.performanceMatchMode">★ Match mode &mdash; analyze full matches or YouTube videos</li>
+            <li class="hl" data-i18n="pricingPage.performanceMultiPlayer">★ Multi-player tracking &mdash; tap to pick which player to analyze</li>
+            <li class="hl" data-i18n="pricingPage.performanceMatchReports">★ Per-rally match reports with shot-type breakdown</li>
+            <li class="hl" data-i18n="pricingPage.performanceKineticChain">★ Kinetic-chain sequence scoring (ROM + velocity + timing)</li>
             <li data-i18n="pricingPage.performanceF1">Unlimited monthly reviews</li>
-            <li style="color: var(--neon-green, #39ff14); font-weight: 700;" data-i18n="pricingPage.performanceMatchMode">★ Match mode &mdash; analyze full matches or YouTube videos</li>
-            <li style="color: var(--neon-green, #39ff14); font-weight: 700;" data-i18n="pricingPage.performanceMultiPlayer">★ Multi-player tracking &mdash; tap to pick which player to analyze</li>
-            <li style="color: var(--neon-green, #39ff14); font-weight: 700;" data-i18n="pricingPage.performanceMatchReports">★ Per-rally match reports with shot-type breakdown</li>
-            <li style="color: var(--neon-green, #39ff14); font-weight: 700;" data-i18n="pricingPage.performanceKineticChain">★ Kinetic-chain sequence scoring (ROM + velocity + timing)</li>
-            <li data-i18n="pricingPage.performanceF3">Live ATP & WTA match results & brackets</li>
-            <li data-i18n="pricingPage.performanceF4">Coach dashboard & connection tools</li>
+            <li data-i18n="pricingPage.performanceF4">Coach dashboard &amp; connection tools</li>
             <li data-i18n="pricingPage.performanceF5">Weekly AI coaching reports</li>
-            <li data-i18n="pricingPage.performanceF6">Priority recommendation depth</li>
             <li data-i18n="pricingPage.performanceRallyTimeline">Rally timeline strip &amp; longest-rally highlight</li>
             <li data-i18n="pricingPage.performanceMatchHistory">Match history saved to your library</li>
           </ul>
