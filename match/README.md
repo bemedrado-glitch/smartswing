@@ -5,9 +5,9 @@ per-rally analysis. It ships in five PRs:
 
 | PR | Scope | Status |
 |---|---|---|
-| **1** | **Multi-player tracker** (this PR) | ✅ shipped |
-| 2 | Rally segmentation + shot classification | next |
-| 3 | Chunked long-video processor (memory mgmt) | queued |
+| 1 | Multi-player tracker | ✅ shipped |
+| 2 | Rally segmentation + shot classification | ✅ shipped |
+| **3** | **Chunked long-video processor (memory mgmt)** | ✅ shipped |
 | 4 | Click-to-pick player selection UX | queued |
 | 5 | Match report page | queued |
 

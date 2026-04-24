@@ -3049,6 +3049,242 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Match analysis Phase A — chunked long-video processor', () => {
+  const mod = require(path.join(ROOT, 'match/chunked-processor.js'));
+  const { MatchProcessor } = mod;
+
+  // Build synthetic pose detections: the subject player's wrist traces a
+  // scripted motion, and we emit one pose per frame so the tracker
+  // produces a single track.
+  function makeDetection(wristX, wristY) {
+    return {
+      bbox: { x: wristX - 30, y: wristY - 100, w: 60, h: 160 },
+      keypoints: [
+        { name: 'right_wrist',    x: wristX,      y: wristY },
+        { name: 'left_wrist',     x: wristX - 30, y: wristY + 20 },
+        { name: 'right_shoulder', x: wristX + 20, y: wristY - 100 },
+        { name: 'left_shoulder',  x: wristX - 20, y: wristY - 100 },
+        { name: 'right_hip',      x: wristX + 10, y: wristY + 60 },
+        { name: 'left_hip',       x: wristX - 10, y: wristY + 60 },
+        { name: 'nose',           x: wristX,      y: wristY - 140 }
+      ],
+      score: 0.9
+    };
+  }
+
+  // Script a scene: idle for preFrames, one swing in the middle, idle for
+  // postFrames afterwards. Returns an array of per-frame detection arrays.
+  function scriptScene({ preFrames, swingStart, swingDuration, postFrames, swingAmplitude = 300 }) {
+    const scene = [];
+    for (let i = 0; i < preFrames; i++) scene.push([makeDetection(200, 400)]);
+    for (let i = 0; i < swingDuration; i++) {
+      const t = i / swingDuration;
+      const offset = Math.sin(t * Math.PI) * swingAmplitude;
+      scene.push([makeDetection(200 + offset, 400 - offset * 0.05)]);
+    }
+    for (let i = 0; i < postFrames; i++) scene.push([makeDetection(200, 400)]);
+    return scene;
+  }
+
+  // ── Basic lifecycle ────────────────────────────────────────────
+  test('Emits a complete event after finish() with framesProcessed + rallyCount', () => {
+    const scene = scriptScene({ preFrames: 30, swingStart: 30, swingDuration: 20, postFrames: 30 });
+    const processor = new MatchProcessor({
+      chunkSize: 1000,
+      segmenterOpts: { activationThreshold: 12, minRallyFrames: 8 }
+    });
+
+    let completeEvent = null;
+    processor.on('complete', (evt) => { completeEvent = evt; });
+
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    expect(completeEvent).toBeTruthy();
+    expect(completeEvent.framesProcessed).toBe(scene.length);
+    expect(completeEvent.rallyCount).toBeGreaterThanOrEqual(0);
+  });
+
+  test('Emits progress events at each chunk boundary', () => {
+    const scene = scriptScene({ preFrames: 0, swingStart: 0, swingDuration: 0, postFrames: 2500 });
+    const processor = new MatchProcessor({ chunkSize: 500 });
+
+    const progressEvents = [];
+    processor.on('progress', (evt) => progressEvents.push(evt));
+
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    // 2500 frames / 500 chunk = 5 mid-chunk flushes, plus a final flush.
+    expect(progressEvents.length).toBeGreaterThanOrEqual(5);
+    expect(progressEvents[progressEvents.length - 1].framesProcessed).toBe(2500);
+  });
+
+  test('Detects a swing and emits a rally event', () => {
+    const scene = scriptScene({ preFrames: 30, swingStart: 30, swingDuration: 20, postFrames: 30 });
+    const processor = new MatchProcessor({
+      chunkSize: 1000,
+      segmenterOpts: { activationThreshold: 10, minRallyFrames: 8, handedness: 'right' }
+    });
+
+    const rallies = [];
+    processor.on('rally', (r) => rallies.push(r));
+
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    expect(rallies.length).toBeGreaterThanOrEqual(1);
+    // Peak frame should fall inside the swing window (30-50).
+    expect(rallies[0].peakFrame).toBeGreaterThanOrEqual(30);
+    expect(rallies[0].peakFrame).toBeLessThanOrEqual(55);
+  });
+
+  // ── Deduplication across chunk boundaries ──────────────────────
+  test('A rally spanning a chunk boundary is emitted exactly once', () => {
+    // Put the swing peak right at the chunk boundary so the rally would
+    // otherwise get detected twice (once in chunk 1, once in chunk 2
+    // after overlap processing).
+    const chunkSize = 80;
+    const peakFrame = 75; // near the end of chunk 1
+    const scene = [];
+    for (let i = 0; i < 160; i++) {
+      const dist = Math.abs(i - peakFrame);
+      const offset = dist <= 10 ? Math.cos((dist / 10) * Math.PI / 2) * 300 : 0;
+      scene.push([makeDetection(200 + offset, 400 - offset * 0.05)]);
+    }
+    const processor = new MatchProcessor({
+      chunkSize,
+      overlapFrames: 20,
+      segmenterOpts: { activationThreshold: 10, minRallyFrames: 8 }
+    });
+    const emittedPeaks = [];
+    processor.on('rally', (r) => emittedPeaks.push(r.peakFrame));
+
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    // Every peak frame should appear at most once.
+    const unique = new Set(emittedPeaks);
+    expect(unique.size).toBe(emittedPeaks.length);
+  });
+
+  test('Rallies are emitted in order of peak frame', () => {
+    // Three swings at frames 40, 120, 200.
+    const scene = [];
+    const swingPeaks = [40, 120, 200];
+    for (let i = 0; i < 280; i++) {
+      let offset = 0;
+      for (const peak of swingPeaks) {
+        const dist = Math.abs(i - peak);
+        if (dist <= 10) offset = Math.cos((dist / 10) * Math.PI / 2) * 300;
+      }
+      scene.push([makeDetection(200 + offset, 400 - offset * 0.05)]);
+    }
+    const processor = new MatchProcessor({
+      chunkSize: 100,
+      overlapFrames: 15,
+      segmenterOpts: { activationThreshold: 10, minRallyFrames: 8, mergeGap: 15 }
+    });
+    const emittedPeaks = [];
+    processor.on('rally', (r) => emittedPeaks.push(r.peakFrame));
+
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    // Should detect all three, in order.
+    expect(emittedPeaks.length).toBe(3);
+    expect(emittedPeaks[0]).toBeLessThan(emittedPeaks[1]);
+    expect(emittedPeaks[1]).toBeLessThan(emittedPeaks[2]);
+  });
+
+  // ── Memory bounds ─────────────────────────────────────────────
+  test('Subject track poses are truncated to retainFrames across chunks', () => {
+    const scene = [];
+    for (let i = 0; i < 2500; i++) scene.push([makeDetection(200, 400)]);
+    const processor = new MatchProcessor({
+      chunkSize: 500,
+      retainFrames: 200,
+      segmenterOpts: { activationThreshold: 50 } // high threshold → no rallies
+    });
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    // After processing 2500 frames, the subject track must hold ≤ retainFrames + chunkSize poses.
+    const tracks = processor.tracker.getTracks();
+    const trackIds = Object.keys(tracks);
+    expect(trackIds.length).toBeGreaterThan(0);
+    const subject = tracks[trackIds[0]];
+    expect(subject.poses.length).toBeLessThanOrEqual(200 + 500);
+  });
+
+  test('Non-subject tracks have their pose history compacted', () => {
+    // Two players: primary is near, secondary is far.
+    const scene = [];
+    for (let i = 0; i < 2000; i++) {
+      scene.push([
+        makeDetection(200, 400),   // near — should become subject
+        makeDetection(700, 120)    // far — should have poses compacted
+      ]);
+    }
+    const processor = new MatchProcessor({
+      chunkSize: 400,
+      retainFrames: 150,
+      segmenterOpts: { activationThreshold: 50 },
+      subjectHint: { side: 'near' },
+      canvasHeight: 720
+    });
+    scene.forEach((detections, idx) => processor.ingest(idx, detections));
+    processor.finish();
+
+    const tracks = processor.tracker.getTracks();
+    const entries = Object.entries(tracks);
+    expect(entries.length).toBe(2);
+    // Find the non-subject track — its poses should be ≤ 4 entries (we
+    // only keep the last few for Hungarian matching continuity).
+    const sortedBySize = entries.sort((a, b) => b[1].poses.length - a[1].poses.length);
+    const subjectTrack = sortedBySize[0][1];
+    const nonSubject = sortedBySize[1][1];
+    expect(subjectTrack.poses.length).toBeGreaterThan(nonSubject.poses.length);
+    expect(nonSubject.poses.length).toBeLessThanOrEqual(4);
+  });
+
+  // ── Event handler robustness ───────────────────────────────────
+  test('Handlers that throw do not break the processor', () => {
+    const scene = scriptScene({ preFrames: 20, swingStart: 20, swingDuration: 20, postFrames: 20 });
+    const processor = new MatchProcessor({
+      chunkSize: 1000,
+      segmenterOpts: { activationThreshold: 10, minRallyFrames: 8 }
+    });
+    processor.on('rally', () => { throw new Error('user handler boom'); });
+
+    let completeCalled = false;
+    processor.on('complete', () => { completeCalled = true; });
+
+    // Suppress the expected console.error from the thrown handler.
+    const origErr = console.error;
+    console.error = () => {};
+    let threw = false;
+    try {
+      try {
+        scene.forEach((detections, idx) => processor.ingest(idx, detections));
+        processor.finish();
+      } catch (_) {
+        threw = true;
+      }
+    } finally {
+      console.error = origErr;
+    }
+    expect(threw).toBe(false);
+    expect(completeCalled).toBe(true);
+  });
+
+  test('Chaining on() calls returns the processor for fluent setup', () => {
+    const processor = new MatchProcessor();
+    const ret = processor.on('rally', () => {}).on('progress', () => {});
+    expect(ret).toBe(processor);
+  });
+});
+
 describe('Match analysis Phase A — rally segmentation + shot classification', () => {
   const seg = require(path.join(ROOT, 'match/rally-segmenter.js'));
   const { segmentRallies, classifyShot, computeActivation } = seg;
