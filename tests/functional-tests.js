@@ -3285,6 +3285,250 @@ describe('Match analysis Phase A — chunked long-video processor', () => {
   });
 });
 
+describe('Match analysis Phase A — match-mode controller (click-to-pick)', () => {
+  const mmMod = require(path.join(ROOT, 'match/match-mode.js'));
+  const { MatchModeController, _internals } = mmMod;
+  const { MatchProcessor } = require(path.join(ROOT, 'match/chunked-processor.js'));
+  const { PlayerTracker } = require(path.join(ROOT, 'match/player-tracker.js'));
+
+  // Helper: synthesise a bbox + keypoint pose at a given x/y center.
+  function makePose(cx, cy, { w = 80, h = 160, score = 0.9 } = {}) {
+    return {
+      bbox: { x: cx - w / 2, y: cy - h / 2, w, h },
+      keypoints: [
+        { name: 'nose', x: cx, y: cy - h / 2, score }
+      ],
+      score
+    };
+  }
+
+  // Helper: make a fresh controller with a fresh processor.
+  function makeController(opts = {}) {
+    const tracker = new PlayerTracker({ maxAbsentFrames: 90 });
+    const processor = new MatchProcessor({ tracker, chunkSize: 10000, overlapFrames: 0 });
+    return new MatchModeController(Object.assign({
+      processor,
+      canvasWidth: 1280,
+      canvasHeight: 720
+    }, opts));
+  }
+
+  test('Constructor rejects missing processor', () => {
+    let threw = false;
+    try { new MatchModeController({}); } catch (_) { threw = true; }
+    expect(threw).toBe(true);
+  });
+
+  test('_hitTestBox matches inside, misses outside, pads correctly', () => {
+    const box = { x: 100, y: 100, w: 50, h: 50 };
+    expect(_internals._hitTestBox(box, 125, 125)).toBe(true);
+    expect(_internals._hitTestBox(box, 99, 125)).toBe(false);
+    expect(_internals._hitTestBox(box, 95, 125, 10)).toBe(true); // pad
+    expect(_internals._hitTestBox(null, 0, 0)).toBe(false);
+  });
+
+  test('getOverlays returns one entry per active track, sorted by area', () => {
+    const ctrl = makeController();
+    // Two players, different sizes; track the smaller one first.
+    ctrl.ingestFrame(0, [makePose(300, 400, { w: 60, h: 120 }), makePose(800, 500, { w: 120, h: 240 })]);
+    ctrl.ingestFrame(1, [makePose(305, 400, { w: 60, h: 120 }), makePose(805, 500, { w: 120, h: 240 })]);
+
+    const overlays = ctrl.getOverlays();
+    expect(overlays.length).toBe(2);
+    // Largest first for foreground-hit priority.
+    expect(overlays[0].bbox.w * overlays[0].bbox.h).toBeGreaterThan(overlays[1].bbox.w * overlays[1].bbox.h);
+    expect(overlays[0].isSubject).toBe(false);
+  });
+
+  test('getOverlays omits long-absent tracks', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    // Advance many frames with no detections.
+    for (let f = 1; f < 50; f++) ctrl.ingestFrame(f, []);
+    const overlays = ctrl.getOverlays({ maxAbsentFrames: 30 });
+    expect(overlays.length).toBe(0);
+  });
+
+  test('pickAt sets subject when clicking a bbox', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400), makePose(900, 500)]);
+    ctrl.ingestFrame(1, [makePose(305, 400), makePose(905, 500)]);
+
+    let pickedPayload = null;
+    ctrl.on('subjectPicked', (p) => { pickedPayload = p; });
+
+    const picked = ctrl.pickAt(300, 400);
+    expect(picked).toBeTruthy();
+    expect(ctrl.getSubjectTrackId()).toBe(picked.trackId);
+    expect(pickedPayload && pickedPayload.trackId).toBe(picked.trackId);
+  });
+
+  test('pickAt returns null when click misses all bboxes', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(305, 400)]);
+    expect(ctrl.pickAt(1200, 50)).toBe(null);
+    expect(ctrl.getSubjectTrackId()).toBe(null);
+  });
+
+  test('pickAt prefers the foreground (largest) track on overlap', () => {
+    const ctrl = makeController();
+    // Two boxes that overlap at (500, 500) — big one in foreground.
+    const small = makePose(500, 500, { w: 40, h: 80 });
+    const big   = makePose(500, 500, { w: 200, h: 400 });
+    ctrl.ingestFrame(0, [small, big]);
+    ctrl.ingestFrame(1, [small, big]);
+
+    const overlays = ctrl.getOverlays();
+    const bigOverlay = overlays[0]; // sorted largest-first
+    ctrl.pickAt(500, 500);
+    expect(ctrl.getSubjectTrackId()).toBe(bigOverlay.trackId);
+  });
+
+  test('setSubject rejects unknown track ids', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    expect(ctrl.setSubject('track-does-not-exist')).toBe(false);
+    expect(ctrl.getSubjectTrackId()).toBe(null);
+  });
+
+  test('setSubject is idempotent when called with the current subject', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(305, 400)]);
+    let pickedCount = 0;
+    ctrl.on('subjectPicked', () => { pickedCount++; });
+    const overlays = ctrl.getOverlays();
+    ctrl.setSubject(overlays[0].trackId);
+    ctrl.setSubject(overlays[0].trackId); // second time should not re-fire.
+    expect(pickedCount).toBe(1);
+  });
+
+  test('clearSubject fires subjectCleared but leaves tracks intact', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(305, 400)]);
+    ctrl.pickAt(300, 400);
+    let cleared = null;
+    ctrl.on('subjectCleared', (p) => { cleared = p; });
+    ctrl.clearSubject();
+    expect(cleared && cleared.trackId).toBeTruthy();
+    expect(ctrl.getSubjectTrackId()).toBe(null);
+    expect(ctrl.getOverlays().length).toBeGreaterThan(0);
+  });
+
+  test('getSubjectPose returns latest pose, or null before a pick', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(310, 400)]);
+    expect(ctrl.getSubjectPose()).toBe(null);
+    ctrl.pickAt(300, 400);
+    const pose = ctrl.getSubjectPose();
+    expect(pose).toBeTruthy();
+    // Most recent frame is frame 1 at x ≈ 310.
+    expect(pose.bbox.x).toBeGreaterThan(260);
+  });
+
+  test('getSubjectPose honours requireExact for deterministic replays', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(310, 400)]);
+    ctrl.ingestFrame(2, []); // subject absent this frame
+    ctrl.ingestFrame(3, [makePose(320, 400)]);
+    ctrl.pickAt(300, 400);
+
+    // Non-exact: frame 2 gets the most recent earlier pose (frame 1).
+    const soft = ctrl.getSubjectPose(2);
+    expect(soft).toBeTruthy();
+
+    // Exact: frame 2 had no detection for the subject → null.
+    const strict = ctrl.getSubjectPose(2, { requireExact: true });
+    expect(strict).toBe(null);
+  });
+
+  test('autoPickIfReady fires only after the threshold, picks via hint', () => {
+    const ctrl = makeController({ minSubjectPoses: 1 });
+    for (let f = 0; f < 20; f++) {
+      ctrl.ingestFrame(f, [makePose(300, 600), makePose(900, 200)]);
+    }
+    expect(ctrl.autoPickIfReady({ afterFrames: 150 })).toBe(false);
+    for (let f = 20; f < 200; f++) {
+      ctrl.ingestFrame(f, [makePose(300, 600), makePose(900, 200)]);
+    }
+    const auto = ctrl.autoPickIfReady({ afterFrames: 150 });
+    expect(auto).toBe(true);
+    // Near-player hint picks the bottom-of-screen track.
+    const subj = ctrl.getSubjectTrackId();
+    expect(subj).toBeTruthy();
+    const pose = ctrl.getSubjectPose();
+    // Should be the high-y (bottom-of-screen) player.
+    expect(pose.bbox.y).toBeGreaterThan(500);
+  });
+
+  test('hasEnoughSubjectData respects minSubjectPoses', () => {
+    const ctrl = makeController({ minSubjectPoses: 5 });
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(305, 400)]);
+    ctrl.pickAt(300, 400);
+    expect(ctrl.hasEnoughSubjectData()).toBe(false);
+    for (let f = 2; f < 10; f++) {
+      ctrl.ingestFrame(f, [makePose(300 + f * 5, 400)]);
+    }
+    expect(ctrl.hasEnoughSubjectData()).toBe(true);
+  });
+
+  test('reset wipes tracks + subject and emits reset event', () => {
+    const ctrl = makeController();
+    ctrl.ingestFrame(0, [makePose(300, 400)]);
+    ctrl.ingestFrame(1, [makePose(305, 400)]);
+    ctrl.pickAt(300, 400);
+
+    let resetPayload = null;
+    let clearedPayload = null;
+    ctrl.on('reset', (p) => { resetPayload = p; });
+    ctrl.on('subjectCleared', (p) => { clearedPayload = p; });
+
+    ctrl.reset();
+    expect(resetPayload && resetPayload.hadSubject).toBeTruthy();
+    expect(clearedPayload).toBeTruthy();
+    expect(ctrl.getSubjectTrackId()).toBe(null);
+    expect(ctrl.getOverlays().length).toBe(0);
+    // Processor counters are wiped.
+    expect(ctrl.processor._totalFrames).toBe(0);
+  });
+
+  test('Rally events from the processor are re-emitted through the controller', () => {
+    const ctrl = makeController();
+    const rallies = [];
+    ctrl.on('rally', (r) => rallies.push(r));
+    // Synthesise the rally event on the processor directly — the controller
+    // only needs to prove it forwards them; actual rally generation is
+    // covered by segmenter tests.
+    ctrl.processor._emit('rally', { peakFrame: 42, shot: 'forehand' });
+    expect(rallies.length).toBe(1);
+    expect(rallies[0].peakFrame).toBe(42);
+  });
+
+  test('Handler exceptions never propagate out of controller emits', () => {
+    const ctrl = makeController();
+    ctrl.on('subjectPicked', () => { throw new Error('boom'); });
+    const origErr = console.error;
+    console.error = () => {};
+    let threw = false;
+    try {
+      ctrl.ingestFrame(0, [makePose(300, 400)]);
+      ctrl.ingestFrame(1, [makePose(305, 400)]);
+      ctrl.pickAt(300, 400);
+    } catch (_) {
+      threw = true;
+    } finally {
+      console.error = origErr;
+    }
+    expect(threw).toBe(false);
+    expect(ctrl.getSubjectTrackId()).toBeTruthy();
+  });
+});
+
 describe('Match analysis Phase A — rally segmentation + shot classification', () => {
   const seg = require(path.join(ROOT, 'match/rally-segmenter.js'));
   const { segmentRallies, classifyShot, computeActivation } = seg;
