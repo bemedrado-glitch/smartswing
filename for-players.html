@@ -327,6 +327,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </section>
 
+    <!-- Dashboard demo preview — lazy-loaded iframe inside a chrome frame
+         so visitors see the actual post-login experience before they sign
+         up. Interactive in the frame; "Open full dashboard" CTA routes to
+         the real URL. -->
+    <section class="reveal" style="padding:80px 0;" aria-labelledby="dashboardDemoH">
+      <div class="page">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:32px;text-align:center;">
+          <div style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#39ff14;">Live preview</div>
+          <h2 id="dashboardDemoH" style="font-size:clamp(28px,4vw,40px);font-weight:800;font-family:var(--ss-font-display,Sora,sans-serif);margin:0;">See the player dashboard</h2>
+          <p style="color:rgba(255,255,255,0.6);font-size:15px;line-height:1.6;max-width:560px;margin:0;">Your SmartSwing Score, progress timeline, recent reports, and the drills your coach assigned — all in one place. Scroll around below.</p>
+        </div>
+
+        <div style="position:relative;max-width:1080px;margin:0 auto;background:#141414;border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.4);">
+          <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);background:#0a0a0a;">
+            <span style="width:11px;height:11px;border-radius:50%;background:#ff5f57;"></span>
+            <span style="width:11px;height:11px;border-radius:50%;background:#febc2e;"></span>
+            <span style="width:11px;height:11px;border-radius:50%;background:#28c840;"></span>
+            <span style="margin-left:12px;color:rgba(255,255,255,0.5);font-size:12px;font-family:monospace;">smartswingai.com/dashboard</span>
+          </div>
+          <iframe
+            src="./dashboard.html?demo=1"
+            loading="lazy"
+            title="SmartSwing player dashboard demo"
+            style="display:block;width:100%;height:620px;border:0;background:#0a0a0a;"
+            sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+          <a href="./dashboard.html" style="display:inline-block;background:#39ff14;color:#0a0a0a;padding:12px 24px;border-radius:10px;font-weight:800;text-decoration:none;">Open the full dashboard →</a>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="cta-v2 reveal">
       <div class="page">
