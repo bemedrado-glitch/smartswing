@@ -3049,6 +3049,76 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Scoring Phase 3 — kinetic-chain sequence timing', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  test('detectPeakVelocityFrames walks frames + records per-joint peak timestamps', () => {
+    expect(src).toContain('function detectPeakVelocityFrames');
+    // Records BOTH the frame index AND the ms timestamp so later logic
+    // can operate on either scale.
+    expect(src).toContain('peaks[key] = { frameIdx: peakIdx, ts: peakTs, velocity: Math.round(maxVel) }');
+  });
+
+  test('CHAIN_SEQUENCE defines canonical order per shot type', () => {
+    expect(src).toContain('var CHAIN_SEQUENCE');
+    // Full-body shots all follow legs → hip → trunk → shoulder → elbow → wrist.
+    expect(src).toContain("serve:    ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist']");
+    // Volley is intentionally a shorter chain — punch-block motion.
+    expect(src).toContain("volley:   ['shoulder', 'elbow', 'wrist']");
+  });
+
+  test('scoreSequenceTiming rewards clean ordering + flags inverted peaks', () => {
+    expect(src).toContain('function scoreSequenceTiming');
+    // Offsets: >20ms = clean, ±20ms = near-simultaneous half point,
+    // <-20ms = inverted = 0 points + recorded as a break.
+    expect(src).toContain('if (offset > 20)        points += 1');
+    expect(src).toContain('else if (offset >= -20) points += 0.5');
+    // Inverted peaks → break record with from/to joint names.
+    expect(src).toContain('breaks.push({');
+    expect(src).toContain('from: validLinks[i - 1]');
+    expect(src).toContain('to:   validLinks[i]');
+  });
+
+  test('Sequence score blends into biomechanicsScore at 20%', () => {
+    expect(src).toContain('perJointBio * 0.80 + sequenceResult.score * 0.20');
+  });
+
+  test('calculateScore pre-computes peak frames + runs the sequence scorer', () => {
+    expect(src).toContain('detectPeakVelocityFrames(focusFrames, chainKeys)');
+    expect(src).toContain('scoreSequenceTiming(peakFrames, shotType)');
+  });
+
+  test('Return object surfaces sequenceTiming { score, order, breaks }', () => {
+    expect(src).toContain('sequenceTiming: sequenceResult');
+    expect(src).toContain('sequenceTiming: insufficientData ? null : scoreResult.sequenceTiming');
+  });
+
+  test('Kinetic Chain card rendered between Biomechanics + Angles sections', () => {
+    expect(src).toContain('Kinetic Chain Sequence');
+    expect(src).toContain('generateKineticChainHtml(s)');
+    expect(src).toContain('function generateKineticChainHtml');
+  });
+
+  test('Card shows observed peak order chips + break details when detected', () => {
+    // Order chips render each joint with the +Nms offset from first peak.
+    expect(src).toContain('Observed peak order');
+    // Break block fires only when seq.breaks has entries.
+    expect(src).toContain('Chain break detected');
+    expect(src).toContain('peaked <strong>');
+    expect(src).toContain('ms before</strong>');
+  });
+
+  test('Card degrades gracefully when frame coverage is insufficient', () => {
+    // No mid-swing frames → "Not enough frame coverage" empty state,
+    // not a broken card or zero score.
+    expect(src).toContain('Not enough frame coverage to analyze the kinetic chain');
+  });
+
+  test('Score color coding: 85+ green, 65+ amber, <65 orange', () => {
+    expect(src).toContain("score >= 85 ? '#00c853' : score >= 65 ? '#ffd84d' : '#ff6d00'");
+  });
+});
+
 describe('Scoring Phase 2 — range of motion + 3-way blend', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 

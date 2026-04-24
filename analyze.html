@@ -2418,6 +2418,107 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return rom;
     }
 
+    // ── Kinetic-chain sequence timing (Phase 3 scoring accuracy) ───────────
+    // For each joint, walks the frame sequence and finds the frame index
+    // where the joint's angular velocity peaked. That timestamp (either a
+    // frame number or ms into the clip) is the "peak activation moment".
+    //
+    // A healthy kinetic chain peaks in a specific order:
+    //   legs (knee) → hips → trunk → shoulder → elbow → wrist
+    // Each link should peak strictly AFTER the previous one. Simultaneous
+    // peaks = "sagging chain"; inverted peaks = "chain break".
+    //
+    // This function returns per-joint peak timestamps (or null if the joint
+    // has too few velocity samples). scoreSequenceTiming() consumes these
+    // to produce the Phase 3 timing score.
+    function detectPeakVelocityFrames(frames, keys) {
+      if (!Array.isArray(frames) || frames.length < 3 || !Array.isArray(keys)) return {};
+      var peaks = {};
+      keys.forEach(function (key) {
+        var maxVel = 0;
+        var peakIdx = -1;
+        var peakTs = null;
+        for (var i = 1; i < frames.length; i++) {
+          var prev = frames[i - 1];
+          var curr = frames[i];
+          var pa = prev && prev.angles ? prev.angles[key] : null;
+          var ca = curr && curr.angles ? curr.angles[key] : null;
+          if (pa == null || ca == null || !Number.isFinite(pa) || !Number.isFinite(ca)) continue;
+          var dtMs = (curr.timestamp && prev.timestamp) ? (curr.timestamp - prev.timestamp) : 33;
+          if (dtMs <= 0) dtMs = 33;
+          var v = Math.abs(ca - pa) / (dtMs / 1000);
+          if (v > maxVel) {
+            maxVel = v;
+            peakIdx = i;
+            peakTs = curr.timestamp || (i * 33); // ms into clip (assumes 30fps if no timestamps)
+          }
+        }
+        if (peakIdx >= 0) peaks[key] = { frameIdx: peakIdx, ts: peakTs, velocity: Math.round(maxVel) };
+      });
+      return peaks;
+    }
+
+    // Canonical kinetic-chain sequence per shot. Order matters: we score
+    // each joint on whether it peaked AFTER its predecessor.
+    //   Serve: legs load first, hips rotate, trunk extends, shoulder turns,
+    //          elbow snaps, wrist pronates. All drive racket-head speed.
+    //   Groundstrokes: same pattern but trunk leads shoulder more tightly.
+    //   Volley: chain is intentionally SHORT — punch-block is mostly shoulder
+    //           + elbow, so we don't penalise absent leg sequencing there.
+    var CHAIN_SEQUENCE = {
+      forehand: ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist'],
+      backhand: ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist'],
+      serve:    ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist'],
+      volley:   ['shoulder', 'elbow', 'wrist'],
+      slice:    ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist'],
+      'drop-shot': ['shoulder', 'elbow', 'wrist'],
+      lob:      ['knee', 'hip', 'trunk', 'shoulder', 'elbow', 'wrist']
+    };
+
+    // Scores the sequence as a whole: every joint that peaked AFTER its
+    // predecessor earns a point; simultaneous peaks (within ±20ms) earn
+    // a half point (body parts do co-activate — strict ordering is too
+    // punishing). Inverted peaks (this joint peaked BEFORE the prior one)
+    // earn zero and are flagged as chain breaks.
+    //
+    // Returns { score: 0..100, order: [...], breaks: [...] } so the
+    // report card can highlight WHICH link broke.
+    function scoreSequenceTiming(peaks, shotType) {
+      var seq = CHAIN_SEQUENCE[shotType] || CHAIN_SEQUENCE.forehand;
+      var validLinks = seq.filter(function (k) { return peaks[k] != null; });
+      if (validLinks.length < 2) return { score: null, order: [], breaks: [], hasEnoughData: false };
+
+      var points = 0;
+      var possible = 0;
+      var breaks = [];
+      var orderedPeaks = validLinks.map(function (k) { return { key: k, ts: peaks[k].ts }; });
+
+      for (var i = 1; i < validLinks.length; i++) {
+        var prior = peaks[validLinks[i - 1]];
+        var curr  = peaks[validLinks[i]];
+        if (!prior || !curr) continue;
+        possible++;
+        var offset = curr.ts - prior.ts; // ms after predecessor
+        if (offset > 20)        points += 1;       // clean sequence
+        else if (offset >= -20) points += 0.5;     // near-simultaneous
+        else {                                       // inverted = chain break
+          breaks.push({
+            from: validLinks[i - 1],
+            to:   validLinks[i],
+            offsetMs: Math.round(offset)
+          });
+        }
+      }
+
+      var score = possible === 0 ? null : Math.round((points / possible) * 100);
+      return {
+        score: score,
+        order: orderedPeaks,
+        breaks: breaks,
+        hasEnoughData: true
+      };
+    }
+
     function calculateLineTilt(a, b) {
       if (!a || !b) return null;
       let angle = Math.abs(Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI));
@@ -4521,13 +4622,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       let weightedTotal = 0;
       let weightCount = 0;
 
-      // ── Phase 1 velocity + Phase 2 ROM per joint ───────────────────
-      // Both are pre-computed once over the full focus-frame window so the
-      // scoring loop below can look them up in O(1).
+      // ── Phase 1 velocity + Phase 2 ROM + Phase 3 peak timestamps ──
+      // Pre-computed once over the full focus-frame window so the scoring
+      // loop below can look them up in O(1). The Phase 3 addition
+      // (detectPeakVelocityFrames) also populates the input to the
+      // kinetic-chain sequence scorer below.
       const velocityKeys = Object.keys(VELOCITY_BENCHMARKS[shotType] || {});
       const peakVelocities = computeAngularVelocities(focusFrames, velocityKeys);
       const romKeys = Object.keys(ROM_BENCHMARKS[shotType] || {});
       const jointROMs = computeAngularROM(focusFrames, romKeys);
+      const chainKeys = (CHAIN_SEQUENCE[shotType] || CHAIN_SEQUENCE.forehand).slice();
+      const peakFrames = detectPeakVelocityFrames(focusFrames, chainKeys);
 
       Object.entries(weights).forEach(([metric, weight]) => {
         const current = Object.prototype.hasOwnProperty.call(avgAngles || {}, metric)
@@ -4543,7 +4648,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         weightCount += weight;
       });
 
-      const biomechanicsScore = weightCount ? Math.round(weightedTotal / weightCount) : 68;
+      // ── Phase 3: kinetic-chain sequence score ──────────────────────
+      // Shot-level signal (not per-joint). Blended into biomechanicsScore
+      // at 20% weight: a clean sequence earns ~20 points even on weaker
+      // mechanics, and a visible chain break costs up to 20 points even
+      // when individual joints look fine in isolation.
+      const sequenceResult = scoreSequenceTiming(peakFrames, shotType);
+      const perJointBio = weightCount ? Math.round(weightedTotal / weightCount) : 68;
+      const biomechanicsScore = sequenceResult.hasEnoughData && sequenceResult.score != null
+        ? Math.round(perJointBio * 0.80 + sequenceResult.score * 0.20)
+        : perJointBio;
       const performanceKpis = calculatePerformanceKpis(
         focusFrames,
         avgDerivedMetrics,
@@ -4634,6 +4748,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         progressContext,
         milestone,
         achievements,
+        // Phase 3: kinetic-chain sequence result surfaces on the report
+        // so the new "Kinetic Chain" card can show order, breaks, and the
+        // per-joint peak timing.
+        sequenceTiming: sequenceResult,
         scoringMeta: {
           toleranceMultiplier: roundMetric(toleranceMultiplier, 2),
           level: profileContext.level,
@@ -5337,6 +5455,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         milestone: insufficientData ? null : scoreResult.milestone,
         achievements: insufficientData ? [] : scoreResult.achievements,
         scoringMeta: insufficientData ? {} : scoreResult.scoringMeta,
+        // Phase 3 kinetic-chain sequence result — { score, order, breaks }.
+        // Report cards render this so users see WHICH link broke when the
+        // chain is out of sequence, not just an aggregate number.
+        sequenceTiming: insufficientData ? null : scoreResult.sequenceTiming,
         sessionMode: playerProfile.sessionMode,
         sessionGoal: playerProfile.sessionGoal,
         setupScore: playerProfile.setupScore,
@@ -5782,6 +5904,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </summary>
           <div style="margin-top:8px;">
             <div class="report-section"><div class="report-section-title">Biomechanics Analysis</div>${generateBiomechanicsInsights(s.avgAngles, bench, s.shotType, s.metricComparisons)}</div>
+            <div class="report-section"><div class="report-section-title">Kinetic Chain Sequence</div>${generateKineticChainHtml(s)}</div>
             <div class="report-section"><div class="report-section-title">Angles and What They Mean</div>${generateAngleComparisons(s.avgAngles, bench, s.shotType, s.metricComparisons)}</div>
             <div class="report-section"><div class="report-section-title">Performance KPIs</div>${generatePerformanceKpisHtml(s)}</div>
             <div class="report-section"><div class="report-section-title">Movement, Footwork, Positioning, and Height</div>${generateDerivedMetricsHtml(s)}</div>
@@ -6197,6 +6320,65 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           `).join('')}
         </div>
       `;
+    }
+
+    // ── Kinetic Chain Sequence card (Phase 3) ──────────────────────────
+    // Renders the timing score + the observed peak order + any chain
+    // breaks. This is the card that finally makes "kinetic chain break"
+    // a concrete, diagnosable thing instead of just a feedback label.
+    function generateKineticChainHtml(summary) {
+      const seq = summary && summary.sequenceTiming;
+      if (!seq || !seq.hasEnoughData) {
+        return '<div class="metric-card"><div class="metric-label">Not enough frame coverage to analyze the kinetic chain on this clip. Re-record with the player visible for the full swing window (trophy pose → contact → follow-through).</div></div>';
+      }
+
+      const score = seq.score;
+      const scoreColor = score >= 85 ? '#00c853' : score >= 65 ? '#ffd84d' : '#ff6d00';
+      const headline = score >= 85
+        ? 'Clean chain — energy is flowing from legs to wrist in order.'
+        : score >= 65
+          ? 'Chain is mostly connected with minor timing overlaps.'
+          : 'Chain shows breaks — energy is leaking at the flagged links.';
+
+      // Order strip: the observed sequence with timestamps (ms from clip start).
+      const firstTs = seq.order.length ? seq.order[0].ts : 0;
+      const orderChips = seq.order.map((item, idx) => {
+        const relMs = Math.max(0, Math.round(item.ts - firstTs));
+        return '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);font-size:12px;font-weight:700;">' +
+          '<span style="color:' + scoreColor + ';">' + (idx + 1) + '</span>' +
+          '<span>' + formatMetricName(item.key) + '</span>' +
+          '<span style="color:rgba(255,255,255,0.4);font-weight:500;">+' + relMs + 'ms</span>' +
+          '</span>';
+      }).join(' ');
+
+      // Break details: if any joint peaked BEFORE its predecessor, call it out.
+      const breaksHtml = (seq.breaks || []).length
+        ? '<div style="margin-top:12px;padding:12px;border-radius:10px;background:rgba(255,109,0,0.08);border:1px solid rgba(255,109,0,0.25);">' +
+            '<div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#ff6d00;margin-bottom:6px;">Chain break detected</div>' +
+            seq.breaks.map(function (b) {
+              return '<div style="font-size:13px;line-height:1.5;color:var(--silver,#cfd8dc);">' +
+                '<strong>' + formatMetricName(b.to) + '</strong> peaked <strong>' + Math.abs(b.offsetMs) + 'ms before</strong> ' +
+                formatMetricName(b.from).toLowerCase() + ' — energy is firing out of order.' +
+              '</div>';
+            }).join('') +
+          '</div>'
+        : '<div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(0,200,83,0.06);border:1px solid rgba(0,200,83,0.18);font-size:13px;color:var(--silver,#cfd8dc);">No chain breaks detected — every link fired after the previous one.</div>';
+
+      return (
+        '<div class="metric-card">' +
+          '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">' +
+            '<div style="font-size:42px;font-weight:900;line-height:1;color:' + scoreColor + ';">' + score + '</div>' +
+            '<div style="flex:1;min-width:200px;">' +
+              '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:' + scoreColor + ';">Sequence Score</div>' +
+              '<div style="font-size:14px;line-height:1.5;color:var(--silver,#cfd8dc);margin-top:2px;">' + headline + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.45);margin:6px 0 8px;">Observed peak order</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + orderChips + '</div>' +
+          breaksHtml +
+          '<div style="margin-top:14px;font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;">Each link shows how many milliseconds after the clip\'s first peak that joint reached its highest angular velocity. A clean sequence rises monotonically: legs first, wrist last.</div>' +
+        '</div>'
+      );
     }
 
     function generateAngleComparisons(avgAngles, bench, shotType, metricComparisons = []) {
