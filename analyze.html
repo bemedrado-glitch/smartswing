@@ -1122,6 +1122,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link rel="stylesheet" href="./print.css" media="print">
 <link rel="stylesheet" href="./scoring-changed-notice.css">
 <script src="./scoring-changed-notice.js" defer></script>
+<script src="./clip-export.js" defer></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -5911,10 +5912,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="report-section"><div class="report-section-title">Coach-ready Summary</div>${generateCoachReadySummaryHtml(s)}</div>
             <div class="report-section"><div class="report-section-title">Full Drill Plan</div>${generateTailoredDrillsHtml(s.tailoredDrills || [])}</div>
             <div class="report-section"><div class="report-section-title">Match Tactics</div>${generateTacticsHtml(s.tailoredTactics || [])}</div>
+
+            <!-- ── Calibration export (Phase 4 data capture) ────────────
+                 This lets coaches + internal reviewers export the session
+                 as a calibration observation compatible with
+                 tools/calibration/. Low-emphasis link so casual players
+                 don't trip over it; gated to paid users since the signal
+                 is only useful for people capturing pro footage. -->
+            ${isPaidUser() ? `
+            <div class="report-section" style="background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.12);">
+              <div class="report-section-title" style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.65);">📤 For coaches &amp; reviewers</div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.5;max-width:480px;">
+                  Export this session as a calibration observation (JSON) compatible with the benchmark calibration pipeline. Use for pro-footage capture; not needed for everyday analysis.
+                </div>
+                <button class="btn btn-secondary" type="button" data-ss-export-clip
+                        style="font-size:12px;padding:8px 14px;white-space:nowrap;">
+                  Export for calibration
+                </button>
+              </div>
+            </div>` : ''}
           </div>
         </details>
       `;
-      // Store report data for match tracker AI insight (last shot wins)
+      // Expose the current summary so clip-export can reach it + the
+      // match-tracker AI can consume the same snapshot.
+      window._lastSmartSwingSummary = s;
       window._lastSmartSwingReport = {
         overallScore: s.score,
         shotType: s.shotType,
@@ -7765,6 +7788,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       
       // Go back to step 1
       setStep(1);
+    });
+
+    // ── Calibration export click handler (Phase 4 capture) ───────────
+    // Delegated so it survives every re-render of the report HTML. Uses
+    // clip-export.js (loaded via <script> in head) to build + download
+    // the JSON observation. Toast feedback on success/failure.
+    document.addEventListener('click', function (evt) {
+      var btn = evt.target && evt.target.closest && evt.target.closest('[data-ss-export-clip]');
+      if (!btn) return;
+      try {
+        var api = window.SmartSwingClipExport;
+        if (!api) {
+          _ssToast('Clip export utility not loaded yet — try again in a moment.', 'warn');
+          return;
+        }
+        var summary = window._lastSmartSwingSummary;
+        if (!summary) {
+          _ssToast('No session summary available — run an analysis first.', 'warn');
+          return;
+        }
+        var result = api.exportSession({ summary: summary }, {
+          // Pull the profile level from the summary so observations land
+          // at the right calibration bucket automatically.
+          source: 'in-app-export',
+          notes: 'Exported from analyze.html (authed session).'
+        });
+        if (!result.ok) {
+          _ssToast('Export failed: ' + result.errors.join('; '), 'error');
+          return;
+        }
+        _ssToast('Clip exported — drop the JSON into tools/calibration/data/.', 'success');
+      } catch (err) {
+        console.error('[clip-export]', err);
+        _ssToast('Export failed: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+      }
     });
 
     console.log('SmartSwing AI MoveNet loaded ✓');
