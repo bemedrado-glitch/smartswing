@@ -3529,6 +3529,187 @@ describe('Match analysis Phase A — match-mode controller (click-to-pick)', () 
   });
 });
 
+describe('Match analysis Phase A — match report aggregator', () => {
+  const mr = require(path.join(ROOT, 'match/report-aggregator.js'));
+  const { aggregateMatch, buildTimeline, pickHighlights, _internals } = mr;
+
+  function makeRally({ peak, dur = 40, shot = 'forehand' } = {}) {
+    return {
+      peakFrame: peak,
+      startFrame: peak - Math.floor(dur / 2),
+      endFrame: peak + Math.floor(dur / 2),
+      shotType: shot
+    };
+  }
+
+  test('Empty input returns zeroed structure (no crashes)', () => {
+    const r = aggregateMatch({ rallies: [] });
+    expect(r.rallyCount).toBe(0);
+    expect(r.totalDurationFrames).toBe(0);
+    expect(r.avgRallyDurationFrames).toBe(0);
+    expect(r.rallies.length).toBe(0);
+    expect(r.shotBreakdown.forehand).toBe(0);
+  });
+
+  test('Normalises unknown shot types to "unknown"', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 100, shot: 'FOREHAND' }),
+        makeRally({ peak: 200, shot: 'chip-lob' }) // not a standard type
+      ]
+    });
+    expect(r.shotBreakdown.forehand).toBe(1);
+    expect(r.shotBreakdown.unknown).toBe(1);
+  });
+
+  test('Sorts rallies by peakFrame for deterministic timeline order', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 300 }),
+        makeRally({ peak: 100 }),
+        makeRally({ peak: 200 })
+      ]
+    });
+    expect(r.rallies.map(x => x.peakFrame)).toEqual([100, 200, 300]);
+  });
+
+  test('Identifies the longest rally correctly', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 100, dur: 30 }),
+        makeRally({ peak: 300, dur: 120 }), // longest
+        makeRally({ peak: 500, dur: 60 })
+      ]
+    });
+    expect(r.longestRallyFrames).toBe(120);
+    expect(r.longestRallyIdx).toBe(1);
+  });
+
+  test('Timestamps compute from fps and are rounded cleanly', () => {
+    const r = aggregateMatch({
+      rallies: [makeRally({ peak: 90 })], // 3.0s at 30fps
+      fps: 30
+    });
+    expect(r.rallies[0].peakTime).toBe(3);
+  });
+
+  test('includePoses embeds rally-window poses for drill-down', () => {
+    const subjectTrack = {
+      poses: Array.from({ length: 500 }, (_, i) => ({ frameIdx: i, pose: { bbox: { x: 0, y: 0, w: 1, h: 1 } } }))
+    };
+    const r = aggregateMatch({
+      rallies: [makeRally({ peak: 100, dur: 40 })],
+      subjectTrack,
+      includePoses: true
+    });
+    // Rally window = 80..120 (explicit bounds from makeRally).
+    expect(r.rallies[0].poses.length).toBe(41);
+  });
+
+  test('Without includePoses, the drill-down payload is omitted (preview tier)', () => {
+    const subjectTrack = {
+      poses: Array.from({ length: 200 }, (_, i) => ({ frameIdx: i, pose: {} }))
+    };
+    const r = aggregateMatch({
+      rallies: [makeRally({ peak: 100 })],
+      subjectTrack,
+      includePoses: false
+    });
+    expect(r.rallies[0].poses).toBe(undefined);
+  });
+
+  test('shotBreakdownPct sums to exactly 100', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 100, shot: 'forehand' }),
+        makeRally({ peak: 200, shot: 'forehand' }),
+        makeRally({ peak: 300, shot: 'forehand' }),
+        makeRally({ peak: 400, shot: 'backhand' }),
+        makeRally({ peak: 500, shot: 'backhand' }),
+        makeRally({ peak: 600, shot: 'serve' }),
+        makeRally({ peak: 700, shot: 'volley' })
+      ]
+    });
+    const total = Object.values(r.shotBreakdownPct).reduce((a, b) => a + b, 0);
+    expect(total).toBe(100);
+  });
+
+  test('spanSeconds covers the whole match window', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 100 }),   // window ~80..120
+        makeRally({ peak: 3100 })   // window ~3080..3120 → spans ~3040 frames
+      ],
+      fps: 30
+    });
+    // 3080 is a lower-bound; ensure spanSeconds is reasonable.
+    expect(r.spanSeconds).toBeGreaterThan(100);
+  });
+
+  test('buildTimeline produces start/width percentages relative to match span', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 60 }),    // window 40..80
+        makeRally({ peak: 2400 })   // window 2380..2420
+      ],
+      fps: 30
+    });
+    const tl = buildTimeline(r);
+    expect(tl.entries.length).toBe(2);
+    expect(tl.entries[0].startPct).toBeLessThan(5); // first rally near the left edge
+    expect(tl.entries[1].startPct).toBeGreaterThan(90); // last rally near the right edge
+  });
+
+  test('buildTimeline handles empty reports without dividing by zero', () => {
+    const tl = buildTimeline(aggregateMatch({ rallies: [] }));
+    expect(tl.entries).toEqual([]);
+    expect(tl.spanSeconds).toBe(0);
+  });
+
+  test('pickHighlights returns the N longest rallies', () => {
+    const r = aggregateMatch({
+      rallies: [
+        makeRally({ peak: 100, dur: 20 }),
+        makeRally({ peak: 200, dur: 80 }),
+        makeRally({ peak: 300, dur: 40 }),
+        makeRally({ peak: 400, dur: 100 }),
+        makeRally({ peak: 500, dur: 60 })
+      ]
+    });
+    const top = pickHighlights(r, 2);
+    expect(top.length).toBe(2);
+    expect(top[0].durationFrames).toBe(100); // longest first
+    expect(top[1].durationFrames).toBe(80);
+  });
+
+  test('pickHighlights clamps to available rally count', () => {
+    const r = aggregateMatch({ rallies: [makeRally({ peak: 100 })] });
+    expect(pickHighlights(r, 10).length).toBe(1);
+    expect(pickHighlights(r, 0).length).toBe(0);
+  });
+
+  test('Uses explicit rally bounds when provided; falls back to windowPad otherwise', () => {
+    const r = aggregateMatch({
+      rallies: [
+        { peakFrame: 100, shotType: 'serve' }, // no explicit bounds → padded
+        { peakFrame: 300, startFrame: 290, endFrame: 310, shotType: 'forehand' }
+      ],
+      windowPad: 20
+    });
+    expect(r.rallies[0].startFrame).toBe(80);   // 100 - 20
+    expect(r.rallies[0].endFrame).toBe(120);    // 100 + 20
+    expect(r.rallies[1].startFrame).toBe(290);  // explicit wins
+    expect(r.rallies[1].endFrame).toBe(310);
+  });
+
+  test('_clampWindow drops poses outside the rally window', () => {
+    const poses = [10, 50, 80, 100, 120, 150, 200].map(i => ({ frameIdx: i, pose: {} }));
+    const inside = _internals._clampWindow({ peakFrame: 100 }, poses, 25);
+    // Window = 75..125 inclusive → poses at 80, 100, 120.
+    expect(inside.map(p => p.frameIdx)).toEqual([80, 100, 120]);
+  });
+});
+
 describe('Match analysis Phase A — rally segmentation + shot classification', () => {
   const seg = require(path.join(ROOT, 'match/rally-segmenter.js'));
   const { segmentRallies, classifyShot, computeActivation } = seg;
