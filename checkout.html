@@ -447,6 +447,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link rel="stylesheet" href="./toast.css">
 <link rel="stylesheet" href="./safe-area.css">
 <script src="./shared-chrome.js" defer></script>
+<!-- Meta Pixel + GA4 analytics wiring. Loads as a no-op if
+     SMARTSWING_META_PIXEL_ID isn't configured in runtime-config; once
+     set, fires PageView here + InitiateCheckout below on form submit. -->
+<script src="./public-app-config.js" defer></script>
+<script src="./analytics.js" defer></script>
 <link rel="stylesheet" href="./brand-tokens.css">
 </head>
 <body>
