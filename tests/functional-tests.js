@@ -6058,6 +6058,83 @@ describe('API — cadence email merge-tag rendering', () => {
     const { message } = mod.renderCadenceSms(step, contact);
     expect(message).toBe('Hey Bernardo, your analysis is ready.');
   });
+
+  // ── Prod bug fix (2026-04-24): literal \n in body + sketchy first name ──
+  test('normaliseLineBreaks converts literal backslash-n to real newlines', () => {
+    // In the JS source string, '\\n' is two chars: backslash + n. This is
+    // exactly how the prod payload arrived — a JSON-escaped body that was
+    // parsed once but whose \n sequences stayed literal.
+    const input = 'Hi,\\n\\nFirst paragraph.\\n\\nSecond paragraph.\\nBernardo';
+    const out = mod._normaliseLineBreaks(input);
+    // No literal \n left.
+    expect(out.includes('\\n')).toBe(false);
+    // Split on real newline produces 6 parts (two empty strings between
+    // the \n\n pairs + one each around the single \n).
+    expect(out.split('\n').length).toBe(6);
+  });
+
+  test('toHtmlParagraphs splits on literal \\n\\n the same as real newlines', () => {
+    const withLiteral = 'Hi,\\n\\nFirst line.\\n\\nSecond line.';
+    const withReal    = 'Hi,\n\nFirst line.\n\nSecond line.';
+    const htmlA = mod._toHtmlParagraphs(withLiteral);
+    const htmlB = mod._toHtmlParagraphs(withReal);
+    // Both should produce 3 <p> blocks with no leftover literal \n.
+    expect(htmlA.match(/<p\b/g).length).toBe(3);
+    expect(htmlB.match(/<p\b/g).length).toBe(3);
+    expect(htmlA.includes('\\n')).toBe(false);
+  });
+
+  test('sanitiseFirstName rejects email local-part names', () => {
+    // "contato10xai" equals the local-part of "contato10xai@gmail.com" →
+    // reject, forcing generic greeting.
+    expect(mod._sanitiseFirstName('contato10xai', 'contato10xai@gmail.com')).toBe('');
+    // A genuine name that happens to appear in the email? Still rejected
+    // here by the rule; that's an acceptable false positive — "there" is
+    // always safe.
+  });
+
+  test('sanitiseFirstName rejects all-caps short brand tokens like 10XAI', () => {
+    expect(mod._sanitiseFirstName('10XAI', 'anyone@example.com')).toBe('');
+    expect(mod._sanitiseFirstName('ACME', 'anyone@example.com')).toBe('');
+  });
+
+  test('sanitiseFirstName rejects digit-heavy strings', () => {
+    // ">50% non-letters" rule catches "10XAI" (2 letters / 5 chars = 40%).
+    expect(mod._sanitiseFirstName('10XAI', 'x@y.z')).toBe('');
+    expect(mod._sanitiseFirstName('user123', 'x@y.z')).toBe('');
+  });
+
+  test('sanitiseFirstName rejects literal emails typed into name field', () => {
+    expect(mod._sanitiseFirstName('bob@example.com', 'bob@example.com')).toBe('');
+  });
+
+  test('sanitiseFirstName rejects common auto-prefixes', () => {
+    expect(mod._sanitiseFirstName('contato', 'x@y.z')).toBe('');
+    expect(mod._sanitiseFirstName('info', 'x@y.z')).toBe('');
+    expect(mod._sanitiseFirstName('noreply', 'x@y.z')).toBe('');
+  });
+
+  test('sanitiseFirstName keeps normal human first names', () => {
+    expect(mod._sanitiseFirstName('Bernardo', 'bernardo@example.com')).toBe('Bernardo');
+    expect(mod._sanitiseFirstName('María',    'maria@example.com')).toBe('María');
+    expect(mod._sanitiseFirstName('陳',       'chen@example.com')).toBe('陳');
+  });
+
+  test('prod-bug repro: contato10xai contact with literal-\\n body renders cleanly', () => {
+    // The exact shape observed in the 2026-04-24 prod email.
+    const badContact = { id: 'b1', name: '10XAI', email: 'contato10xai@gmail.com', stage: 'lead' };
+    const step = {
+      subject: 'What happens when members can measure improvement',
+      body: 'Hi {{first_name}},\\n\\nWhen members have a progress score, they practice more.\\n\\nBernardo'
+    };
+    const { html } = mod.renderCadenceEmail(step, badContact);
+    // Greeting falls back to "there".
+    expect(html).toContain('Hi there');
+    // No literal \n leaks through into the HTML output.
+    expect(html.includes('\\n')).toBe(false);
+    // Proper paragraph break rendered.
+    expect(html.match(/<p\b/g).length).toBeGreaterThan(1);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════
