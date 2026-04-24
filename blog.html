@@ -404,9 +404,23 @@ a { color: inherit; text-decoration: none; }
 .smart-goals-grid strong { color: var(--text); }
 
 /* ─── FULL ARTICLE ───────────────────────────────────────── */
+/* Long-form article blocks are hidden by default — only the one the
+   user clicked (anchor #id) expands via :target. Keeps the main blog
+   page scannable and links from cards still work (the browser scrolls
+   to #id which then activates this rule, revealing that one article). */
 .article-full {
   background: var(--panel); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 44px 48px; margin-bottom: 28px;
+  display: none;
+}
+.article-full:target {
+  display: block;
+  scroll-margin-top: 80px; /* keep sticky nav from overlapping the headline */
+  animation: articleReveal 220ms ease-out;
+}
+@keyframes articleReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @media(max-width:640px){ .article-full { padding: 28px 22px; } }
 .article-full-eyebrow {
@@ -1261,6 +1275,61 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </section>
 
+  <!-- ═══ G. LIVE DATA SECTION ══════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="live-heading" id="live-results-section">
+    <div class="page">
+      <div class="live-header">
+        <h2 class="section-title" id="live-heading">Recent Results</h2>
+        <span class="live-badge" id="liveBadge" aria-live="polite">
+          <span class="live-dot" aria-hidden="true"></span>
+          LIVE
+        </span>
+        <span class="live-timestamp" id="liveTimestamp"></span>
+      </div>
+      <div class="results-grid" id="live-results" aria-label="Recent tournament results">
+        <!-- Skeleton loading -->
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+        <div class="skeleton skeleton-card" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ H. FACT OF THE DAY ════════════════════════════════ -->
+  <section class="blog-section" aria-labelledby="facts-heading">
+    <div class="page">
+      <div class="section-header">
+        <h2 class="section-title" id="facts-heading">Fact of the Day</h2>
+        <span class="section-label">Rotating</span>
+      </div>
+      <div class="facts-rotator" aria-label="Rotating tennis facts">
+        <div class="fact-card">
+          <div class="fact-number">Fact 01</div>
+          <p class="fact-text">The serve generates up to 550N of force through the shoulder joint — equivalent to holding 60 kg in a rotating arm position.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 02</div>
+          <p class="fact-text">Federer's forehand rotates at 1,800–2,400 RPM — the same range as a car engine at idle speed.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 03</div>
+          <p class="fact-text">Clay courts make the same ball bounce 30–50 cm higher than fast hard courts — requiring a complete contact height recalibration.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 04</div>
+          <p class="fact-text">The Isner–Mahut match at Wimbledon 2010 lasted 11 hours and 5 minutes across 3 days. The final set score was 70–68.</p>
+        </div>
+        <div class="fact-card">
+          <div class="fact-number">Fact 05</div>
+          <p class="fact-text">A single forehand stroke coordinates over 20 major muscle groups in a kinetic chain lasting approximately 0.5 seconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ D. FEATURED ARTICLE ══════════════════════════════ -->
   <section class="blog-section" aria-labelledby="featured-heading">
     <div class="page">
@@ -1547,8 +1616,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </section>
 
   <!-- ═══ F. FULL ARTICLE BODIES ════════════════════════════ -->
-  <section class="blog-section" aria-label="Full articles">
+  <section class="blog-section" aria-label="Full articles" id="full-articles">
     <div class="page">
+      <!-- Section renders empty unless a specific article is targeted via
+           #article-id; the :target CSS reveals exactly that one. Keeps the
+           blog scannable instead of 16 long-form articles rendered inline. -->
 
       <!-- ARTICLE 1: Serve Speed -->
       <article class="article-full" id="serve-smart">
@@ -1945,61 +2017,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </article>
 
     </div><!-- /.page -->
-  </section>
-
-  <!-- ═══ G. LIVE DATA SECTION ══════════════════════════════ -->
-  <section class="blog-section" aria-labelledby="live-heading" id="live-results-section">
-    <div class="page">
-      <div class="live-header">
-        <h2 class="section-title" id="live-heading">Recent Results</h2>
-        <span class="live-badge" id="liveBadge" aria-live="polite">
-          <span class="live-dot" aria-hidden="true"></span>
-          LIVE
-        </span>
-        <span class="live-timestamp" id="liveTimestamp"></span>
-      </div>
-      <div class="results-grid" id="live-results" aria-label="Recent tournament results">
-        <!-- Skeleton loading -->
-        <div class="skeleton skeleton-card" aria-hidden="true"></div>
-        <div class="skeleton skeleton-card" aria-hidden="true"></div>
-        <div class="skeleton skeleton-card" aria-hidden="true"></div>
-        <div class="skeleton skeleton-card" aria-hidden="true"></div>
-        <div class="skeleton skeleton-card" aria-hidden="true"></div>
-        <div class="skeleton skeleton-card" aria-hidden="true"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ H. FACT OF THE DAY ════════════════════════════════ -->
-  <section class="blog-section" aria-labelledby="facts-heading">
-    <div class="page">
-      <div class="section-header">
-        <h2 class="section-title" id="facts-heading">Fact of the Day</h2>
-        <span class="section-label">Rotating</span>
-      </div>
-      <div class="facts-rotator" aria-label="Rotating tennis facts">
-        <div class="fact-card">
-          <div class="fact-number">Fact 01</div>
-          <p class="fact-text">The serve generates up to 550N of force through the shoulder joint — equivalent to holding 60 kg in a rotating arm position.</p>
-        </div>
-        <div class="fact-card">
-          <div class="fact-number">Fact 02</div>
-          <p class="fact-text">Federer's forehand rotates at 1,800–2,400 RPM — the same range as a car engine at idle speed.</p>
-        </div>
-        <div class="fact-card">
-          <div class="fact-number">Fact 03</div>
-          <p class="fact-text">Clay courts make the same ball bounce 30–50 cm higher than fast hard courts — requiring a complete contact height recalibration.</p>
-        </div>
-        <div class="fact-card">
-          <div class="fact-number">Fact 04</div>
-          <p class="fact-text">The Isner–Mahut match at Wimbledon 2010 lasted 11 hours and 5 minutes across 3 days. The final set score was 70–68.</p>
-        </div>
-        <div class="fact-card">
-          <div class="fact-number">Fact 05</div>
-          <p class="fact-text">A single forehand stroke coordinates over 20 major muscle groups in a kinetic chain lasting approximately 0.5 seconds.</p>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ═══ I. NEWSLETTER ═════════════════════════════════════ -->
