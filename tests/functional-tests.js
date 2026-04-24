@@ -3049,6 +3049,137 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Clip export utility (Phase 4 capture loop)', () => {
+  const clipExport = require(path.join(ROOT, 'clip-export.js'));
+  const { buildObservation, exportSession, _internals } = clipExport;
+  const { makeClipId, normaliseLevel } = _internals;
+  const analyze = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
+
+  // ── Pure transformer ────────────────────────────────────────────
+  test('normaliseLevel maps the analyzer wizard enum to the calibration enum', () => {
+    expect(normaliseLevel('atp-pro')).toBe('pro');
+    expect(normaliseLevel('ATP-PRO')).toBe('pro');
+    expect(normaliseLevel('intermediate')).toBe('intermediate');
+    // Unknown levels return empty string so the validator catches them.
+    expect(normaliseLevel('grand-champion')).toBe('');
+  });
+
+  test('makeClipId produces a deterministic id for the same inputs', () => {
+    const summary = { shotType: 'serve', score: 72, timestamp: '2026-04-24T00:00:00Z' };
+    const id1 = makeClipId(summary);
+    const id2 = makeClipId(summary);
+    expect(id1).toBe(id2);
+    expect(id1.startsWith('capture-serve-')).toBe(true);
+    expect(id1.endsWith('-72')).toBe(true);
+  });
+
+  test('buildObservation produces a well-formed observation from a Phase-3 summary', () => {
+    const summary = {
+      shotType: 'serve',
+      profile: { level: 'atp-pro', age: '31-35', gender: 'male' },
+      score: 82,
+      timestamp: '2026-04-24T00:00:00Z',
+      avgAngles: { knee: 145.4, hip: 175, shoulder: 130, elbow: 106, trunk: 50, wrist: 58 },
+      metricComparisons: [
+        { metric: 'knee',     velocity: 410,  rom: 55  },
+        { metric: 'hip',      velocity: 520,  rom: 50  },
+        { metric: 'shoulder', velocity: 1200, rom: 130 },
+        { metric: 'elbow',    velocity: 1400, rom: 120 },
+        { metric: 'wrist',    velocity: 1800, rom: 105 }
+      ]
+    };
+    const result = buildObservation(summary);
+    expect(result.ok).toBe(true);
+    const obs = result.observation;
+    expect(obs.shotType).toBe('serve');
+    expect(obs.level).toBe('pro');
+    expect(obs.angles.knee).toBe(145);     // rounded from 145.4
+    expect(obs.velocities.wrist).toBe(1800);
+    expect(obs.roms.shoulder).toBe(130);
+    // profile + capturedAt populated for reviewer context.
+    expect(obs.profile.age).toBe('31-35');
+    expect(obs.capturedAt).toBeTruthy();
+  });
+
+  test('buildObservation rejects summaries with no measurable signals', () => {
+    const summary = {
+      shotType: 'serve',
+      profile: { level: 'pro' },
+      avgAngles: {},
+      metricComparisons: []
+    };
+    const result = buildObservation(summary);
+    expect(result.ok).toBe(false);
+    expect(result.errors.some(e => e.includes('no measurable signals'))).toBe(true);
+  });
+
+  test('buildObservation rejects bad shotType and requires a level', () => {
+    expect(buildObservation({ shotType: 'spikeball', profile: { level: 'pro' } }).ok).toBe(false);
+    expect(buildObservation({ shotType: 'serve' }).ok).toBe(false);
+  });
+
+  test('buildObservation propagates sequenceTiming when present', () => {
+    const summary = {
+      shotType: 'forehand',
+      profile: { level: 'intermediate' },
+      avgAngles: { knee: 164 },
+      metricComparisons: [{ metric: 'knee', velocity: 270, rom: 32 }],
+      sequenceTiming: {
+        score: 78,
+        order: [{ key: 'knee', ts: 100.4 }, { key: 'hip', ts: 155.9 }],
+        breaks: []
+      }
+    };
+    const result = buildObservation(summary);
+    expect(result.ok).toBe(true);
+    expect(result.observation.sequence.score).toBe(78);
+    // Timestamps rounded for JSON cleanliness.
+    expect(result.observation.sequence.order[0].ts).toBe(100);
+  });
+
+  test('exportSession reaches into session.summaries[0] when given a full session', () => {
+    const session = {
+      summaries: [{
+        shotType: 'backhand',
+        profile: { level: 'advanced' },
+        avgAngles: { knee: 160 },
+        metricComparisons: [{ metric: 'knee', velocity: 260, rom: 30 }]
+      }]
+    };
+    const result = exportSession(session);
+    expect(result.ok).toBe(true);
+    expect(result.observation.shotType).toBe('backhand');
+    // Download is a no-op in Node (document is undefined).
+    expect(result.downloaded).toBe(false);
+  });
+
+  // ── UI wiring (analyze.html) ────────────────────────────────────
+  test('Analyze loads clip-export.js + exposes _lastSmartSwingSummary', () => {
+    expect(analyze).toContain('clip-export.js');
+    expect(analyze).toContain('window._lastSmartSwingSummary = s;');
+  });
+
+  test('Export button is gated behind isPaidUser', () => {
+    // Only paid users see the calibration export action — casual players
+    // don\'t have the context or need for this.
+    expect(analyze).toContain('${isPaidUser() ? `');
+    expect(analyze).toContain('data-ss-export-clip');
+    expect(analyze).toContain('Export for calibration');
+  });
+
+  test('Click handler is delegated at document-level so re-renders keep working', () => {
+    expect(analyze).toContain("document.addEventListener('click', function (evt)");
+    expect(analyze).toContain("evt.target.closest('[data-ss-export-clip]')");
+  });
+
+  test('Click handler uses clip-export API + surfaces result via toast', () => {
+    expect(analyze).toContain('window.SmartSwingClipExport');
+    expect(analyze).toContain('api.exportSession({ summary: summary }');
+    expect(analyze).toContain("_ssToast('Clip exported");
+    expect(analyze).toContain("_ssToast('Export failed");
+  });
+});
+
 describe('Scoring Phase 4 — benchmark calibration tooling', () => {
   const { aggregateObservations, validateObservation, _internals } =
     require(path.join(ROOT, 'tools/calibration/aggregate.js'));
