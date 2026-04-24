@@ -89,6 +89,36 @@
     .empty-state { text-align: center; padding: 80px 20px; color: var(--text-dim); }
     .empty-state h2 { color: var(--text); margin-bottom: 12px; }
     .empty-state a { font-weight: 600; }
+
+    /* Print styles — "Download PDF" opens the browser print dialog with a
+       clean report layout (saves as PDF via the OS's built-in PDF printer).
+       Nav chrome, action buttons, and the paywall banner all hide; timeline
+       markers keep their color via the browser's color-adjust hint. */
+    @media print {
+      @page { size: letter; margin: 0.5in; }
+      html, body { background: #ffffff !important; color: #111 !important; }
+      a { color: #111 !important; text-decoration: none; }
+      header.page-top > div:last-child,
+      .paywall,
+      #saveStatus,
+      .back-link,
+      #saveMatchReportBtn,
+      #printMatchReportBtn { display: none !important; }
+      .stat-card, .timeline, .rally-item {
+        background: #fff !important;
+        border-color: #ddd !important;
+        color: #111 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+      }
+      .stat-value, .rally-time, .section-title, .paywall h3 { color: #0a8a00 !important; }
+      .stat-label, .stat-sub, .timeline-axis, .rally-meta small { color: #555 !important; }
+      .rally-item.locked { opacity: 1 !important; filter: none !important; }
+      .rally-marker {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
   </style>
   <script src="./app-data.js" defer></script>
   <script src="./public-app-config.js" defer></script>
@@ -102,6 +132,11 @@
         <div style="color: var(--text-dim); font-size: 13px; margin-top: 4px;" data-i18n="matchReport.subtitle">Per-rally breakdown from your match video</div>
       </div>
       <div style="display:flex; align-items:center; gap:12px;">
+        <button id="printMatchReportBtn" type="button"
+                style="display:none; background:transparent; color:var(--volt); border:1px solid var(--volt); padding:9px 16px; border-radius:10px; font-weight:700; cursor:pointer; font-size:13px;"
+                data-i18n="matchReport.downloadPdf">
+          Download PDF
+        </button>
         <button id="saveMatchReportBtn" type="button"
                 style="display:none; background:var(--volt); color:#000; border:0; padding:10px 20px; border-radius:10px; font-weight:800; cursor:pointer; font-size:14px;"
                 data-i18n="matchReport.saveButton">
@@ -168,6 +203,22 @@
       if (saveBtn && paid) {
         saveBtn.style.display = 'inline-block';
         saveBtn.addEventListener('click', () => saveMatchReport(report, saveBtn, saveStatus));
+      }
+
+      // Download PDF — opens the browser print dialog, which lets the user
+      // save as PDF via the OS's built-in "Print to PDF" printer. Gated to
+      // Performance: free users see the preview tier on screen but can't
+      // take it offline (consistent with the library-save gate).
+      const printBtn = document.getElementById('printMatchReportBtn');
+      if (printBtn && paid) {
+        printBtn.style.display = 'inline-block';
+        printBtn.addEventListener('click', () => {
+          // Nudge the page to a clean scroll position so the browser's print
+          // preview starts at the top even if the user clicked after
+          // scrolling into the rally list.
+          window.scrollTo({ top: 0 });
+          setTimeout(() => window.print(), 50);
+        });
       }
     })();
 
