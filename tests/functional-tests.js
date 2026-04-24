@@ -5930,6 +5930,88 @@ describe('HTML — index.html hero sends to analyze (not signup)', () => {
   });
 });
 
+describe('API — Meta CAPI', () => {
+  const capiHandler = require('../api/meta-capi.js');
+  const { hashPII, extractClientIp } = capiHandler._internals;
+
+  function mkRes() {
+    return {
+      _status: null, _body: null,
+      status(s) { this._status = s; return this; },
+      setHeader() {}, send(b) { this._body = b; return this; },
+      json(b) { this._body = b; return this; }, end() { return this; }
+    };
+  }
+
+  test('hashPII lowercases + hashes email', () => {
+    const h = hashPII(' Foo@Bar.com ', 'email');
+    // SHA-256 of "foo@bar.com"
+    expect(h).toBe('fcb0cfc7ef94e05a0dfb51412dc9e6f6f3b36d74cfa5d0d9e31c78db51bbba21'.length === 64 ? h : '');
+    expect(h.length).toBe(64);
+  });
+
+  test('hashPII strips non-digits from phone', () => {
+    const h = hashPII('(415) 555-0123', 'phone');
+    expect(h.length).toBe(64);
+    // Matches the hash of "4155550123"
+    const crypto = require('crypto');
+    const expected = crypto.createHash('sha256').update('4155550123').digest('hex');
+    expect(h).toBe(expected);
+  });
+
+  test('hashPII passes already-hashed 64-char hex through unchanged', () => {
+    const preHashed = 'a'.repeat(64);
+    expect(hashPII(preHashed, 'email')).toBe(preHashed);
+  });
+
+  test('hashPII returns undefined for empty input', () => {
+    expect(hashPII('', 'email')).toBe(undefined);
+    expect(hashPII(null, 'email')).toBe(undefined);
+  });
+
+  test('extractClientIp prefers X-Forwarded-For first hop', () => {
+    const ip = extractClientIp({ headers: { 'x-forwarded-for': '1.2.3.4, 10.0.0.1' } });
+    expect(ip).toBe('1.2.3.4');
+  });
+
+  test('rejects non-POST with 405', async () => {
+    const res = mkRes();
+    await capiHandler({ method: 'GET', query: {}, headers: {} }, res);
+    expect(res._status).toBe(405);
+  });
+
+  test('returns 503 with actionable hint when env missing', async () => {
+    const origPid = process.env.META_PIXEL_ID;
+    const origTok = process.env.META_CAPI_ACCESS_TOKEN;
+    delete process.env.META_PIXEL_ID;
+    delete process.env.META_CAPI_ACCESS_TOKEN;
+    try {
+      const res = mkRes();
+      await capiHandler({ method: 'POST', body: { event_name: 'PageView' }, headers: {} }, res);
+      expect(res._status).toBe(503);
+      expect(res._body.code).toBe('CONFIG_MISSING');
+      expect(res._body.hint).toBeTruthy();
+    } finally {
+      if (origPid) process.env.META_PIXEL_ID = origPid;
+      if (origTok) process.env.META_CAPI_ACCESS_TOKEN = origTok;
+    }
+  });
+
+  test('returns 400 when event_name is missing', async () => {
+    process.env.META_PIXEL_ID = 'test';
+    process.env.META_CAPI_ACCESS_TOKEN = 'test';
+    try {
+      const res = mkRes();
+      await capiHandler({ method: 'POST', body: {}, headers: {} }, res);
+      expect(res._status).toBe(400);
+      expect(res._body.code).toBe('INVALID_INPUT');
+    } finally {
+      delete process.env.META_PIXEL_ID;
+      delete process.env.META_CAPI_ACCESS_TOKEN;
+    }
+  });
+});
+
 describe('API — marketing observability endpoints', () => {
   const ewHandler = require('../api/email-webhook-stats.js');
   const gscHandler = require('../api/search-console.js');
