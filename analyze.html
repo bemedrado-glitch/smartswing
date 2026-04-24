@@ -1123,6 +1123,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link rel="stylesheet" href="./scoring-changed-notice.css">
 <script src="./scoring-changed-notice.js" defer></script>
 <script src="./clip-export.js" defer></script>
+<!-- Match analysis (Phase A) — multi-player tracker + rally segmenter +
+     chunked processor + click-to-pick controller. Loaded non-blocking;
+     match mode is opt-in via the toggle below the video. -->
+<script src="./match/player-tracker.js" defer></script>
+<script src="./match/rally-segmenter.js" defer></script>
+<script src="./match/chunked-processor.js" defer></script>
+<script src="./match/match-mode.js" defer></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1576,6 +1583,36 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <button class="btn btn-secondary" id="retryAiBtn">Retry AI Setup</button>
               <button class="btn btn-primary" id="saveBtn" style="display: none;">Save Analysis</button>
               <button class="btn btn-primary" id="generateReportBtn" style="display: none;">Generate Report</button>
+            </div>
+
+            <!-- Match-mode toggle + auto-suggest banner (Phase A / PR 4).
+                 Toggle is always visible; the banner auto-surfaces when the
+                 loaded video is >2 min long OR when the first few frames of
+                 analysis see multiple people. Clicking the toggle arms match
+                 mode; clicking the banner's "Enable" shortcut does the same
+                 plus shows a helper tip. -->
+            <div id="matchModeBar" style="margin-top: 12px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+              <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary, #9aa0a6);">
+                <input type="checkbox" id="matchModeToggle" style="accent-color: var(--neon-green, #39ff14); width: 16px; height: 16px;" />
+                <span>Match mode <span style="opacity:0.7;font-weight:400;">(analyze full matches · pick a player)</span></span>
+              </label>
+              <span id="matchModeSubjectStatus" style="font-size: 12px; color: var(--text-secondary, #9aa0a6); display: none;"></span>
+            </div>
+            <div id="matchModeBanner" role="status" aria-live="polite"
+                 style="margin-top: 10px; display: none; padding: 10px 14px;
+                        background: rgba(57,255,20,0.08); border: 1px solid rgba(57,255,20,0.35);
+                        border-radius: 8px; font-size: 13px; color: var(--text-primary, #f0f0f0);
+                        display: none;">
+              <strong>Looks like a match video.</strong>
+              Enable <em>Match mode</em> to pick which player to analyze, and we'll segment rallies for you.
+              <button type="button" id="matchModeBannerEnable"
+                      style="margin-left: 8px; background: var(--neon-green, #39ff14); color: #000; border: 0; padding: 6px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px;">
+                Enable
+              </button>
+              <button type="button" id="matchModeBannerDismiss" aria-label="Dismiss"
+                      style="margin-left: 4px; background: transparent; color: inherit; border: 0; padding: 6px 8px; cursor: pointer; font-size: 14px;">
+                ×
+              </button>
             </div>
           </div>
 
@@ -2942,6 +2979,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               await withTimeout(tf.setBackend('cpu'), AI_SETTINGS.backendTimeoutMs, 'cpu setup');
               await withTimeout(tf.ready(), AI_SETTINGS.backendTimeoutMs, 'cpu ready');
               backend = 'cpu';
+              // When match mode is armed, prefer MULTIPOSE_LIGHTNING as the FIRST
+              // strategy — it's the only model here that returns multiple poses
+              // per frame, which is what the MatchProcessor pipeline needs.
+              if (window.__smartswingMatchModeArmed) {
+                detectorStrategies.unshift({
+                  id: 'movenet-multipose-cpu',
+                  label: 'MoveNet MultiPose (match mode)',
+                  stage: 'detector-movenet-multipose-cpu',
+                  fpsCap: AI_SETTINGS.cpuMoveNetFpsCap,
+                  create: () => poseDetection.createDetector(
+                    poseDetection.SupportedModels.MoveNet,
+                    { modelType: poseDetection.movenet.modelType.MULTIPOSE_LIGHTNING, enableSmoothing: true }
+                  )
+                });
+              }
               detectorStrategies.push({
                 id: 'movenet-thunder-cpu',
                 label: 'MoveNet Thunder (CPU fallback)',
@@ -3334,7 +3386,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         lastFrameAt = now;
 
         const detectorInput = getDetectorInput(video);
-        const poses = await detector.estimatePoses(detectorInput.source);
+        let poses = await detector.estimatePoses(detectorInput.source);
+        // Match-mode hook (Phase A / PR 4 slice 2). When match mode is armed
+        // and a subject has been picked, we redirect the scorer to that
+        // subject's pose only; pre-pick frames still feed the tracker so the
+        // UI can render clickable overlays, but skip the single-pose scorer.
+        if (typeof window.__smartswingMatchModeOnFrame === 'function') {
+          const hookResult = window.__smartswingMatchModeOnFrame(
+            analysisData.frames.length,
+            poses || [],
+            detectorInput
+          );
+          if (hookResult && hookResult.skipScoring) {
+            // finally{} below will schedule the next frame; just bail from scoring.
+            return;
+          }
+          if (hookResult && hookResult.subjectPose) {
+            poses = [hookResult.subjectPose];
+          }
+        }
         if (poses && poses.length > 0) {
           const canvas = document.getElementById('poseCanvas');
           const transform = getSourceFitTransform(detectorInput.width, detectorInput.height, canvas);
@@ -9010,6 +9080,207 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       // Also expose so the outer generateReport wrapper can find it
       window._analyzeDrawScoreCard = drawAnalyzeScoreCard;
+    })();
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Match-mode wiring (Phase A / PR 4 slice 2)
+    // ═══════════════════════════════════════════════════════════════════════
+    // Glues the match-mode controller into the analyze loop. Keep this block
+    // self-contained so the rest of the capture loop is blissfully unaware
+    // of match mode until the user opts in.
+    //
+    // Contract with the capture loop:
+    //   window.__smartswingMatchModeArmed     → bool, read during initPoseEngine
+    //   window.__smartswingMatchModeOnFrame   → fn(frameIdx, poses, detectorInput)
+    //                                           returns { skipScoring?, subjectPose? }
+    (function setupMatchMode() {
+      const toggle       = document.getElementById('matchModeToggle');
+      const banner       = document.getElementById('matchModeBanner');
+      const bannerEnable = document.getElementById('matchModeBannerEnable');
+      const bannerDismiss= document.getElementById('matchModeBannerDismiss');
+      const subjStatus   = document.getElementById('matchModeSubjectStatus');
+      const canvas       = document.getElementById('poseCanvas');
+      const video        = document.getElementById('videoElement');
+      if (!toggle || !canvas || !video) return; // page not on step 4 yet — bail.
+
+      let controller = null;
+      let multiPoseCache = [];     // last frame's raw detections (canvas-space bboxes)
+      let lastDetectorTransform = null; // for click coordinate translation
+
+      function ensureController() {
+        if (controller) return controller;
+        const trackerMod   = window.SmartSwingPlayerTracker;
+        const processorMod = window.SmartSwingMatchProcessor;
+        const mmMod        = window.SmartSwingMatchMode;
+        if (!trackerMod || !processorMod || !mmMod) {
+          console.warn('[match-mode] modules not yet loaded');
+          return null;
+        }
+        const tracker   = new trackerMod.PlayerTracker({ maxAbsentFrames: 90 });
+        const processor = new processorMod.MatchProcessor({
+          tracker,
+          chunkSize: 900,
+          overlapFrames: 60,
+          retainFrames: 300,
+          subjectHint: { side: 'near' },
+          canvasHeight: canvas.height || 720,
+          segmenterOpts: { activationThreshold: 8, minRallyFrames: 12 }
+        });
+        controller = new mmMod.MatchModeController({
+          processor,
+          canvasWidth:  canvas.width  || 1280,
+          canvasHeight: canvas.height || 720,
+          minSubjectPoses: 15
+        });
+        controller.on('subjectPicked', (payload) => {
+          if (subjStatus) {
+            subjStatus.style.display = 'inline';
+            subjStatus.textContent = '✓ Analyzing ' + (payload.track && payload.track.side ? payload.track.side + ' player' : 'selected player');
+          }
+        });
+        controller.on('subjectCleared', () => {
+          if (subjStatus) { subjStatus.textContent = ''; subjStatus.style.display = 'none'; }
+        });
+        return controller;
+      }
+
+      // Translate detector-space bbox → canvas-space rect for hit-testing + drawing.
+      function projectBoxToCanvas(box, dt) {
+        if (!dt) return box;
+        return {
+          x: box.x * dt.scaleX + dt.offsetX,
+          y: box.y * dt.scaleY + dt.offsetY,
+          w: box.w * dt.scaleX,
+          h: box.h * dt.scaleY
+        };
+      }
+
+      // Draw bbox overlays on top of the pose canvas. We use the canvas's own
+      // 2D context — the existing pose-drawing already paints here, so the
+      // overlays layer cleanly on top once per frame.
+      function drawOverlays() {
+        if (!controller) return;
+        const overlays = controller.getOverlays();
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.save();
+        ctx.lineWidth = 3;
+        ctx.font = '14px system-ui, sans-serif';
+        overlays.forEach((o) => {
+          const box = projectBoxToCanvas(o.bbox, lastDetectorTransform);
+          ctx.strokeStyle = o.isSubject ? '#39ff14' : 'rgba(255,255,255,0.7)';
+          ctx.fillStyle   = o.isSubject ? 'rgba(57,255,20,0.15)' : 'rgba(0,0,0,0.35)';
+          ctx.fillRect(box.x, box.y, box.w, box.h);
+          ctx.strokeRect(box.x, box.y, box.w, box.h);
+          // Label
+          const label = o.label;
+          ctx.fillStyle = o.isSubject ? '#39ff14' : '#ffffff';
+          ctx.fillText(label, box.x + 6, box.y + 18);
+        });
+        ctx.restore();
+      }
+
+      // The hook invoked from analyzeFrame each detection. Returns either:
+      //   - { skipScoring: true } to skip single-pose scoring (pre-pick)
+      //   - { subjectPose: <pose> } to redirect scorer to the picked subject
+      //   - nothing → fallthrough to default single-pose behavior
+      window.__smartswingMatchModeOnFrame = function (frameIdx, poses, detectorInput) {
+        if (!toggle.checked) return undefined;
+        const c = ensureController();
+        if (!c) return undefined;
+        // Compute the detector→canvas transform. `getSourceFitTransform` is
+        // defined in analyze.html's inner scope; re-derive a simple mapping
+        // from the detectorInput dimensions.
+        lastDetectorTransform = {
+          scaleX: (canvas.width  || 1280) / (detectorInput.width  || 1280),
+          scaleY: (canvas.height || 720)  / (detectorInput.height || 720),
+          offsetX: 0,
+          offsetY: 0
+        };
+        c.ingestFrame(frameIdx, poses || []);
+        multiPoseCache = poses || [];
+        // Draw overlays over whatever the scorer is about to paint.
+        requestAnimationFrame(drawOverlays);
+
+        // Auto-pick fallback after the threshold (150 frames ≈ 5s at 30fps).
+        c.autoPickIfReady({ afterFrames: 150 });
+
+        const subjectId = c.getSubjectTrackId();
+        if (!subjectId) {
+          return { skipScoring: true };
+        }
+        // Redirect scorer to the subject's pose this frame.
+        const subjectPose = c.getSubjectPose(frameIdx);
+        if (!subjectPose) return { skipScoring: true };
+        return { subjectPose };
+      };
+
+      // Canvas click → hit-test → pick subject.
+      canvas.addEventListener('click', (ev) => {
+        if (!toggle.checked || !controller) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width  / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (ev.clientX - rect.left) * scaleX;
+        const y = (ev.clientY - rect.top)  * scaleY;
+        // Project canvas-space click → detector-space for hit-testing
+        // (overlays live in detector space inside the controller).
+        if (!lastDetectorTransform) return;
+        const dx = (x - lastDetectorTransform.offsetX) / (lastDetectorTransform.scaleX || 1);
+        const dy = (y - lastDetectorTransform.offsetY) / (lastDetectorTransform.scaleY || 1);
+        controller.pickAt(dx, dy);
+      });
+
+      // Toggle armed state — reset triggers a re-run from frame 0 per product
+      // decision (A): deterministic rally coverage.
+      function applyArmedState(on) {
+        window.__smartswingMatchModeArmed = !!on;
+        if (on) {
+          ensureController();
+          if (subjStatus) {
+            subjStatus.style.display = 'inline';
+            subjStatus.textContent = 'Click the player you want to analyze.';
+          }
+        } else {
+          if (controller) controller.reset();
+          if (subjStatus) { subjStatus.textContent = ''; subjStatus.style.display = 'none'; }
+        }
+        // Detector needs to be recreated (single↔multi pose models differ).
+        // Setting `detector = null` forces initPoseEngine to re-run.
+        try { window.detector = null; } catch (_) {}
+        if (!video.paused) { try { video.pause(); } catch (_) {} }
+        try { video.currentTime = 0; } catch (_) {}
+      }
+
+      toggle.addEventListener('change', () => applyArmedState(toggle.checked));
+
+      // Auto-suggest banner: show when the loaded video duration ≥ 120s OR
+      // after a few frames of analysis saw ≥ 2 distinct tracks. User can
+      // dismiss it per-session.
+      let bannerDismissed = false;
+      function maybeShowBanner() {
+        if (bannerDismissed || toggle.checked) return;
+        if (!banner) return;
+        banner.style.display = 'block';
+      }
+      video.addEventListener('loadedmetadata', () => {
+        if (Number.isFinite(video.duration) && video.duration >= 120) {
+          maybeShowBanner();
+        }
+      });
+      if (bannerEnable) {
+        bannerEnable.addEventListener('click', () => {
+          toggle.checked = true;
+          applyArmedState(true);
+          banner.style.display = 'none';
+        });
+      }
+      if (bannerDismiss) {
+        bannerDismiss.addEventListener('click', () => {
+          bannerDismissed = true;
+          banner.style.display = 'none';
+        });
+      }
     })();
   </script>
 
