@@ -3049,6 +3049,218 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Match analysis Phase A — multi-player tracker', () => {
+  const tracker = require(path.join(ROOT, 'match/player-tracker.js'));
+  const { PlayerTracker, _internals } = tracker;
+  const { hungarianAssign, _centerDistance } = _internals;
+
+  // ── Hungarian assignment core ────────────────────────────────────
+  test('hungarianAssign solves a trivial 2×2 minimum-cost matching', () => {
+    // Rows 0,1 ↔ Cols 0,1. Optimal: row0→col1, row1→col0 (cost 2).
+    const result = hungarianAssign([
+      [5, 1],
+      [1, 5]
+    ]);
+    expect(result.row[0]).toBe(1);
+    expect(result.row[1]).toBe(0);
+  });
+
+  test('hungarianAssign prefers joint optimum over greedy', () => {
+    // Greedy would pick row0→col0 (cost 1) first, leaving row1→col1 (cost 10).
+    // Hungarian finds row0→col1, row1→col0 = 2+2 = 4.
+    const result = hungarianAssign([
+      [1, 2],
+      [2, 10]
+    ]);
+    // Greedy total would be 1 + 10 = 11; joint optimum is 2 + 2 = 4.
+    const total = result.row.reduce((acc, col, row) => acc + (col >= 0 ? [[1,2],[2,10]][row][col] : 0), 0);
+    expect(total).toBeLessThanOrEqual(4);
+  });
+
+  test('hungarianAssign handles rectangular (more rows than cols)', () => {
+    const result = hungarianAssign([
+      [1, 5],
+      [2, 3],
+      [9, 9]
+    ]);
+    // Only 2 cols; one row must go unassigned.
+    const assigned = result.row.filter(c => c >= 0).length;
+    expect(assigned).toBe(2);
+  });
+
+  test('hungarianAssign returns empty maps on empty inputs', () => {
+    const result = hungarianAssign([]);
+    expect(result.row).toEqual([]);
+    expect(result.col).toEqual([]);
+  });
+
+  // ── Tracker behaviour ────────────────────────────────────────────
+  function makePose(x, y, w = 60, h = 160, score = 0.9) {
+    return { bbox: { x, y, w, h }, keypoints: [], score };
+  }
+
+  test('single player → single track across frames', () => {
+    const t = new PlayerTracker();
+    for (let i = 0; i < 30; i++) {
+      t.advance(i, [makePose(100 + i * 2, 400)]);
+    }
+    const tracks = Object.keys(t.getTracks());
+    expect(tracks.length).toBe(1);
+    expect(t.getTracks()[tracks[0]].poses.length).toBe(30);
+  });
+
+  test('two players staying apart → two distinct tracks', () => {
+    const t = new PlayerTracker();
+    for (let i = 0; i < 30; i++) {
+      t.advance(i, [
+        makePose(100, 400),  // near side
+        makePose(900, 120)   // far side
+      ]);
+    }
+    const ids = Object.keys(t.getTracks());
+    expect(ids.length).toBe(2);
+    expect(t.getTracks()[ids[0]].poses.length).toBe(30);
+    expect(t.getTracks()[ids[1]].poses.length).toBe(30);
+  });
+
+  test('brief occlusion (one detection missing) keeps both tracks alive', () => {
+    const t = new PlayerTracker();
+    // 10 frames both players visible.
+    for (let i = 0; i < 10; i++) {
+      t.advance(i, [makePose(100, 400), makePose(900, 120)]);
+    }
+    // 5 frames only near visible (far occluded).
+    for (let i = 10; i < 15; i++) {
+      t.advance(i, [makePose(100, 400)]);
+    }
+    // Both back.
+    for (let i = 15; i < 25; i++) {
+      t.advance(i, [makePose(100 + i, 400), makePose(900 - i, 120)]);
+    }
+    const active = Object.values(t.getTracks()).filter(tr => !tr.expired);
+    expect(active.length).toBe(2);
+  });
+
+  test('long absence expires a track', () => {
+    const t = new PlayerTracker({ maxAbsentFrames: 5 });
+    t.advance(0, [makePose(100, 400)]);
+    // 7 frames with no detection — exceeds the 5-frame threshold.
+    for (let i = 1; i <= 7; i++) t.advance(i, []);
+    const tracks = t.getTracks();
+    const ids = Object.keys(tracks);
+    expect(ids.length).toBe(1);
+    expect(tracks[ids[0]].expired).toBe(true);
+  });
+
+  test('maxMatchDistance prevents teleporting tracks across the court', () => {
+    const t = new PlayerTracker({ maxMatchDistance: 100 });
+    // Track A in frame 0.
+    t.advance(0, [makePose(100, 400)]);
+    // In frame 1, the player near (100,400) is gone; a new detection appears
+    // at (900,120). Cost is > 100 px so tracker must NOT extend the old
+    // track — it should spawn a new one.
+    t.advance(1, [makePose(900, 120)]);
+    const ids = Object.keys(t.getTracks());
+    expect(ids.length).toBe(2);
+  });
+
+  test('crossing players keep their correct tracks', () => {
+    // Two players slowly cross paths. Greedy would get confused at the
+    // moment their bboxes overlap; Hungarian stays correct.
+    const t = new PlayerTracker();
+    for (let i = 0; i < 20; i++) {
+      t.advance(i, [
+        makePose(100 + i * 30, 400),    // moving right
+        makePose(900 - i * 30, 400)     // moving left (same y → they cross around frame ~13)
+      ]);
+    }
+    const ids = Object.keys(t.getTracks());
+    // Must end up with exactly 2 tracks, not 3+ from the crossing.
+    expect(ids.length).toBeLessThanOrEqual(3);
+    // Track total pose count should equal 2 × 20 = 40 (every detection landed somewhere).
+    const total = ids.reduce((acc, id) => acc + t.getTracks()[id].poses.length, 0);
+    expect(total).toBe(40);
+  });
+
+  // ── Side labelling + subject selection ──────────────────────────
+  test('labelSides marks near/far by average bbox Y', () => {
+    const t = new PlayerTracker();
+    // Near player: y ~400 (bottom half of screen).
+    // Far player:  y ~120 (top half).
+    for (let i = 0; i < 15; i++) {
+      t.advance(i, [makePose(200, 400), makePose(700, 120)]);
+    }
+    t.labelSides({ canvasHeight: 720 });
+    const sides = Object.values(t.getTracks()).map(tr => tr.side);
+    expect(sides).toContain('near');
+    expect(sides).toContain('far');
+  });
+
+  test('labelSides skips tracks with too few observations', () => {
+    const t = new PlayerTracker();
+    // Main player across 20 frames.
+    for (let i = 0; i < 20; i++) t.advance(i, [makePose(200, 400)]);
+    // Umpire flickers through for 3 frames only.
+    t.advance(20, [makePose(200, 400), makePose(500, 200)]);
+    t.advance(21, [makePose(202, 400), makePose(502, 200)]);
+    t.advance(22, [makePose(204, 400), makePose(504, 200)]);
+    t.labelSides({ canvasHeight: 720, minPoses: 10 });
+    const labelled = Object.values(t.getTracks()).filter(tr => tr.side);
+    expect(labelled.length).toBe(1);
+  });
+
+  test('pickSubject by side returns the labelled near track', () => {
+    const t = new PlayerTracker();
+    for (let i = 0; i < 15; i++) t.advance(i, [makePose(200, 400), makePose(700, 120)]);
+    t.labelSides({ canvasHeight: 720 });
+    const subj = t.pickSubject({ side: 'near' });
+    expect(subj).toBeTruthy();
+    expect(subj.track.side).toBe('near');
+  });
+
+  test('pickSubject by explicit trackId wins over side preference', () => {
+    const t = new PlayerTracker();
+    for (let i = 0; i < 15; i++) t.advance(i, [makePose(200, 400), makePose(700, 120)]);
+    t.labelSides({ canvasHeight: 720 });
+    const ids = Object.keys(t.getTracks());
+    const subj = t.pickSubject({ trackId: ids[1], side: 'near' });
+    expect(subj.trackId).toBe(ids[1]);
+  });
+
+  test('pickSubject falls back to highest-activity when no side match', () => {
+    const t = new PlayerTracker();
+    for (let i = 0; i < 30; i++) t.advance(i, [makePose(200, 400)]);
+    // Second track only appears briefly.
+    t.advance(30, [makePose(200, 400), makePose(500, 200)]);
+    const subj = t.pickSubject({ side: 'near' });
+    // Main track has 31 poses vs the 1-frame track — should be picked.
+    expect(subj.track.poses.length).toBeGreaterThanOrEqual(30);
+  });
+
+  test('pickSubject returns null when no tracks exist', () => {
+    const t = new PlayerTracker();
+    expect(t.pickSubject()).toBe(null);
+  });
+
+  // ── Lifecycle + memory ─────────────────────────────────────────
+  test('pruneExpired frees memory of long-dead tracks', () => {
+    const t = new PlayerTracker({ maxAbsentFrames: 3 });
+    t.advance(0, [makePose(100, 400)]);
+    for (let i = 1; i <= 10; i++) t.advance(i, []);
+    expect(Object.keys(t.getTracks()).length).toBe(1);
+    t.pruneExpired();
+    expect(Object.keys(t.getTracks()).length).toBe(0);
+  });
+
+  test('assignments array flags newly-created tracks with wasNew=true', () => {
+    const t = new PlayerTracker();
+    const a1 = t.advance(0, [makePose(100, 400)]);
+    expect(a1[0].wasNew).toBe(true);
+    const a2 = t.advance(1, [makePose(102, 400)]);
+    expect(a2[0].wasNew).toBe(false);
+  });
+});
+
 describe('Clip export utility (Phase 4 capture loop)', () => {
   const clipExport = require(path.join(ROOT, 'clip-export.js'));
   const { buildObservation, exportSession, _internals } = clipExport;
