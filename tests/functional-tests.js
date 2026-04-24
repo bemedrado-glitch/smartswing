@@ -4566,12 +4566,18 @@ describe('Scoring Phase 1 — angular velocity + raw measurements + honest label
     expect(src).toContain('currentVelocity = null');
   });
 
-  test('Blend weights target 50/25/25 (angle/velocity/ROM) with graceful fallback', () => {
-    // Phase 2 introduced ROM as a third sub-signal. When ROM is present the
-    // blend is 50/25/25; when only velocity is present the 70/30 behaviour
-    // emerges via the weight-normalization fallback.
-    expect(src).toContain('const partWeights = { angle: 0.50, velocity: 0.25, rom: 0.25 };');
+  test('Blend weights target 60/20/20 (angle/velocity/ROM) with graceful fallback', () => {
+    // Phase 2 introduced ROM as a third sub-signal. Phase 5 recalibration
+    // (PR closing out "scoring too low" complaint): weights shifted from
+    // 50/25/25 to 60/20/20 so angle — the best-calibrated signal — stays
+    // dominant. Velocity and ROM are also level-adjusted via
+    // getAdjustedKineticBenchmark so amateurs aren't scored against pro
+    // peak velocities. A grace clamp prevents the blend from dropping
+    // more than 12 points below raw angle.
+    expect(src).toContain('const partWeights = { angle: 0.60, velocity: 0.20, rom: 0.20 };');
     expect(src).toContain('totalWeight');
+    expect(src).toContain('getAdjustedKineticBenchmark');
+    expect(src).toContain('angleResult.rawScore - 12');
   });
 
   test('Comparison carries angleScore + velocityScore + velocity + velocityTarget', () => {
