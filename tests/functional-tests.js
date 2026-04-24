@@ -5930,6 +5930,71 @@ describe('HTML — index.html hero sends to analyze (not signup)', () => {
   });
 });
 
+describe('API — marketing observability endpoints', () => {
+  const ewHandler = require('../api/email-webhook-stats.js');
+  const gscHandler = require('../api/search-console.js');
+
+  function mkRes() {
+    return {
+      _status: null, _body: null, _headers: {},
+      status(s) { this._status = s; return this; },
+      setHeader(k, v) { this._headers[k] = v; },
+      json(b) { this._body = b; return this; },
+      send(b) { this._body = b; return this; },
+      end() { return this; }
+    };
+  }
+
+  test('email-webhook-stats — rejects non-GET with 405', async () => {
+    const res = mkRes();
+    await ewHandler({ method: 'POST', query: {} }, res);
+    expect(res._status).toBe(405);
+  });
+
+  test('email-webhook-stats — returns 503 when Supabase env missing', async () => {
+    const origUrl = process.env.SUPABASE_URL;
+    const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    try {
+      const res = mkRes();
+      await ewHandler({ method: 'GET', query: {} }, res);
+      expect(res._status).toBe(503);
+      expect(res._body.error).toBeTruthy();
+      expect(res._body.code).toBe('CONFIG_MISSING');
+    } finally {
+      if (origUrl) process.env.SUPABASE_URL = origUrl;
+      if (origKey) process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+    }
+  });
+
+  test('search-console — rejects non-GET with 405', async () => {
+    const res = mkRes();
+    await gscHandler({ method: 'POST', query: {} }, res);
+    expect(res._status).toBe(405);
+  });
+
+  test('search-console — returns actionable 503 when GSC env missing', async () => {
+    const origSa  = process.env.GSC_SERVICE_ACCOUNT_JSON;
+    const origUrl = process.env.GSC_SITE_URL;
+    delete process.env.GSC_SERVICE_ACCOUNT_JSON;
+    delete process.env.GSC_SITE_URL;
+    try {
+      const res = mkRes();
+      await gscHandler({ method: 'GET', query: {} }, res);
+      expect(res._status).toBe(503);
+      expect(res._body.error).toBeTruthy();
+      expect(res._body.code).toBe('CONFIG_MISSING');
+      expect(res._body.hint).toBeTruthy();
+      expect(Array.isArray(res._body.details.missing)).toBe(true);
+      expect(res._body.details.setup_steps.length).toBeGreaterThan(0);
+    } finally {
+      if (origSa)  process.env.GSC_SERVICE_ACCOUNT_JSON = origSa;
+      if (origUrl) process.env.GSC_SITE_URL = origUrl;
+    }
+  });
+});
+
 describe('API — cadence CTA redirect allowlist', () => {
   // The allowlist is private to api/marketing.js. We mirror it here for direct testing
   // of the URL parser logic. If the production allowlist changes, update this list.
