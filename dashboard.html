@@ -1420,6 +1420,86 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           ${deltaHTML}
         </div>`;
       }).join('');
+
+      // Async: surface match reports saved to analysis_reports (Phase A / PR 5 slice C).
+      // Non-blocking — if the user isn't signed in or the table hasn't had a
+      // match report added yet, we silently skip without affecting single-swing
+      // report rendering above.
+      (async function appendMatchReports() {
+        try {
+          const s = window.SmartSwingStore;
+          if (!s || typeof s.getSupabaseClient !== 'function') return;
+          const client = await s.getSupabaseClient();
+          if (!client) return;
+          const { data: userRes } = await client.auth.getUser();
+          const u = userRes && userRes.user;
+          if (!u) return;
+          const { data: matchRows, error } = await client
+            .from('analysis_reports')
+            .select('id, match_summary, subject_track_id, created_at')
+            .eq('user_id', u.id)
+            .eq('is_match_report', true)
+            .order('created_at', { ascending: false })
+            .limit(4);
+          if (error || !Array.isArray(matchRows) || matchRows.length === 0) return;
+
+          const cards = matchRows.map((row, idx) => {
+            const summary = row.match_summary || {};
+            const rallyCount = summary.rallyCount || 0;
+            const span = summary.spanSeconds || 0;
+            const dateStr = new Date(row.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const minutes = Math.max(1, Math.round(span / 60));
+            // Dominant shot type for the summary line.
+            const pct = summary.shotBreakdownPct || {};
+            const topShot = Object.entries(pct).sort((a, b) => b[1] - a[1])[0];
+            const topShotLabel = topShot ? `${topShot[0]} ${topShot[1]}%` : '';
+            return `<div class="report-card" data-match-report-id="${row.id}" style="cursor:pointer;">
+              <div class="report-score-badge" style="background:rgba(57,255,20,0.12);border:1px solid rgba(57,255,20,0.35);">
+                <div class="report-score-val" style="color:#39ff14;">${rallyCount}</div>
+                <div class="report-score-pct" style="color:#39ff14;font-size:10px;">rallies</div>
+              </div>
+              <div class="report-info">
+                <div class="report-title">Match · ${dateStr}</div>
+                <div class="report-meta">${minutes}m${topShotLabel ? ' · ' + topShotLabel : ''} · MATCH-${row.id.slice(-6).toUpperCase()}</div>
+              </div>
+              <span class="report-delta" style="background:rgba(57,255,20,0.15);color:#39ff14;border-color:rgba(57,255,20,0.35);">MATCH</span>
+            </div>`;
+          }).join('');
+
+          // Render match reports above single-swing reports for visibility.
+          const header = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(57,255,20,0.7);margin:6px 0 4px;">Match reports</div>';
+          el.insertAdjacentHTML('afterbegin', header + cards);
+
+          // Clicking a match-report card routes to match-report.html with the saved
+          // payload re-loaded from Supabase.
+          el.querySelectorAll('[data-match-report-id]').forEach((card) => {
+            card.addEventListener('click', async () => {
+              const id = card.getAttribute('data-match-report-id');
+              try {
+                const { data: full, error: e2 } = await client
+                  .from('analysis_reports')
+                  .select('match_rallies, match_summary, subject_track_id')
+                  .eq('id', id)
+                  .maybeSingle();
+                if (e2 || !full) throw e2 || new Error('not found');
+                // Reconstruct a payload match-report.html can render. Poses
+                // aren't persisted, so the drill-down shows no pose window —
+                // fine for historical review.
+                const payload = Object.assign(
+                  { rallies: full.match_rallies || [], subjectTrackId: full.subject_track_id },
+                  full.match_summary || {}
+                );
+                sessionStorage.setItem('smartswing:matchReport', JSON.stringify(payload));
+                window.location.href = './match-report.html';
+              } catch (err) {
+                console.error('[dashboard] open match report failed:', err);
+              }
+            });
+          });
+        } catch (err) {
+          console.warn('[dashboard] match reports fetch non-fatal:', err?.message || err);
+        }
+      })();
     })();
 
     // ── Trend Pill ──────────────────────────────────────────────────────────

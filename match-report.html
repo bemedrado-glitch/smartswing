@@ -101,7 +101,14 @@
         <h1>Match Report</h1>
         <div style="color: var(--text-dim); font-size: 13px; margin-top: 4px;">Per-rally breakdown from your match video</div>
       </div>
-      <a class="back-link" href="./analyze.html">← Back to analysis</a>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button id="saveMatchReportBtn" type="button"
+                style="display:none; background:var(--volt); color:#000; border:0; padding:10px 20px; border-radius:10px; font-weight:800; cursor:pointer; font-size:14px;">
+          Save to library
+        </button>
+        <span id="saveStatus" style="font-size:12px; color:var(--text-dim);"></span>
+        <a class="back-link" href="./analyze.html">← Back to analysis</a>
+      </div>
     </header>
 
     <div id="matchReportRoot">
@@ -152,7 +159,88 @@
           if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
       });
+
+      // Save-to-library button — only for Performance users. Starter/Player
+      // see the report in-session but can't persist it (another upgrade nudge).
+      const saveBtn = document.getElementById('saveMatchReportBtn');
+      const saveStatus = document.getElementById('saveStatus');
+      if (saveBtn && paid) {
+        saveBtn.style.display = 'inline-block';
+        saveBtn.addEventListener('click', () => saveMatchReport(report, saveBtn, saveStatus));
+      }
     })();
+
+    /**
+     * Persist the current match report to Supabase.analysis_reports. Strips
+     * the per-rally pose windows before writing — those live only in-memory
+     * for the live drill-down (migration 20260424 comment documents why).
+     */
+    async function saveMatchReport(report, btn, statusEl) {
+      if (!report) return;
+      const store = window.SmartSwingStore;
+      if (!store || typeof store.getSupabaseClient !== 'function') {
+        statusEl.textContent = 'Cloud save unavailable — make sure you are signed in.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      statusEl.textContent = '';
+
+      try {
+        const client = await store.getSupabaseClient();
+        if (!client) throw new Error('Supabase client unavailable');
+        const { data: userRes } = await client.auth.getUser();
+        const user = userRes && userRes.user;
+        if (!user) throw new Error('Please sign in to save reports.');
+
+        // Strip poses from each rally — they're for live drill-down only.
+        const ralliesNoPoses = (report.rallies || []).map((r) => {
+          const { poses, ...rest } = r;
+          return rest;
+        });
+
+        // Summary snapshot: everything except the per-rally data (which
+        // lives in match_rallies). Include all aggregation metadata the
+        // match-report page needs to re-render (firstFrame, lastFrame,
+        // spanFrames — buildTimeline uses them to compute percentages).
+        const summary = {
+          rallyCount: report.rallyCount,
+          shotBreakdown: report.shotBreakdown,
+          shotBreakdownPct: report.shotBreakdownPct,
+          longestRallyFrames: report.longestRallyFrames,
+          longestRallyIdx: report.longestRallyIdx,
+          avgRallyDurationFrames: report.avgRallyDurationFrames,
+          avgRallyDurationSeconds: report.avgRallyDurationSeconds,
+          totalDurationFrames: report.totalDurationFrames,
+          totalDurationSeconds: report.totalDurationSeconds,
+          firstFrame: report.firstFrame,
+          lastFrame: report.lastFrame,
+          spanFrames: report.spanFrames,
+          spanSeconds: report.spanSeconds,
+          fps: report.fps,
+          handedness: report.handedness
+        };
+
+        const { error } = await client.from('analysis_reports').insert({
+          user_id: user.id,
+          is_match_report: true,
+          match_rallies: ralliesNoPoses,
+          match_summary: summary,
+          subject_track_id: report.subjectTrackId || null,
+          report_format: 'json'
+        });
+        if (error) throw error;
+
+        btn.textContent = '✓ Saved';
+        statusEl.textContent = 'View it in your dashboard under Match reports.';
+      } catch (err) {
+        console.error('[match-report] save failed:', err);
+        btn.disabled = false;
+        btn.textContent = 'Retry save';
+        statusEl.textContent = err.message || 'Save failed. Please try again.';
+      }
+    }
 
     /**
      * Match reports are gated to the Performance plan specifically (not any
