@@ -460,6 +460,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Tasks your athletes have completed from their weekly action plans.</p>
         <div id="playerCompletedTasks"></div>
       </div>
+
+      <!-- Athlete Match Reports (Phase A / PR 5 slice C follow-up).
+           Panel is always visible; content is async-fetched. If an athlete
+           hasn't shared a match report (or RLS blocks the coach from reading
+           it), the empty state explains how to get them flowing. -->
+      <div class="panel" style="margin-top:16px;">
+        <div class="panel-title">Athlete Match Reports</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">
+          Match-mode reports your athletes have shared. Click a card to open the full per-rally breakdown.
+        </p>
+        <div id="athleteMatchReports"></div>
+      </div>
     </div>
 
     <!-- SCHEDULE TAB -->
@@ -719,6 +731,124 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           ${r.recommendations ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">${Array.isArray(r.recommendations) ? r.recommendations.slice(0,2).join(' · ') : String(r.recommendations).slice(0,120)}</div>` : ''}
         </div>`;
       }).join('');
+    })();
+
+    // ── Athlete Match Reports ──
+    // Async query against analysis_reports for rows where is_match_report=true
+    // and user_id is in the coach's athlete roster. Current RLS (athlete-owns-
+    // rows) will filter most results to zero; when a share mechanism ships
+    // (shared_with_coach_id column or coach_player_links table), this panel
+    // lights up without further coach-dashboard changes.
+    (async function renderAthleteMatchReports() {
+      const el = document.getElementById('athleteMatchReports');
+      if (!el) return;
+      const athleteIds = athletes.map(a => a.user && a.user.id).filter(Boolean);
+
+      const emptyState = (headline, body) =>
+        '<div class="empty-state" style="padding:28px 20px;text-align:center;color:var(--muted);">' +
+          '<div style="font-size:28px;margin-bottom:10px;">🎾</div>' +
+          '<div style="color:var(--text);font-weight:700;margin-bottom:6px;">' + headline + '</div>' +
+          '<div style="font-size:13px;line-height:1.5;">' + body + '</div>' +
+        '</div>';
+
+      if (!athleteIds.length) {
+        el.innerHTML = emptyState(
+          'No athletes on your roster yet',
+          'Add athletes to start seeing their match reports here.'
+        );
+        return;
+      }
+
+      try {
+        if (typeof store.getSupabaseClient !== 'function') {
+          el.innerHTML = emptyState('Cloud sync unavailable', 'Reconnect to see match reports.');
+          return;
+        }
+        const client = await store.getSupabaseClient();
+        if (!client) {
+          el.innerHTML = emptyState('Cloud sync unavailable', 'Reconnect to see match reports.');
+          return;
+        }
+
+        const { data: rows, error } = await client
+          .from('analysis_reports')
+          .select('id, user_id, match_summary, subject_track_id, created_at')
+          .eq('is_match_report', true)
+          .in('user_id', athleteIds)
+          .order('created_at', { ascending: false })
+          .limit(24);
+
+        if (error) {
+          console.warn('[coach] match reports query failed:', error.message);
+          el.innerHTML = emptyState(
+            'Match reports not yet shared',
+            'When athletes share a match report with you, it will appear here. (Sharing setup is coming soon.)'
+          );
+          return;
+        }
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+          el.innerHTML = emptyState(
+            'No shared match reports yet',
+            'Ask your athletes to run Match mode in Analyze and share the result. Performance-plan athletes can save them straight to the library.'
+          );
+          return;
+        }
+
+        // Build a name lookup for athletes.
+        const nameByUser = new Map(athletes.map(a => [a.user && a.user.id, a.user && a.user.fullName]));
+
+        el.innerHTML = rows.map((row) => {
+          const summary = row.match_summary || {};
+          const name = nameByUser.get(row.user_id) || 'Athlete';
+          const rallyCount = summary.rallyCount || 0;
+          const minutes = Math.max(1, Math.round((summary.spanSeconds || 0) / 60));
+          const dateStr = new Date(row.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+          const pct = summary.shotBreakdownPct || {};
+          const topShot = Object.entries(pct).sort((a, b) => b[1] - a[1])[0];
+          const topShotLabel = topShot ? topShot[0] + ' ' + topShot[1] + '%' : '';
+          return '<div class="priority-item" data-match-report-id="' + row.id + '" style="cursor:pointer;border-left:3px solid #39ff14;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">' +
+              '<div>' +
+                '<div class="priority-name">' + name + ' · Match report</div>' +
+                '<div class="priority-issue">' + rallyCount + ' rallies · ' + minutes + 'm · ' + dateStr +
+                  (topShotLabel ? ' · ' + topShotLabel : '') + '</div>' +
+              '</div>' +
+              '<div style="font-family: var(--ss-font-display, \'Sora\',sans-serif);font-size:22px;font-weight:800;color:#39ff14;">' + rallyCount + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        // Clicking a row opens the full match report via sessionStorage handoff,
+        // same path the dashboard uses for the player's own reports.
+        el.querySelectorAll('[data-match-report-id]').forEach((card) => {
+          card.addEventListener('click', async () => {
+            const id = card.getAttribute('data-match-report-id');
+            try {
+              const { data: full, error: e2 } = await client
+                .from('analysis_reports')
+                .select('match_rallies, match_summary, subject_track_id')
+                .eq('id', id)
+                .maybeSingle();
+              if (e2 || !full) throw e2 || new Error('not found');
+              const payload = Object.assign(
+                { rallies: full.match_rallies || [], subjectTrackId: full.subject_track_id },
+                full.match_summary || {}
+              );
+              sessionStorage.setItem('smartswing:matchReport', JSON.stringify(payload));
+              window.location.href = './match-report.html';
+            } catch (err) {
+              console.error('[coach] open match report failed:', err);
+            }
+          });
+        });
+      } catch (err) {
+        console.warn('[coach] athlete match reports fetch failed:', err && err.message);
+        el.innerHTML = emptyState(
+          'Could not load match reports',
+          'Try refreshing the page, or check back later.'
+        );
+      }
     })();
 
     // ── Drill Assignment Form ──
