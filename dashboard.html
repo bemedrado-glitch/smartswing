@@ -675,8 +675,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     const store = window.SmartSwingStore;
     let access = store.getAccessContext();
     let user = access.user;
-    if (!user) window.location.href = './login.html';
-    if (store.isOnboardingRequired?.(user.id)) {
+    // Demo-mode bypass for marketing-page iframes (/for-players.html).
+    // Without this, an anonymous visitor browsing for-players.html would
+    // trigger a redirect to /login inside the iframe — breaking the
+    // dashboard preview experience we're specifically trying to show.
+    const isDemoMode = new URLSearchParams(window.location.search).get('demo') === '1';
+    if (!user && !isDemoMode) window.location.href = './login.html';
+    if (user && store.isOnboardingRequired?.(user.id)) {
       window.location.href = store.getOnboardingRoute(user);
     }
     if (access.canAccessCoachDashboard) document.getElementById('coachNavBtn').classList.remove('hide');

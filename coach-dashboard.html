@@ -584,7 +584,48 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <script>
     const store = window.SmartSwingStore;
     const access = store.getAccessContext();
-    if (!access.user || !access.canAccessCoachDashboard) window.location.href = './login.html';
+    // Demo-mode bypass: ?demo=1 on the URL skips the auth gate so this
+    // page can render inside the iframe on /for-coaches.html for
+    // marketing purposes. Real dashboard use (authenticated or not)
+    // always lands without the query param.
+    const isDemoMode = new URLSearchParams(window.location.search).get('demo') === '1';
+    // Access gating (2026-04-24 fix — previously silently redirected to
+    // login.html for ANY access failure, which confused signed-in Player
+    // accounts who tapped "Open Coach Dashboard" and landed back on login
+    // with no explanation).
+    //
+    // Two distinct failure modes now handled separately:
+    //   - Not signed in        → redirect to login as before
+    //   - Signed in, wrong role → render an inline friendly gate instead
+    //     of redirecting, with [Upgrade] + [Return home] CTAs
+    if (isDemoMode) {
+      // Skip all access checks — render the demo UI.
+    } else if (!access.user) {
+      window.location.href = './login.html?redirect=coach-dashboard';
+    } else if (!access.canAccessCoachDashboard) {
+      document.addEventListener('DOMContentLoaded', function () {
+        document.body.innerHTML =
+          '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0a0a0a;font-family:DM Sans,sans-serif;color:#f0f0f0;">' +
+            '<div style="max-width:520px;text-align:center;background:#141414;border:1px solid rgba(57,255,20,0.25);border-radius:20px;padding:48px 36px;">' +
+              '<div style="font-size:48px;margin-bottom:12px;">🎾</div>' +
+              '<h1 style="font-size:24px;font-weight:800;margin:0 0 12px;font-family:Sora,DM Sans,sans-serif;">Coach dashboard is for coach accounts</h1>' +
+              '<p style="color:#9aa0a6;font-size:15px;line-height:1.5;margin:0 0 28px;">' +
+                "You're signed in as a <strong style='color:#39ff14'>" +
+                (access.currentRole || 'player') + "</strong> account. " +
+                'The coach dashboard unlocks when your account is set to the coach role or upgraded to a plan that includes the coaching workflow.' +
+              '</p>' +
+              '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">' +
+                '<a href="./pricing.html#performance" style="background:#39ff14;color:#0a0a0a;padding:12px 24px;border-radius:12px;font-weight:800;text-decoration:none;">See plans →</a>' +
+                '<a href="./dashboard.html" style="background:transparent;color:#f0f0f0;padding:12px 24px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,0.15);">Return to your dashboard</a>' +
+                '<a href="./contact.html?topic=coach-access" style="background:transparent;color:#9aa0a6;padding:12px 24px;border-radius:12px;font-weight:600;text-decoration:none;font-size:14px;">Contact support</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        document.title = 'Coach dashboard — coach role required';
+      });
+      // Halt script execution so the rest of coach-dashboard init doesn't run.
+      throw new Error('Coach dashboard blocked for non-coach account (friendly gate rendered)');
+    }
 
     const summary = store.getCoachSummary();
     const athletes = summary.athletes || [];
