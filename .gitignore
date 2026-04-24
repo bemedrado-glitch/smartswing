@@ -51,3 +51,8 @@ fix-encoding.js
 /test-results/
 /playwright/.cache/
 
+
+
+# Benchmark calibration output (generated)
+tools/calibration/output/
+
