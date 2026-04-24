@@ -1,0 +1,47 @@
+[
+  {
+    "clipId": "sample-forehand-pro-01",
+    "shotType": "forehand",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 104, "elbow": 146, "hip": 171, "knee": 164, "trunk": 40, "wrist": 91 },
+    "velocities": { "shoulder": 680,  "elbow": 740,  "hip": 360, "knee": 270, "trunk": 300, "wrist": 1060 },
+    "roms":       { "shoulder": 80, "elbow": 86, "hip": 50, "knee": 30, "trunk": 34, "wrist": 98 }
+  },
+  {
+    "clipId": "sample-forehand-pro-02",
+    "shotType": "forehand",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 107, "elbow": 148, "hip": 172, "knee": 165, "trunk": 42, "wrist": 89 },
+    "velocities": { "shoulder": 705, "elbow": 770, "hip": 380, "knee": 285, "trunk": 320, "wrist": 1100 },
+    "roms":       { "shoulder": 86, "elbow": 92, "hip": 56, "knee": 34, "trunk": 38, "wrist": 104 }
+  },
+  {
+    "clipId": "sample-forehand-pro-03",
+    "shotType": "forehand",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 103, "elbow": 145, "hip": 169, "knee": 163, "trunk": 39, "wrist": 92 },
+    "velocities": { "shoulder": 670, "elbow": 720, "hip": 345, "knee": 260, "trunk": 290, "wrist": 1040 },
+    "roms":       { "shoulder": 78, "elbow": 84, "hip": 48, "knee": 28, "trunk": 32, "wrist": 94 }
+  },
+  {
+    "clipId": "sample-forehand-pro-04",
+    "shotType": "forehand",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 106, "elbow": 149, "hip": 173, "knee": 166, "trunk": 41, "wrist": 90 },
+    "velocities": { "shoulder": 695, "elbow": 760, "hip": 370, "knee": 275, "trunk": 310, "wrist": 1080 },
+    "roms":       { "shoulder": 84, "elbow": 90, "hip": 54, "knee": 32, "trunk": 36, "wrist": 102 }
+  },
+  {
+    "clipId": "sample-forehand-pro-05",
+    "shotType": "forehand",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 105, "elbow": 147, "hip": 170, "knee": 165, "trunk": 40, "wrist": 88 },
+    "velocities": { "shoulder": 690, "elbow": 750, "hip": 358, "knee": 268, "trunk": 298, "wrist": 1070 },
+    "roms":       { "shoulder": 82, "elbow": 88, "hip": 52, "knee": 31, "trunk": 36, "wrist": 100 }
+  }
+]

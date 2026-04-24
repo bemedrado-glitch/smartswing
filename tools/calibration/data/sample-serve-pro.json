@@ -1,0 +1,48 @@
+[
+  {
+    "clipId": "sample-serve-pro-01",
+    "shotType": "serve",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "notes": "Placeholder sample — REPLACE with real pro observations before using in production.",
+    "angles":     { "shoulder": 128, "elbow": 104, "hip": 174, "knee": 144, "trunk": 48, "wrist": 60 },
+    "velocities": { "shoulder": 1180, "elbow": 1360, "hip": 510, "knee": 390, "trunk": 410, "wrist": 1820 },
+    "roms":       { "shoulder": 126, "elbow": 118, "hip": 48,  "knee": 54,  "trunk": 44, "wrist": 104 }
+  },
+  {
+    "clipId": "sample-serve-pro-02",
+    "shotType": "serve",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 132, "elbow": 107, "hip": 176, "knee": 146, "trunk": 51, "wrist": 56 },
+    "velocities": { "shoulder": 1220, "elbow": 1420, "hip": 530, "knee": 410, "trunk": 425, "wrist": 1780 },
+    "roms":       { "shoulder": 132, "elbow": 122, "hip": 52,  "knee": 58,  "trunk": 46, "wrist": 108 }
+  },
+  {
+    "clipId": "sample-serve-pro-03",
+    "shotType": "serve",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 130, "elbow": 106, "hip": 175, "knee": 145, "trunk": 49, "wrist": 58 },
+    "velocities": { "shoulder": 1190, "elbow": 1390, "hip": 515, "knee": 395, "trunk": 415, "wrist": 1790 },
+    "roms":       { "shoulder": 128, "elbow": 120, "hip": 50,  "knee": 55,  "trunk": 45, "wrist": 104 }
+  },
+  {
+    "clipId": "sample-serve-pro-04",
+    "shotType": "serve",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 126, "elbow": 102, "hip": 172, "knee": 142, "trunk": 47, "wrist": 62 },
+    "velocities": { "shoulder": 1150, "elbow": 1330, "hip": 495, "knee": 380, "trunk": 400, "wrist": 1740 },
+    "roms":       { "shoulder": 122, "elbow": 115, "hip": 47,  "knee": 53,  "trunk": 43, "wrist": 100 }
+  },
+  {
+    "clipId": "sample-serve-pro-05",
+    "shotType": "serve",
+    "level": "pro",
+    "source": "synthetic-placeholder",
+    "angles":     { "shoulder": 134, "elbow": 109, "hip": 178, "knee": 148, "trunk": 53, "wrist": 54 },
+    "velocities": { "shoulder": 1260, "elbow": 1460, "hip": 550, "knee": 420, "trunk": 440, "wrist": 1850 },
+    "roms":       { "shoulder": 136, "elbow": 125, "hip": 53,  "knee": 59,  "trunk": 48, "wrist": 110 }
+  }
+]

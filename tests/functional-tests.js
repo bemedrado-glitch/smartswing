@@ -3049,6 +3049,149 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Scoring Phase 4 — benchmark calibration tooling', () => {
+  const { aggregateObservations, validateObservation, _internals } =
+    require(path.join(ROOT, 'tools/calibration/aggregate.js'));
+  const { percentile, filterIQROutliers, buildBand } = _internals;
+
+  // ── Stats primitives ──────────────────────────────────────────────
+  test('percentile: linear interpolation matches NumPy/Excel', () => {
+    // [1,2,3,4,5] → p50 = 3, p25 = 2, p75 = 4
+    const sorted = [1, 2, 3, 4, 5];
+    expect(percentile(sorted, 50)).toBe(3);
+    expect(percentile(sorted, 25)).toBe(2);
+    expect(percentile(sorted, 75)).toBe(4);
+  });
+
+  test('percentile returns null on empty arrays', () => {
+    expect(percentile([], 50)).toBe(null);
+  });
+
+  test('IQR filter drops mistimed outliers on populations >= 5', () => {
+    // 100 is a clean outlier in a tight band around 10.
+    const values = [9, 10, 10, 11, 12, 100];
+    const filtered = filterIQROutliers(values);
+    expect(filtered.includes(100)).toBe(false);
+    expect(filtered.length).toBe(5);
+  });
+
+  test('IQR filter leaves small populations untouched (noise-prone)', () => {
+    const values = [9, 10, 100];
+    const filtered = filterIQROutliers(values);
+    expect(filtered.length).toBe(3);
+  });
+
+  test('buildBand produces {min, max, optimal} at p15/p50/p85', () => {
+    // Tight band — optimal should be ~100, min/max reflect p15/p85.
+    const values = [95, 97, 98, 99, 100, 101, 102, 103, 105];
+    const band = buildBand(values);
+    expect(band.optimal).toBeGreaterThanOrEqual(98);
+    expect(band.optimal).toBeLessThanOrEqual(102);
+    expect(band.min).toBeLessThan(band.optimal);
+    expect(band.max).toBeGreaterThan(band.optimal);
+  });
+
+  test('buildBand refuses to emit with < 3 valid samples', () => {
+    expect(buildBand([100, 101])).toBe(null);
+  });
+
+  // ── Validation ────────────────────────────────────────────────────
+  test('validateObservation accepts a well-formed clip', () => {
+    const clip = {
+      clipId: 'pro-serve-01',
+      shotType: 'serve',
+      level: 'pro',
+      angles: { knee: 145 }
+    };
+    expect(validateObservation(clip).ok).toBe(true);
+  });
+
+  test('validateObservation rejects bad enums', () => {
+    const clip = { clipId: 'x', shotType: 'spikeball', level: 'elite', angles: {} };
+    const r = validateObservation(clip);
+    expect(r.ok).toBe(false);
+    expect(r.errors.some(e => e.includes('shotType'))).toBe(true);
+    expect(r.errors.some(e => e.includes('level'))).toBe(true);
+  });
+
+  test('validateObservation catches unrecognised joints', () => {
+    const clip = {
+      clipId: 'x', shotType: 'serve', level: 'pro',
+      angles: { pinky: 90 }
+    };
+    const r = validateObservation(clip);
+    expect(r.ok).toBe(false);
+    expect(r.errors.some(e => e.includes('pinky'))).toBe(true);
+  });
+
+  // ── Aggregation ──────────────────────────────────────────────────
+  test('aggregateObservations buckets by shot and emits bands', () => {
+    const observations = [];
+    for (let i = 0; i < 6; i++) {
+      observations.push({
+        clipId: 'fh-' + i,
+        shotType: 'forehand',
+        level: 'pro',
+        angles: { knee: 164 + i } // 164..169
+      });
+    }
+    const result = aggregateObservations(observations);
+    expect(result.benchmarks.forehand.angles.knee).toBeTruthy();
+    expect(result.benchmarks.forehand.angles.knee.optimal).toBeGreaterThanOrEqual(165);
+    expect(result.stats.validAtLevel).toBe(6);
+  });
+
+  test('aggregateObservations filters by target level', () => {
+    const observations = [
+      { clipId: 'a', shotType: 'serve', level: 'pro',      angles: { knee: 145 } },
+      { clipId: 'b', shotType: 'serve', level: 'beginner', angles: { knee: 170 } },
+      { clipId: 'c', shotType: 'serve', level: 'beginner', angles: { knee: 168 } },
+      { clipId: 'd', shotType: 'serve', level: 'beginner', angles: { knee: 172 } }
+    ];
+    // targetLevel = pro → only 1 pro sample → below min threshold, no band.
+    const pro = aggregateObservations(observations, { targetLevel: 'pro' });
+    expect(pro.stats.validAtLevel).toBe(1);
+    expect(pro.rows.length).toBe(0);
+
+    // Switch to beginner → 3 valid samples → band emitted.
+    const beg = aggregateObservations(observations, { targetLevel: 'beginner' });
+    expect(beg.stats.validAtLevel).toBe(3);
+    expect(beg.benchmarks.serve.angles.knee).toBeTruthy();
+  });
+
+  test('aggregateObservations collects warnings for malformed input', () => {
+    const observations = [
+      { clipId: 'bad-1', shotType: 'badshot', level: 'pro', angles: { knee: 145 } }
+    ];
+    const result = aggregateObservations(observations);
+    expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.stats.validAtLevel).toBe(0);
+  });
+
+  // ── End-to-end on shipped sample data ────────────────────────────
+  test('Bundled sample data produces full benchmark coverage for serve + forehand', () => {
+    const serveData    = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/calibration/data/sample-serve-pro.json'),    'utf8'));
+    const forehandData = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/calibration/data/sample-forehand-pro.json'), 'utf8'));
+    const all = [...serveData, ...forehandData];
+    const result = aggregateObservations(all, { targetLevel: 'pro' });
+    // Every shot × signal × joint in the samples should produce a band.
+    ['serve', 'forehand'].forEach(function (shot) {
+      ['angles', 'velocities', 'roms'].forEach(function (sig) {
+        expect(Object.keys(result.benchmarks[shot][sig]).length).toBeGreaterThanOrEqual(6);
+      });
+    });
+  });
+
+  test('Placeholder data is clearly marked as synthetic (no accidental shipping)', () => {
+    // Every sample observation should have source = synthetic-placeholder
+    // so a real calibration pass can grep + drop them in one command.
+    const serveData = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/calibration/data/sample-serve-pro.json'), 'utf8'));
+    serveData.forEach(function (obs) {
+      expect(obs.source).toBe('synthetic-placeholder');
+    });
+  });
+});
+
 describe('Scoring Phase 3 — kinetic-chain sequence timing', () => {
   const src = fs.readFileSync(path.join(ROOT, 'analyze.html'), 'utf8');
 
