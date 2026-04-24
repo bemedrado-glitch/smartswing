@@ -3710,6 +3710,119 @@ describe('Match analysis Phase A — match report aggregator', () => {
   });
 });
 
+describe('Match analysis Phase A — per-rally scorer', () => {
+  const rs = require(path.join(ROOT, 'match/rally-scorer.js'));
+  const { scoreRally, scoreAllRallies, computeFrameAngles, BENCHMARKS } = rs;
+
+  function poseAt({ shoulder, elbow, wrist, hip, oppShoulder, oppHip }) {
+    const kps = Array.from({ length: 17 }, () => ({ x: 0, y: 0, score: 0.0 }));
+    if (oppShoulder) kps[5] = { ...oppShoulder, score: 0.95 };
+    if (shoulder)    kps[6] = { ...shoulder,    score: 0.95 };
+    if (elbow)       kps[8] = { ...elbow,       score: 0.95 };
+    if (wrist)       kps[10] = { ...wrist,      score: 0.95 };
+    if (oppHip)      kps[11] = { ...oppHip,     score: 0.95 };
+    if (hip)         kps[12] = { ...hip,        score: 0.95 };
+    return { keypoints: kps };
+  }
+  function cleanForehandPose() {
+    return poseAt({
+      shoulder:    { x: 500, y: 300 },
+      elbow:       { x: 600, y: 280 },
+      wrist:       { x: 700, y: 230 },
+      hip:         { x: 510, y: 450 },
+      oppShoulder: { x: 430, y: 320 },
+      oppHip:      { x: 440, y: 460 }
+    });
+  }
+
+  test('computeFrameAngles returns nulls when keypoints are below confidence', () => {
+    const pose = { keypoints: Array.from({ length: 17 }, () => ({ x: 0, y: 0, score: 0.0 })) };
+    const a = computeFrameAngles(pose, 'right');
+    expect(a.shoulder).toBeNull();
+    expect(a.elbow).toBeNull();
+  });
+
+  test('computeFrameAngles produces valid angles from a clean pose', () => {
+    const a = computeFrameAngles(cleanForehandPose(), 'right');
+    expect(a.shoulder).toBeGreaterThan(60);
+    expect(a.shoulder).toBeLessThan(160);
+    expect(a.elbow).toBeGreaterThan(60);
+    expect(a.elbow).toBeLessThan(180);
+  });
+
+  test('scoreRally returns null overallScore when too few confident frames', () => {
+    const rally = {
+      shotType: 'forehand',
+      poses: Array.from({ length: 3 }, (_, i) => ({ frameIdx: i, pose: cleanForehandPose() }))
+    };
+    const r = scoreRally(rally, { minConfidentFrames: 10 });
+    expect(r.confident).toBe(false);
+    expect(r.overallScore).toBeNull();
+    expect(r.grade).toBeNull();
+  });
+
+  test('scoreRally returns a valid score when enough confident frames exist', () => {
+    const rally = {
+      shotType: 'forehand',
+      poses: Array.from({ length: 20 }, (_, i) => ({ frameIdx: i, pose: cleanForehandPose() }))
+    };
+    const r = scoreRally(rally, { minConfidentFrames: 6 });
+    expect(r.confident).toBe(true);
+    expect(r.overallScore).toBeGreaterThan(0);
+    expect(r.overallScore).toBeLessThanOrEqual(100);
+    expect(['A','B','C','D','F'].includes(r.grade)).toBe(true);
+  });
+
+  test('scoreRally handles unknown shot type via fallback benchmarks', () => {
+    const rally = {
+      shotType: 'chip-lob',
+      poses: Array.from({ length: 12 }, (_, i) => ({ frameIdx: i, pose: cleanForehandPose() }))
+    };
+    const r = scoreRally(rally);
+    expect(r.shotType).toBe('unknown');
+    expect(r.overallScore).toBeGreaterThan(0);
+  });
+
+  test('scoreRally handles older handoff payload (raw pose, no wrapper)', () => {
+    const rally = {
+      shotType: 'forehand',
+      poses: Array.from({ length: 12 }, () => cleanForehandPose())
+    };
+    const r = scoreRally(rally, { minConfidentFrames: 6 });
+    expect(r.confident).toBe(true);
+    expect(r.overallScore).toBeGreaterThan(0);
+  });
+
+  test('Benchmarks cover the canonical shot types', () => {
+    expect(BENCHMARKS.forehand.shoulder).toBeTruthy();
+    expect(BENCHMARKS.backhand.shoulder).toBeTruthy();
+    expect(BENCHMARKS.serve.shoulder).toBeTruthy();
+    expect(BENCHMARKS.volley.shoulder).toBeTruthy();
+    expect(BENCHMARKS.unknown.shoulder).toBeTruthy();
+  });
+
+  test('scoreAllRallies mutates each rally to carry score + grade', () => {
+    const report = {
+      rallies: [
+        { shotType: 'forehand', poses: Array.from({ length: 15 }, (_, i) => ({ frameIdx: i, pose: cleanForehandPose() })) },
+        { shotType: 'backhand', poses: Array.from({ length: 2 },  (_, i) => ({ frameIdx: i, pose: cleanForehandPose() })) }
+      ]
+    };
+    scoreAllRallies(report, { minConfidentFrames: 6 });
+    expect(report.rallies[0].score).toBeGreaterThan(0);
+    expect(report.rallies[0].grade).toBeTruthy();
+    expect(report.rallies[1].score).toBeNull();
+    expect(report.rallies[0].scoreBreakdown).toBeTruthy();
+  });
+
+  test('Handles empty report gracefully without crashing', () => {
+    const out = scoreAllRallies({ rallies: [] });
+    expect(out.rallies.length).toBe(0);
+    expect(scoreAllRallies(null)).toBeNull();
+    expect(scoreAllRallies({})).toEqual({});
+  });
+});
+
 describe('Match analysis Phase A — rally segmentation + shot classification', () => {
   const seg = require(path.join(ROOT, 'match/rally-segmenter.js'));
   const { segmentRallies, classifyShot, computeActivation } = seg;

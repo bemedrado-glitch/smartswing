@@ -123,6 +123,7 @@
   <script src="./app-data.js" defer></script>
   <script src="./public-app-config.js" defer></script>
   <script src="./match/report-aggregator.js" defer></script>
+  <script src="./match/rally-scorer.js" defer></script>
 </head>
 <body>
   <div class="wrap">
@@ -393,6 +394,21 @@
     function renderRallyList(r, paid) {
       const api = window.SmartSwingMatchReport;
 
+      // Paid users get per-rally kinetic-chain scoring. We run it once at
+      // render time and cache the results on each rally entry. The scorer
+      // handles the "too few confident frames" case by returning null
+      // score + grade, which we render as "—".
+      if (paid && window.SmartSwingRallyScorer && window.SmartSwingRallyScorer.scoreAllRallies) {
+        try {
+          window.SmartSwingRallyScorer.scoreAllRallies(r, {
+            handedness: r.handedness || 'right',
+            minConfidentFrames: 6
+          });
+        } catch (err) {
+          console.warn('[match-report] rally scoring failed:', err);
+        }
+      }
+
       // Preview users see the top-3 highlight rallies, unlocked.
       // Paid users see the full ordered list, unlocked.
       const visible = paid
@@ -400,12 +416,22 @@
         : (api ? api.pickHighlights(r, 3) : r.rallies.slice(0, 3));
       const visibleIds = new Set(visible.map(v => v.id));
 
+      function scoreBadge(rally) {
+        if (!paid) return '';
+        if (rally.score == null) {
+          return '<span class="chip" style="background:rgba(255,255,255,0.06);color:var(--text-dim);margin-right:6px;">— data thin</span>';
+        }
+        const c = rally.score >= 80 ? '#39ff14' : rally.score >= 65 ? '#ffd84d' : '#ff7070';
+        return '<span class="chip" style="background:' + c + '22;color:' + c + ';margin-right:6px;">' +
+          rally.score + ' · ' + rally.grade + '</span>';
+      }
+
       const rows = r.rallies.map((rally, idx) => {
         const locked = !visibleIds.has(rally.id);
         const cls = 'rally-item' + (locked ? ' locked' : '');
         const lockedBadge = locked
           ? `<span class="chip" style="background:rgba(255,59,48,0.15);color:#ff3b30;">🔒 Performance</span>`
-          : `<span class="chip">${escape(rally.shotType)}</span>`;
+          : `${scoreBadge(rally)}<span class="chip">${escape(rally.shotType)}</span>`;
         return `
           <div id="row-${escape(rally.id)}" class="${cls}">
             <div class="rally-time">${formatTime(rally.peakTime)}</div>
