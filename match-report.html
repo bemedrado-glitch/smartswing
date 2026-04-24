@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="./assets/logos/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSwing AI — Match Report</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="SmartSwing AI per-rally match report — shot breakdown, rally timeline, and per-swing drill-down.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="./brand-tokens.css">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1c1c1c;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0f0f0;
+      --text-dim: #9aa0a6;
+      --volt: #39ff14;
+      --danger: #ff3b30;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--ss-font-body, 'DM Sans', -apple-system, sans-serif); }
+    h1, h2, h3 { font-family: var(--ss-font-display, 'Sora', 'DM Sans', sans-serif); margin: 0; }
+    a { color: var(--volt); }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 24px; }
+    header.page-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    header.page-top h1 { font-size: 28px; }
+    .back-link { color: var(--text-dim); text-decoration: none; font-size: 14px; }
+    .back-link:hover { color: var(--text); }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 8px; font-weight: 700; }
+    .stat-value { font-size: 32px; font-weight: 800; color: var(--volt); font-family: var(--ss-font-display, 'Sora', sans-serif); }
+    .stat-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+    .section-title { font-size: 18px; font-weight: 700; margin: 40px 0 16px; }
+
+    /* Timeline strip */
+    .timeline { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 24px 40px; margin-bottom: 24px; overflow-x: auto; }
+    .timeline-track { position: relative; height: 56px; background: rgba(255,255,255,0.04); border-radius: 8px; min-width: 600px; }
+    .rally-marker { position: absolute; top: 4px; bottom: 4px; min-width: 4px; border-radius: 4px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .rally-marker:hover { transform: scaleY(1.1); box-shadow: 0 0 12px currentColor; }
+    .rally-marker.forehand { background: var(--volt); color: var(--volt); }
+    .rally-marker.backhand { background: #39c5ff; color: #39c5ff; }
+    .rally-marker.serve    { background: #ff9500; color: #ff9500; }
+    .rally-marker.volley   { background: #b580ff; color: #b580ff; }
+    .rally-marker.unknown  { background: #777;    color: #777; }
+    .timeline-axis { display: flex; justify-content: space-between; margin-top: 12px; color: var(--text-dim); font-size: 11px; font-weight: 600; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; font-size: 13px; }
+    .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+    /* Shot breakdown bars */
+    .shot-bars { display: grid; gap: 10px; margin-bottom: 32px; }
+    .shot-row { display: grid; grid-template-columns: 110px 1fr 60px; align-items: center; gap: 12px; }
+    .shot-label { font-size: 13px; font-weight: 600; text-transform: capitalize; }
+    .shot-track { height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+    .shot-fill { height: 100%; background: var(--volt); border-radius: 4px; }
+    .shot-pct { font-size: 13px; color: var(--text-dim); text-align: right; }
+
+    /* Rally list (drill-down) */
+    .rally-list { display: grid; gap: 12px; }
+    .rally-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 16px; }
+    .rally-item.locked { opacity: 0.55; pointer-events: none; filter: saturate(0.6); }
+    .rally-time { font-family: var(--ss-font-display, 'Sora', sans-serif); font-weight: 700; color: var(--volt); }
+    .rally-meta { font-size: 14px; }
+    .rally-meta small { color: var(--text-dim); font-size: 12px; display: block; margin-top: 2px; }
+    .chip { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(57,255,20,0.15); color: var(--volt); }
+
+    /* Paywall banner */
+    .paywall {
+      background: linear-gradient(135deg, rgba(57,255,20,0.08), rgba(57,255,20,0.02));
+      border: 1px solid rgba(57,255,20,0.35);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      text-align: center;
+    }
+    .paywall h3 { font-size: 20px; margin-bottom: 8px; color: var(--volt); }
+    .paywall p { color: var(--text-dim); margin: 0 0 18px; font-size: 14px; line-height: 1.5; }
+    .paywall .btn { display: inline-block; background: var(--volt); color: #000; padding: 12px 28px; border-radius: 10px; font-weight: 800; text-decoration: none; letter-spacing: 0.02em; }
+    .paywall .btn:hover { box-shadow: 0 0 24px rgba(57,255,20,0.4); }
+
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--text-dim); }
+    .empty-state h2 { color: var(--text); margin-bottom: 12px; }
+    .empty-state a { font-weight: 600; }
+  </style>
+  <script src="./app-data.js" defer></script>
+  <script src="./public-app-config.js" defer></script>
+  <script src="./match/report-aggregator.js" defer></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="page-top">
+      <div>
+        <h1>Match Report</h1>
+        <div style="color: var(--text-dim); font-size: 13px; margin-top: 4px;">Per-rally breakdown from your match video</div>
+      </div>
+      <a class="back-link" href="./analyze.html">← Back to analysis</a>
+    </header>
+
+    <div id="matchReportRoot">
+      <!-- Filled by JS. If no report is in sessionStorage, shows empty state. -->
+    </div>
+  </div>
+
+  <script>
+    (function renderMatchReport() {
+      const root = document.getElementById('matchReportRoot');
+
+      // Read the handoff payload from analyze.html.
+      let report = null;
+      try {
+        const raw = sessionStorage.getItem('smartswing:matchReport');
+        if (raw) report = JSON.parse(raw);
+      } catch (err) {
+        console.error('Failed to parse match report payload:', err);
+      }
+
+      if (!report || !Array.isArray(report.rallies) || report.rallies.length === 0) {
+        root.innerHTML = `
+          <div class="empty-state">
+            <h2>No match report available</h2>
+            <p>Go to <a href="./analyze.html">Analyze</a>, enable Match mode, pick a player, and let at least 2 rallies play out before generating a report.</p>
+          </div>`;
+        return;
+      }
+
+      // Plan gate — match reports are full-feature on the Performance plan
+      // only. Starter/Player see the summary + top-3 highlights; per-rally
+      // drill-down is paywalled.
+      const paid = isPerformancePlan();
+
+      root.innerHTML = [
+        renderSummary(report),
+        renderTimeline(report),
+        renderShotBreakdown(report),
+        renderRallyList(report, paid),
+        paid ? '' : renderPaywall()
+      ].join('');
+
+      // Wire timeline-marker clicks to scroll to the rally row.
+      root.querySelectorAll('.rally-marker').forEach((el) => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-rally-id');
+          const target = document.getElementById('row-' + id);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+    })();
+
+    /**
+     * Match reports are gated to the Performance plan specifically (not any
+     * paid plan) because match analysis is the headline Performance-tier
+     * feature. Starter + Player users still see the preview — summary +
+     * timeline + top-3 highlights — but the per-rally drill-down list is
+     * locked with a paywall CTA.
+     */
+    function isPerformancePlan() {
+      try {
+        const store = window.SmartSwingStore;
+        if (store && typeof store.getCurrentPlan === 'function') {
+          const plan = store.getCurrentPlan();
+          const id = plan && (plan.id || plan);
+          if (id === 'pro' || id === 'performance' || id === 'unlimited') return true;
+        }
+        // Profile hydration fallback.
+        const user = (window.SmartSwingStore && window.SmartSwingStore.currentUser) || null;
+        if (user && (user.subscription_tier === 'performance' ||
+                     user.subscription_tier === 'pro' ||
+                     user.subscription_tier === 'unlimited')) return true;
+      } catch (_) {}
+      return false;
+    }
+
+    function renderSummary(r) {
+      const longestSeconds = (r.longestRallyFrames / (r.fps || 30)).toFixed(1);
+      return `
+        <div class="summary-grid">
+          <div class="stat-card">
+            <div class="stat-label">Rallies</div>
+            <div class="stat-value">${r.rallyCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg rally</div>
+            <div class="stat-value">${r.avgRallyDurationSeconds}s</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Longest rally</div>
+            <div class="stat-value">${longestSeconds}s</div>
+            <div class="stat-sub">Rally #${(r.longestRallyIdx + 1) || '—'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Match span</div>
+            <div class="stat-value">${Math.round(r.spanSeconds / 60)}m</div>
+            <div class="stat-sub">${r.spanSeconds.toFixed(0)}s total</div>
+          </div>
+        </div>`;
+    }
+
+    function renderTimeline(r) {
+      const api = window.SmartSwingMatchReport;
+      const tl = api ? api.buildTimeline(r) : { entries: [] };
+      const markers = tl.entries.map((e) => `
+        <div class="rally-marker ${escape(e.shotType)}"
+             data-rally-id="${escape(e.id)}"
+             title="Rally ${e.idx + 1} · ${e.shotType} · ${e.durationSeconds}s at ${formatTime(e.peakTime)}"
+             style="left: ${e.startPct}%; width: ${Math.max(0.4, e.widthPct)}%;"></div>
+      `).join('');
+
+      return `
+        <h2 class="section-title">Rally timeline</h2>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:var(--volt);"></span>Forehand</span>
+          <span><span class="legend-dot" style="background:#39c5ff;"></span>Backhand</span>
+          <span><span class="legend-dot" style="background:#ff9500;"></span>Serve</span>
+          <span><span class="legend-dot" style="background:#b580ff;"></span>Volley</span>
+          <span><span class="legend-dot" style="background:#777;"></span>Unknown</span>
+        </div>
+        <div class="timeline">
+          <div class="timeline-track">${markers}</div>
+          <div class="timeline-axis">
+            <span>${formatTime(r.firstFrame / (r.fps || 30))}</span>
+            <span>${formatTime(r.lastFrame / (r.fps || 30))}</span>
+          </div>
+        </div>`;
+    }
+
+    function renderShotBreakdown(r) {
+      const rows = Object.entries(r.shotBreakdownPct)
+        .filter(([, pct]) => pct > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([shot, pct]) => {
+          const count = r.shotBreakdown[shot] || 0;
+          return `
+            <div class="shot-row">
+              <div class="shot-label">${shot} <small style="color:var(--text-dim);font-weight:400;">(${count})</small></div>
+              <div class="shot-track"><div class="shot-fill" style="width:${pct}%;"></div></div>
+              <div class="shot-pct">${pct}%</div>
+            </div>`;
+        }).join('');
+      if (!rows) return '';
+      return `
+        <h2 class="section-title">Shot breakdown</h2>
+        <div class="shot-bars">${rows}</div>`;
+    }
+
+    function renderRallyList(r, paid) {
+      const api = window.SmartSwingMatchReport;
+
+      // Preview users see the top-3 highlight rallies, unlocked.
+      // Paid users see the full ordered list, unlocked.
+      const visible = paid
+        ? r.rallies
+        : (api ? api.pickHighlights(r, 3) : r.rallies.slice(0, 3));
+      const visibleIds = new Set(visible.map(v => v.id));
+
+      const rows = r.rallies.map((rally, idx) => {
+        const locked = !visibleIds.has(rally.id);
+        const cls = 'rally-item' + (locked ? ' locked' : '');
+        const lockedBadge = locked
+          ? `<span class="chip" style="background:rgba(255,59,48,0.15);color:#ff3b30;">🔒 Performance</span>`
+          : `<span class="chip">${escape(rally.shotType)}</span>`;
+        return `
+          <div id="row-${escape(rally.id)}" class="${cls}">
+            <div class="rally-time">${formatTime(rally.peakTime)}</div>
+            <div class="rally-meta">
+              <strong>Rally ${idx + 1}</strong>
+              <small>${rally.durationSeconds}s · peak frame ${rally.peakFrame}${rally.peakActivation != null ? ` · activation ${rally.peakActivation.toFixed(1)}` : ''}</small>
+            </div>
+            <div>${lockedBadge}</div>
+          </div>`;
+      }).join('');
+
+      const countHint = paid
+        ? ''
+        : `<p style="color:var(--text-dim);font-size:13px;margin:0 0 16px;">Showing ${visible.length} of ${r.rallies.length} rallies. Unlock the full breakdown with Performance.</p>`;
+
+      return `
+        <h2 class="section-title">Rallies${paid ? ' (click a marker above to jump)' : ''}</h2>
+        ${countHint}
+        <div class="rally-list">${rows}</div>`;
+    }
+
+    function renderPaywall() {
+      return `
+        <div class="paywall">
+          <h3>Unlock every rally</h3>
+          <p>You're seeing the 3 longest rallies as a preview. Upgrade to Performance to drill into every swing — shot-by-shot kinetic-chain scores, per-rally technique grading, and saved match history.</p>
+          <a class="btn" href="./pricing.html#performance">Upgrade to Performance</a>
+        </div>`;
+    }
+
+    // ── helpers ─────────────────────────────────────────────────────
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds)) return '0:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    }
+  </script>
+</body>
+</html>
