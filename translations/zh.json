@@ -652,7 +652,22 @@
     "playerF5": "[en] Email reports to your coach",
     "playerF6": "[en] Social card to share & compete with friends",
     "playerF7": "[en] Live match scoring — track your matches",
-    "playerF8": "[en] Progress tracking unlocked"
+    "playerF8": "[en] Progress tracking unlocked",
+    "starterSingleSwing": "单次挥拍分析（画面中一名球员）",
+    "starterLockedSave": "保存和导出报告 — 仅付费计划",
+    "starterLockedLibrary": "训练和战术库 — 仅付费计划",
+    "starterLockedMatch": "比赛分析 — Performance 计划",
+    "playerEverythingInStarter": "包含 Starter 的所有内容，另加：",
+    "playerFullTactics": "完整战术库及场景分解",
+    "playerClipExport": "用于教练校准的视频片段导出",
+    "playerLockedMatch": "比赛视频分析 — Performance 计划",
+    "performanceEverythingInPlayer": "包含 Player 的所有内容，另加：",
+    "performanceMatchMode": "★ 比赛模式 — 分析完整比赛或 YouTube 视频",
+    "performanceMultiPlayer": "★ 多球员追踪 — 轻点选择要分析的球员",
+    "performanceMatchReports": "★ 逐回合比赛报告，按击球类型分类",
+    "performanceKineticChain": "★ 动力链评分（活动范围 + 速度 + 时机）",
+    "performanceRallyTimeline": "回合时间轴和最长回合亮点",
+    "performanceMatchHistory": "比赛历史保存到您的库中"
   },
   "forPlayers": {
     "hero": {
@@ -1201,5 +1216,25 @@
   },
   "a11y": {
     "skipNav": "跳转到主要内容"
+  },
+  "matchReport": {
+    "title": "比赛报告",
+    "subtitle": "视频的逐回合分析",
+    "backLink": "← 返回分析",
+    "saveButton": "保存到库",
+    "downloadPdf": "下载 PDF",
+    "shareWithCoach": "分享给教练",
+    "sectionTimeline": "回合时间轴",
+    "sectionShotBreakdown": "击球分布",
+    "sectionRallies": "回合",
+    "statRallies": "回合",
+    "statAvgRally": "平均回合",
+    "statLongestRally": "最长回合",
+    "statMatchSpan": "比赛时长",
+    "paywallHeading": "解锁每个回合",
+    "paywallBody": "您正在查看最长的 3 个回合预览。升级到 Performance 查看每一次击球 — 逐球评分、逐回合评级和保存的比赛历史。",
+    "paywallCta": "升级到 Performance",
+    "emptyHeading": "无可用比赛报告",
+    "emptyBody": "前往分析页面，启用比赛模式，选择球员，让至少 2 个回合进行后再生成报告。"
   }
 }

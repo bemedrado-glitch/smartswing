@@ -652,7 +652,22 @@
     "playerF5": "[en] Email reports to your coach",
     "playerF6": "[en] Social card to share & compete with friends",
     "playerF7": "[en] Live match scoring — track your matches",
-    "playerF8": "[en] Progress tracking unlocked"
+    "playerF8": "[en] Progress tracking unlocked",
+    "starterSingleSwing": "単発スイング分析（画面に1人の選手）",
+    "starterLockedSave": "レポートの保存とエクスポート — 有料プランのみ",
+    "starterLockedLibrary": "ドリル・戦術ライブラリ — 有料プランのみ",
+    "starterLockedMatch": "マッチ分析 — Performance プラン",
+    "playerEverythingInStarter": "Starter の全機能に加えて：",
+    "playerFullTactics": "シナリオ別の完全な戦術ライブラリ",
+    "playerClipExport": "コーチとの調整に使えるクリップのエクスポート",
+    "playerLockedMatch": "マッチ動画分析 — Performance プラン",
+    "performanceEverythingInPlayer": "Player の全機能に加えて：",
+    "performanceMatchMode": "★ マッチモード — フルマッチや YouTube 動画を分析",
+    "performanceMultiPlayer": "★ マルチプレイヤー追跡 — 分析する選手をタップで選択",
+    "performanceMatchReports": "★ ラリーごとのレポート、ショット種別の内訳付き",
+    "performanceKineticChain": "★ キネティックチェーンのスコア（ROM + 速度 + タイミング）",
+    "performanceRallyTimeline": "ラリータイムラインと最長ラリーのハイライト",
+    "performanceMatchHistory": "マッチ履歴をライブラリに保存"
   },
   "forPlayers": {
     "hero": {
@@ -1201,5 +1216,25 @@
   },
   "a11y": {
     "skipNav": "メインコンテンツにスキップ"
+  },
+  "matchReport": {
+    "title": "マッチレポート",
+    "subtitle": "マッチ動画のラリーごとの内訳",
+    "backLink": "← 分析に戻る",
+    "saveButton": "ライブラリに保存",
+    "downloadPdf": "PDF をダウンロード",
+    "shareWithCoach": "コーチと共有",
+    "sectionTimeline": "ラリータイムライン",
+    "sectionShotBreakdown": "ショットの内訳",
+    "sectionRallies": "ラリー",
+    "statRallies": "ラリー",
+    "statAvgRally": "平均ラリー",
+    "statLongestRally": "最長ラリー",
+    "statMatchSpan": "マッチ時間",
+    "paywallHeading": "すべてのラリーをロック解除",
+    "paywallBody": "最長3つのラリーをプレビューで表示しています。Performance にアップグレードして、すべてのショットを掘り下げましょう — ショット別スコア、ラリー別評価、保存されたマッチ履歴。",
+    "paywallCta": "Performance にアップグレード",
+    "emptyHeading": "マッチレポートが利用できません",
+    "emptyBody": "「分析」でマッチモードをオンにし、選手を選び、2ラリー以上プレイされてからレポートを生成してください。"
   }
 }

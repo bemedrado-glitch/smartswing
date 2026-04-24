@@ -652,7 +652,22 @@
     "playerF5": "[en] Email reports to your coach",
     "playerF6": "[en] Social card to share & compete with friends",
     "playerF7": "[en] Live match scoring — track your matches",
-    "playerF8": "[en] Progress tracking unlocked"
+    "playerF8": "[en] Progress tracking unlocked",
+    "starterSingleSwing": "Einzel-Schlaganalyse (ein Spieler im Bild)",
+    "starterLockedSave": "Speichern & Export — nur in bezahlten Tarifen",
+    "starterLockedLibrary": "Drill- & Taktikbibliothek — nur in bezahlten Tarifen",
+    "starterLockedMatch": "Matchanalyse — Performance-Tarif",
+    "playerEverythingInStarter": "Alles aus Starter, plus:",
+    "playerFullTactics": "Vollständige Taktikbibliothek mit Szenario-Analysen",
+    "playerClipExport": "Clip-Export zur Kalibrierung mit Trainer",
+    "playerLockedMatch": "Match-Videoanalyse — Performance-Tarif",
+    "performanceEverythingInPlayer": "Alles aus Player, plus:",
+    "performanceMatchMode": "★ Match-Modus — analysiere ganze Matches oder YouTube-Videos",
+    "performanceMultiPlayer": "★ Multi-Spieler-Tracking — tippe den Spieler zum Analysieren",
+    "performanceMatchReports": "★ Rally-Reports mit Aufschlüsselung nach Schlagart",
+    "performanceKineticChain": "★ Bewertung der kinetischen Kette (ROM + Geschwindigkeit + Timing)",
+    "performanceRallyTimeline": "Rally-Zeitleiste & Highlight des längsten Ballwechsels",
+    "performanceMatchHistory": "Match-Verlauf in deiner Bibliothek gespeichert"
   },
   "forPlayers": {
     "hero": {
@@ -1201,5 +1216,25 @@
   },
   "a11y": {
     "skipNav": "Zum Hauptinhalt springen"
+  },
+  "matchReport": {
+    "title": "Match-Report",
+    "subtitle": "Rally-für-Rally-Auswertung deines Match-Videos",
+    "backLink": "← Zurück zur Analyse",
+    "saveButton": "In Bibliothek speichern",
+    "downloadPdf": "PDF herunterladen",
+    "shareWithCoach": "Mit Trainer teilen",
+    "sectionTimeline": "Rally-Zeitleiste",
+    "sectionShotBreakdown": "Schlag-Aufschlüsselung",
+    "sectionRallies": "Rallies",
+    "statRallies": "Rallies",
+    "statAvgRally": "Durchschnittlicher Rally",
+    "statLongestRally": "Längster Rally",
+    "statMatchSpan": "Matchdauer",
+    "paywallHeading": "Alle Rallies freischalten",
+    "paywallBody": "Du siehst die 3 längsten Rallies als Vorschau. Upgrade auf Performance, um jeden Schlag zu analysieren — Schlag-für-Schlag-Bewertungen, Rally-Bewertungen und gespeicherter Matchverlauf.",
+    "paywallCta": "Auf Performance upgraden",
+    "emptyHeading": "Kein Match-Report verfügbar",
+    "emptyBody": "Gehe zu Analysieren, aktiviere den Match-Modus, wähle einen Spieler und lasse mindestens 2 Rallies laufen, bevor du einen Report generierst."
   }
 }

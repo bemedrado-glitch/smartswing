@@ -652,7 +652,22 @@
     "playerF5": "[en] Email reports to your coach",
     "playerF6": "[en] Social card to share & compete with friends",
     "playerF7": "[en] Live match scoring — track your matches",
-    "playerF8": "[en] Progress tracking unlocked"
+    "playerF8": "[en] Progress tracking unlocked",
+    "starterSingleSwing": "Анализ одного удара (один игрок в кадре)",
+    "starterLockedSave": "Сохранение и экспорт отчётов — только в платных тарифах",
+    "starterLockedLibrary": "Библиотека упражнений и тактики — только в платных тарифах",
+    "starterLockedMatch": "Анализ матчей — тариф Performance",
+    "playerEverythingInStarter": "Всё из Starter, плюс:",
+    "playerFullTactics": "Полная тактическая библиотека со сценариями",
+    "playerClipExport": "Экспорт клипов для работы с тренером",
+    "playerLockedMatch": "Анализ видео матча — тариф Performance",
+    "performanceEverythingInPlayer": "Всё из Player, плюс:",
+    "performanceMatchMode": "★ Режим матча — анализ полных матчей или видео с YouTube",
+    "performanceMultiPlayer": "★ Отслеживание нескольких игроков — коснитесь, кого анализировать",
+    "performanceMatchReports": "★ Отчёты по розыгрышам с разбивкой по типу удара",
+    "performanceKineticChain": "★ Оценка кинетической цепи (ROM + скорость + тайминг)",
+    "performanceRallyTimeline": "Шкала розыгрышей и выделение самого длинного",
+    "performanceMatchHistory": "История матчей в вашей библиотеке"
   },
   "forPlayers": {
     "hero": {
@@ -1201,5 +1216,25 @@
   },
   "a11y": {
     "skipNav": "Перейти к основному содержанию"
+  },
+  "matchReport": {
+    "title": "Отчёт о матче",
+    "subtitle": "Разбор каждого розыгрыша в вашем видео",
+    "backLink": "← Назад к анализу",
+    "saveButton": "Сохранить в библиотеку",
+    "downloadPdf": "Скачать PDF",
+    "shareWithCoach": "Поделиться с тренером",
+    "sectionTimeline": "Шкала розыгрышей",
+    "sectionShotBreakdown": "Распределение ударов",
+    "sectionRallies": "Розыгрыши",
+    "statRallies": "Розыгрыши",
+    "statAvgRally": "Средний розыгрыш",
+    "statLongestRally": "Самый длинный",
+    "statMatchSpan": "Длительность матча",
+    "paywallHeading": "Откройте все розыгрыши",
+    "paywallBody": "Вы видите 3 самых длинных розыгрыша в качестве превью. Перейдите на Performance, чтобы анализировать каждый удар — оценки по ударам, оценки по розыгрышам и сохранённая история матчей.",
+    "paywallCta": "Перейти на Performance",
+    "emptyHeading": "Отчёт о матче недоступен",
+    "emptyBody": "Откройте Анализ, включите режим матча, выберите игрока и дайте сыграть минимум 2 розыгрыша перед созданием отчёта."
   }
 }

@@ -652,7 +652,22 @@
     "playerF5": "[en] Email reports to your coach",
     "playerF6": "[en] Social card to share & compete with friends",
     "playerF7": "[en] Live match scoring — track your matches",
-    "playerF8": "[en] Progress tracking unlocked"
+    "playerF8": "[en] Progress tracking unlocked",
+    "starterSingleSwing": "Análise de uma tacada (um jogador em cena)",
+    "starterLockedSave": "Salvar e exportar laudos — apenas em planos pagos",
+    "starterLockedLibrary": "Biblioteca de drills e táticas — apenas em planos pagos",
+    "starterLockedMatch": "Análise de partidas — plano Performance",
+    "playerEverythingInStarter": "Tudo do Starter, e mais:",
+    "playerFullTactics": "Biblioteca completa de táticas com cenários detalhados",
+    "playerClipExport": "Exportação de clipes para calibração do técnico",
+    "playerLockedMatch": "Análise de vídeos de partidas — plano Performance",
+    "performanceEverythingInPlayer": "Tudo do Player, e mais:",
+    "performanceMatchMode": "★ Modo partida — analise partidas completas ou vídeos do YouTube",
+    "performanceMultiPlayer": "★ Rastreio de vários jogadores — toque para escolher qual analisar",
+    "performanceMatchReports": "★ Laudos por ponto com segmentação por tipo de tacada",
+    "performanceKineticChain": "★ Pontuação da cadeia cinética (ADM + velocidade + timing)",
+    "performanceRallyTimeline": "Linha do tempo dos pontos e destaque do rally mais longo",
+    "performanceMatchHistory": "Histórico de partidas salvo na sua biblioteca"
   },
   "forPlayers": {
     "hero": {
@@ -1201,5 +1216,25 @@
   },
   "a11y": {
     "skipNav": "Pular para o conteúdo principal"
+  },
+  "matchReport": {
+    "title": "Laudo da partida",
+    "subtitle": "Detalhamento ponto a ponto do seu vídeo",
+    "backLink": "← Voltar para análise",
+    "saveButton": "Salvar na biblioteca",
+    "downloadPdf": "Baixar PDF",
+    "shareWithCoach": "Compartilhar com treinador",
+    "sectionTimeline": "Linha do tempo dos pontos",
+    "sectionShotBreakdown": "Distribuição de tacadas",
+    "sectionRallies": "Rallies",
+    "statRallies": "Rallies",
+    "statAvgRally": "Rally médio",
+    "statLongestRally": "Maior rally",
+    "statMatchSpan": "Duração da partida",
+    "paywallHeading": "Desbloqueie todos os rallies",
+    "paywallBody": "Você está vendo os 3 rallies mais longos como prévia. Atualize para Performance para ver cada tacada — pontuação detalhada da cadeia cinética, avaliação por rally e histórico salvo.",
+    "paywallCta": "Atualizar para Performance",
+    "emptyHeading": "Nenhum laudo de partida disponível",
+    "emptyBody": "Vá para Analisar, ative o modo partida, escolha um jogador e deixe pelo menos 2 rallies rodarem antes de gerar o laudo."
   }
 }
