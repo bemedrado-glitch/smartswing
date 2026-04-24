@@ -143,6 +143,11 @@
                 data-i18n="matchReport.saveButton">
           Save to library
         </button>
+        <button id="shareWithCoachBtn" type="button"
+                style="display:none; background:transparent; color:var(--volt); border:1px solid var(--volt); padding:9px 16px; border-radius:10px; font-weight:700; cursor:pointer; font-size:13px;"
+                data-i18n="matchReport.shareWithCoach">
+          Share with coach
+        </button>
         <span id="saveStatus" style="font-size:12px; color:var(--text-dim);"></span>
         <a class="back-link" href="./analyze.html" data-i18n="matchReport.backLink">← Back to analysis</a>
       </div>
@@ -275,23 +280,87 @@
           handedness: report.handedness
         };
 
-        const { error } = await client.from('analysis_reports').insert({
+        const { data: inserted, error } = await client.from('analysis_reports').insert({
           user_id: user.id,
           is_match_report: true,
           match_rallies: ralliesNoPoses,
           match_summary: summary,
           subject_track_id: report.subjectTrackId || null,
           report_format: 'json'
-        });
+        }).select('id').single();
         if (error) throw error;
 
         btn.textContent = '✓ Saved';
         statusEl.textContent = 'View it in your dashboard under Match reports.';
+
+        // Surface the "Share with coach" button — only meaningful once the
+        // row exists in analysis_reports (the share writes an UPDATE against
+        // that row's id).
+        const shareBtn = document.getElementById('shareWithCoachBtn');
+        if (shareBtn && inserted && inserted.id) {
+          shareBtn.style.display = 'inline-block';
+          shareBtn.addEventListener('click', () => shareMatchReport(client, inserted.id, shareBtn, statusEl));
+        }
       } catch (err) {
         console.error('[match-report] save failed:', err);
         btn.disabled = false;
         btn.textContent = 'Retry save';
         statusEl.textContent = err.message || 'Save failed. Please try again.';
+      }
+    }
+
+    /**
+     * Share a saved match report with a coach by email. Looks up the coach's
+     * profile row by email, then writes an UPDATE with shared_with_coach_id.
+     * The additive RLS policy added in 20260424c grants that coach SELECT
+     * access to the shared row.
+     *
+     * Simpler than a full share flow (no invitations, no consent table) — an
+     * athlete who knows their coach's SmartSwing email can share in one step.
+     * If the coach doesn't have a SmartSwing account, the lookup fails with
+     * a clear error.
+     */
+    async function shareMatchReport(client, reportId, btn, statusEl) {
+      const raw = window.prompt('Enter your coach\'s SmartSwing email to share this match report:');
+      if (!raw) return;
+      const email = String(raw).trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        statusEl.textContent = 'That does not look like a valid email.';
+        return;
+      }
+
+      btn.disabled = true;
+      const origLabel = btn.textContent;
+      btn.textContent = 'Sharing…';
+
+      try {
+        // Look up the coach's profile by email.
+        const { data: coach, error: lookupError } = await client
+          .from('profiles')
+          .select('id, email')
+          .eq('email', email)
+          .maybeSingle();
+        if (lookupError) throw lookupError;
+        if (!coach || !coach.id) {
+          statusEl.textContent = 'No SmartSwing user found with that email. Ask them to sign up first.';
+          btn.disabled = false;
+          btn.textContent = origLabel;
+          return;
+        }
+
+        const { error: updateError } = await client
+          .from('analysis_reports')
+          .update({ shared_with_coach_id: coach.id })
+          .eq('id', reportId);
+        if (updateError) throw updateError;
+
+        btn.textContent = '✓ Shared';
+        statusEl.textContent = 'Your coach can now see this report in their dashboard.';
+      } catch (err) {
+        console.error('[match-report] share failed:', err);
+        btn.disabled = false;
+        btn.textContent = origLabel;
+        statusEl.textContent = err.message || 'Share failed. Please try again.';
       }
     }
 
