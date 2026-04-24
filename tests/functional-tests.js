@@ -3049,6 +3049,207 @@ describe('Analyzer flow compression + Coach Snapshot (audit fixes #7 + #8)', () 
   });
 });
 
+describe('Match analysis Phase A — rally segmentation + shot classification', () => {
+  const seg = require(path.join(ROOT, 'match/rally-segmenter.js'));
+  const { segmentRallies, classifyShot, computeActivation } = seg;
+
+  // ── Pose generators ──────────────────────────────────────────────
+  // Build synthetic right-handed poses at a given wrist position so we
+  // can script "arm stationary then swinging" sequences for the
+  // segmenter to find.
+  function makePose(opts = {}) {
+    const rightWrist    = opts.rightWrist    || { x: 200, y: 400 };
+    const leftWrist     = opts.leftWrist     || { x: 180, y: 420 };
+    const rightShoulder = opts.rightShoulder || { x: 210, y: 300 };
+    const leftShoulder  = opts.leftShoulder  || { x: 180, y: 300 };
+    const rightHip      = opts.rightHip      || { x: 205, y: 450 };
+    const leftHip       = opts.leftHip       || { x: 190, y: 450 };
+    const nose          = opts.nose          || { x: 195, y: 260 };
+    return {
+      keypoints: [
+        { name: 'right_wrist',    ...rightWrist },
+        { name: 'left_wrist',     ...leftWrist },
+        { name: 'right_shoulder', ...rightShoulder },
+        { name: 'left_shoulder',  ...leftShoulder },
+        { name: 'right_hip',      ...rightHip },
+        { name: 'left_hip',       ...leftHip },
+        { name: 'nose',           ...nose }
+      ]
+    };
+  }
+
+  function wrap(frameIdx, pose) {
+    return { frameIdx, pose };
+  }
+
+  // ── Activation signal ────────────────────────────────────────────
+  test('Activation is low on stationary poses', () => {
+    const poses = [];
+    for (let i = 0; i < 30; i++) poses.push(wrap(i, makePose()));
+    const series = computeActivation(poses);
+    expect(series.length).toBe(30);
+    // All activation should be small (wrist not moving; only static
+    // extension + lean components contribute).
+    const peak = Math.max(...series.map(s => s.activation));
+    expect(peak).toBeLessThan(10);
+  });
+
+  test('Activation spikes when the wrist moves rapidly', () => {
+    const poses = [];
+    for (let i = 0; i < 30; i++) {
+      // Frame 15: wrist snap — large horizontal motion.
+      const wristX = i === 15 ? 400 : 200;
+      poses.push(wrap(i, makePose({ rightWrist: { x: wristX, y: 380 } })));
+    }
+    const series = computeActivation(poses);
+    const peak = Math.max(...series.map(s => s.activation));
+    expect(peak).toBeGreaterThan(50);
+  });
+
+  // ── Rally segmentation ──────────────────────────────────────────
+  test('Segments zero rallies on an idle clip', () => {
+    const poses = [];
+    for (let i = 0; i < 40; i++) poses.push(wrap(i, makePose()));
+    const rallies = segmentRallies(poses);
+    expect(rallies.length).toBe(0);
+  });
+
+  test('Identifies a single swing as one rally', () => {
+    const poses = [];
+    // Scripted swing: wrist accelerates 25→30, decelerates 31→40 back to rest.
+    // Using a smooth curve avoids a false "snap-back" peak at swing-end that
+    // a teleport would introduce.
+    for (let i = 0; i < 60; i++) {
+      let offset = 0;
+      if (i >= 25 && i <= 40) {
+        const t = (i - 25) / 15; // 0 → 1 across the swing
+        offset = Math.sin(t * Math.PI) * 300; // bell curve 0 → 300 → 0
+      }
+      poses.push(wrap(i, makePose({
+        rightWrist: { x: 200 + offset, y: 380 - offset * 0.05 }
+      })));
+    }
+    const rallies = segmentRallies(poses, { activationThreshold: 15, minRallyFrames: 10 });
+    expect(rallies.length).toBe(1);
+    // Peak should land inside the scripted swing range (25-40).
+    expect(rallies[0].peakFrame).toBeGreaterThanOrEqual(25);
+    expect(rallies[0].peakFrame).toBeLessThanOrEqual(40);
+  });
+
+  test('Separates two distinct swings into two rallies', () => {
+    const poses = [];
+    // Swing 1: frames 20-30. Idle 31-60. Swing 2: frames 70-80.
+    for (let i = 0; i < 100; i++) {
+      const inSwing1 = i >= 20 && i <= 30;
+      const inSwing2 = i >= 70 && i <= 80;
+      const offset1 = inSwing1 ? (i - 20) * 50 : 0;
+      const offset2 = inSwing2 ? (i - 70) * 50 : 0;
+      poses.push(wrap(i, makePose({
+        rightWrist: { x: 200 + offset1 + offset2, y: 380 }
+      })));
+    }
+    const rallies = segmentRallies(poses, { activationThreshold: 10, minRallyFrames: 8, mergeGap: 10 });
+    expect(rallies.length).toBe(2);
+  });
+
+  test('Merges back-to-back micro-peaks into one window', () => {
+    const poses = [];
+    // Two peaks 5 frames apart (less than default mergeGap of 15) — should merge.
+    for (let i = 0; i < 60; i++) {
+      const wristX = i === 20 ? 400 : i === 25 ? 420 : 200;
+      poses.push(wrap(i, makePose({ rightWrist: { x: wristX, y: 380 } })));
+    }
+    const rallies = segmentRallies(poses, { activationThreshold: 15, minRallyFrames: 5, mergeGap: 15 });
+    expect(rallies.length).toBe(1);
+  });
+
+  test('Drops windows shorter than minRallyFrames', () => {
+    const poses = [];
+    // Swing of only 3 frames — should be dropped at minRallyFrames=12.
+    for (let i = 0; i < 20; i++) {
+      const wristX = (i >= 10 && i <= 12) ? 500 : 200;
+      poses.push(wrap(i, makePose({ rightWrist: { x: wristX, y: 380 } })));
+    }
+    const rallies = segmentRallies(poses, { activationThreshold: 20, minRallyFrames: 12 });
+    // The peak expands into a window of at most ~6 frames before filtering.
+    // Should be dropped.
+    expect(rallies.every(r => (r.endFrame - r.startFrame + 1) >= 12)).toBe(true);
+  });
+
+  test('Segmenter returns [] on too-short pose arrays', () => {
+    expect(segmentRallies([])).toEqual([]);
+    expect(segmentRallies([{ frameIdx: 0, pose: makePose() }])).toEqual([]);
+  });
+
+  test('Each rally carries a shotType classification', () => {
+    const poses = [];
+    for (let i = 0; i < 40; i++) {
+      // Forehand: right-handed wrist ends up on the right of the torso.
+      const inSwing = i >= 15 && i <= 25;
+      const wristX = inSwing ? 350 + (i - 15) * 10 : 200;
+      poses.push(wrap(i, makePose({ rightWrist: { x: wristX, y: 380 } })));
+    }
+    const rallies = segmentRallies(poses, { activationThreshold: 15, minRallyFrames: 8, handedness: 'right' });
+    expect(rallies.length).toBe(1);
+    expect(['forehand', 'backhand', 'serve', 'volley', 'unknown']).toContain(rallies[0].shotType);
+  });
+
+  // ── Shot classification ────────────────────────────────────────
+  test('classifyShot: serve when wrist is above nose', () => {
+    const pose = makePose({
+      nose:        { x: 200, y: 260 },
+      rightWrist:  { x: 210, y: 180 }   // well above nose
+    });
+    expect(classifyShot([pose])).toBe('serve');
+  });
+
+  test('classifyShot: forehand when right-handed wrist is right-of-torso', () => {
+    const pose = makePose({
+      rightWrist:    { x: 400, y: 380 },  // far right
+      rightShoulder: { x: 200, y: 300 },
+      leftShoulder:  { x: 180, y: 300 }
+    });
+    expect(classifyShot([pose], { handedness: 'right' })).toBe('forehand');
+  });
+
+  test('classifyShot: backhand when right-handed wrist crosses left-of-torso', () => {
+    const pose = makePose({
+      rightWrist:    { x: 50, y: 380 },   // far left — crossed over
+      rightShoulder: { x: 200, y: 300 },
+      leftShoulder:  { x: 180, y: 300 }
+    });
+    expect(classifyShot([pose], { handedness: 'right' })).toBe('backhand');
+  });
+
+  test('classifyShot: volley when wrist near face + torso upright', () => {
+    const pose = makePose({
+      nose:          { x: 200, y: 260 },
+      rightWrist:    { x: 220, y: 270 },   // at nose height, slightly above
+      rightShoulder: { x: 210, y: 300 },
+      leftShoulder:  { x: 190, y: 300 }    // shoulders level → upright torso
+    });
+    expect(classifyShot([pose])).toBe('volley');
+  });
+
+  test('classifyShot: left-handed player inverts FH/BH', () => {
+    const pose = makePose({
+      leftWrist:     { x: 50, y: 380 },    // far left — lefty forehand
+      rightShoulder: { x: 210, y: 300 },
+      leftShoulder:  { x: 190, y: 300 }
+    });
+    expect(classifyShot([pose], { handedness: 'left' })).toBe('forehand');
+  });
+
+  test('classifyShot: unknown when no dominant-arm keypoints', () => {
+    expect(classifyShot([{ keypoints: [] }])).toBe('unknown');
+  });
+
+  test('classifyShot: unknown on empty input', () => {
+    expect(classifyShot([])).toBe('unknown');
+    expect(classifyShot(null)).toBe('unknown');
+  });
+});
+
 describe('Match analysis Phase A — multi-player tracker', () => {
   const tracker = require(path.join(ROOT, 'match/player-tracker.js'));
   const { PlayerTracker, _internals } = tracker;
