@@ -39,25 +39,29 @@
         (i18nKey ? ' data-i18n="' + i18nKey + '"' : '') +
         '>' + label + '</a>';
     };
+    var navLinks =
+      link('./for-players.html',  'For Players',  'nav.forPlayers') +
+      link('./for-coaches.html',  'For Coaches',  'nav.forCoaches') +
+      link('./for-clubs.html',    'For Clubs',    'nav.forClubs') +
+      link('./how-it-works.html', 'How It Works', 'nav.howItWorks') +
+      link('./pricing.html',      'Pricing',      'nav.pricing') +
+      link('./blog.html',         'Blog',         'nav.blog');
     return (
       '<nav class="ss-shared-nav" aria-label="Main navigation">' +
         '<div class="ss-shared-nav__inner">' +
           '<a href="./index.html" class="ss-shared-nav__brand" aria-label="SmartSwing AI - Home">' +
             '<img src="./assets/logos/logo.png" alt="SmartSwing AI" width="140" height="35">' +
           '</a>' +
-          '<div class="ss-shared-nav__links">' +
-            link('./for-players.html',  'For Players',  'nav.forPlayers') +
-            link('./for-coaches.html',  'For Coaches',  'nav.forCoaches') +
-            link('./for-clubs.html',    'For Clubs',    'nav.forClubs') +
-            link('./how-it-works.html', 'How It Works', 'nav.howItWorks') +
-            link('./pricing.html',      'Pricing',      'nav.pricing') +
-            link('./blog.html',         'Blog',         'nav.blog') +
-          '</div>' +
+          '<div class="ss-shared-nav__links" id="ssNavLinks">' + navLinks + '</div>' +
           '<div class="ss-shared-nav__cta">' +
             '<a href="./login.html" class="ss-shared-nav__signin" data-i18n="nav.signIn">Sign in</a>' +
             '<a href="./signup.html" class="ss-shared-nav__start" data-i18n="nav.startFree">Start free</a>' +
+            '<button type="button" class="ss-shared-nav__burger" aria-label="Open menu" aria-expanded="false" aria-controls="ssMobileMenu" onclick="(function(b){var m=document.getElementById(\'ssMobileMenu\');if(!m)return;var open=m.classList.toggle(\'open\');b.setAttribute(\'aria-expanded\',open?\'true\':\'false\');})(this)">' +
+              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>' +
+            '</button>' +
           '</div>' +
         '</div>' +
+        '<div class="ss-shared-nav__mobile" id="ssMobileMenu" role="menu">' + navLinks + '</div>' +
       '</nav>'
     );
   }
@@ -69,19 +73,27 @@
     style.setAttribute('data-ss-header-css', '1');
     style.textContent = [
       '.ss-shared-nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,0.08);font-family:var(--ss-font-body,"DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);}',
-      '.ss-shared-nav__inner{max-width:1280px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px;}',
+      '.ss-shared-nav__inner{max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}',
       '.ss-shared-nav__brand{display:flex;align-items:center;text-decoration:none;flex-shrink:0;}',
       '.ss-shared-nav__brand img{display:block;}',
-      '.ss-shared-nav__links{display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex:1;justify-content:center;}',
-      '.ss-shared-nav .ss-nav-link{text-decoration:none;color:rgba(255,255,255,0.65);font-weight:600;font-size:14px;padding:8px 14px;border-radius:999px;transition:color .18s,background .18s;white-space:nowrap;}',
+      '.ss-shared-nav__links{display:flex;align-items:center;gap:2px;flex:1;justify-content:center;}',
+      '.ss-shared-nav .ss-nav-link{text-decoration:none;color:rgba(255,255,255,0.72);font-weight:600;font-size:14px;padding:8px 10px;border-radius:999px;transition:color .18s,background .18s;white-space:nowrap;}',
       '.ss-shared-nav .ss-nav-link:hover,.ss-shared-nav .ss-nav-link:focus-visible{color:#fff;background:rgba(255,255,255,0.06);}',
       '.ss-shared-nav__cta{display:flex;align-items:center;gap:8px;flex-shrink:0;}',
       '.ss-shared-nav__signin{text-decoration:none;color:rgba(255,255,255,0.85);font-weight:700;font-size:14px;padding:8px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.15);transition:border-color .18s,color .18s;}',
       '.ss-shared-nav__signin:hover{border-color:rgba(255,255,255,0.35);color:#fff;}',
-      '.ss-shared-nav__start{text-decoration:none;color:#0a0a0a;background:#39ff14;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;transition:transform .18s,box-shadow .18s;}',
+      '.ss-shared-nav__start{text-decoration:none;color:#0a0a0a;background:#39ff14;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;transition:transform .18s,box-shadow .18s;white-space:nowrap;}',
       '.ss-shared-nav__start:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(57,255,20,0.25);}',
-      '@media(max-width:900px){.ss-shared-nav__links{display:none;}.ss-shared-nav__inner{gap:12px;}}',
-      '@media(max-width:480px){.ss-shared-nav__signin{display:none;}}'
+      '.ss-shared-nav__burger{display:none;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:7px 9px;border-radius:10px;cursor:pointer;}',
+      '.ss-shared-nav__burger:hover{border-color:rgba(255,255,255,0.35);}',
+      '.ss-shared-nav__mobile{display:none;padding:8px 16px 16px;border-top:1px solid rgba(255,255,255,0.06);flex-direction:column;gap:2px;}',
+      '.ss-shared-nav__mobile.open{display:flex;}',
+      '.ss-shared-nav__mobile .ss-nav-link{padding:12px 14px;font-size:15px;text-align:left;}',
+      // Laptop-friendly breakpoint: keep main links visible down to 720px
+      // since most 13" laptops are 1280×800 and the old 900px cutoff hid
+      // the nav on anything narrower than that.
+      '@media(max-width:720px){.ss-shared-nav__links{display:none;}.ss-shared-nav__burger{display:inline-flex;align-items:center;}.ss-shared-nav__signin{display:none;}}',
+      '@media(max-width:360px){.ss-shared-nav__start{padding:8px 12px;font-size:13px;}}'
     ].join('\n');
     document.head.appendChild(style);
   }
