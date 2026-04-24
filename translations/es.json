@@ -652,7 +652,22 @@
     "playerF5": "[en] Email reports to your coach",
     "playerF6": "[en] Social card to share & compete with friends",
     "playerF7": "[en] Live match scoring — track your matches",
-    "playerF8": "[en] Progress tracking unlocked"
+    "playerF8": "[en] Progress tracking unlocked",
+    "starterSingleSwing": "Análisis de un golpe (un jugador en cuadro)",
+    "starterLockedSave": "Guardar y exportar informes — solo en planes de pago",
+    "starterLockedLibrary": "Biblioteca de drills y tácticas — solo en planes de pago",
+    "starterLockedMatch": "Análisis de partidos — plan Performance",
+    "playerEverythingInStarter": "Todo lo de Starter, más:",
+    "playerFullTactics": "Biblioteca táctica completa con escenarios detallados",
+    "playerClipExport": "Exportación de clips para calibrar con tu entrenador",
+    "playerLockedMatch": "Análisis de video de partido — plan Performance",
+    "performanceEverythingInPlayer": "Todo lo de Player, más:",
+    "performanceMatchMode": "★ Modo partido — analiza partidos completos o videos de YouTube",
+    "performanceMultiPlayer": "★ Seguimiento multijugador — toca para elegir a quién analizar",
+    "performanceMatchReports": "★ Informes por rally con desglose por tipo de golpe",
+    "performanceKineticChain": "★ Puntuación de cadena cinética (ROM + velocidad + timing)",
+    "performanceRallyTimeline": "Línea de tiempo de rallies y rally más largo destacado",
+    "performanceMatchHistory": "Historial de partidos guardado en tu biblioteca"
   },
   "forPlayers": {
     "hero": {
@@ -1201,5 +1216,25 @@
   },
   "a11y": {
     "skipNav": "Saltar al contenido principal"
+  },
+  "matchReport": {
+    "title": "Informe de partido",
+    "subtitle": "Desglose por rally de tu video",
+    "backLink": "← Volver al análisis",
+    "saveButton": "Guardar en biblioteca",
+    "downloadPdf": "Descargar PDF",
+    "shareWithCoach": "Compartir con entrenador",
+    "sectionTimeline": "Línea de tiempo de rallies",
+    "sectionShotBreakdown": "Desglose de golpes",
+    "sectionRallies": "Rallies",
+    "statRallies": "Rallies",
+    "statAvgRally": "Rally promedio",
+    "statLongestRally": "Rally más largo",
+    "statMatchSpan": "Duración del partido",
+    "paywallHeading": "Desbloquea todos los rallies",
+    "paywallBody": "Estás viendo los 3 rallies más largos como vista previa. Cambia a Performance para ver todos los golpes — puntuaciones por golpe, calificación por rally e historial guardado.",
+    "paywallCta": "Cambiar a Performance",
+    "emptyHeading": "No hay informe de partido disponible",
+    "emptyBody": "Ve a Analizar, activa el modo partido, elige un jugador y deja que pasen al menos 2 rallies antes de generar el informe."
   }
 }
