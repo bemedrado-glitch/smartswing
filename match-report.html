@@ -291,6 +291,20 @@
         if (error) throw error;
 
         btn.textContent = '✓ Saved';
+        // Custom conversion event — saving means the user found the
+        // report valuable enough to keep. Mirrors to CAPI so iOS
+        // tracking loss doesn't hide this signal from Meta attribution.
+        try {
+          if (window.SmartSwingAnalytics && typeof window.SmartSwingAnalytics.conversion === 'function') {
+            window.SmartSwingAnalytics.conversion(
+              'MatchReportSaved',
+              { rally_count: (report && report.rallyCount) || 0, content_category: 'match_analysis' },
+              'match_report_saved',
+              { rally_count: (report && report.rallyCount) || 0 },
+              { capi: true, userData: { external_id: user.id } }
+            );
+          }
+        } catch (_) { /* silent */ }
         statusEl.textContent = 'View it in your dashboard under Match reports.';
 
         // Surface the "Share with coach" button — only meaningful once the

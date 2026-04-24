@@ -162,29 +162,98 @@
   /* ── Unified conversion-event helper ──
    * Safe to call any time; queues Meta Pixel calls until the pixel loads,
    * and fires GA4 gtag events when gtag is available.
+   *
+   * When opts.capi === true, also fires the server-side CAPI mirror so
+   * the event survives iOS 14+ browser-tracking loss. Same event_id is
+   * used on both sides so Meta deduplicates. User PII (email, user id)
+   * is hashed server-side; this browser call only forwards what's
+   * already public (cookies, current page URL).
    */
-  function trackConversion(metaEvent, metaParams, gaEvent, gaParams) {
+  function trackConversion(metaEvent, metaParams, gaEvent, gaParams, opts) {
+    opts = opts || {};
+    var eventId = opts.eventId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '_' + Math.random().toString(36).slice(2)));
     try {
       if (metaEvent) {
+        // eventID is the key to CAPI dedup — fbq accepts it as 4th arg.
+        var fbqArgs = ['track', metaEvent];
+        if (metaParams) fbqArgs.push(metaParams);
+        fbqArgs.push({ eventID: eventId });
         if (window.fbq) {
-          metaParams ? window.fbq('track', metaEvent, metaParams) : window.fbq('track', metaEvent);
+          window.fbq.apply(null, fbqArgs);
         } else {
           window.__smartSwingPendingFbq = window.__smartSwingPendingFbq || [];
-          window.__smartSwingPendingFbq.push(
-            metaParams ? ['track', metaEvent, metaParams] : ['track', metaEvent]
-          );
+          window.__smartSwingPendingFbq.push(fbqArgs);
         }
       }
       if (gaEvent && typeof window.gtag === 'function') {
         window.gtag('event', gaEvent, gaParams || {});
       }
+      // Server-side mirror for opt-in events (conversions that matter for
+      // ad attribution). Not called for every PageView — CAPI has per-event
+      // quotas and PageView is the noisiest event.
+      if (opts.capi && metaEvent) {
+        sendToCapi(metaEvent, metaParams, eventId, opts.userData || {});
+      }
     } catch (_) { /* silent */ }
+    return eventId;
+  }
+
+  /**
+   * Post a CAPI mirror event. Best-effort, never blocks the UI, never
+   * surfaces errors — if the endpoint is misconfigured (503) or down,
+   * browser-only tracking degrades gracefully.
+   */
+  function sendToCapi(eventName, customData, eventId, userData) {
+    try {
+      // Pull pixel click-id cookies (_fbc, _fbp) — Meta uses them to
+      // improve match quality. They're public cookies set by fbevents.js.
+      var fbc = _getCookie('_fbc');
+      var fbp = _getCookie('_fbp');
+      var body = {
+        event_name: eventName,
+        event_id: eventId,
+        event_source_url: window.location.href,
+        user_data: Object.assign({}, userData, {
+          fbc: fbc || undefined,
+          fbp: fbp || undefined,
+          client_user_agent: navigator.userAgent
+        }),
+        custom_data: customData || {}
+      };
+      // Use sendBeacon when the page is unloading (checkout → thank-you);
+      // otherwise fetch keepalive so we don't block navigation.
+      var blob = new Blob([JSON.stringify(body)], { type: 'application/json' });
+      if (navigator.sendBeacon && document.visibilityState === 'hidden') {
+        navigator.sendBeacon('/api/meta-capi', blob);
+      } else {
+        fetch('/api/meta-capi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          keepalive: true
+        }).catch(function () { /* silent */ });
+      }
+    } catch (_) { /* silent */ }
+  }
+
+  function _getCookie(name) {
+    try {
+      var m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]+)'));
+      return m ? decodeURIComponent(m[1]) : null;
+    } catch (_) { return null; }
   }
 
   /* ── Public API ── */
   window.SmartSwingAnalytics = {
     track: trackEvent,
-    conversion: trackConversion
+    conversion: trackConversion,
+    // Expose for pages that want to fire CAPI directly (e.g., signup flows
+    // where we already have email + user id in scope).
+    capi: function (eventName, customData, userData) {
+      var id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+      sendToCapi(eventName, customData, id, userData || {});
+      return id;
+    }
   };
 
   /* ── Init ── */

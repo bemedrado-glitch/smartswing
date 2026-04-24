@@ -9397,6 +9397,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             if (typeof window._ssToast === 'function') window._ssToast('Could not save match report — try again.', 'error');
             return;
           }
+          // Custom conversion event — this is the match-mode funnel's
+          // "aha moment". Fire to Meta + GA4 + CAPI server-side for
+          // iOS-tracking-loss resilience, then route to the report page.
+          try {
+            if (window.SmartSwingAnalytics && typeof window.SmartSwingAnalytics.conversion === 'function') {
+              window.SmartSwingAnalytics.conversion(
+                'MatchReportGenerated',
+                { rally_count: matchRallies.length, content_category: 'match_analysis' },
+                'match_report_generated',
+                { rally_count: matchRallies.length },
+                { capi: true }
+              );
+            }
+          } catch (_) { /* never block routing on telemetry */ }
           window.location.href = './match-report.html';
         });
       }
