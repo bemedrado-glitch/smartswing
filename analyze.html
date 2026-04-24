@@ -4312,6 +4312,46 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       return clamp(0.88 + (expectation * 0.15), 0.92, 1.04);
     }
 
+    // Level-appropriate scaling for velocity + ROM benchmarks.
+    //
+    // Velocity + ROM benchmarks ship calibrated at pro peak values (see
+    // VELOCITY_BENCHMARKS / ROM_BENCHMARKS comments). An amateur's peak
+    // angular velocity is realistically 50-70% of a pro's; scoring their
+    // raw velocity against pro targets would ALWAYS land in the "needs-
+    // work" bucket even when their technique is sound for their level.
+    //
+    // This returns a multiplier applied to the benchmark min/max/optimal
+    // before the deviation is measured. Values were picked by cross-
+    // referencing published sports-biomechanics research on amateur vs
+    // tournament-player angular-velocity profiles (e.g., Elliott &
+    // Reid 2008 on serve kinetics, Landlinger et al. 2012 on forehand
+    // racquet-head speed).
+    function getKineticExpectationScale(profileContext) {
+      var level = (profileContext && profileContext.level) || 'intermediate';
+      switch (level) {
+        case 'starter':     return 0.45;
+        case 'beginner':    return 0.55;
+        case 'intermediate':return 0.70;
+        case 'advanced':    return 0.82;
+        case 'competitive': return 0.90;
+        case 'pro':         return 1.00;
+        default:            return 0.70;
+      }
+    }
+
+    // Scale a velocity / ROM benchmark for a player's level so their peak
+    // values are measured against level-appropriate targets rather than
+    // pro peaks. Preserves shape of the band (proportional min/max/optimal).
+    function getAdjustedKineticBenchmark(benchmark, profileContext) {
+      if (!benchmark) return null;
+      var scale = getKineticExpectationScale(profileContext);
+      return {
+        min: roundMetric(safeNumber(benchmark.min) * scale, 2),
+        max: roundMetric(safeNumber(benchmark.max) * scale, 2),
+        optimal: roundMetric(safeNumber(benchmark.optimal) * scale, 2)
+      };
+    }
+
     function getAdjustedBenchmark(metricName, benchmark, profileContext) {
       if (!benchmark) return null;
 
@@ -4368,28 +4408,44 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (!angleResult) return null;
 
       // ── Phase 1 velocity ────────────────────────────────────────────
-      const velocityBench = (VELOCITY_BENCHMARKS[shotType] || {})[metricName];
+      // Level-adjust the velocity benchmark so an amateur's peak velocities
+      // are scored against level-appropriate targets (see
+      // getKineticExpectationScale).
+      const rawVelocityBench = (VELOCITY_BENCHMARKS[shotType] || {})[metricName];
+      const velocityBench = rawVelocityBench
+        ? getAdjustedKineticBenchmark(rawVelocityBench, profileContext)
+        : null;
       let velocityScoreResult = null;
       if (currentVelocity != null && Number.isFinite(currentVelocity) && velocityBench) {
         velocityScoreResult = _windowedScore(currentVelocity, velocityBench, toleranceMultiplier);
       }
 
       // ── Phase 2 range-of-motion ─────────────────────────────────────
-      // Loading depth across the swing window. See ROM_BENCHMARKS comment.
-      const romBench = (ROM_BENCHMARKS[shotType] || {})[metricName];
+      // Loading depth across the swing window. Level-adjusted the same way
+      // as velocity — an amateur shouldn't be scored against pro-peak ROM.
+      const rawRomBench = (ROM_BENCHMARKS[shotType] || {})[metricName];
+      const romBench = rawRomBench
+        ? getAdjustedKineticBenchmark(rawRomBench, profileContext)
+        : null;
       let romScoreResult = null;
       if (currentROM != null && Number.isFinite(currentROM) && romBench) {
         romScoreResult = _windowedScore(currentROM, romBench, toleranceMultiplier);
       }
 
       // ── Blend ───────────────────────────────────────────────────────
-      // Target weights: angle 0.50 / velocity 0.25 / ROM 0.25.
-      // When a sub-signal is missing we re-weight the remaining pieces so
-      // the composition stays balanced (still sums to 1.0) — this lets
-      // velocity-only or ROM-only scenarios degrade gracefully without
-      // punishing a joint just because its frame coverage is thin.
+      // Weights: angle 0.60 / velocity 0.20 / ROM 0.20. Angle stays the
+      // dominant signal because it's the most directly observable and the
+      // best-calibrated benchmark set today; velocity and ROM are
+      // contributors that nudge the score rather than overwhelm it.
+      //
+      // Grace clamp: the blended score can't drop more than 12 points
+      // below the raw angle score. This protects a player with solid
+      // technique whose velocity data is noisy (low frame rate, partial
+      // occlusion) from being penalised twice for the same data problem.
+      // If velocity/ROM are genuinely much better than angle, they lift
+      // the blend without cap.
       let blendedScore = angleResult.rawScore;
-      const partWeights = { angle: 0.50, velocity: 0.25, rom: 0.25 };
+      const partWeights = { angle: 0.60, velocity: 0.20, rom: 0.20 };
       const activeParts = [{ weight: partWeights.angle, score: angleResult.rawScore }];
       if (velocityScoreResult) activeParts.push({ weight: partWeights.velocity, score: velocityScoreResult.rawScore });
       if (romScoreResult)      activeParts.push({ weight: partWeights.rom,      score: romScoreResult.rawScore });
@@ -4399,6 +4455,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           activeParts.reduce((acc, p) => acc + p.score * p.weight, 0) / Math.max(1e-6, totalWeight)
         );
       }
+      // Grace clamp: never let blend drop 12+ points below angle alone.
+      const graceFloor = Math.max(18, angleResult.rawScore - 12);
+      if (blendedScore < graceFloor) blendedScore = graceFloor;
       const roundedScore = clamp(blendedScore, 18, 100);
 
       // Status reflects the BLENDED score so feedback tone matches the number.
