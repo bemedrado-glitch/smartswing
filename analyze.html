@@ -1130,6 +1130,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <script src="./match/rally-segmenter.js" defer></script>
 <script src="./match/chunked-processor.js" defer></script>
 <script src="./match/match-mode.js" defer></script>
+<script src="./match/report-aggregator.js" defer></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1583,6 +1584,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <button class="btn btn-secondary" id="retryAiBtn">Retry AI Setup</button>
               <button class="btn btn-primary" id="saveBtn" style="display: none;">Save Analysis</button>
               <button class="btn btn-primary" id="generateReportBtn" style="display: none;">Generate Report</button>
+              <button class="btn btn-primary" id="generateMatchReportBtn" style="display: none; background: var(--neon-green, #39ff14); color: #000;">Generate Match Report</button>
             </div>
 
             <!-- Match-mode toggle + auto-suggest banner (Phase A / PR 4).
@@ -9106,6 +9108,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       let controller = null;
       let multiPoseCache = [];     // last frame's raw detections (canvas-space bboxes)
       let lastDetectorTransform = null; // for click coordinate translation
+      const matchRallies = [];          // collected rally events across the match
 
       function ensureController() {
         if (controller) return controller;
@@ -9140,6 +9143,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         });
         controller.on('subjectCleared', () => {
           if (subjStatus) { subjStatus.textContent = ''; subjStatus.style.display = 'none'; }
+        });
+        controller.on('rally', (rally) => {
+          matchRallies.push(rally);
+          maybeShowMatchReportBtn();
         });
         return controller;
       }
@@ -9235,6 +9242,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       // decision (A): deterministic rally coverage.
       function applyArmedState(on) {
         window.__smartswingMatchModeArmed = !!on;
+        matchRallies.length = 0; // wipe collected rallies on every arm/disarm
+        if (matchReportBtn) matchReportBtn.style.display = 'none';
         if (on) {
           ensureController();
           if (subjStatus) {
@@ -9279,6 +9288,57 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         bannerDismiss.addEventListener('click', () => {
           bannerDismissed = true;
           banner.style.display = 'none';
+        });
+      }
+
+      // ─── Generate match report button ──────────────────────────────
+      // Shows up only when match mode is on + subject picked + ≥ 2 rallies
+      // detected. Clicking it aggregates via window.SmartSwingMatchReport,
+      // stashes the payload in sessionStorage, and routes to match-report.html.
+      //
+      // Paywall gating happens on the *destination* page, not here — that
+      // way even Starter/Player users can click through and see the preview
+      // tier (timeline + aggregate stats), with per-rally drill-down locked.
+      const matchReportBtn = document.getElementById('generateMatchReportBtn');
+
+      function maybeShowMatchReportBtn() {
+        if (!matchReportBtn) return;
+        if (!toggle.checked)                                     { matchReportBtn.style.display = 'none'; return; }
+        if (!controller || !controller.getSubjectTrackId())      { matchReportBtn.style.display = 'none'; return; }
+        if (matchRallies.length < 2)                             { matchReportBtn.style.display = 'none'; return; }
+        matchReportBtn.style.display = 'inline-block';
+        matchReportBtn.textContent = 'Generate Match Report (' + matchRallies.length + ' rallies)';
+      }
+
+      if (matchReportBtn) {
+        matchReportBtn.addEventListener('click', () => {
+          if (!controller || !window.SmartSwingMatchReport) {
+            if (typeof window._ssToast === 'function') window._ssToast('Match report generator not ready. Please retry AI setup.', 'error');
+            return;
+          }
+          const subjectId = controller.getSubjectTrackId();
+          if (!subjectId) return;
+          const tracker = controller.processor.tracker;
+          const subjectTrack = tracker.getTracks()[subjectId];
+          // Include the full drill-down payload — paywall gate on the
+          // destination page decides what to render. Keeping it out of
+          // session would block the paid experience entirely for users
+          // who refresh the tab.
+          const report = window.SmartSwingMatchReport.aggregateMatch({
+            rallies: matchRallies,
+            subjectTrack,
+            fps: 30,
+            includePoses: true,
+            handedness: (window.SmartSwingStore && window.SmartSwingStore.handedness) || 'right'
+          });
+          try {
+            sessionStorage.setItem('smartswing:matchReport', JSON.stringify(report));
+          } catch (err) {
+            console.error('Failed to stash match report:', err);
+            if (typeof window._ssToast === 'function') window._ssToast('Could not save match report — try again.', 'error');
+            return;
+          }
+          window.location.href = './match-report.html';
         });
       }
     })();
