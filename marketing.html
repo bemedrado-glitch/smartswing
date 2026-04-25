@@ -416,13 +416,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </select>
           <select class="mkt-filter-select" id="filterDataSource" aria-label="Filter contacts by data source" onchange="filterContacts()">
             <option value="">All Sources</option>
-            <option value="google_places">Google Places</option>
-            <option value="itf_ranking">ITF Rankings</option>
-            <option value="atp_ranking">ATP Rankings</option>
-            <option value="wta_ranking">WTA Rankings</option>
-            <option value="usta_ranking">USTA Rankings</option>
-            <option value="organic_signup">Organic Signup</option>
-            <option value="manual">Manual</option>
+            <optgroup label="Internet Leads (B2B harvest)">
+              <option value="federation:USTA">USTA — United States</option>
+              <option value="federation:LTA">LTA — United Kingdom</option>
+              <option value="federation:FFT">FFT — France</option>
+              <option value="federation:DTB">DTB — Germany</option>
+              <option value="federation:RFET">RFET — Spain</option>
+              <option value="federation:FIT">FIT — Italy</option>
+              <option value="federation:JTA">JTA — Japan</option>
+              <option value="federation:TENNIS-AUSTRALIA">Tennis Australia</option>
+              <option value="federation:CBT">CBT — Brazil</option>
+              <option value="federation:CTA">CTA — China</option>
+              <option value="federation:RTT">RTT — Russia</option>
+              <option value="lead-harvest:any">Any federation harvest</option>
+            </optgroup>
+            <optgroup label="Other sources">
+              <option value="google_places">Google Places</option>
+              <option value="itf_ranking">ITF Rankings</option>
+              <option value="atp_ranking">ATP Rankings</option>
+              <option value="wta_ranking">WTA Rankings</option>
+              <option value="usta_ranking">USTA Rankings</option>
+              <option value="organic_signup">Organic Signup</option>
+              <option value="manual">Manual</option>
+            </optgroup>
           </select>
           <select class="mkt-filter-select" id="filterStage" aria-label="Filter contacts by lifecycle stage" onchange="filterContacts()">
             <option value="">All Stages</option>
@@ -3954,7 +3970,21 @@ function filterContacts() {
     const matchQ = !q || (c.name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.nationality || '').toLowerCase().includes(q) || (c.country || '').toLowerCase().includes(q);
     const matchPersona = !persona || c.persona === persona;
     const matchStage = !stage || c.stage === stage;
-    const matchSource = !dataSource || c.data_source === dataSource || c.enrichment_source === dataSource;
+    // Source matching:
+    //   - exact match on data_source / enrichment_source / source
+    //   - special pseudo-value 'lead-harvest:any' matches any federation
+    //     harvest row (source LIKE 'lead-harvest:%')
+    let matchSource = !dataSource;
+    if (dataSource) {
+      if (dataSource === 'lead-harvest:any') {
+        matchSource = (c.source || '').indexOf('lead-harvest:') === 0
+          || (c.data_source || '').indexOf('federation:') === 0;
+      } else {
+        matchSource = c.data_source === dataSource
+          || c.enrichment_source === dataSource
+          || c.source === dataSource;
+      }
+    }
     return matchQ && matchPersona && matchStage && matchSource;
   });
   renderContacts(filtered);

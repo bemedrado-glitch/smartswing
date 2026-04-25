@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "federation_id": "LTA",
+    "country": "United Kingdom",
+    "country_code": "GB",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.lta.org.uk/play-compete/find-a-place-to-play/ + LTA-accredited venue + coach directories",
+    "consent_basis": "public-directory",
+    "notes": "Premier UK tennis venues + LTA-accredited coaching academies"
+  },
+  "records": [
+    { "persona": "club",    "name": "All England Lawn Tennis Club",            "email": "tickets@aeltc.com",         "phone": "+44 20 8944 1066", "website": "https://www.wimbledon.com",                       "city": "London",     "state": "England" },
+    { "persona": "club",    "name": "Queen's Club",                            "email": "membership@queensclub.co.uk","phone": "+44 20 7385 3421", "website": "https://www.queensclub.co.uk",                    "city": "London",     "state": "England" },
+    { "persona": "club",    "name": "The Hurlingham Club",                     "email": "tennis@hurlinghamclub.org.uk","phone": "+44 20 7610 7400","website": "https://www.hurlinghamclub.org.uk",               "city": "London",     "state": "England" },
+    { "persona": "club",    "name": "National Tennis Centre",                  "email": "ntc@lta.org.uk",            "phone": "+44 20 8487 7000", "website": "https://www.lta.org.uk/about-us/ntc",             "city": "Roehampton", "state": "England" },
+    { "persona": "club",    "name": "David Lloyd Raynes Park",                 "email": "raynespark.enquiries@davidlloyd.co.uk","phone":"+44 20 8543 6661","website":"https://www.davidlloyd.co.uk/clubs/raynes-park","city":"London","state":"England" },
+    { "persona": "academy", "name": "Lawn Tennis Academy",                     "email": "info@lawntennisacademy.com","phone": "+44 1372 461570", "website": "https://www.lawntennisacademy.com",               "city": "Esher",      "state": "England" },
+    { "persona": "academy", "name": "Bisham Abbey National Sports Centre",     "email": "info@bishamabbeynsc.co.uk", "phone": "+44 1628 476911",  "website": "https://www.bishamabbeynsc.co.uk",                "city": "Marlow",     "state": "England" },
+    { "persona": "academy", "name": "Loughborough University Tennis Academy",  "email": "tennis@lboro.ac.uk",        "phone": "+44 1509 263171",  "website": "https://www.lborosport.co.uk/tennis",             "city": "Loughborough","state":"England" },
+    { "persona": "club",    "name": "Edgbaston Priory Club",                   "email": "office@edgbastonpriory.com","phone": "+44 121 440 2492", "website": "https://www.edgbastonpriory.com",                 "city": "Birmingham", "state": "England" },
+    { "persona": "club",    "name": "Northern Lawn Tennis Club",               "email": "info@thenorthern.co.uk",    "phone": "+44 161 445 3409", "website": "https://www.thenorthern.co.uk",                   "city": "Manchester", "state": "England" },
+    { "persona": "club",    "name": "Wimbledon Park Tennis Club",              "email": "office@wimbledonpark.org.uk","phone": "+44 20 8946 4453","website": "https://www.wimbledonpark.org.uk",                "city": "London",     "state": "England" },
+    { "persona": "academy", "name": "Edinburgh Tennis Academy",                "email": "info@edinburghtennisacademy.co.uk","phone": "+44 131 668 4408","website": "https://www.edinburghtennisacademy.co.uk",   "city": "Edinburgh",  "state": "Scotland" }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "batchId": "2026-04-25T15:27:55:batch:qvwtlh",
+  "timestamp": "2026-04-25T15:27:55.838Z",
+  "dryRun": true,
+  "targets": [
+    "cbt",
+    "cta",
+    "dtb",
+    "fft",
+    "fit",
+    "jta",
+    "lta",
+    "rfet",
+    "rtt",
+    "tennis-australia",
+    "usta"
+  ],
+  "perSource": [
+    {
+      "source": "cbt",
+      "rows": 6,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "cta",
+      "rows": 4,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "dtb",
+      "rows": 9,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "fft",
+      "rows": 9,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "fit",
+      "rows": 6,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "jta",
+      "rows": 5,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "lta",
+      "rows": 12,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "rfet",
+      "rows": 8,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "rtt",
+      "rows": 3,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "tennis-australia",
+      "rows": 7,
+      "inserted": 0,
+      "dryRun": true
+    },
+    {
+      "source": "usta",
+      "rows": 22,
+      "inserted": 0,
+      "dryRun": true
+    }
+  ],
+  "totalRows": 91,
+  "totalInserted": 0
+}

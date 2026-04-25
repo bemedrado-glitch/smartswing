@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "federation_id": "RTT",
+    "country": "Russia",
+    "country_code": "RU",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.tennis-russia.ru + Spartak Tennis Club + CSKA Tennis School",
+    "consent_basis": "public-directory",
+    "notes": "Russian Tennis Federation HQ + Moscow flagship academies. NOTE — sanctions and outreach should be evaluated separately for this market."
+  },
+  "records": [
+    { "persona": "club",    "name": "Russian Tennis Federation HQ",  "email": "info@tennis-russia.ru",      "phone": "+7 495 248 0030", "website": "https://www.tennis-russia.ru", "city": "Moscow" },
+    { "persona": "academy", "name": "Spartak Tennis Academy Moscow",  "email": "info@spartak-tennis.ru",     "phone": "+7 495 642 8044", "website": "https://www.spartak-tennis.ru","city": "Moscow" },
+    { "persona": "academy", "name": "CSKA Tennis School Moscow",      "email": "info@cska-tennis.ru",        "phone": "+7 495 612 7460", "website": "https://www.cska-tennis.ru",   "city": "Moscow" }
+  ]
+}
