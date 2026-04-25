@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "federation_id": "TENNIS-AUSTRALIA",
+    "country": "Australia",
+    "country_code": "AU",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.tennis.com.au/about-tennis-australia/contacts/states + state association contact pages + premier club public pages (Voyager, Royal Sydney, Royal South Yarra, Kooyong, RACV, Macarthur, Brisbane International)",
+    "consent_basis": "public-directory"
+  },
+  "records": [
+    { "persona": "club", "name": "Tennis Australia HQ (Melbourne Park)", "email": "info@tennis.com.au", "phone": "+61 3 9914 4000", "website": "https://www.tennis.com.au", "city": "Melbourne", "state": "VIC" },
+    { "persona": "club", "name": "Tennis NSW", "email": "tennis@tennisnsw.com.au", "phone": "+61 2 9024 7600", "website": "https://www.tennis.com.au/nsw", "city": "Sydney Olympic Park", "state": "NSW" },
+    { "persona": "club", "name": "Tennis Victoria", "email": "vicinfo@tennis.com.au", "phone": "+61 3 8420 8420", "website": "https://www.tennis.com.au/vic", "city": "Richmond", "state": "VIC" },
+    { "persona": "club", "name": "Tennis Queensland", "email": "info@tennisqueensland.com.au", "phone": "+61 7 3214 3700", "website": "https://www.tennis.com.au/qld", "city": "Tennyson", "state": "QLD" },
+    { "persona": "club", "name": "Tennis SA", "email": "sareception@tennis.com.au", "phone": "+61 8 7224 8100", "website": "https://www.tennis.com.au/sa", "city": "North Adelaide", "state": "SA" },
+    { "persona": "club", "name": "Tennis West", "email": "wainfo@tennis.com.au", "phone": "+61 8 6462 8300", "website": "https://www.tennis.com.au/wa", "city": "Burswood", "state": "WA" },
+    { "persona": "club", "name": "Tennis Tasmania", "email": "tasinfo@tennis.com.au", "phone": "+61 3 6108 8200", "website": "https://www.tennis.com.au/tas", "city": "Glebe (Hobart)", "state": "TAS" },
+    { "persona": "club", "name": "Tennis ACT", "email": "actinfo@tennis.com.au", "phone": "+61 2 6160 7800", "website": "https://www.tennis.com.au/act", "city": "Lyneham", "state": "ACT" },
+    { "persona": "club", "name": "Tennis NT", "email": "ntinfo@tennis.com.au", "phone": "+61 8 8981 5609", "website": "https://www.tennis.com.au/nt", "city": "Marrara (Darwin)", "state": "NT" },
+    { "persona": "academy", "name": "National Tennis Academy Melbourne", "email": "nta@tennis.com.au", "phone": "+61 3 9914 4111", "website": "https://www.tennis.com.au/learn/academy", "city": "Melbourne", "state": "VIC" },
+    { "persona": "academy", "name": "Voyager Tennis Academy", "email": "info@voyagertennis.com", "phone": "+61 2 9133 7915", "website": "https://www.voyagertennis.com", "city": "Sydney", "state": "NSW" },
+    { "persona": "club", "name": "Royal Sydney Golf Club Tennis", "email": "jon.ireland@rsgc.com.au", "phone": "+61 2 8362 7130", "website": "https://www.rsgc.com.au", "city": "Rose Bay", "state": "NSW" },
+    { "persona": "club", "name": "Royal South Yarra Lawn Tennis Club", "email": "info@rsy.com.au", "phone": "+61 3 9826 1144", "website": "https://www.rsy.com.au", "city": "South Yarra (Melbourne)", "state": "VIC" },
+    { "persona": "club", "name": "Kooyong Lawn Tennis Club (Reception)", "email": "reception@kooyongltc.asn.au", "phone": "+61 3 9822 3333", "website": "https://www.kooyong.com.au", "city": "Kooyong (Melbourne)", "state": "VIC" },
+    { "persona": "club", "name": "Kooyong Lawn Tennis Club (Membership)", "email": "membership@kooyongltc.asn.au", "phone": "+61 3 9822 3333", "website": "https://www.kooyong.com.au", "city": "Kooyong (Melbourne)", "state": "VIC" },
+    { "persona": "club", "name": "RACV City Club (Fitness Centre)", "email": "fitnesscentre@racv.com.au", "phone": "+61 3 9944 8888", "website": "https://www.racv.com.au/racv-club/locations/city.html", "city": "Melbourne", "state": "VIC" },
+    { "persona": "academy", "name": "Macarthur Tennis Academy / Tennis Macarthur", "email": "info@tennismacarthur.com.au", "phone": "+61 416 254 647", "website": "https://www.tennismacarthur.com.au", "city": "Leumeah (Sydney)", "state": "NSW" },
+    { "persona": "club", "name": "Brisbane International Tennis Centre", "email": "info@queensland.tennis.com.au", "phone": "+61 7 3214 3777", "website": "https://www.queensland.tennis.com.au", "city": "Brisbane", "state": "QLD" },
+    { "persona": "academy", "name": "North West Sydney Tennis (Voyager partner)", "email": "info@northwestsydneytennis.com.au", "phone": "+61 2 9481 0970", "website": "https://northwestsydneytennis.com.au", "city": "Sydney", "state": "NSW" },
+    { "persona": "academy", "name": "Inspire Tennis (North Shore)", "email": "info@inspiretennis.com.au", "phone": "+61 2 9011 8919", "website": "https://www.inspiretennis.com.au", "city": "Sydney North Shore", "state": "NSW" },
+    { "persona": "academy", "name": "Evolve Tennis Academy", "email": "info@evolvetennisacademy.com", "phone": "+61 1300 137 854", "website": "https://evolvetennisacademy.com", "city": "Sydney North Shore", "state": "NSW" },
+    { "persona": "academy", "name": "Northside Tennis", "email": "info@northsidetennis.com.au", "phone": "+61 2 9436 1801", "website": "https://www.northsidetennis.com.au", "city": "Sydney North Shore", "state": "NSW" },
+    { "persona": "club", "name": "Killara Lawn Tennis Club", "email": "info@killaralawntennisclub.com.au", "phone": "+61 2 9498 7000", "website": "https://killaralawntennisclub.com.au", "city": "Killara (Sydney)", "state": "NSW" },
+    { "persona": "club", "name": "North Sydney Tennis & Fitness", "email": "info@nstg.com.au", "phone": "+61 2 9929 6862", "website": "https://www.nstg.com.au", "city": "North Sydney", "state": "NSW" },
+    { "persona": "academy", "name": "Grand Slam Tennis (Cammeray/Mosman)", "email": "info@grandslamtennis.com.au", "phone": "+61 2 9904 1330", "website": "https://grandslamtennis.com.au", "city": "Sydney", "state": "NSW" },
+    { "persona": "club", "name": "White City Tennis Club", "email": "tennis@whitecity.com.au", "phone": "+61 2 9331 4144", "website": "https://www.whitecity.com.au", "city": "Sydney", "state": "NSW" },
+    { "persona": "club", "name": "Domain Tennis Centre Hobart", "email": "tasinfo@tennis.com.au", "phone": "+61 3 6108 8200", "website": "https://domaintennis.com.au", "city": "Hobart", "state": "TAS" }
+  ]
+}

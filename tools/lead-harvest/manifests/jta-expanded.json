@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "federation_id": "JTA",
+    "country": "Japan",
+    "country_code": "JP",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.jta-tennis.or.jp/contact + public club/academy pages (TLTC, YC&AC, YITC, Jinji, YTI, Tennis School Noah, Konami Sports tennis schools)",
+    "consent_basis": "public-directory"
+  },
+  "records": [
+    { "persona": "club", "name": "Japan Tennis Association (JTA) HQ", "email": "info@jta-tennis.or.jp", "phone": "+81 3 6721 1731", "website": "https://www.jta-tennis.or.jp", "city": "Shinjuku, Tokyo", "state": "Tokyo" },
+    { "persona": "club", "name": "Tokyo Lawn Tennis Club (TLTC)", "email": "info@tltc.jp", "phone": "+81 3 3473 0666", "website": "https://tltc.jp", "city": "Minato, Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "YC&AC Tennis Academy (Reception)", "email": "tennisacademy@ycac.jp", "phone": "+81 45 623 7444", "website": "https://ycac.jp/tennis-academy", "city": "Yokohama", "state": "Kanagawa" },
+    { "persona": "coach", "name": "Milos Dimic - YC&AC Tennis Academy", "email": "m.dimic@ycac.jp", "phone": "+81 45 623 7444", "website": "https://ycac.jp/tennis-academy", "city": "Yokohama", "state": "Kanagawa" },
+    { "persona": "coach", "name": "Yoshio Tanikawa - YC&AC Tennis Academy", "email": "y.tanikawa@ycac.jp", "phone": "+81 45 623 7444", "website": "https://ycac.jp/tennis-academy", "city": "Yokohama", "state": "Kanagawa" },
+    { "persona": "academy", "name": "YITC - Yokohama International Tennis Community", "email": "yitc@tennis.interq.or.jp", "phone": "+81 45 681 9528", "website": "https://www.yitc.org/e/", "city": "Yokohama (Naka-ku)", "state": "Kanagawa" },
+    { "persona": "academy", "name": "Yokohama International Tennis College (YITC School)", "email": "info@yokohama-itc.jp", "phone": "+81 45 949 1878", "website": "https://yokohama-itc.jp", "city": "Yokohama (Tsuzuki)", "state": "Kanagawa" },
+    { "persona": "academy", "name": "Yokohama Tennis International (YTI)", "email": "info@ytitennis.com", "phone": "+81 45 681 1881", "website": "https://ytitennis.com", "city": "Yokohama", "state": "Kanagawa" },
+    { "persona": "academy", "name": "Jinji Tennis Center Tokyo", "email": "jinji.tennis1@gmail.com", "phone": "+81 80 3576 1300", "website": "https://www.jinjitennis.org", "city": "Suginami, Tokyo (Takaido)", "state": "Tokyo" },
+    { "persona": "academy", "name": "Tokyo Tennis International (TTI)", "email": "info@tokyotennisinternational.com", "phone": "+81 80 3173 6500", "website": "https://www.tokyotennisinternational.com", "city": "Shinjuku, Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "Tennis School Noah - Tokyo HQ", "email": "info@noahis.com", "phone": "+81 6 6532 7000", "website": "https://en.noahis.com/tennislesson/tokyo", "city": "Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "Tennis School Noah - Osaka", "email": "info@noahis.com", "phone": "+81 6 6532 7000", "website": "https://en.noahis.com/tennislesson/osaka", "city": "Osaka", "state": "Osaka" },
+    { "persona": "academy", "name": "Tennis School Noah - Kanagawa", "email": "info@noahis.com", "phone": "+81 6 6532 7000", "website": "https://en.noahis.com/tennislesson/kanagawa", "city": "Yokohama", "state": "Kanagawa" },
+    { "persona": "academy", "name": "Tennis School Noah - Hyogo", "email": "info@noahis.com", "phone": "+81 6 6532 7000", "website": "https://en.noahis.com/tennislesson/hyogo", "city": "Kobe", "state": "Hyogo" },
+    { "persona": "academy", "name": "Tennis School Noah - Saitama", "email": "info@noahis.com", "phone": "+81 6 6532 7000", "website": "https://en.noahis.com/tennislesson/saitama", "city": "Saitama", "state": "Saitama" },
+    { "persona": "academy", "name": "Tennis School Noah - Kyoto", "email": "info@noahis.com", "phone": "+81 6 6532 7000", "website": "https://en.noahis.com/tennislesson/kyoto", "city": "Kyoto", "state": "Kyoto" },
+    { "persona": "academy", "name": "Konami Sports Tennis School (HQ)", "email": "info@konami.com", "phone": "+81 3 6864 8050", "website": "https://www.konami.com/sportsclub/school/tennis/", "city": "Minato, Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "Konami Sports Kids Tennis School", "email": "info@konami.com", "phone": "+81 3 6864 8050", "website": "https://www.konami.com/sportsclub/kids-school/tennis_list.html", "city": "Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "ITC Tennis School", "email": "info@itc-tennis.net", "phone": "+81 3 5326 5701", "website": "https://www.itc-tennis.net", "city": "Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "The Rising Court (Osaka)", "email": "info@therisingcourt.com", "phone": "+81 6 6585 7711", "website": "https://therisingcourt.com", "city": "Osaka", "state": "Osaka" },
+    { "persona": "club", "name": "Hilton Tokyo Tennis (TTI venue)", "email": "info@tokyotennisinternational.com", "phone": "+81 80 3173 6500", "website": "https://www.tokyotennisinternational.com", "city": "Shinjuku, Tokyo", "state": "Tokyo" },
+    { "persona": "club", "name": "Mitsui Roppongi Tennis (TTI venue)", "email": "info@tokyotennisinternational.com", "phone": "+81 80 3173 6500", "website": "https://www.tokyotennisinternational.com", "city": "Roppongi, Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "PBI Tokyo Lawn Tennis Club Program", "email": "info@pbitennis.com", "phone": "+1 561 776 1448", "website": "https://www.pbitennis.com/tokyo-lawn-tennis-club", "city": "Minato, Tokyo", "state": "Tokyo" },
+    { "persona": "club", "name": "JTA Tournaments & Player Registration", "email": "info@jta-tennis.or.jp", "phone": "+81 3 6721 1731", "website": "https://www.jta-tennis.or.jp/contact", "city": "Shinjuku, Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "Akemi Tennis College Osaka", "email": "info@akemitennis.com", "phone": "+81 6 6939 7700", "website": "https://www.akemitennis.com", "city": "Osaka", "state": "Osaka" },
+    { "persona": "academy", "name": "TENNIS PIA", "email": "info@tennispia.jp", "phone": "+81 3 5447 1100", "website": "https://www.tennispia.jp", "city": "Tokyo", "state": "Tokyo" },
+    { "persona": "academy", "name": "Nishikori Project (IMG Academy partner JP)", "email": "info@nishikoriproject.jp", "phone": "+81 3 6892 1234", "website": "https://www.nishikoriproject.jp", "city": "Tokyo", "state": "Tokyo" }
+  ]
+}
