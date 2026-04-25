@@ -1395,7 +1395,7 @@ async function handleEnrollCadence(req, res) {
     let contactRecord = null;
     try {
       const contactRows = await supabaseGet(
-        `${supabase_url}/rest/v1/marketing_contacts?id=eq.${contact_id}&select=email,phone,stage&limit=1`,
+        `${supabase_url}/rest/v1/marketing_contacts?id=eq.${contact_id}&select=email,phone,stage,first_name,last_name,organization&limit=1`,
         supabase_key
       );
       contactRecord = contactRows?.[0] || null;
@@ -1490,6 +1490,87 @@ async function handleEnrollCadence(req, res) {
       }
     }
 
+    // ── IMMEDIATE FIRST-EMAIL DISPATCH ──────────────────────────────────────
+    // Fire step 1 (the intro email) right now so the contact receives it the
+    // moment they're enrolled. Subsequent steps remain 'pending' and can be
+    // sent by a future cron or manually from the Cadences tab.
+    let firstStepSent = false;
+    let firstStepMessageId = null;
+    const firstEmailExec = executions
+      .filter(e => e.step_type === 'email')
+      .sort((a, b) => a.step_num - b.step_num)[0];
+
+    if (firstEmailExec && hasRealEmail && contactRecord?.email) {
+      const resendKey = String(process.env.RESEND_API_KEY || '').trim();
+      const fromAddr = String(process.env.RESEND_FROM_ADDRESS || 'SmartSwing AI <noreply@mail.smartswingai.com>');
+
+      if (resendKey) {
+        // Personalize merge tags
+        const firstName = contactRecord.first_name || contactRecord.email.split('@')[0] || 'there';
+        const fullName  = [contactRecord.first_name, contactRecord.last_name].filter(Boolean).join(' ') || firstName;
+        const org       = contactRecord.organization || '';
+        const personalize = (s) => (s || '')
+          .replace(/\{\{first_name\}\}/gi, firstName)
+          .replace(/\{\{full_name\}\}/gi,  fullName)
+          .replace(/\{\{organization\}\}/gi, org)
+          .replace(/\{\{cadence_name\}\}/gi, cadenceName);
+
+        try {
+          const emailRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from:    fromAddr,
+              to:      contactRecord.email,
+              subject: personalize(firstEmailExec.subject),
+              html:    personalize(firstEmailExec.body)
+            })
+          });
+
+          if (emailRes.ok) {
+            const emailData = await emailRes.json();
+            firstStepMessageId = emailData?.id || null;
+
+            // Mark step as sent in DB
+            await fetch(`${supabase_url}/rest/v1/cadence_step_executions?id=eq.${firstEmailExec.id}`, {
+              method: 'PATCH',
+              headers: {
+                apikey: supabase_key, Authorization: `Bearer ${supabase_key}`,
+                'Content-Type': 'application/json', Prefer: 'return=minimal'
+              },
+              body: JSON.stringify({ status: 'sent', sent_at: now, provider_message_id: firstStepMessageId })
+            }).catch(e => console.warn('[enroll-cadence] step mark-sent failed:', e.message));
+
+            // Advance enrollment pointer so next_step_at reflects the NEXT pending step
+            const nextExec = executions
+              .filter(e => e.id !== firstEmailExec.id)
+              .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))[0];
+            await fetch(`${supabase_url}/rest/v1/contact_cadence_enrollments?id=eq.${enrollmentId}`, {
+              method: 'PATCH',
+              headers: {
+                apikey: supabase_key, Authorization: `Bearer ${supabase_key}`,
+                'Content-Type': 'application/json', Prefer: 'return=minimal'
+              },
+              body: JSON.stringify({
+                current_step: (firstEmailExec.step_num || 1) + 1,
+                next_step_at: nextExec?.scheduled_at || null
+              })
+            }).catch(e => console.warn('[enroll-cadence] enrollment advance failed:', e.message));
+
+            firstStepSent = true;
+            console.log(`[enroll-cadence] step 1 email sent to ${contactRecord.email} (resend id: ${firstStepMessageId})`);
+          } else {
+            const errText = await emailRes.text().catch(() => '');
+            console.warn('[enroll-cadence] Resend non-OK:', emailRes.status, errText.slice(0, 200));
+          }
+        } catch (sendErr) {
+          console.warn('[enroll-cadence] first email send failed (non-fatal):', sendErr.message);
+        }
+      } else {
+        console.warn('[enroll-cadence] RESEND_API_KEY not set — step 1 email skipped');
+      }
+    }
+
     // Promote contact: stage = 'lead' so they move from Contacts tab → Leads tab.
     // Done with fetch (PATCH) since supabaseInsert is POST-only.
     try {
@@ -1519,7 +1600,9 @@ async function handleEnrollCadence(req, res) {
       step: exec.step_num, type: exec.step_type,
       subject: exec.subject,
       preview: (exec.body || exec.message || '').substring(0, 120),
-      scheduled_at: exec.scheduled_at, status: 'pending'
+      scheduled_at: exec.scheduled_at,
+      // Reflect actual sent status for step 1 so the UI shows the right state
+      status: (exec.id === firstEmailExec?.id && firstStepSent) ? 'sent' : 'pending'
     }));
 
     return res.status(200).json({
@@ -1527,6 +1610,8 @@ async function handleEnrollCadence(req, res) {
       contact_id, cadence_id, cadence_name: cadenceName,
       campaign_id: campaign_id || null,
       stage: 'lead',
+      first_step_sent: firstStepSent,
+      first_step_message_id: firstStepMessageId,
       steps_scheduled: executions.length,
       step_breakdown: {
         email: emailSteps.length,
