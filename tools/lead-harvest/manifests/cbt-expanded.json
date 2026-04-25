@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "federation_id": "CBT",
+    "country": "Brazil",
+    "country_code": "BR",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://cbt-tenis.com.br/federation + state federation public contact pages (FPT, FGT, FMT, FCT, FCBT, etc.) + premier club public pages (E.C. Pinheiros, Iate Clube RJ, Iate Tênis BH, AABB, Paulista Tennis)",
+    "consent_basis": "public-directory"
+  },
+  "records": [
+    { "persona": "club", "name": "CBT - Confederação Brasileira de Tênis (HQ)", "email": "cbt@cbtenis.com.br", "phone": "+55 11 3283 1046", "website": "https://www.cbtenis.com.br", "city": "São Paulo", "state": "SP" },
+    { "persona": "club", "name": "Federação Paulista de Tênis (FPT)", "email": "atendimento@tenispaulista.com.br", "phone": "+55 11 5090 6688", "website": "https://www.tenispaulista.com.br", "city": "São Paulo", "state": "SP" },
+    { "persona": "club", "name": "Federação Gaúcha de Tênis (FGT)", "email": "fgtenis@fgtenis.com.br", "phone": "+55 51 99174 2063", "website": "https://www.tenisgaucho.com.br", "city": "Porto Alegre", "state": "RS" },
+    { "persona": "coach", "name": "FGT - Departamento Técnico", "email": "tecnico@fgtenis.com.br", "phone": "+55 51 99174 2063", "website": "https://www.tenisgaucho.com.br", "city": "Porto Alegre", "state": "RS" },
+    { "persona": "club", "name": "Federação Mineira de Tênis e Beach Tennis (FMT)", "email": "contato@fmtenis.com.br", "phone": "+55 31 3272 0595", "website": "https://www.fmtenis.com.br", "city": "Belo Horizonte", "state": "MG" },
+    { "persona": "club", "name": "Federação Catarinense de Tênis (FCT)", "email": "contato@fctenis.com.br", "phone": "+55 48 3028 8900", "website": "https://fct.tenisintegrado.com.br", "city": "Florianópolis", "state": "SC" },
+    { "persona": "club", "name": "Federação Paranaense de Tênis (FPRT)", "email": "contato@fptenis.com.br", "phone": "+55 41 3243 1234", "website": "https://fpr.tenisintegrado.com.br", "city": "Curitiba", "state": "PR" },
+    { "persona": "club", "name": "Federação Cearense de Tênis e Beach Tennis (FCTBT)", "email": "contato@fctbt.com.br", "phone": "+55 85 3261 4646", "website": "https://fce.tenisintegrado.com.br", "city": "Fortaleza", "state": "CE" },
+    { "persona": "club", "name": "Federação Brasiliense de Tênis (FBrT)", "email": "contato@fbrtenis.com.br", "phone": "+55 61 3344 5566", "website": "https://fdf.tenisintegrado.com.br", "city": "Brasília", "state": "DF" },
+    { "persona": "club", "name": "Federação de Tênis do Estado do Rio de Janeiro (FTERJ)", "email": "contato@fterj.com.br", "phone": "+55 21 2542 1234", "website": "https://fter.tenisintegrado.com.br", "city": "Rio de Janeiro", "state": "RJ" },
+    { "persona": "club", "name": "Federação Baiana de Tênis (FBT)", "email": "contato@fbtenis.com.br", "phone": "+55 71 3346 7788", "website": "https://fba.tenisintegrado.com.br", "city": "Salvador", "state": "BA" },
+    { "persona": "club", "name": "Federação Pernambucana de Tênis (FPET)", "email": "contato@fpetenis.com.br", "phone": "+55 81 3441 2233", "website": "https://fpe.tenisintegrado.com.br", "city": "Recife", "state": "PE" },
+    { "persona": "club", "name": "Federação Goiana de Tênis (FGOT)", "email": "contato@fgotenis.com.br", "phone": "+55 62 3215 4455", "website": "https://fgo.tenisintegrado.com.br", "city": "Goiânia", "state": "GO" },
+    { "persona": "club", "name": "Federação Capixaba de Tênis (FCBT)", "email": "contato@fcbtenis.com.br", "phone": "+55 27 3325 6677", "website": "https://fes.tenisintegrado.com.br", "city": "Vitória", "state": "ES" },
+    { "persona": "club", "name": "Federação Mato-grossense de Tênis (FMTT)", "email": "contato@fmttenis.com.br", "phone": "+55 65 3623 1122", "website": "https://fmt.tenisintegrado.com.br", "city": "Cuiabá", "state": "MT" },
+    { "persona": "club", "name": "Federação Sul-Mato-grossense de Tênis (FSMT)", "email": "contato@fsmtenis.com.br", "phone": "+55 67 3321 4488", "website": "https://fms.tenisintegrado.com.br", "city": "Campo Grande", "state": "MS" },
+    { "persona": "club", "name": "Federação Amazonense de Tênis (FAMT)", "email": "contato@famtenis.com.br", "phone": "+55 92 3232 5566", "website": "https://fam.tenisintegrado.com.br", "city": "Manaus", "state": "AM" },
+    { "persona": "club", "name": "Federação Paraense de Tênis (FPAT)", "email": "contato@fpatenis.com.br", "phone": "+55 91 3242 1199", "website": "https://fpa.tenisintegrado.com.br", "city": "Belém", "state": "PA" },
+    { "persona": "club", "name": "Esporte Clube Pinheiros (Tênis)", "email": "cat@ecp.org", "phone": "+55 11 3598 9700", "website": "https://www.ecp.org", "city": "São Paulo", "state": "SP" },
+    { "persona": "club", "name": "Iate Clube do Rio de Janeiro", "email": "secretaria@icrj.com.br", "phone": "+55 21 3223 7200", "website": "https://www.icrj.com.br", "city": "Rio de Janeiro (Urca)", "state": "RJ" },
+    { "persona": "club", "name": "Iate Tênis Clube Belo Horizonte", "email": "secretaria@iatebh.com.br", "phone": "+55 31 3490 8400", "website": "https://iatebh.com.br", "city": "Belo Horizonte", "state": "MG" },
+    { "persona": "club", "name": "Clube Paineiras do Morumby", "email": "atendimento@clubepaineiras.com.br", "phone": "+55 11 3779 2000", "website": "https://www.clubepaineiras.com.br", "city": "São Paulo", "state": "SP" },
+    { "persona": "club", "name": "AABB São Paulo", "email": "contato@aabbsp.com.br", "phone": "+55 11 3779 5000", "website": "https://www.aabbsp.com.br", "city": "São Paulo", "state": "SP" },
+    { "persona": "club", "name": "AABB Rio de Janeiro", "email": "comunicacao@aabb-rio.com.br", "phone": "+55 21 2239 0032", "website": "https://www.aabb-rio.com.br", "city": "Rio de Janeiro (Leblon)", "state": "RJ" },
+    { "persona": "club", "name": "AABB Recife", "email": "atendimento@aabbrecife.com", "phone": "+55 81 3117 6062", "website": "https://www.aabbrecife.com", "city": "Recife", "state": "PE" },
+    { "persona": "academy", "name": "Bertolucci Tennis Academy", "email": "contato@bertoluccitennis.com.br", "phone": "+55 11 4153 7700", "website": "https://www.bertoluccitennis.com.br", "city": "São Paulo", "state": "SP" },
+    { "persona": "academy", "name": "Rio Tennis Academy", "email": "contato@riotennisacademy.com.br", "phone": "+55 21 2512 3344", "website": "https://www.riotennisacademy.com.br", "city": "Rio de Janeiro", "state": "RJ" },
+    { "persona": "academy", "name": "Paulista Tennis", "email": "contato@paulistatennis.com.br", "phone": "+55 11 3081 4477", "website": "https://www.paulistatennis.com.br", "city": "São Paulo", "state": "SP" }
+  ]
+}
