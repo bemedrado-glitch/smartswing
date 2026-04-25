@@ -1020,17 +1020,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     chatBtn.addEventListener('click', () => chatWin.classList.toggle('open'));
 
-    const CHAT_RESPONSES = [
-      "Great question! For footwork issues, try the split-step timing drill — have the player do 20 split-steps to a feed, focusing on landing just before the ball bounces.",
-      "For motivation, try setting a mini-challenge: 'Hit 8 out of 10 cross-court forehands' — small wins build confidence fast.",
-      "If a player is struggling with consistency, reduce the court size in drills. Smaller target = more success = faster learning.",
-      "Tactical tip for intermediate players: emphasise playing to their stronger side until their weaker side improves to 70%+.",
-      "For juniors, keep session themes to ONE thing. Less is more. One cue, one drill, one goal per session.",
-      "If an athlete is feeling frustrated, try a 'best shot of the session' focus — end every session on a positive note.",
-      "For shoulder issues, the key is hip-to-shoulder sequencing. Drills where the hips fire first before the arm moves work best.",
-      "Match simulation pressure drills are great for bridging the gap between practice and match performance. Try 3-ball patterns with scoring.",
-    ];
-    let chatIdx = 0;
+    // Conversation history for multi-turn LLM context (last 8 turns sent).
+    const chatHistory = [];
 
     function addMsg(text, role) {
       const div = document.createElement('div');
@@ -1038,17 +1029,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       div.textContent = text;
       chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      return div;
     }
 
-    function sendChat() {
+    async function sendChat() {
       const q = chatInput.value.trim();
       if (!q) return;
       addMsg(q, 'user');
       chatInput.value = '';
-      setTimeout(() => {
-        addMsg(CHAT_RESPONSES[chatIdx % CHAT_RESPONSES.length], 'ai');
-        chatIdx++;
-      }, 800);
+      chatSend.disabled = true;
+      const thinking = addMsg('Thinking…', 'ai');
+      thinking.style.opacity = '0.55';
+
+      try {
+        const res = await fetch('/api/ai-coach-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: q,
+            audience: 'coach',
+            history: chatHistory.slice(-8),
+            userId: (access && access.user && access.user.id) || null
+          })
+        });
+        const data = await res.json();
+        const reply = (data && data.reply) || "I had trouble reaching the AI service. Try again in a moment.";
+        thinking.textContent = reply;
+        thinking.style.opacity = '1';
+        chatHistory.push({ role: 'user', content: q });
+        chatHistory.push({ role: 'assistant', content: reply });
+      } catch (err) {
+        thinking.textContent = "Network error — please check your connection and try again.";
+        thinking.style.opacity = '1';
+      } finally {
+        chatSend.disabled = false;
+        chatInput.focus();
+      }
     }
 
     chatSend.addEventListener('click', sendChat);

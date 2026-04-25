@@ -2196,30 +2196,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const send = document.getElementById('pChatSend');
       if (!btn) return;
       btn.addEventListener('click', () => win.classList.toggle('open'));
-      const RESPONSES = [
-        "You're doing great! Focus on one thing per session — consistency beats perfection every time. 🎾",
-        "For footwork: try to arrive at the ball a split-second early. That gives your body time to set before the swing.",
-        "On your forehand: keep your non-hitting arm extended during the backswing to guide your shoulder rotation.",
-        "Mental tip: after a mistake, take one slow breath and say one word — 'next'. It clears the slate fast.",
-        "For serve consistency: pick ONE toss location and hit it 20 times before your next match. Muscle memory is built through repetition.",
-        "Rally drill: hit 10 balls in a row to the same spot. Start cross-court. Count your streak and try to beat it each session.",
-        "Your biggest improvement lever right now is usually the weakest metric in your last report. Open it and do just that drill this week!",
-        "Hydrate well before practice — even mild dehydration slows reaction time and coordination.",
-      ];
-      let idx = 0;
+      const playerChatHistory = [];
       function addMsg(text, role) {
         const d = document.createElement('div');
         d.className = `cmsg ${role}`;
         d.textContent = text;
         msgs.appendChild(d);
         msgs.scrollTop = msgs.scrollHeight;
+        return d;
       }
-      function doSend() {
+      async function doSend() {
         const q = input.value.trim();
         if (!q) return;
         addMsg(q, 'user');
         input.value = '';
-        setTimeout(() => { addMsg(RESPONSES[idx++ % RESPONSES.length], 'ai'); }, 700);
+        send.disabled = true;
+        const thinking = addMsg('Thinking…', 'ai');
+        thinking.style.opacity = '0.55';
+        try {
+          const res = await fetch('/api/ai-coach-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: q,
+              audience: 'player',
+              history: playerChatHistory.slice(-8),
+              userId: (typeof user !== 'undefined' && user && user.id) || null
+            })
+          });
+          const data = await res.json();
+          const reply = (data && data.reply) || "I had trouble reaching the AI service. Try again in a moment.";
+          thinking.textContent = reply;
+          thinking.style.opacity = '1';
+          playerChatHistory.push({ role: 'user', content: q });
+          playerChatHistory.push({ role: 'assistant', content: reply });
+        } catch (err) {
+          thinking.textContent = "Network error — please check your connection and try again.";
+          thinking.style.opacity = '1';
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
       }
       send.addEventListener('click', doSend);
       input.addEventListener('keydown', e => { if (e.key === 'Enter') doSend(); });
