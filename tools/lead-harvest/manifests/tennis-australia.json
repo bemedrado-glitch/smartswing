@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "federation_id": "TENNIS-AUSTRALIA",
+    "country": "Australia",
+    "country_code": "AU",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.tennis.com.au + National Tennis Academy Melbourne + Voyager Tennis Sydney",
+    "consent_basis": "public-directory"
+  },
+  "records": [
+    { "persona": "academy", "name": "National Tennis Academy Melbourne",     "email": "nta@tennis.com.au",         "phone": "+61 3 9914 4111", "website": "https://www.tennis.com.au/learn/academy",         "city": "Melbourne",     "state": "VIC" },
+    { "persona": "academy", "name": "Voyager Tennis Academy",                 "email": "info@voyagertennis.com",    "phone": "+61 2 9818 5755", "website": "https://www.voyagertennis.com",                   "city": "Sydney",        "state": "NSW" },
+    { "persona": "club",    "name": "Royal Sydney Golf Club Tennis",          "email": "tennis@royalsydney.com.au", "phone": "+61 2 9371 4333", "website": "https://www.royalsydney.com.au",                  "city": "Sydney",        "state": "NSW" },
+    { "persona": "club",    "name": "Royal South Yarra Lawn Tennis Club",     "email": "info@rsy.com.au",           "phone": "+61 3 9826 1144", "website": "https://www.rsy.com.au",                          "city": "Melbourne",     "state": "VIC" },
+    { "persona": "club",    "name": "White City Tennis Club",                  "email": "tennis@whitecity.com.au",   "phone": "+61 2 9331 4144", "website": "https://www.whitecity.com.au",                    "city": "Sydney",        "state": "NSW" },
+    { "persona": "academy", "name": "Tennis Australia HQ Melbourne Park",      "email": "info@tennis.com.au",        "phone": "+61 3 9914 4000", "website": "https://www.tennis.com.au",                       "city": "Melbourne",     "state": "VIC" },
+    { "persona": "club",    "name": "Brisbane International Tennis Centre",   "email": "info@queensland.tennis.com.au","phone":"+61 7 3214 3777","website": "https://www.queensland.tennis.com.au",            "city": "Brisbane",      "state": "QLD" }
+  ]
+}

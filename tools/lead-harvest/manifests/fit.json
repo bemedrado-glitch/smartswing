@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "federation_id": "FIT",
+    "country": "Italy",
+    "country_code": "IT",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.federtennis.it + Piatti Tennis Center + Foro Italico",
+    "consent_basis": "public-directory",
+    "notes": "FIT-affiliated flagship clubs and high-performance academies"
+  },
+  "records": [
+    { "persona": "academy", "name": "Piatti Tennis Center",         "email": "info@piattitenniscenter.it", "phone": "+39 0184 668040", "website": "https://www.piattitenniscenter.com",        "city": "Bordighera",  "state": "Liguria" },
+    { "persona": "club",    "name": "Foro Italico Tennis (FIT HQ)",  "email": "segreteria@federtennis.it","phone": "+39 06 87977211","website": "https://www.federtennis.it",                "city": "Roma",         "state": "Lazio" },
+    { "persona": "club",    "name": "TC Milano Alberto Bonacossa",   "email": "info@tcmilano.it",         "phone": "+39 02 4982666",  "website": "https://www.tcmilano.it",                  "city": "Milano",       "state": "Lombardia" },
+    { "persona": "club",    "name": "Circolo del Tennis Palermo",    "email": "info@ctpalermo.it",        "phone": "+39 091 6112025", "website": "https://www.ctpalermo.it",                 "city": "Palermo",      "state": "Sicilia" },
+    { "persona": "club",    "name": "Circolo Tennis Bologna",        "email": "info@circolotennisbologna.it","phone":"+39 051 519044","website": "https://www.circolotennisbologna.it",      "city": "Bologna",      "state": "Emilia-Romagna" },
+    { "persona": "academy", "name": "MX Tennis Academy",             "email": "info@mxtennisacademy.com", "phone": "+39 0184 261051", "website": "https://www.mxtennisacademy.com",           "city": "Bordighera",   "state": "Liguria" }
+  ]
+}

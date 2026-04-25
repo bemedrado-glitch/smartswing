@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "federation_id": "CBT",
+    "country": "Brazil",
+    "country_code": "BR",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.cbtenis.com.br + Bertolucci Tennis Academy + Esporte Clube Pinheiros",
+    "consent_basis": "public-directory"
+  },
+  "records": [
+    { "persona": "academy", "name": "Bertolucci Tennis Academy",         "email": "contato@bertoluccitennis.com.br","phone":"+55 11 4612 1414","website": "https://www.bertoluccitennis.com.br","city": "São Paulo",     "state": "SP" },
+    { "persona": "club",    "name": "Esporte Clube Pinheiros",            "email": "tenis@ecp.org.br",            "phone": "+55 11 3598 4500", "website": "https://www.ecp.org.br",            "city": "São Paulo",     "state": "SP" },
+    { "persona": "club",    "name": "Clube Paineiras do Morumby",         "email": "tenis@paineiras.com.br",      "phone": "+55 11 3779 2000", "website": "https://www.paineiras.com.br",       "city": "São Paulo",     "state": "SP" },
+    { "persona": "club",    "name": "Iate Clube do Rio de Janeiro",       "email": "tenis@icrj.com.br",           "phone": "+55 21 3534 9011", "website": "https://www.icrj.com.br",            "city": "Rio de Janeiro","state": "RJ" },
+    { "persona": "academy", "name": "Tenis Academy Brasil (TAB)",         "email": "contato@tab.com.br",          "phone": "+55 11 5614 2828", "website": "https://www.tab.com.br",             "city": "São Paulo",     "state": "SP" },
+    { "persona": "club",    "name": "CBT — Confederação Brasileira",      "email": "secretaria@cbtenis.com.br",   "phone": "+55 21 2533 8939", "website": "https://www.cbtenis.com.br",         "city": "Rio de Janeiro","state": "RJ" }
+  ]
+}

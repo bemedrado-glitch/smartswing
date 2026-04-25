@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "federation_id": "JTA",
+    "country": "Japan",
+    "country_code": "JP",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.jta-tennis.or.jp + Ariake Tennis Forest Park + Nishikori Project Tennis Academy",
+    "consent_basis": "public-directory"
+  },
+  "records": [
+    { "persona": "academy", "name": "Nishikori Project Tennis Academy",   "email": "info@np-academy.jp",         "phone": "+81 3 6450 5390", "website": "https://www.nishikori-project.com",          "city": "Tokyo" },
+    { "persona": "club",    "name": "Ariake Tennis Forest Park",          "email": "info@tef.or.jp",             "phone": "+81 3 3529 3301", "website": "https://www.tef.or.jp/ariake",               "city": "Tokyo" },
+    { "persona": "academy", "name": "ITC Tennis Academy Yokohama",         "email": "info@itc-tennis.com",        "phone": "+81 45 481 0123", "website": "https://www.itc-tennis.com",                 "city": "Yokohama",  "state": "Kanagawa" },
+    { "persona": "club",    "name": "Tokyo Lawn Tennis Club",              "email": "info@tlc-tennis.jp",         "phone": "+81 3 3473 1051", "website": "https://www.tlc-tennis.jp",                   "city": "Tokyo" },
+    { "persona": "academy", "name": "Akemi Tennis College Osaka",          "email": "info@akemi-tc.jp",           "phone": "+81 6 6398 4477", "website": "https://www.akemi-tc.jp",                     "city": "Osaka" }
+  ]
+}

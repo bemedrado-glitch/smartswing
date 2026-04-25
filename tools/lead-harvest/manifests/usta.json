@@ -1,0 +1,35 @@
+{
+  "_meta": {
+    "federation_id": "USTA",
+    "country": "United States",
+    "country_code": "US",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.usta.com/en/home/play/find-a-place-to-play.html + IMG/Saddlebrook/Evert/Bollettieri public pages + USPTA/PTR public coach directories",
+    "consent_basis": "public-directory",
+    "notes": "Top tennis academies, USTA Section flagship clubs, and USPTA Master Pros — every entry was published for the explicit purpose of recruiting students/members"
+  },
+  "records": [
+    { "persona": "academy", "name": "IMG Academy Tennis",                    "email": "tennisinquiries@imgacademy.com",       "phone": "+1 941-749-8323", "website": "https://www.imgacademy.com/sports/tennis",                       "city": "Bradenton",       "state": "FL", "address": "5650 Bollettieri Blvd, Bradenton, FL 34210" },
+    { "persona": "academy", "name": "Saddlebrook Tennis Academy",            "email": "tennis@saddlebrook.com",               "phone": "+1 813-973-1111", "website": "https://www.saddlebrook.com/tennis",                             "city": "Wesley Chapel",   "state": "FL" },
+    { "persona": "academy", "name": "Evert Tennis Academy",                  "email": "info@evertacademy.com",                "phone": "+1 561-488-2001", "website": "https://www.evertacademy.com",                                   "city": "Boca Raton",      "state": "FL" },
+    { "persona": "academy", "name": "Rick Macci Tennis Academy",             "email": "info@rickmacci.com",                   "phone": "+1 561-477-2120", "website": "https://www.rickmacci.com",                                      "city": "Boca Raton",      "state": "FL" },
+    { "persona": "academy", "name": "John Newcombe Tennis Ranch",            "email": "info@newktennis.com",                  "phone": "+1 800-444-6204", "website": "https://www.newktennis.com",                                     "city": "New Braunfels",   "state": "TX" },
+    { "persona": "academy", "name": "Adidas Smith Stearns Tennis Academy",   "email": "info@smithstearns.com",                "phone": "+1 843-689-9026", "website": "https://www.smithstearns.com",                                   "city": "Hilton Head",     "state": "SC" },
+    { "persona": "academy", "name": "Van der Meer Tennis Academy",           "email": "info@vandermeertennis.com",            "phone": "+1 843-785-8388", "website": "https://www.vandermeertennis.com",                               "city": "Hilton Head",     "state": "SC" },
+    { "persona": "academy", "name": "USTA National Campus",                  "email": "ntcinformation@usta.com",              "phone": "+1 407-675-3550", "website": "https://www.ustanationalcampus.com",                             "city": "Lake Nona",       "state": "FL" },
+    { "persona": "academy", "name": "JMTA (John McEnroe Tennis Academy)",    "email": "info@johnmcenroetennisacademy.com",    "phone": "+1 212-247-7000", "website": "https://www.johnmcenroetennisacademy.com",                       "city": "New York",        "state": "NY" },
+    { "persona": "academy", "name": "Junior Tennis Champions Center",        "email": "info@jtcc.org",                        "phone": "+1 301-779-1234", "website": "https://www.jtcc.org",                                            "city": "College Park",    "state": "MD" },
+    { "persona": "club",    "name": "USTA Eastern Section",                  "email": "eastern@ustaeastern.com",              "phone": "+1 914-697-2300", "website": "https://www.ustaeastern.com",                                    "city": "White Plains",    "state": "NY" },
+    { "persona": "club",    "name": "USTA Florida Section",                  "email": "info@ustaflorida.com",                 "phone": "+1 386-671-8949", "website": "https://www.ustaflorida.com",                                    "city": "Daytona Beach",   "state": "FL" },
+    { "persona": "club",    "name": "USTA Southern California",              "email": "membership@scta.usta.com",             "phone": "+1 310-208-3838", "website": "https://www.scta.usta.com",                                      "city": "Los Angeles",     "state": "CA" },
+    { "persona": "club",    "name": "USTA Northern California",              "email": "info@norcal.usta.com",                 "phone": "+1 510-748-7373", "website": "https://www.norcal.usta.com",                                    "city": "Alameda",         "state": "CA" },
+    { "persona": "club",    "name": "USTA Texas Section",                    "email": "tennis@texas.usta.com",                "phone": "+1 512-443-1334", "website": "https://www.texas.usta.com",                                     "city": "Austin",          "state": "TX" },
+    { "persona": "club",    "name": "Longwood Cricket Club",                 "email": "info@longwoodcc.org",                  "phone": "+1 617-731-4400", "website": "https://www.longwoodcc.org",                                     "city": "Brookline",       "state": "MA" },
+    { "persona": "club",    "name": "Westside Tennis Club",                  "email": "info@westsidetennisclub.com",          "phone": "+1 718-268-2300", "website": "https://www.westsidetennisclub.com",                              "city": "Forest Hills",    "state": "NY" },
+    { "persona": "club",    "name": "La Jolla Beach & Tennis Club",          "email": "info@ljbtc.com",                       "phone": "+1 858-454-7126", "website": "https://www.ljbtc.com",                                          "city": "La Jolla",        "state": "CA" },
+    { "persona": "club",    "name": "Beverly Hills Tennis Club",             "email": "info@beverlyhillstennisclub.com",      "phone": "+1 310-271-8516", "website": "https://www.beverlyhillstennisclub.com",                          "city": "Beverly Hills",   "state": "CA" },
+    { "persona": "club",    "name": "Newport Beach Tennis Club",             "email": "info@nbtc.org",                        "phone": "+1 949-644-0050", "website": "https://www.nbtc.org",                                            "city": "Newport Beach",   "state": "CA" },
+    { "persona": "coach",   "name": "USPTA Master Pro Directory",            "email": "info@uspta.com",                       "phone": "+1 713-978-7782", "website": "https://www.uspta.com",                                          "city": "Houston",         "state": "TX", "club": "USPTA HQ" },
+    { "persona": "coach",   "name": "PTR (Professional Tennis Registry)",    "email": "membership@ptrtennis.org",             "phone": "+1 843-785-7244", "website": "https://www.ptrtennis.org",                                      "city": "Hilton Head",     "state": "SC", "club": "PTR HQ" }
+  ]
+}

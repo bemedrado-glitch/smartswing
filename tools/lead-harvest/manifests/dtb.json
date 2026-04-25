@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "federation_id": "DTB",
+    "country": "Germany",
+    "country_code": "DE",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.dtb-tennis.de + Tennis Base Hannover + Schüttler-Waske Tennis-University",
+    "consent_basis": "public-directory",
+    "notes": "DTB national training centres + flagship academies"
+  },
+  "records": [
+    { "persona": "academy", "name": "Schüttler-Waske Tennis-University",  "email": "info@swtu.de",                       "phone": "+49 6171 9559 0",  "website": "https://www.swtu.de",                                  "city": "Oberursel",     "state": "Hessen" },
+    { "persona": "club",    "name": "Tennis Base Hannover",                "email": "info@tennisbase-hannover.de",        "phone": "+49 511 5108550",  "website": "https://www.tennisbase-hannover.de",                  "city": "Hannover",      "state": "Niedersachsen" },
+    { "persona": "academy", "name": "Bundesleistungszentrum Halle",        "email": "info@blz-tennis.de",                 "phone": "+49 5201 87 0",    "website": "https://www.blz-tennis.de",                            "city": "Halle (Westf)", "state": "NRW" },
+    { "persona": "club",    "name": "Rochusclub Düsseldorf",                "email": "info@rochusclub.de",                 "phone": "+49 211 484577",   "website": "https://www.rochusclub.de",                            "city": "Düsseldorf",    "state": "NRW" },
+    { "persona": "club",    "name": "Hamburger Tennis-Verband",             "email": "info@htv-tennis.de",                 "phone": "+49 40 41908120",  "website": "https://www.htv-tennis.de",                            "city": "Hamburg",       "state": "Hamburg" },
+    { "persona": "club",    "name": "MTTC Iphitos München",                  "email": "info@mttc-iphitos.de",               "phone": "+49 89 332089",    "website": "https://www.mttc-iphitos.de",                          "city": "München",       "state": "Bayern" },
+    { "persona": "club",    "name": "Tennis-Club am Rothenbaum",            "email": "info@am-rothenbaum.de",               "phone": "+49 40 411780",   "website": "https://www.am-rothenbaum.de",                         "city": "Hamburg",       "state": "Hamburg" },
+    { "persona": "academy", "name": "Tennis Akademie Berlin",                "email": "kontakt@tennisakademie-berlin.de",   "phone": "+49 30 89042040",  "website": "https://www.tennisakademie-berlin.de",                "city": "Berlin",        "state": "Berlin" },
+    { "persona": "club",    "name": "Berliner Tennis-Verband",              "email": "info@btv-tennis.de",                 "phone": "+49 30 89099660",  "website": "https://www.btv-tennis.de",                            "city": "Berlin",        "state": "Berlin" }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "federation_id": "FFT",
+    "country": "France",
+    "country_code": "FR",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.fft.fr + Mouratoglou Academy + Tennis Club de Paris + INSEP",
+    "consent_basis": "public-directory",
+    "notes": "FFT-affiliated flagship clubs and high-performance academies"
+  },
+  "records": [
+    { "persona": "academy", "name": "Mouratoglou Tennis Academy",     "email": "info@mouratoglou.com",        "phone": "+33 4 92 38 73 00", "website": "https://www.mouratoglou.com",                "city": "Sophia Antipolis", "state": "PACA" },
+    { "persona": "academy", "name": "INSEP Pôle Tennis",              "email": "contact@insep.fr",            "phone": "+33 1 41 74 41 00", "website": "https://www.insep.fr",                       "city": "Paris",            "state": "Île-de-France" },
+    { "persona": "club",    "name": "Tennis Club de Paris",           "email": "contact@tcp.fr",              "phone": "+33 1 47 04 56 36", "website": "https://www.tcp.fr",                          "city": "Paris",            "state": "Île-de-France" },
+    { "persona": "club",    "name": "Stade Roland Garros (FFT)",      "email": "info@fft.fr",                 "phone": "+33 1 47 43 48 00", "website": "https://www.fft.fr",                          "city": "Paris",            "state": "Île-de-France" },
+    { "persona": "club",    "name": "Lagardère Paris Racing",         "email": "contact@lagardereparis-racing.com","phone":"+33 1 45 27 55 85","website": "https://www.lagardereparisracing.com",      "city": "Paris",            "state": "Île-de-France" },
+    { "persona": "club",    "name": "TC Lyon",                        "email": "accueil@tclyon.fr",           "phone": "+33 4 78 24 04 65", "website": "https://www.tennisclublyon.fr",               "city": "Lyon",             "state": "Auvergne-Rhône-Alpes" },
+    { "persona": "club",    "name": "Tennis Club de Marseille",       "email": "secretariat@tcmtennis.com",   "phone": "+33 4 91 71 95 00", "website": "https://www.tcmtennis.com",                   "city": "Marseille",        "state": "PACA" },
+    { "persona": "academy", "name": "Tennis Pro Academy Toulouse",    "email": "contact@tennisproacademy.com","phone": "+33 5 61 25 00 00", "website": "https://www.tennisproacademy.com",            "city": "Toulouse",         "state": "Occitanie" },
+    { "persona": "club",    "name": "Stade Français Tennis",          "email": "tennis@stadefrancais.com",    "phone": "+33 1 46 24 91 50", "website": "https://www.stadefrancais.com",               "city": "Saint-Cloud",      "state": "Île-de-France" }
+  ]
+}

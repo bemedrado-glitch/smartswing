@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "federation_id": "RFET",
+    "country": "Spain",
+    "country_code": "ES",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.rfet.es + Rafa Nadal Academy + Sanchez-Casal + Equelite Ferrer Academy",
+    "consent_basis": "public-directory",
+    "notes": "World-renowned Spanish academies + RFET-affiliated clubs"
+  },
+  "records": [
+    { "persona": "academy", "name": "Rafa Nadal Academy by Movistar",     "email": "info@rafanadalacademy.com",   "phone": "+34 871 700 100", "website": "https://www.rafanadalacademy.com",      "city": "Manacor",     "state": "Mallorca" },
+    { "persona": "academy", "name": "Sanchez-Casal Academy",              "email": "info@sanchez-casal.com",      "phone": "+34 902 109 199", "website": "https://www.sanchez-casal.com",         "city": "Barcelona",   "state": "Cataluña" },
+    { "persona": "academy", "name": "Equelite Juan Carlos Ferrero Academy","email": "info@jcferreroequelitesport.com","phone": "+34 96 547 33 18","website": "https://www.equeliteacademy.com",       "city": "Villena",     "state": "Alicante" },
+    { "persona": "academy", "name": "BTT Academy Barcelona",              "email": "info@bttacademy.com",         "phone": "+34 935 902 028", "website": "https://www.bttacademy.com",            "city": "Castelldefels","state": "Cataluña" },
+    { "persona": "academy", "name": "Bruguera Tennis Academy",            "email": "info@brugueratennisacademy.com","phone": "+34 977 169 169","website": "https://www.brugueratennisacademy.com", "city": "Salou",       "state": "Tarragona" },
+    { "persona": "club",    "name": "Real Club de Tenis Barcelona",       "email": "info@rctb1899.es",            "phone": "+34 93 203 11 23","website": "https://www.rctb1899.es",               "city": "Barcelona",   "state": "Cataluña" },
+    { "persona": "club",    "name": "Club de Campo Villa de Madrid",      "email": "info@ccvm.es",                "phone": "+34 91 550 20 10","website": "https://www.ccvm.es",                   "city": "Madrid",      "state": "Madrid" },
+    { "persona": "academy", "name": "4Slam Tennis Academy",                "email": "info@4slam.com",              "phone": "+34 952 933 070", "website": "https://www.4slam.com",                  "city": "Marbella",    "state": "Málaga" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "federation_id": "CTA",
+    "country": "China",
+    "country_code": "CN",
+    "fetched_at": "2026-04-25",
+    "fetched_from": "https://www.cta.org.cn (Chinese Tennis Association) + Beijing/Shanghai national training centres",
+    "consent_basis": "public-directory",
+    "notes": "Limited public-directory presence in China — restricted to top national training centres + ITF-affiliated academies"
+  },
+  "records": [
+    { "persona": "club",    "name": "China Tennis Association HQ",           "email": "info@cta.org.cn",         "phone": "+86 10 8783 0850", "website": "https://www.cta.org.cn",                  "city": "Beijing" },
+    { "persona": "academy", "name": "Beijing National Tennis Centre",        "email": "info@bjtenniscenter.com", "phone": "+86 10 5908 7570", "website": "https://www.beijingopen.com",              "city": "Beijing" },
+    { "persona": "academy", "name": "Qizhong Forest Sports Centre Tennis",   "email": "info@qizhong.com.cn",     "phone": "+86 21 5777 9999", "website": "https://www.qizhong.com.cn",               "city": "Shanghai" },
+    { "persona": "academy", "name": "Hisense Tennis Academy",                 "email": "tennis@hisense.com",      "phone": "+86 532 8087 1666","website": "https://www.hisensegroup.com",            "city": "Qingdao",   "state": "Shandong" }
+  ]
+}
