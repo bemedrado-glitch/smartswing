@@ -4615,10 +4615,12 @@ async function confirmAssignCadence() {
       if (!d || d.error) throw new Error(d?.error || 'Enrollment failed');
       if (d.already_enrolled) { showToast('Already enrolled in this cadence', 'error'); return; }
       const cadName = d.cadence_name || 'cadence';
-      const nextWhen = d.next_step_at ? new Date(d.next_step_at).toLocaleString() : 'now';
       const skipNote = d.skipped_channels && d.skipped_channels.length
         ? ` ⚠ Skipped: ${d.skipped_channels.join(', ')}.` : '';
-      showToast(`✓ Enrolled in "${cadName}" (${d.steps_scheduled || 0} steps, first send ${nextWhen}). Moved to Leads.${skipNote}`, 'success');
+      const emailNote = d.first_step_sent
+        ? '📧 Intro email sent.'
+        : (d.next_step_at ? `First send: ${new Date(d.next_step_at).toLocaleString()}.` : '');
+      showToast(`✓ Enrolled in "${cadName}" (${d.steps_scheduled || 0} steps). Moved to Leads. ${emailNote}${skipNote}`, 'success');
       // Refresh Enrollments + History so the new row shows immediately
       if (typeof loadEnrollments === 'function') loadEnrollments();
       if (typeof loadHistory === 'function') loadHistory();
